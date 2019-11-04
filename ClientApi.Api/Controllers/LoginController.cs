@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using ClientApi.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -70,6 +72,27 @@ The Shared Intelligence Network is here to serve you all the content you'd want
                        VipExpiration = 0,
                        CreatedAt = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds()
                    };
+        }
+
+        [Route("/api/v1/oracle/ticket")]
+        [HttpPost]
+        public void GetOracleTicket()
+        {
+
+        }
+        
+        [Route("api/v2/accounts/change_language")]
+        [HttpPost]
+        public void ChangeLanguage()
+        {
+            Ok();
+        }
+
+        [Route("api/v1/server/list")]
+        [HttpPost]
+        public ServerList GetServerList()
+        {
+            return new ServerList();
         }
 
         [Route("api/v2/characters/list")]
@@ -276,138 +299,5 @@ The Shared Intelligence Network is here to serve you all the content you'd want
                        NameChangeCost = 100
                    };
         }
-    }
-
-    public class CharatersList
-    {
-        public IEnumerable<Character> Characters { get; set; }
-        public bool IsDev { get; set; }
-        public int RbBalance { get; set; }
-        public int NameChangeCost { get; set; }
-    }
-
-    public class Character
-    {
-        public long CharacterGuid { get; set; }
-        public string Name { get; set; }
-        public string UniqueName { get; set; }
-        public bool IsDev { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public int TitleId { get; set; }
-        public int TimePlayedSecs { get; set; }
-        public bool NeedsNameChange { get; set; }
-        public int MaxFrameLevel { get; set; }
-        public int FrameSdbId { get; set; }
-        public int CurrentLevel { get; set; }
-        public int Gender { get; set; }
-        public string CurrentGender { get; set; }
-        public int EliteRank { get; set; }
-        public DateTime LastSeenAt { get; set; }
-        public Visuals Visuals { get; set; }
-        public IEnumerable<Gear> Gear { get; set; }
-        public int ExpiresIn { get; set; }
-        public string Race { get; set; }
-        public IEnumerable<int> Migrations { get; set; }
-    }
-
-    public class Gear
-    {
-        public int SlotTypeId { get; set; }
-        public int SdbId { get; set; }
-        public long ItemGuid { get; set; }
-    }
-
-    public class Visuals
-    {
-        public int Id { get; set; }
-        public int Race { get; set; }
-        public int Gender { get; set; }
-        public ColoredItem SkinColor { get; set; }
-        public Item VoiceSet { get; set; }
-        public Item Head { get; set; }
-        public ColoredItem EyeColor { get; set; }
-        public ColoredItem LipColor { get; set; }
-        public ColoredItem HairColor { get; set; }
-        public ColoredItem FacialHairColor { get; set; }
-        public IEnumerable<ColoredItem> HeadAccessories { get; set; }
-        public IEnumerable<ColoredItem> Ornaments { get; set; }
-        public Item Eyes { get; set; }
-        public HairItem Hair { get; set; }
-        public HairItem FacialHair { get; set; }
-        public Item Glider { get; set; }
-        public Item Vehicle { get; set; }
-        public IEnumerable<ColoredTransformableSdbItem> Decals { get; set; }
-        public int WarpaintId { get; set; }
-        public IEnumerable<long> Warpaint { get; set; }
-        public IEnumerable<long> Decalgradients { get; set; }
-        public IEnumerable<WarpaintPattern> WarpaintPatterns { get; set; }
-        public IEnumerable<long> VisualOverrides { get; set; }
-    }
-
-    public class Item
-    {
-        public int Id { get; set; }
-    }
-
-    public class SdbItem
-    {
-        public int SdbId { get; set; }
-    }
-
-    public class TransformableSdbItem : SdbItem
-    {
-        public IEnumerable<decimal> Transform { get; set; }
-    }
-
-    public class ColoredTransformableSdbItem : TransformableSdbItem
-    {
-        public long Color { get; set; }
-    }
-
-    public class WarpaintPattern : TransformableSdbItem
-    {
-        public int Usage { get; set; }
-    }
-
-    public class ColoredItem : Item
-    {
-        public ColorValue Value { get; set; }
-    }
-
-    public class HairItem : Item
-    {
-        public ColorItem Color { get; set; }
-    }
-
-    public class ColorItem : Item
-    {
-        public long Value { get; set; }
-    }
-
-    public class ColorValue
-    {
-        public long Color { get; set; }
-    }
-
-    public class AccountStatus
-    {
-        public long AccountId { get; set; }
-        public bool CanLogin { get; set; }
-        public bool IsDev { get; set; }
-        public bool SteamAuthPrompt { get; set; }
-        public bool SkipPrecursor { get; set; }
-        public CaisStatus CaisStatus { get; set; }
-        public int CharacterLimit { get; set; }
-        public bool IsVip { get; set; }
-        public long VipExpiration { get; set; }
-        public long CreatedAt { get; set; }
-    }
-
-    public class CaisStatus
-    {
-        public string State { get; set; }
-        public long Duration { get; set; }
-        public long ExpiresAt { get; set; }
     }
 }
