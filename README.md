@@ -29,6 +29,8 @@ PlayIntroMovie = false
 
 ## Development
 
+### Web Hosts
+
 | Host       | HTTP | HTTPS |
 |------------|------|-------|
 | Operator   | 4400 | 44300 |
@@ -43,3 +45,9 @@ PlayIntroMovie = false
 | Web        | 4409 | 44309 |
 | Market     | 4410 | 44310 |
 | RedHanded  | 4411 | 44311 |
+
+### Game Server
+
+| Host        | UDP   |
+|-------------|-------|
+| Game Server | 25000 |

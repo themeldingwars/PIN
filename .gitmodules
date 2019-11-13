@@ -1,0 +1,3 @@
+[submodule "Lib/Bitter"]
+	path = Lib/Bitter
+	url = https://github.com/freakbyte/Bitter.git
