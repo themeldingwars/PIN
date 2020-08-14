@@ -8,10 +8,10 @@ using MyGameServer.Extensions;
 
 namespace MyGameServer.Controllers {
 	public static class ControllerFactory {
-		private static ConcurrentDictionary<Packets.GSS.Controllers, BaseController> _controllers;
+		private static ConcurrentDictionary<Enums.GSS.Controllers, BaseController> _controllers;
 		public static T Get<T>() where T : BaseController, new() {
 			if( _controllers == null )
-				_controllers = new ConcurrentDictionary<Packets.GSS.Controllers, BaseController>();
+				_controllers = new ConcurrentDictionary<Enums.GSS.Controllers, BaseController>();
 
 			var attr = typeof(T).GetAttribute<ControllerIDAttribute>();
 
@@ -26,9 +26,9 @@ namespace MyGameServer.Controllers {
 			return _controllers[k] as T;
 		}
 
-		public static BaseController Get( Packets.GSS.Controllers controllerID ) {
+		public static BaseController Get( Enums.GSS.Controllers controllerID ) {
 			if( _controllers == null )
-				_controllers = new ConcurrentDictionary<Packets.GSS.Controllers, BaseController>();
+				_controllers = new ConcurrentDictionary<Enums.GSS.Controllers, BaseController>();
 
 			if( _controllers.ContainsKey(controllerID) )
 				_controllers.AddOrUpdate(controllerID, Activator.CreateInstance(ForControllerID(controllerID)) as BaseController, ( k, nc ) => nc);
@@ -36,7 +36,7 @@ namespace MyGameServer.Controllers {
 			return _controllers[controllerID];
 		}
 
-		public static Type ForControllerID( Packets.GSS.Controllers cID ) {
+		public static Type ForControllerID( Enums.GSS.Controllers cID ) {
 			return ReflectionUtils.FindTypesByAttribute<ControllerIDAttribute>().Where(( t ) => t.GetAttribute<ControllerIDAttribute>().ControllerID == cID).FirstOrDefault();
 		}
 	}

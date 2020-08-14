@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MyGameServer.Packets {
+namespace MyGameServer.Enums {
     public enum ControlPacketType : byte {
         CloseConnection = 0,
         MatrixAck = 2,

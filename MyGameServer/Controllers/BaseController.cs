@@ -7,7 +7,7 @@ using MyGameServer.Packets;
 
 namespace MyGameServer.Controllers {
 	public abstract class BaseController {
-		public Packets.GSS.Controllers ControllerID { get; private set; }
+		public Enums.GSS.Controllers ControllerID { get; private set; }
 
 		protected BaseController() {
 			try {

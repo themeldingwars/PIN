@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MyGameServer.Packets.Control {
-	[ControlMessage(ControlPacketType.TimeSyncResponse)]
+	[ControlMessage(Enums.ControlPacketType.TimeSyncResponse)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public readonly struct TimeSyncResponse {
 		public readonly ulong ClientTime;

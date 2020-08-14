@@ -6,7 +6,7 @@ using System.Text;
 using ServerShared;
 
 namespace MyGameServer.Packets.Matrix {
-	[MatrixMessage(MatrixPacketType.EnterZone)]
+	[MatrixMessage(Enums.MatrixPacketType.EnterZone)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public unsafe struct EnterZone {
         public ulong InstanceId;

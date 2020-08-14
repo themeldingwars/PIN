@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MyGameServer.Packets.Control {
-	[ControlMessage(ControlPacketType.CloseConnection)]
+	[ControlMessage(Enums.ControlPacketType.CloseConnection)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public readonly struct CloseConnection {
 		//public readonly uint Unk1;
