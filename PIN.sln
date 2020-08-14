@@ -18,9 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientApi.Api", "ClientApi.Api\ClientApi.Api.csproj", "{58B35203-62CE-4A95-A78E-04F35289E6BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientApi.Api", "ClientApi.Api\ClientApi.Api.csproj", "{58B35203-62CE-4A95-A78E-04F35289E6BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Common", "Shared.Common\Shared.Common.csproj", "{B0713AD9-4EF4-4740-93A5-6F756BA130E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Common", "Shared.Common\Shared.Common.csproj", "{B0713AD9-4EF4-4740-93A5-6F756BA130E4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameServer", "GameServer\GameServer.csproj", "{083E749B-139F-4F45-8C3A-22F4C57C8162}"
 EndProject
