@@ -12,7 +12,7 @@ using Serilog;
 namespace ServerShared {
 	public abstract class PacketServer : IPacketSender {
 		public static ILogger Logger;
-		private const int MTU = 1500;
+		public const int MTU = 1400;
 
 		private readonly Socket serverSocket;
 		private readonly IPEndPoint listenEndpoint;

@@ -6,10 +6,10 @@ using MyGameServer.Packets;
 
 namespace MyGameServer.Controllers {
 	[ControllerID(Enums.GSS.Controllers.Generic)]
-	public class Generic : BaseController {
+	public class Generic : Base {
 
 		// Example GSS Message Handler
-		[MessageID((byte)Enums.GSS.GenericCommands.ScheduleUpdateRequest)]
+		[MessageID((byte)Enums.GSS.Generic.Commands.ScheduleUpdateRequest)]
 		public void ScheduleUpdateRequest( NetworkClient client, ulong EntityID, GamePacket packet) {
 			// TODO: implement
 		}

@@ -6,6 +6,7 @@ using ServerShared;
 using MyGameServer.Packets;
 using System.Linq;
 using System.Collections.Concurrent;
+using MyGameServer.Packets.Control;
 
 namespace MyGameServer {
 	public enum ChannelType : byte {
@@ -91,7 +92,7 @@ namespace MyGameServer {
 
 			while(outgoingPackets.TryDequeue(out Memory<byte> qi) ) {
 				client.Send(qi);
-				Program.Logger.Verbose("<--- {0}: {1} bytes", Type, qi.Length);
+				//Program.Logger.Verbose("<--- {0}: {1} bytes", Type, qi.Length);
 			}
 		}
 
@@ -152,10 +153,10 @@ namespace MyGameServer {
 			} else
 				throw new Exception();
 
-			SendBE(p);
+			Send(p);
 		}
 
-		public void SendGSS<T>( T pkt, byte? controllerID = null, ulong? entityID = null ) where T : struct {
+		public void SendGSS<T>( T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null ) where T : struct {
 			Memory<byte> p;
 			if( pkt is IWritableStruct write ) {
 				p = write.Write();
@@ -169,12 +170,7 @@ namespace MyGameServer {
 				var t = new Memory<byte>(new byte[9 + p.Length]);
 				p.CopyTo(t.Slice(9));
 
-				if( entityID.HasValue )
-					Utils.WriteStruct(entityID.Value).CopyTo(t);
-				else if( gssMsgAttr.EntityID.HasValue )
-					Utils.WriteStruct(gssMsgAttr.EntityID.Value).CopyTo(t);
-				else
-					throw new Exception();
+				Utils.WriteStruct(entityID).CopyTo(t);
 
 				// Intentionally overwrite first byte of Entity ID
 				if( controllerID.HasValue )
@@ -184,11 +180,14 @@ namespace MyGameServer {
 				else
 					throw new Exception();
 
-				Utils.WriteStruct((byte)msgID).CopyTo(t.Slice(8));
+				Utils.WriteStruct(msgID).CopyTo(t.Slice(8));
 
 				p = t;
 
-				Program.Logger.Verbose("<-- {0}: {1} - {2} - {3} ({4})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID.HasValue ? entityID.Value : gssMsgAttr.EntityID.Value, msgID, (byte)msgID);
+				if( msgEnumType == null )
+					Program.Logger.Verbose("<-- {0}: {1} - {2:X2}", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, msgID);
+				else
+					Program.Logger.Verbose("<-- {0}: {1} - {2} ({3:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
 			} else
 				throw new Exception();
 
@@ -200,39 +199,24 @@ namespace MyGameServer {
 			if( IsSequenced )
 				extraLen += 2;
 
-			var hdr = new GamePacketHeader(Type, 0, false, (ushort)(p.Length + extraLen));
-			var t = new Memory<byte>(new byte[p.Length + extraLen]);
-			p.CopyTo(t.Slice(extraLen));
-			Utils.WriteStructBE(hdr).CopyTo(t);
+			while( p.Length > 0 ) {
+				var len = Math.Max(p.Length + extraLen, PacketServer.MTU);
 
-			if( IsSequenced ) {
-				Utils.WriteStructBE(CurrentSequenceNumber).CopyTo(t.Slice(extraLen - 2));
-				unchecked { CurrentSequenceNumber++; }
+				var t = new Memory<byte>(new byte[len]);
+				p.Slice(len - extraLen).CopyTo(t.Slice(extraLen));
+
+				if( IsSequenced ) {
+					Utils.WriteStructBE(CurrentSequenceNumber).CopyTo(t.Slice(2, 2));
+					unchecked { CurrentSequenceNumber++; }
+				}
+
+				var hdr = new GamePacketHeader(Type, 0, (p.Length > (PacketServer.MTU - extraLen)), (ushort)(t.Length));
+				Utils.WriteStructBE(hdr).CopyTo(t);
+
+				outgoingPackets.Enqueue(t);
+
+				p = p.Slice(len - extraLen);
 			}
-
-			p = t;
-
-			outgoingPackets.Enqueue(p);
-		}
-
-		public void SendBE( Memory<byte> p ) {
-			var extraLen = 2;
-			if( IsSequenced )
-				extraLen += 2;
-
-			var hdr = new GamePacketHeader(Type, 0, false, (ushort)(p.Length + extraLen));
-			var t = new Memory<byte>(new byte[p.Length + extraLen]);
-			p.CopyTo(t.Slice(extraLen));
-			Utils.WriteStructBE(hdr).CopyTo(t);
-
-			if( IsSequenced ) {
-				Utils.WriteStructBE(CurrentSequenceNumber).CopyTo(t.Slice(extraLen - 2));
-				unchecked { CurrentSequenceNumber++; }
-			}
-
-			p = t;
-
-			outgoingPackets.Enqueue(p);
 		}
 	}
 }
