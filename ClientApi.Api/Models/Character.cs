@@ -5,7 +5,7 @@ namespace ClientApi.Api.Models
 {
     public class Character
     {
-        public long CharacterGuid { get; set; }
+        public ulong CharacterGuid { get; set; }
         public string Name { get; set; }
         public string UniqueName { get; set; }
         public bool IsDev { get; set; }

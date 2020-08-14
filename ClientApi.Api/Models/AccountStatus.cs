@@ -2,7 +2,7 @@
 {
     public class AccountStatus
     {
-        public long AccountId { get; set; }
+        public ulong AccountId { get; set; }
         public bool CanLogin { get; set; }
         public bool IsDev { get; set; }
         public bool SteamAuthPrompt { get; set; }
