@@ -21,6 +21,8 @@ namespace MyGameServer {
 		}
 
 		protected override void Startup() {
+			Test.DataUtils.Init();
+			Controllers.Factory.Init();
 		}
 		protected override void Tick() {
 		}

@@ -6,10 +6,10 @@ using MyGameServer.Extensions;
 using MyGameServer.Packets;
 
 namespace MyGameServer.Controllers {
-	public abstract class BaseController {
+	public abstract class Base {
 		public Enums.GSS.Controllers ControllerID { get; private set; }
 
-		protected BaseController() {
+		protected Base() {
 			try {
 				ControllerID = GetType().GetAttribute<ControllerIDAttribute>().ControllerID;
 			} catch {

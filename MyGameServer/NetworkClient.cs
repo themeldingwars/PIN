@@ -51,7 +51,7 @@ namespace MyGameServer {
 			var EntityID = BitConverter.ToUInt64(entity.ToArray());
 			var MsgID = packet.Read<byte>();
 
-			var conn = Controllers.ControllerFactory.Get(ControllerID);
+			var conn = Controllers.Factory.Get(ControllerID);
 
 			if( conn == null ) {
 				Program.Logger.Verbose("---> Unrecognized ControllerID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, EntityID, MsgID);
@@ -68,7 +68,6 @@ namespace MyGameServer {
 
 			switch(msgID) {
 			case Enums.MatrixPacketType.Login:
-				Program.Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 				// Login
 				var pkt = packet.Read<Packets.Matrix.Login>();
 				Player.Login(pkt.CharacterGUID);
@@ -113,8 +112,11 @@ namespace MyGameServer {
 				Channels[ChannelType.Matrix].Send(syncReq);*/
 				break;
 			case Enums.MatrixPacketType.EnterZoneAck:
-				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ArcCompletionHistoryUpdate.GetEmpty(), 0, InstanceID);
-				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.JobLedgerEntriesUpdate { Unk1 = 0x00 }, 0, InstanceID);
+				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ArcCompletionHistoryUpdate.GetEmpty(), InstanceID, Enums.GSS.Controllers.Generic);
+				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.JobLedgerEntriesUpdate { Unk1 = 0x00 }, InstanceID, Enums.GSS.Controllers.Generic);
+				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ConfirmedPoseUpdate.GetPreSpawnConfirmedPoseUpdate(), Player.EntityID, Enums.GSS.Controllers.Character_BaseController);
+				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.TotalAchievementPoints { Number = 0x00000ad2 }, InstanceID, Enums.GSS.Controllers.Generic);
+				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.InteractableStatusChanged { Unk1 = 0x0006eb22, Unk4 = 0x0100 }, InstanceID, Enums.GSS.Controllers.Generic);
 
 				break;
 			case Enums.MatrixPacketType.KeyframeRequest:
