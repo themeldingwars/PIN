@@ -4,9 +4,9 @@ using System.Text;
 
 namespace MyGameServer.Packets {
 	public class ControlMessageAttribute : Attribute {
-		public ControlPacketType MsgID { get; protected set; }
+		public Enums.ControlPacketType MsgID { get; protected set; }
 
-		public ControlMessageAttribute( ControlPacketType mID ) {
+		public ControlMessageAttribute( Enums.ControlPacketType mID ) {
 			MsgID = mID;
 		}
 	}

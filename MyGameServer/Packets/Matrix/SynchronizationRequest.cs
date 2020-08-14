@@ -6,7 +6,7 @@ using System.Text;
 using ServerShared;
 
 namespace MyGameServer.Packets.Matrix {
-	[MatrixMessage(MatrixPacketType.SynchronizationRequest)]
+	[MatrixMessage(Enums.MatrixPacketType.SynchronizationRequest)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct SynchronizationRequest : IWritableStruct {
 		public static SynchronizationRequest Parse( Packet packet ) {

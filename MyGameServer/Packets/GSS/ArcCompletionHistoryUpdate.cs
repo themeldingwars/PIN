@@ -6,7 +6,7 @@ using System.Text;
 using ServerShared;
 
 namespace MyGameServer.Packets.GSS {
-	[GSSMessage((byte)GenericEvents.ArcCompletionHistoryUpdate)]
+	[GSSMessage((byte)Enums.GSS.GenericEvents.ArcCompletionHistoryUpdate)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public unsafe struct ArcCompletionHistoryUpdate : IWritableStruct {
 		public static ArcCompletionHistoryUpdate Parse(Packet packet) {

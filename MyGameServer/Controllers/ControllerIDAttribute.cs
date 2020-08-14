@@ -4,9 +4,9 @@ using System.Text;
 
 namespace MyGameServer.Controllers {
 	public class ControllerIDAttribute : Attribute {
-		public Packets.GSS.Controllers ControllerID { get; private set; }
+		public Enums.GSS.Controllers ControllerID { get; private set; }
 
-		public ControllerIDAttribute( Packets.GSS.Controllers cID ) {
+		public ControllerIDAttribute( Enums.GSS.Controllers cID ) {
 			ControllerID = cID;
 		}
 	}

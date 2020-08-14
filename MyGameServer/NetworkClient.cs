@@ -45,7 +45,7 @@ namespace MyGameServer {
 		}
 
 		private void GSS_PacketAvailable( GamePacket packet ) {
-			var ControllerID = packet.Read<Packets.GSS.Controllers>();
+			var ControllerID = packet.Read<Enums.GSS.Controllers>();
 			Span<byte> entity = new byte[8];
 			packet.Read(7).ToArray().Reverse().ToArray().CopyTo(entity);
 			var EntityID = BitConverter.ToUInt64(entity.ToArray());
@@ -63,11 +63,11 @@ namespace MyGameServer {
 		}
 
 		private unsafe void Matrix_PacketAvailable( GamePacket packet ) {
-			var msgID = packet.Read<MatrixPacketType>();
+			var msgID = packet.Read<Enums.MatrixPacketType>();
 			Program.Logger.Verbose("--> {0} ({1})", msgID, ((byte)msgID));
 
 			switch(msgID) {
-			case MatrixPacketType.Login:
+			case Enums.MatrixPacketType.Login:
 				Program.Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 				// Login
 				var pkt = packet.Read<Packets.Matrix.Login>();
@@ -112,14 +112,14 @@ namespace MyGameServer {
 
 				Channels[ChannelType.Matrix].Send(syncReq);*/
 				break;
-			case MatrixPacketType.EnterZoneAck:
+			case Enums.MatrixPacketType.EnterZoneAck:
 				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ArcCompletionHistoryUpdate.GetEmpty(), 0, InstanceID);
 				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.JobLedgerEntriesUpdate { Unk1 = 0x00 }, 0, InstanceID);
 
 				break;
-			case MatrixPacketType.KeyframeRequest:
+			case Enums.MatrixPacketType.KeyframeRequest:
 				break;
-			case MatrixPacketType.ClientStatus:
+			case Enums.MatrixPacketType.ClientStatus:
 				var matStatus = new Packets.Matrix.MatrixStatus() {
 					Unk = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 				};
@@ -134,28 +134,28 @@ namespace MyGameServer {
 		}
 
 		private void Control_PacketAvailable( GamePacket packet ) {
-			var msgID = packet.ReadBE<ControlPacketType>();
+			var msgID = packet.ReadBE<Enums.ControlPacketType>();
 			Program.Logger.Verbose("--> {0} ({1})", msgID, ((byte)msgID));
 
 			switch( msgID ) {
-			case ControlPacketType.CloseConnection:
+			case Enums.ControlPacketType.CloseConnection:
 				var ccPkt = packet.Read<Packets.Control.CloseConnection>();
 				// TODO: Cleanly dispose of client
 				break;
-			case ControlPacketType.MatrixAck:
+			case Enums.ControlPacketType.MatrixAck:
 				var mAckPkt = packet.Read<Packets.Control.MatrixAck>();
 				// TODO: Track reliable packets
 				break;
-			case ControlPacketType.ReliableGSSAck:
+			case Enums.ControlPacketType.ReliableGSSAck:
 				var gssAckPkt = packet.Read<Packets.Control.ReliableGSSAck>();
 				// TODO: Track reliable packets
 				break;
-			case ControlPacketType.TimeSyncRequest:
+			case Enums.ControlPacketType.TimeSyncRequest:
 				var req = packet.Read<Packets.Control.TimeSyncRequest>();
 				var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()*1000u));
 				Channels[ChannelType.Control].Send(resp);
 				break;
-			case ControlPacketType.MTUProbe:
+			case Enums.ControlPacketType.MTUProbe:
 				var mtuPkt = packet.Read<Packets.Control.MTUProbe>();
 				// TODO: ???
 				break;

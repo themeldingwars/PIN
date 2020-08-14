@@ -6,7 +6,7 @@ using System.Text;
 using ServerShared;
 
 namespace MyGameServer.Packets.Matrix {
-	[MatrixMessage(MatrixPacketType.MatrixStatus)]
+	[MatrixMessage(Enums.MatrixPacketType.MatrixStatus)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct MatrixStatus : IWritableStruct {
 		public static MatrixStatus Parse( Packet packet ) {

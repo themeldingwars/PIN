@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MyGameServer.Packets.Control {
-	[ControlMessage(ControlPacketType.ReliableGSSAck)]
+	[ControlMessage(Enums.ControlPacketType.ReliableGSSAck)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public readonly struct ReliableGSSAck {
 		public readonly ushort NextSeqNum;

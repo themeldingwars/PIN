@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MyGameServer.Packets.Matrix {
-	[MatrixMessage(MatrixPacketType.Login)]
+	[MatrixMessage(Enums.MatrixPacketType.Login)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public unsafe struct Login {
 		public byte Unk1;

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MyGameServer.Packets.Matrix {
-	[MatrixMessage(MatrixPacketType.WelcomeToTheMatrix)]
+	[MatrixMessage(Enums.MatrixPacketType.WelcomeToTheMatrix)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public readonly struct WelcomeToTheMatrix {
 		public readonly ulong InstanceID;
