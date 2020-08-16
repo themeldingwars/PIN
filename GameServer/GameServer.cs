@@ -1,9 +1,10 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Bitter;
+using GameServer.Packets;
+using GameServer.Packets.Game;
+using GameServer.Packets.Matrix;
 
 namespace GameServer
 {
@@ -41,20 +42,15 @@ namespace GameServer
             }
         }
 
-        private byte[] ProcessData(byte[] data)
+        private static byte[] ProcessData(byte[] data)
         {
-            using (var stringStream = new MemoryStream(data))
-            using (var inputBinaryStream = new BinaryStream(stringStream))
-            using (var outputBinaryStream = ParseUdpPacket(inputBinaryStream))
-            {
-                outputBinaryStream.ByteOffset = 0;
-                data = outputBinaryStream.Read.ByteArray((int) outputBinaryStream.Length);
-                Console.WriteLine($"Response data {Encoding.ASCII.GetString(data, 0, data.Length)}");
-                return data;
-            }
+            var parser = new PacketParser();
+            var incomingPacket = parser.ParseIncomingData(data);
+            var outgoingPacket = ParseUdpPacket(incomingPacket);
+            return outgoingPacket.ToBytes();
         }
 
-        private byte[] ListenForData(ref IPEndPoint remoteEndPoint)
+        private static byte[] ListenForData(ref IPEndPoint remoteEndPoint)
         {
             const int ListenPort = 25000;
             var data = new byte[] { };
@@ -82,52 +78,45 @@ namespace GameServer
             return data;
         }
 
-        private BinaryStream ParseUdpPacket(BinaryStream inputBinaryStream)
+        private static Packet ParseUdpPacket(Packet incomingPacket)
         {
-            BinaryStream outputBinaryStream = null;
-
-            while (!inputBinaryStream.EndOfStream)
-            {
-                var socketId = inputBinaryStream.Read.UInt();
-
-                if (socketId == 0)
-                {
-                    Console.WriteLine("Detected Matrix packet");
-                    outputBinaryStream = ParseMatrixPacket(inputBinaryStream);
-                }
-            }
-
-            return outputBinaryStream;
+            return incomingPacket switch
+                   {
+                       MatrixPacket matrixPacket => ParseMatrixPacket(matrixPacket),
+                       GamePacket gamePacket     => ParseGamePacket(gamePacket),
+                       _                         => throw new UnknownPacketException()
+                   };
         }
 
-        private BinaryStream ParseMatrixPacket(BinaryStream inputBinaryStream)
+        private static MatrixPacket ParseMatrixPacket(MatrixPacket incomingPacket)
         {
-            var packetType = inputBinaryStream.Read.String(4);
-            Console.WriteLine($"Matrix packet type: {packetType}");
-
-            var response = new BinaryStream();
-
-            switch (packetType)
+            switch (incomingPacket)
             {
-                case "POKE":
-                    Console.WriteLine($"Client uses protocol version: {inputBinaryStream.Read.UShort()}");
-                    response.Write.UInt(0u);
-                    response.Write.ByteArray(Encoding.ASCII.GetBytes("HEHE"));
-                    response.Write.UInt(1337u);
-                    break;
-                case "KISS":
-                    Console.WriteLine($"Client uses socket id {inputBinaryStream.Read.UInt()} and protocol version {inputBinaryStream.Read.UInt()}");
-                    response.Write.UInt(0u);
-                    response.Write.ByteArray(Encoding.ASCII.GetBytes("HUGG"));
-                    response.Write.UShort(54321);
-                    response.Write.UShort(25000);
-                    break;
-                case "ABRT":
+                case PokeMatrixPacket pokePacket:
+                    Console.WriteLine($"Client uses protocol version: {pokePacket.ProtocolVersion}");
+                    return new HeheMatrixPacket
+                           {
+                               SocketId = 0u,
+                               Type = Encoding.ASCII.GetBytes("HEHE"),
+                               NextSocketId = 1337u
+                           };
+                case KissMatrixPacket kissPacket:
+                    Console.WriteLine($"Client uses next socket id {kissPacket.NextSocketId} and stream protocol version {kissPacket.StreamingProtocolVersion}");
+                    return new HuggMatrixPacket
+                           {
+                               SocketId = 0u,
+                               Type = Encoding.ASCII.GetBytes("HUGG"),
+                               SequenceStart = 54321,
+                               GameServerPort = 25000
+                           };
                 default:
-                    break;
+                    throw new UnknownMatrixPacketException(Encoding.ASCII.GetString(incomingPacket.Type));
             }
+        }
 
-            return response;
+        private static GamePacket ParseGamePacket(GamePacket incomingPacket)
+        {
+            throw new NotImplementedException();
         }
     }
 }
