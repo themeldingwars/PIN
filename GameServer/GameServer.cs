@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Bitter;
-using BinaryReader = Bitter.BinaryReader;
 
 namespace GameServer
 {
@@ -95,10 +94,6 @@ namespace GameServer
                 {
                     Console.WriteLine("Detected Matrix packet");
                     outputBinaryStream = ParseMatrixPacket(inputBinaryStream);
-                }
-                else
-                {
-                    //ParseGamePacket(binaryStream.Read);
                 }
             }
 

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 
-namespace StaticContent
+namespace StaticContent.Web
 {
     public class Startup
     {
