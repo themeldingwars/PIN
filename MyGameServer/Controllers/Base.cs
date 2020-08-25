@@ -5,8 +5,11 @@ using System.Linq;
 using MyGameServer.Extensions;
 using MyGameServer.Packets;
 
+using Serilog;
+
 namespace MyGameServer.Controllers {
 	public abstract class Base {
+		protected ILogger Log { get { return Program.Logger; } }
 		public Enums.GSS.Controllers ControllerID { get; private set; }
 
 		protected Base() {
@@ -17,11 +20,13 @@ namespace MyGameServer.Controllers {
 			}
 		}
 
+		public abstract void Init( NetworkClient client );
+
 		public void HandlePacket(NetworkClient client, ulong EntityID, byte MsgID, GamePacket packet) {
 			var method = ReflectionUtils.FindMethodsByAttribute<MessageIDAttribute>(this).Where(( mi ) => mi.GetAttribute<MessageIDAttribute>().MsgID == MsgID).FirstOrDefault();
 
 			if( method == null ) {
-				Program.Logger.Verbose("---> Unrecognized MsgID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, EntityID, MsgID);
+				Log.Verbose("---> Unrecognized MsgID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, EntityID, MsgID);
 				return;
 			}
 

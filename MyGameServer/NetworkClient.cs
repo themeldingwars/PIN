@@ -55,11 +55,41 @@ namespace MyGameServer {
 
 			if( conn == null ) {
 				Program.Logger.Verbose("---> Unrecognized ControllerID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, EntityID, MsgID);
+				Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 				return;
 			}
 
-			Program.Logger.Verbose("--> GSS; Controller = {0} Entity = 0x{1:X8} MsgID = {2}", ControllerID, EntityID, MsgID);
+			//Program.Logger.Verbose("--> GSS; Controller = {0} Entity = 0x{1:X8} MsgID = {2}", ControllerID, EntityID, MsgID);
 			conn.HandlePacket(this, EntityID, MsgID, packet);
+
+			// Character_BaseController = 115
+			// Character_BaseController = 145
+			// Character_BaseController = 148
+			// Character_BaseController = 150
+
+			// Character_BaseController = 179 ???
+			// Character_BaseController = 180 ???
+			// Character_BaseController = 181 ???
+			// Character_BaseController = 182 ???
+			// Character_BaseController = 140 ???
+			// Character_BaseController = 216 ???
+			// Character_BaseController = 142 ???
+
+			// Character_CombatController = 138 ???
+			// Character_CombatController = 134 ???
+			// Character_CombatController = 118 ???
+			// Character_CombatController = 119 ???
+			// Character_CombatController = 120 ???
+			// Character_CombatController = 121 ???
+			// Character_CombatController = 122 ???
+			// Character_CombatController = 123 ???
+			// Character_CombatController = 124 ???
+			// Character_CombatController = 125 ???
+			// Character_CombatController = 126 ???
+
+			// Vehicle_BaseController = 83 ???
+			// Vehicle_BaseController = 86 ???
+			// Vehicle_BaseController = 90 ???
 		}
 
 		private unsafe void Matrix_PacketAvailable( GamePacket packet ) {
@@ -112,14 +142,46 @@ namespace MyGameServer {
 				Channels[ChannelType.Matrix].Send(syncReq);*/
 				break;
 			case Enums.MatrixPacketType.EnterZoneAck:
-				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ArcCompletionHistoryUpdate.GetEmpty(), InstanceID, Enums.GSS.Controllers.Generic);
-				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.JobLedgerEntriesUpdate { Unk1 = 0x00 }, InstanceID, Enums.GSS.Controllers.Generic);
-				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ConfirmedPoseUpdate.GetPreSpawnConfirmedPoseUpdate(), Player.EntityID, Enums.GSS.Controllers.Character_BaseController);
-				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.TotalAchievementPoints { Number = 0x00000ad2 }, InstanceID, Enums.GSS.Controllers.Generic);
-				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.InteractableStatusChanged { Unk1 = 0x0006eb22, Unk4 = 0x0100 }, InstanceID, Enums.GSS.Controllers.Generic);
+				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ArcCompletionHistoryUpdate.GetEmpty(), InstanceID, msgEnumType: typeof(Enums.GSS.Generic.Events));
+				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.JobLedgerEntriesUpdate { Unk1 = 0x00 }, InstanceID, msgEnumType: typeof(Enums.GSS.Generic.Events));
+				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ConfirmedPoseUpdate.GetPreSpawnConfirmedPoseUpdate(), Player.EntityID, msgEnumType: typeof(Enums.GSS.Character.Events));
+				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.TotalAchievementPoints { Number = 0x00000ad2 }, InstanceID, msgEnumType: typeof(Enums.GSS.Generic.Events));
+				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.InteractableStatusChanged { Unk1 = 0x0006eb22, Unk4 = 0x0100 }, InstanceID, msgEnumType: typeof(Enums.GSS.Generic.Events));
+
+				Controllers.Factory.Get<Controllers.Character.BaseController>().Init(this);
+
+				// TODO: Setup Character Controllers
+				//		BaseController (2)
+				//		CombatController (5)				???
+				//		LocalEffectsController (6)			???
+				//		MissionAndMarkerController (4)		???
+
+				// EliteLevels_InitAllFrames				???
+				// Character Loaded
+				// Tutorial State Init						???
+				// Combat Controller Ability Coldowns 1		???
+				// Combat Controller Ability Coldowns 2		???
+				// Combat Controller Ability Coldowns 3		???
+
+				// sendProgressionXPRefresh					???
+				// sendInventoryUpdate						???
+				// sendPrivateCombatLog (114)				???
+				// sendUpdateCharacterControllers			???
+				// sendEliteLevelsInitInfo					???
+				// sendCharCombatController_Msg1 (124)		???
+				// sendCharCombatController_Msg1 (126)		???
+				// sendCharCombatController_Msg1 (128)		???
+				// sendPrivateCombatLog (140)				???
+				// sendCharCombatController_Msg1 (124)		???
+				// sendUnknownCID2_1 (199)					???
+				// sendPrivateCombatLog (1069)				???
+				// sendCharCombatController_Msg1 ("1081_context_adapted") ???
+				// sendPrivateCombatLog (1102)				???
+				// sendPrivateCombatLog (1135)				???
 
 				break;
 			case Enums.MatrixPacketType.KeyframeRequest:
+				// TODO; See onKeyframeRequest in server_gamesocket.js
 				break;
 			case Enums.MatrixPacketType.ClientStatus:
 				var matStatus = new Packets.Matrix.MatrixStatus() {
@@ -162,7 +224,7 @@ namespace MyGameServer {
 				// TODO: ???
 				break;
 			default:
-				Program.Logger.Error("---> Unrecognized Control Packet [{0}]!!!", ((byte)msgID));
+				Program.Logger.Error("---> Unrecognized Control Packet {0} ({1:X2})!!!", msgID, ((byte)msgID));
 				Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 				break;
 			}

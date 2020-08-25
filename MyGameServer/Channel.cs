@@ -66,7 +66,7 @@ namespace MyGameServer {
 				ushort seqNum = 0;
 				if( IsSequenced ) {
 					seqNum = packet.ReadBE<ushort>();
-					// TODO: Verify? re-order?
+					// TODO: Implement SequencedPacketQueue
 				}
 
 				if( packet.Header.ResendCount > 0 ) {
@@ -83,6 +83,9 @@ namespace MyGameServer {
 					for( int i = x * 8; i < packet.PacketData.Length; i++ )
 						packet.PacketData.Span[i] ^= xorByte[packet.Header.ResendCount];
 				}
+
+				if( packet.Header.IsSplit )
+					Program.Logger.Fatal("<--- Split packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
 
 				if( IsReliable )
 					client.SendAck(Type, seqNum);
@@ -199,11 +202,12 @@ namespace MyGameServer {
 			if( IsSequenced )
 				extraLen += 2;
 
+			// TODO: Send UGSS messages that are split over RGSS
 			while( p.Length > 0 ) {
-				var len = Math.Max(p.Length + extraLen, PacketServer.MTU);
+				var len = Math.Min(p.Length + extraLen, PacketServer.MTU);
 
 				var t = new Memory<byte>(new byte[len]);
-				p.Slice(len - extraLen).CopyTo(t.Slice(extraLen));
+				p.Slice(0, len - extraLen).CopyTo(t.Slice(extraLen));
 
 				if( IsSequenced ) {
 					Utils.WriteStructBE(CurrentSequenceNumber).CopyTo(t.Slice(2, 2));

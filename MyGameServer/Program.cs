@@ -2,6 +2,7 @@
 
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace MyGameServer {
 	class Program {
@@ -9,7 +10,7 @@ namespace MyGameServer {
 		static void Main( string[] args ) {
 			Logger = new LoggerConfiguration()
 				.MinimumLevel.Verbose()
-				.WriteTo.Console()
+				.WriteTo.Console(theme: ServerShared.SerilogTheme.Custom)
 				.CreateLogger();
 
 			ServerShared.PacketServer.Logger = Logger;

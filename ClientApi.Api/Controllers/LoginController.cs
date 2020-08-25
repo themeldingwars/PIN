@@ -73,6 +73,7 @@ The Shared Intelligence Network is here to serve you all the content you'd want
 		public OracleTicket GetOracleTicket() {
 			return new OracleTicket {
 				MatrixUrl = "localhost:25000",
+				//Ticket = "UjX52MMObRnEtgZe1pjrRFS6iRz3t7aR69fgLdzwxJQumRt7mhpNqPkejXFT\nBf3H2a5bZI/zQhO4CvKj+Z5Jctk4yMU4mgPzHiN+FJb+CiKvcQGhjNqAskD3\nalZQkZ/N+v1dSC25DLGR0Ky/3V1fsw0Y2bh+xsAgoKg1BkIJHiltTW3spuVT\nUd8fo9oLG0UzhCWP/NNIfcGX+Ur/e7UYxoUCiwHhRH3673Q1TtCoociHwvpj\np4QExjp3Cd2LTolR00l8zYAvodMBPJyOuMf/BB8KDkoP8hnpNh8ZIpmxeWXr\ndZ2R5r8hSAIht3uNMZd/Wa3ewQgqwj/womRSCqhSOpdPFebbgI2TVnth7IA0\nZq4EvvI436cBOc1P1wVfvFW6EUebqCzfIxn63UYQWXc1+KnCjLh9r4l60xm3\n6Yes+7zJwS2r02UslF+QgpUuXJw4I4h7OK+YRrHnOFtiKOUnC3hJMUbY6yZA\nR6/ZdfvBLt9XlA==\n",
 				Ticket = "UjX52MMObRnEtgZe1pjrRFS6iRz3t7aR69fgLdzwxJQumRt7mhpNqPkejXFT\nBf3H2a5bZI/zQhO4CvKj+Z5Jctk4yMU4mgPzHiN+FJb+CiKvcQGhjNqAskD3\nalZQkZ/N+v1dSC25DLGR0Ky/3V1fsw0Y2bh+xsAgoKg1BkIJHiltTW3spuVT\nUd8fo9oLG0UzhCWP/NNIfcGX+Ur/e7UYxoUCiwHhRH3673Q1TtCoociHwvpj\np4QExjp3Cd2LTolR00l8zYAvodMBPJyOuMf/BB8KDkoP8hnpNh8ZIpmxeWXr\ndZ2R5r8hSAIht3uNMZd/Wa3ewQgqwj/womRSCqhSOpdPFebbgI2TVnth7IA0\nZq4EvvI436cBOc1P1wVfvFW6EUebqCzfIxn63UYQWXc1+KnCjLh9r4l60xm3\n6Yes+7zJwS2r02UslF+QgpUuXJw4I4h7OK+YRrHnOFtiKOUnC3hJMUbY6yZA\nR6/ZdfvBLt9XlA==\n",
 				Datacenter = "localhost",
 				OperatorOverride = new OperatorOverride {
@@ -131,137 +132,108 @@ The Shared Intelligence Network is here to serve you all the content you'd want
 		[HttpGet]
 		public CharatersList GetCharactersList() {
 			return new CharatersList {
-				Characters = new List<Character>
+				Characters = new List<Character> {
+					new Character {
+						CharacterGuid = 0x99aabbccddeeff00,
+						Name = "Ascendant",
+						UniqueName = "Ascendant",
+						IsDev = false,
+						IsActive = true,
+						CreatedAt = new DateTime(2017, 1, 3, 23, 41, 26),
+						TitleId = 0,
+						TimePlayedSecs = 500,
+						NeedsNameChange = false,
+						MaxFrameLevel = 10,
+						FrameSdbId = 76334,
+						CurrentLevel = 10,
+						Gender = 1,
+						CurrentGender = "female",
+						EliteRank = 95487,
+						LastSeenAt = DateTime.Now - TimeSpan.FromDays(365),
+						Visuals = new Visuals {
+							Id = 0,
+							Race = 0,
+							Gender = 1,
+							SkinColor = new ColoredItem {
+								Id = 118969,
+								Value = new ColorValue { Color = 4294930822 } },
+							VoiceSet = new Item { Id = 1033 },
+							Head = new Item { Id = 10026 },
+							EyeColor = new ColoredItem {
+								Id = 118980,
+								Value = new ColorValue { Color = 1633685600 } },
+							LipColor = new ColoredItem {
+								Id = 1,
+								Value = new ColorValue { Color = 4294903873 } },
+							HairColor = new ColoredItem {
+								Id = 77193,
+								Value = new ColorValue { Color = 1917780001 } },
+							FacialHairColor = new ColoredItem
+											{
+												Id = 77193,
+												Value = new ColorValue
+														{
+															Color = 1917780001
+														}
+											},
+							HeadAccessories = new List<ColoredItem>
+											{
+												new ColoredItem
+												{
+													Id = 10117,
+													Value = new ColorValue
+															{
+																Color = 1211031763
+															}
+												}
+											},
+							Ornaments = new List<ColoredItem>(),
+							Eyes = new Item
 									{
-										new Character
+										Id = 10001
+									},
+							Hair = new HairItem
+									{
+										Id = 10113,
+										Color = new ColorItem
+												{
+													Id = 77193,
+													Value = 1917780001
+												}
+									},
+							FacialHair = new HairItem
 										{
-											CharacterGuid = 0x99aabbccddeeff00,
-											Name = "Ascendant",
-											UniqueName = "Ascendant",
-											IsDev = false,
-											IsActive = true,
-											CreatedAt = new DateTime(2017, 1, 3, 23, 41, 26),
-											TitleId = 0,
-											TimePlayedSecs = 500,
-											NeedsNameChange = false,
-											MaxFrameLevel = 10,
-											FrameSdbId = 76334,
-											CurrentLevel = 10,
-											Gender = 1,
-											CurrentGender = "female",
-											EliteRank = 95487,
-											LastSeenAt = DateTime.Now - TimeSpan.FromDays(365),
-											Visuals = new Visuals
-													  {
-														  Id = 0,
-														  Race = 0,
-														  Gender = 1,
-														  SkinColor = new ColoredItem
-																	  {
-																		  Id = 118969,
-																		  Value = new ColorValue
-																				  {
-																					  Color = 4294930822
-																				  }
-																	  },
-														  VoiceSet = new Item
-																	 {
-																		 Id = 1033
-																	 },
-														  Head = new Item
-																 {
-																	 Id = 10026
-																 },
-														  EyeColor = new ColoredItem
-																	 {
-																		 Id = 118980,
-																		 Value = new ColorValue
-																				 {
-																					 Color = 1633685600
-																				 }
-																	 },
-														  LipColor = new ColoredItem
-																	 {
-																		 Id = 1,
-																		 Value = new ColorValue
-																				 {
-																					 Color = 4294903873
-																				 }
-																	 },
-														  HairColor = new ColoredItem
-																	  {
-																		  Id = 77193,
-																		  Value = new ColorValue
-																				  {
-																					  Color = 1917780001
-																				  }
-																	  },
-														  FacialHairColor = new ColoredItem
-																			{
-																				Id = 77193,
-																				Value = new ColorValue
-																						{
-																							Color = 1917780001
-																						}
-																			},
-														  HeadAccessories = new List<ColoredItem>
-																			{
-																				new ColoredItem
-																				{
-																					Id = 10117,
-																					Value = new ColorValue
-																							{
-																								Color = 1211031763
-																							}
-																				}
-																			},
-														  Ornaments = new List<ColoredItem>(),
-														  Eyes = new Item
-																 {
-																	 Id = 10001
-																 },
-														  Hair = new HairItem
-																 {
-																	 Id = 10113,
-																	 Color = new ColorItem
-																			 {
-																				 Id = 77193,
-																				 Value = 1917780001
-																			 }
-																 },
-														  FacialHair = new HairItem
-																	   {
-																		   Id = 0,
-																		   Color = new ColorItem
-																				   {
-																					   Id = 77187,
-																					   Value = 1518862368
-																				   }
-																	   },
-														  Glider = new Item
-																   {
-																	   Id = 0
-																   },
-														  Vehicle = new Item
-																	{
-																		Id = 0
-																	},
-														  Decals = new List<ColoredTransformableSdbItem>(),
-														  WarpaintId = 143225,
-														  Warpaint = new List<long>
-																	 {
-																		 4216738474,
-																		 0,
-																		 4216717312,
-																		 418250752,
-																		 1525350400,
-																		 4162844703,
-																		 4162844703
-																	 },
-														  Decalgradients = new List<long>(),
-														  WarpaintPatterns = new List<WarpaintPattern>(),
-														  VisualOverrides = new List<long>()
-													  },
+											Id = 0,
+											Color = new ColorItem
+													{
+														Id = 77187,
+														Value = 1518862368
+													}
+										},
+							Glider = new Item
+									{
+										Id = 0
+									},
+							Vehicle = new Item
+									{
+										Id = 0
+									},
+							Decals = new List<ColoredTransformableSdbItem>(),
+							WarpaintId = 143225,
+							Warpaint = new List<long>
+										{
+											4216738474,
+											0,
+											4216717312,
+											418250752,
+											1525350400,
+											4162844703,
+											4162844703
+										},
+							Decalgradients = new List<long>(),
+							WarpaintPatterns = new List<WarpaintPattern>(),
+							VisualOverrides = new List<long>()
+						},
 											Gear = new List<Gear>
 												   {
 													   new Gear

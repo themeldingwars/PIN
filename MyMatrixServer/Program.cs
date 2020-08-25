@@ -9,7 +9,7 @@ namespace MyMatrixServer {
 		static void Main( string[] args ) {
 			Logger = new LoggerConfiguration()
 				.MinimumLevel.Verbose()
-				.WriteTo.Console()
+				.WriteTo.Console(theme: ServerShared.SerilogTheme.Custom)
 				.CreateLogger();
 
 			ServerShared.PacketServer.Logger = Logger;
