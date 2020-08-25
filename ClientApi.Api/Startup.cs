@@ -21,7 +21,8 @@ namespace ClientApi.Api
             services.AddControllers()
                     .AddJsonOptions(options =>
                                     {
-                                        options.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCasePropertyNamingPolicy();
+                                        options.JsonSerializerOptions.PropertyNamingPolicy =
+                                            new SnakeCasePropertyNamingPolicy();
                                     });
         }
 
@@ -39,10 +40,7 @@ namespace ClientApi.Api
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }

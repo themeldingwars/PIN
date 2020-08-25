@@ -23,7 +23,8 @@ namespace Operator.Api
             services.AddControllers()
                     .AddJsonOptions(options =>
                                     {
-                                        options.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCasePropertyNamingPolicy();
+                                        options.JsonSerializerOptions.PropertyNamingPolicy =
+                                            new SnakeCasePropertyNamingPolicy();
                                     });
 
             services.AddScoped<ICapabilityRepository, CapabilityRepository>();
