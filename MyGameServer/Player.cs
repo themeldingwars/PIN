@@ -16,6 +16,7 @@ namespace MyGameServer {
 
 		public void Login(ulong charID ) {
 			CharacterID = charID;
+			Character.Load( charID );
 		}
 	}
 }

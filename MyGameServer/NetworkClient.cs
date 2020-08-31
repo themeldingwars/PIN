@@ -11,8 +11,8 @@ using System.Linq;
 using MyGameServer.Data;
 
 namespace MyGameServer {
-	public class NetworkClient : INetworkClient {
-		public const ulong InstanceID = 0x4658119e70100000u; // 0xFB0010709E115846
+	public class NetworkClient : INetworkClient, IInstance {
+		public ulong InstanceID { get { return 0x4658119e70100000u; } }
 		public Status ClientStatus { get; protected set; }
 		public uint SocketID { get; protected set; }
 		public IPEndPoint RemoteClient { get; protected set; }
@@ -30,12 +30,12 @@ namespace MyGameServer {
 			Sender = sender;
 			LastActive = DateTime.Now;
 
-			Player = new Player(this);
-			Zone = Test.DataUtils.GetZone(448); 
+			Player = new Player( this );
+			Zone = Test.DataUtils.GetZone( 448 );
 		}
 
 		public void Init() {
-			Channels = Channel.GetChannels(this).ToImmutableDictionary();
+			Channels = Channel.GetChannels( this ).ToImmutableDictionary();
 			Channels[ChannelType.Control].PacketAvailable += Control_PacketAvailable;
 			Channels[ChannelType.Matrix].PacketAvailable += Matrix_PacketAvailable;
 			Channels[ChannelType.ReliableGss].PacketAvailable += GSS_PacketAvailable;
@@ -47,20 +47,20 @@ namespace MyGameServer {
 		private void GSS_PacketAvailable( GamePacket packet ) {
 			var ControllerID = packet.Read<Enums.GSS.Controllers>();
 			Span<byte> entity = new byte[8];
-			packet.Read(7).ToArray().Reverse().ToArray().CopyTo(entity);
+			packet.Read( 7 ).ToArray().Reverse().ToArray().CopyTo( entity );
 			var EntityID = BitConverter.ToUInt64(entity.ToArray());
 			var MsgID = packet.Read<byte>();
 
 			var conn = Controllers.Factory.Get(ControllerID);
 
 			if( conn == null ) {
-				Program.Logger.Verbose("---> Unrecognized ControllerID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, EntityID, MsgID);
-				Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+				Program.Logger.Verbose( "---> Unrecognized ControllerID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, EntityID, MsgID );
+				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				return;
 			}
 
 			//Program.Logger.Verbose("--> GSS; Controller = {0} Entity = 0x{1:X8} MsgID = {2}", ControllerID, EntityID, MsgID);
-			conn.HandlePacket(this, EntityID, MsgID, packet);
+			conn.HandlePacket( this, EntityID, MsgID, packet );
 
 			// Character_BaseController = 115
 			// Character_BaseController = 145
@@ -94,18 +94,18 @@ namespace MyGameServer {
 
 		private unsafe void Matrix_PacketAvailable( GamePacket packet ) {
 			var msgID = packet.Read<Enums.MatrixPacketType>();
-			Program.Logger.Verbose("--> {0} ({1})", msgID, ((byte)msgID));
+			Program.Logger.Verbose( "--> {0} ({1})", msgID, ((byte)msgID) );
 
-			switch(msgID) {
+			switch( msgID ) {
 			case Enums.MatrixPacketType.Login:
 				// Login
 				var pkt = packet.Read<Packets.Matrix.Login>();
-				Player.Login(pkt.CharacterGUID);
+				Player.Login( pkt.CharacterGUID );
 				Player.Character.Position = Zone.POIs["watchtower"];
 
 				// WelcomeToTheMatrix
 				var wel = new Packets.Matrix.WelcomeToTheMatrix(InstanceID, 0, 0);
-				Channels[ChannelType.Matrix].Send(wel);
+				Channels[ChannelType.Matrix].Send( wel );
 
 				// EnterZone
 				var enterZone = new Packets.Matrix.EnterZone();
@@ -129,7 +129,7 @@ namespace MyGameServer {
 				enterZone.Unk9 = 0;
 				enterZone.SpectatorModeFlag = 0;
 
-				Channels[ChannelType.Matrix].Send(enterZone);
+				Channels[ChannelType.Matrix].Send( enterZone );
 
 				/*var syncReq = new Packets.Matrix.SynchronizationRequest() {
 					Unk = new byte[] {
@@ -142,13 +142,13 @@ namespace MyGameServer {
 				Channels[ChannelType.Matrix].Send(syncReq);*/
 				break;
 			case Enums.MatrixPacketType.EnterZoneAck:
-				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ArcCompletionHistoryUpdate.GetEmpty(), InstanceID, msgEnumType: typeof(Enums.GSS.Generic.Events));
-				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.JobLedgerEntriesUpdate { Unk1 = 0x00 }, InstanceID, msgEnumType: typeof(Enums.GSS.Generic.Events));
-				Channels[ChannelType.ReliableGss].SendGSS(Test.GSS.ConfirmedPoseUpdate.GetPreSpawnConfirmedPoseUpdate(), Player.EntityID, msgEnumType: typeof(Enums.GSS.Character.Events));
-				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.TotalAchievementPoints { Number = 0x00000ad2 }, InstanceID, msgEnumType: typeof(Enums.GSS.Generic.Events));
-				Channels[ChannelType.ReliableGss].SendGSS(new Packets.GSS.InteractableStatusChanged { Unk1 = 0x0006eb22, Unk4 = 0x0100 }, InstanceID, msgEnumType: typeof(Enums.GSS.Generic.Events));
+				//Channels[ChannelType.ReliableGss].SendGSS( Test.GSS.ArcCompletionHistoryUpdate.GetEmpty(), InstanceID, msgEnumType: typeof( Enums.GSS.Generic.Events ) );
+				//Channels[ChannelType.ReliableGss].SendGSS( new Packets.GSS.JobLedgerEntriesUpdate { Unk1 = 0x00 }, InstanceID, msgEnumType: typeof( Enums.GSS.Generic.Events ) );
+				//Channels[ChannelType.ReliableGss].SendGSS( Test.GSS.ConfirmedPoseUpdate.GetPreSpawnConfirmedPoseUpdate(), Player.EntityID, msgEnumType: typeof( Enums.GSS.Character.Events ) );
+				//Channels[ChannelType.ReliableGss].SendGSS( new Packets.GSS.TotalAchievementPoints { Number = 0x00000ad2 }, InstanceID, msgEnumType: typeof( Enums.GSS.Generic.Events ) );
+				//Channels[ChannelType.ReliableGss].SendGSS( new Packets.GSS.InteractableStatusChanged { Unk1 = 0x0006eb22, Unk4 = 0x0100 }, InstanceID, msgEnumType: typeof( Enums.GSS.Generic.Events ) );
 
-				Controllers.Factory.Get<Controllers.Character.BaseController>().Init(this);
+				Controllers.Factory.Get<Controllers.Character.BaseController>().Init( this, this );
 
 				// TODO: Setup Character Controllers
 				//		BaseController (2)
@@ -188,18 +188,18 @@ namespace MyGameServer {
 					Unk = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 				};
 
-				Channels[ChannelType.Matrix].Send(matStatus);
+				Channels[ChannelType.Matrix].Send( matStatus );
 				break;
 			default:
-				Program.Logger.Error("---> Unrecognized Matrix Packet {0}[{1}]!!!", msgID, ((byte)msgID));
-				Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+				Program.Logger.Error( "---> Unrecognized Matrix Packet {0}[{1}]!!!", msgID, ((byte)msgID) );
+				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				break;
 			}
 		}
 
 		private void Control_PacketAvailable( GamePacket packet ) {
 			var msgID = packet.ReadBE<Enums.ControlPacketType>();
-			Program.Logger.Verbose("--> {0} ({1})", msgID, ((byte)msgID));
+			Program.Logger.Verbose( "--> {0} ({1})", msgID, ((byte)msgID) );
 
 			switch( msgID ) {
 			case Enums.ControlPacketType.CloseConnection:
@@ -217,15 +217,15 @@ namespace MyGameServer {
 			case Enums.ControlPacketType.TimeSyncRequest:
 				var req = packet.Read<Packets.Control.TimeSyncRequest>();
 				var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()*1000u));
-				Channels[ChannelType.Control].Send(resp);
+				Channels[ChannelType.Control].Send( resp );
 				break;
 			case Enums.ControlPacketType.MTUProbe:
 				var mtuPkt = packet.Read<Packets.Control.MTUProbe>();
 				// TODO: ???
 				break;
 			default:
-				Program.Logger.Error("---> Unrecognized Control Packet {0} ({1:X2})!!!", msgID, ((byte)msgID));
-				Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+				Program.Logger.Error( "---> Unrecognized Control Packet {0} ({1:X2})!!!", msgID, ((byte)msgID) );
+				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				break;
 			}
 		}
@@ -241,7 +241,7 @@ namespace MyGameServer {
 			var hdrSize = Unsafe.SizeOf<GamePacketHeader>();
 			while( (idx + 2) < packet.Length ) {
 				var hdr = Utils.ReadStructBE<GamePacketHeader>(packet.Slice(idx));
-				
+
 				if( hdr.Length == 0 || packet.Length < (hdr.Length + idx) )
 					break;
 
@@ -249,7 +249,7 @@ namespace MyGameServer {
 
 				//Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
 
-				Channels[hdr.Channel].HandlePacket(p);
+				Channels[hdr.Channel].HandlePacket( p );
 
 				idx += hdr.Length;
 			}
@@ -258,7 +258,7 @@ namespace MyGameServer {
 		}
 
 		public void NetworkTick() {
-			foreach(var c in Channels.Values) {
+			foreach( var c in Channels.Values ) {
 				c.Process();
 			}
 		}
@@ -267,10 +267,10 @@ namespace MyGameServer {
 			LastActive = DateTime.Now;
 
 			var t = new Memory<byte>(new byte[4 + p.Length]);
-			p.CopyTo(t.Slice(4));
-			Utils.WriteStructBE(SocketID).CopyTo(t);
+			p.CopyTo( t.Slice( 4 ) );
+			Utils.WriteStructBE( SocketID ).CopyTo( t );
 
-			Sender.Send(t, RemoteClient);
+			Sender.Send( t, RemoteClient );
 		}
 
 
@@ -278,12 +278,12 @@ namespace MyGameServer {
 			if( forSeqNum == 0 )
 				return;
 
-			Program.Logger.Verbose("<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel);
+			Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
 
 			if( forChannel == ChannelType.Matrix )
-				Channels[ChannelType.Control].SendBE(new Packets.Control.MatrixAck(Channels[forChannel].CurrentSequenceNumber, forSeqNum));
+				Channels[ChannelType.Control].SendBE( new Packets.Control.MatrixAck( Channels[forChannel].CurrentSequenceNumber, forSeqNum ) );
 			else if( forChannel == ChannelType.ReliableGss )
-				Channels[ChannelType.Control].SendBE(new Packets.Control.ReliableGSSAck(Channels[forChannel].CurrentSequenceNumber, forSeqNum));
+				Channels[ChannelType.Control].SendBE( new Packets.Control.ReliableGSSAck( Channels[forChannel].CurrentSequenceNumber, forSeqNum ) );
 		}
 	}
 }

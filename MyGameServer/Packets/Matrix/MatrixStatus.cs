@@ -8,7 +8,7 @@ using ServerShared;
 namespace MyGameServer.Packets.Matrix {
 	[MatrixMessage(Enums.MatrixPacketType.MatrixStatus)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public struct MatrixStatus : IWritableStruct {
+	public struct MatrixStatus : IWritable {
 		public static MatrixStatus Parse( Packet packet ) {
 			var ret = new MatrixStatus();
 

@@ -8,13 +8,13 @@ namespace MyGameServer.Controllers {
 	[ControllerID(Enums.GSS.Controllers.Generic)]
 	public class Generic : Base {
 
-		public override void Init( NetworkClient client ) {
+		public override void Init( INetworkClient client, IInstance inst ) {
 			
 		}
 
 		// Example GSS Message Handler
 		[MessageID((byte)Enums.GSS.Generic.Commands.ScheduleUpdateRequest)]
-		public void ScheduleUpdateRequest( NetworkClient client, ulong EntityID, GamePacket packet) {
+		public void ScheduleUpdateRequest( INetworkClient client, ulong EntityID, GamePacket packet) {
 			// TODO: implement
 		}
 	}

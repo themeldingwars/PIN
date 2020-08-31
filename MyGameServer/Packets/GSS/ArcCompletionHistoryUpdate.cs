@@ -8,7 +8,7 @@ using ServerShared;
 namespace MyGameServer.Packets.GSS {
 	[GSSMessage(Enums.GSS.Controllers.Generic, (byte)Enums.GSS.Generic.Events.ArcCompletionHistoryUpdate)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public unsafe struct ArcCompletionHistoryUpdate : IWritableStruct {
+	public unsafe struct ArcCompletionHistoryUpdate : IWritable {
 		public static ArcCompletionHistoryUpdate Parse(Packet packet) {
 			var ret = new ArcCompletionHistoryUpdate();
 
@@ -42,7 +42,7 @@ namespace MyGameServer.Packets.GSS {
 		public Memory<byte> Write(  ) {
 			Memory<byte> mem = new byte[1 + (4*Entries.Length)];
 
-			Utils.WriteStruct(Entries.Length);
+			Utils.WriteStruct(mem, (byte)Entries.Length);
 			
 			for(var i=0; i<Entries.Length; i++) {
 				Utils.WriteStruct(mem.Slice(1 + (i * 4)), Entries[i]);
@@ -54,7 +54,7 @@ namespace MyGameServer.Packets.GSS {
 		public Memory<byte> WriteBE( ) {
 			Memory<byte> mem = new byte[1 + (4 * Entries.Length)];
 
-			Utils.WriteStructBE(Entries.Length);
+			Utils.WriteStructBE( mem, (byte)Entries.Length);
 
 			for( var i = 0; i < Entries.Length; i++ ) {
 				Utils.WriteStructBE(mem.Slice(1 + (i * 4)), Entries[i]);

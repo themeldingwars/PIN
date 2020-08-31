@@ -101,7 +101,7 @@ namespace MyGameServer {
 
 		public void Send<T>( T pkt ) where T : struct {
 			Memory<byte> p;
-			if( pkt is IWritableStruct write ) {
+			if( pkt is IWritable write ) {
 				p = write.Write();
 			} else
 				p = Utils.WriteStruct(pkt);
@@ -131,7 +131,7 @@ namespace MyGameServer {
 
 		public void SendBE<T>( T pkt ) where T : struct {
 			Memory<byte> p;
-			if( pkt is IWritableStruct write ) {
+			if( pkt is IWritable write ) {
 				p = write.WriteBE();
 			} else
 				p = Utils.WriteStructBE(pkt);
@@ -161,7 +161,7 @@ namespace MyGameServer {
 
 		public void SendGSS<T>( T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null ) where T : struct {
 			Memory<byte> p;
-			if( pkt is IWritableStruct write ) {
+			if( pkt is IWritable write ) {
 				p = write.Write();
 			} else
 				p = Utils.WriteStruct(pkt);
@@ -195,6 +195,47 @@ namespace MyGameServer {
 				throw new Exception();
 
 			Send(p);
+		}
+
+		public void SendGSSClass<T>( T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null ) where T : class {
+			Memory<byte> p;
+			if( pkt is IWritable write ) {
+				p = write.Write();
+			} else
+				p = Utils.WriteClass( pkt );
+
+			Console.WriteLine( string.Concat( p.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
+			var gssMsgAttr = (typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault()) as GSSMessageAttribute;
+
+			if( gssMsgAttr != null ) {
+				var msgID = gssMsgAttr.MsgID;
+				var t = new Memory<byte>(new byte[9 + p.Length]);
+				p.CopyTo( t.Slice( 9 ) );
+
+				Utils.WriteStruct( entityID ).CopyTo( t );
+
+				// Intentionally overwrite first byte of Entity ID
+				if( controllerID.HasValue )
+					Utils.WriteStruct( controllerID.Value ).CopyTo( t );
+				else if( gssMsgAttr.ControllerID.HasValue )
+					Utils.WriteStruct( gssMsgAttr.ControllerID.Value ).CopyTo( t );
+				else
+					throw new Exception();
+
+				Utils.WriteStruct( msgID ).CopyTo( t.Slice( 8 ) );
+
+				p = t;
+
+				if( msgEnumType == null )
+					Program.Logger.Verbose( "<-- {0}: {1} - {2:X2}", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, msgID );
+				else
+					Program.Logger.Verbose( "<-- {0}: {1} - {2} ({3:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, Enum.Parse( msgEnumType, Enum.GetName( msgEnumType, msgID ) ), msgID );
+
+				Program.Logger.Verbose( "<--- Sending {0} bytes", p.Length );
+			} else
+				throw new Exception();
+
+			Send( p );
 		}
 
 		public void Send( Memory<byte> p ) {

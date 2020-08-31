@@ -20,9 +20,9 @@ namespace MyGameServer.Controllers {
 			}
 		}
 
-		public abstract void Init( NetworkClient client );
+		public abstract void Init( INetworkClient client, IInstance inst );
 
-		public void HandlePacket(NetworkClient client, ulong EntityID, byte MsgID, GamePacket packet) {
+		public void HandlePacket(INetworkClient client, ulong EntityID, byte MsgID, GamePacket packet) {
 			var method = ReflectionUtils.FindMethodsByAttribute<MessageIDAttribute>(this).Where(( mi ) => mi.GetAttribute<MessageIDAttribute>().MsgID == MsgID).FirstOrDefault();
 
 			if( method == null ) {

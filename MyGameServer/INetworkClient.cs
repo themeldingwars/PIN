@@ -5,6 +5,7 @@ using System.Text;
 
 using ServerShared;
 using MyGameServer.Packets;
+using System.Collections.Immutable;
 
 namespace MyGameServer {
 	public enum Status {
@@ -21,6 +22,8 @@ namespace MyGameServer {
 		uint SocketID { get; }
 		IPEndPoint RemoteClient { get; }
 		DateTime LastActive { get; }
+		Player Player { get; }
+		ImmutableDictionary<ChannelType, Channel> Channels { get; }
 
 		void Init();
 		void HandlePacket( Memory<byte> packet );

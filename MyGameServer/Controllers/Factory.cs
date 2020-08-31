@@ -21,8 +21,8 @@ namespace MyGameServer.Controllers {
 
 			var k = attr.ControllerID;
 
-			if( _controllers.ContainsKey(k) )
-				_controllers.AddOrUpdate(k, new T(), ( k, nc ) => nc);
+			if( !_controllers.ContainsKey(k) )
+				return _controllers.AddOrUpdate(k, new T(), ( k, nc ) => nc) as T;
 
 			return _controllers[k] as T;
 		}

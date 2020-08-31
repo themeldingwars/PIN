@@ -8,7 +8,7 @@ using ServerShared;
 namespace MyGameServer.Packets.Matrix {
 	[MatrixMessage(Enums.MatrixPacketType.SynchronizationRequest)]
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct SynchronizationRequest : IWritableStruct {
+    public struct SynchronizationRequest : IWritable {
 		public static SynchronizationRequest Parse( Packet packet ) {
 			var ret = new SynchronizationRequest();
 

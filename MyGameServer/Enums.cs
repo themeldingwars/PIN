@@ -3,6 +3,16 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace MyGameServer.Enums {
+	namespace Visuals {
+		public enum PaletteType : byte {
+			FullBody = 0x0,
+			WeaponA = 0x4,
+			WeaponB = 0x5,
+			UnkType7 = 0x07, // Biscuit uses these
+			UnkType8 = 0x08, // Biscuit uses these
+			UnkType9 = 0x09, // Biscuit uses these
+		}
+	}
 	public enum ControlPacketType : byte {
 		CloseConnection = 0,
 		MatrixAck = 2,
@@ -127,8 +137,8 @@ namespace MyGameServer.Enums {
 
 		namespace Generic {
 			public enum Events : byte {
-				ControllerBigUpdate = 1,
-				ControllerKeyFrame = 4,
+				BigUpdate = 1,
+				KeyFrame = 4,
 				EncounterToUIMessage = 32,
 				VotekickInitiated = 33,
 				VotekickResponded = 34,
@@ -243,6 +253,8 @@ namespace MyGameServer.Enums {
 
 		namespace Character {
 			enum Events {
+				BigUpdate = 1,
+				KeyFrame = 4,
 				MarketRequestComplete = 83,
 				ReceiveWeaponTweaks = 84,
 				TookDebugWeaponHitPublic = 85,
@@ -534,6 +546,8 @@ namespace MyGameServer.Enums {
 
 		namespace AreaVisualData {
 			enum Events {
+				BigUpdate = 1,
+				KeyFrame = 4,
 				LootObjectCollected = 83,
 				AudioEmitterSpawned = 84,
 				ParticleEffectSpawned = 85,
@@ -553,6 +567,8 @@ namespace MyGameServer.Enums {
 			}
 
 			enum Events {
+				BigUpdate = 1,
+				KeyFrame = 4,
 				AbilityActivated = 83,
 				AbilityFailed = 84,
 				PublicCombatLog = 85,
@@ -567,6 +583,8 @@ namespace MyGameServer.Enums {
 
 		namespace Deployable {
 			enum Events {
+				BigUpdate = 1,
+				KeyFrame = 4,
 				TookHit = 83,
 				AbilityProjectileFired = 84,
 				PublicCombatLog = 85,
@@ -577,6 +595,8 @@ namespace MyGameServer.Enums {
 
 		namespace Turret {
 			enum Events {
+				BigUpdate = 1,
+				KeyFrame = 4,
 				WeaponProjectileFired = 83,
 			}
 
@@ -591,6 +611,8 @@ namespace MyGameServer.Enums {
 
 		namespace LootStoreExtensions {
 			enum Events {
+				BigUpdate = 1,
+				KeyFrame = 4,
 				LootObjectCollected = 83,
 			}
 		}
