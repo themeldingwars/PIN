@@ -33,15 +33,13 @@ namespace WebHostManager {
 			   .ReadFrom.Configuration(Configuration)
 			   .CreateLogger();
 
-			
-
 			try {
 				Log.Information("Starting Web Hosts");
 				var ct = new CancellationToken();
 
 				var hostsTasks = StartHosts(ct);
 
-				Log.Information("All Web Hosts started, waiting for all to stop or break/kill signal");
+				Log.Information("All Web Hosts started, waiting for all to stop or break/kill signal. (Ctrl-c on Windows)");
 
 				Task.WaitAll(hostsTasks.ToArray(), ct);
 			} catch( Exception ex ) {

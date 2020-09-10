@@ -8,28 +8,34 @@ using Serilog;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Options;
 
 namespace Shared.Web {
 	public abstract class BaseWebServer {
-		public static IWebHost Build( Type serverType, IConfiguration configuration) {
+		public static IWebHost Build( Type serverType, IConfiguration configuration ) {
 			try {
-				Log.Information("Starting web host {ProjectName}", serverType.FullName);
+				Log.Information( "Starting web host {ProjectName}", serverType.FullName );
 				return WebHost.CreateDefaultBuilder()
-					   .UseConfiguration(configuration)
+					   .UseConfiguration( configuration )
 					   .UseSerilog()
-					   .UseStartup(serverType)
-					   .UseUrls(configuration.GetSection("Firefall").Get<Config.Firefall>().WebHosts[serverType.FullName.Replace(".WebServer","")].Urls.Split(";"))
+					   .UseKestrel((builder, serverOpts) => {
+						   serverOpts.ConfigureHttpsDefaults( opts => {
+							   opts.SslProtocols = System.Security.Authentication.SslProtocols.Tls |	// Required by FF itself *sigh*, completely insecure
+													System.Security.Authentication.SslProtocols.Tls12 |
+													System.Security.Authentication.SslProtocols.Tls13;
+						   } );
+					   } )
+					   .UseStartup( serverType )
+					   .UseUrls( configuration.GetSection( "Firefall" ).Get<Config.Firefall>().WebHosts[serverType.FullName.Replace( ".WebServer", "" )].Urls.Split( ";" ) )
 					   .Build();
 			} catch( Exception ex ) {
-				Log.Fatal(ex, "Host terminated unexpectedly");
+				Log.Fatal( ex, "Host terminated unexpectedly" );
 
 				return null;
 			}
 		}
 
-		public static IWebHost Build<T>( IConfiguration configuration) where T : BaseWebServer {
-			return Build(typeof(T), configuration);
+		public static IWebHost Build<T>( IConfiguration configuration ) where T : BaseWebServer {
+			return Build( typeof( T ), configuration );
 		}
 
 		public IConfiguration Configuration { get; private set; }
@@ -39,29 +45,29 @@ namespace Shared.Web {
 		}
 
 		public void ConfigureServices( IServiceCollection services ) {
-			services.AddControllers()
-					.AddJsonOptions(options => {
+			_ = services.AddControllers()
+					.AddJsonOptions( options => {
 						options.JsonSerializerOptions.PropertyNamingPolicy =
 							new Common.SnakeCasePropertyNamingPolicy();
-					});
+					} );
 
-			services.AddSingleton(Configuration.GetSection("Firefall").Get<Config.Firefall>());
+			_ = services.AddSingleton( Configuration.GetSection( "Firefall" ).Get<Config.Firefall>() );
 
-			ConfigureChildServices(services);
+			ConfigureChildServices( services );
 		}
 
 		protected virtual void ConfigureChildServices( IServiceCollection services ) { }
 
 		public void Configure( IApplicationBuilder app, IWebHostEnvironment env ) {
 			if( env.IsDevelopment() )
-				app.UseDeveloperExceptionPage();
+				_ = app.UseDeveloperExceptionPage();
 
-			app.UseHttpsRedirection()
+			_ = app.UseHttpsRedirection()
 				.UseSerilogRequestLogging()
 				.UseRouting()
-				.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+				.UseEndpoints( endpoints => { _ = endpoints.MapControllers(); } );
 
-			ConfigureChild(app, env);
+			ConfigureChild( app, env );
 		}
 
 		protected virtual void ConfigureChild( IApplicationBuilder app, IWebHostEnvironment env ) { }

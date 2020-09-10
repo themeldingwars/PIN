@@ -6,8 +6,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="cert.pfx" />
+	  <None Remove="config\appsettings.Development.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="cert.pfx">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="config\appsettings.Development.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 		<Content Include="config\appsettings.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
 
