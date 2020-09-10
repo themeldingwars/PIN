@@ -7,20 +7,16 @@
       "sslPort": 44301
     }
   },
-  "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "StaticContent": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "http://localhost:44301;http://localhost:4401"
+    "profiles": {
+        "IIS Express": {
+            "commandName": "IISExpress"
+        },
+        "StaticContent": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "applicationUrl": "https://localhost:44301;http://localhost:4401"
+        }
     }
-  }
 }

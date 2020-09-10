@@ -8,20 +8,16 @@
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",
-  "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "ClientApi.Api": {
-      "commandName": "Project",
-      "launchBrowser": false,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "https://localhost:44302;http://localhost:4402"
+    "profiles": {
+        "IIS Express": {
+            "commandName": "IISExpress"
+        },
+        "ClientApi.Api": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "applicationUrl": "https://localhost:44302;http://localhost:4402"
+        }
     }
-  }
 }

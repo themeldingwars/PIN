@@ -1,21 +1,16 @@
 ﻿using System.Net.Http;
 using System.Text;
+
 using Microsoft.AspNetCore.Mvc;
 
-namespace InGame.Api.Controllers
-{
-    [Route("login_alerts")]
-    [ApiController]
-    public class LoginAlertsController : ControllerBase
-    {
-        [HttpGet]
-        public HttpResponseMessage GetLoginAlerts()
-        {
-            return new HttpResponseMessage
-                   {
-                       Content =
-                           new
-                               StringContent(@"<!DOCTYPE html>
+namespace InGame.Api.Controllers {
+	[Route("login_alerts")]
+	[ApiController]
+	public class LoginAlertsController : ControllerBase {
+		[HttpGet]
+		public HttpResponseMessage GetLoginAlerts() {
+			return new HttpResponseMessage {
+				Content = new StringContent(@"<!DOCTYPE html>
 <html>
 <head>
 <meta charset=""utf - 8"" />
@@ -29,10 +24,8 @@ namespace InGame.Api.Controllers
 <body>
 
 </body>
-</html>",
-                                             Encoding.UTF8,
-                                             "text/html")
-                   };
-        }
-    }
+</html>", Encoding.UTF8, "text/html")
+			};
+		}
+	}
 }

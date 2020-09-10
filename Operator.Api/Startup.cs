@@ -3,47 +3,40 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
 using Operator.Domain.Capability;
 using Operator.Infrastructure.Capability;
-using Shared.Common.Infrastructure;
 
-namespace Operator.Api
-{
-    public class Startup
-    {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+using Serilog;
 
-        public IConfiguration Configuration { get; }
+using Shared.Common;
 
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddControllers()
-                    .AddJsonOptions(options =>
-                                    {
-                                        options.JsonSerializerOptions.PropertyNamingPolicy =
-                                            new SnakeCasePropertyNamingPolicy();
-                                    });
+namespace Operator.Api {
+	public class Startup {
+		public Startup( IConfiguration configuration ) {
+			Configuration = configuration;
+		}
 
-            services.AddScoped<ICapabilityRepository, CapabilityRepository>();
-        }
+		public IConfiguration Configuration { get; }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+		public void ConfigureServices( IServiceCollection services ) {
+			services.AddControllers()
+					.AddJsonOptions(options => {
+						options.JsonSerializerOptions.PropertyNamingPolicy =
+							new SnakeCasePropertyNamingPolicy();
+					});
 
-            app.UseHttpsRedirection();
+			services.AddScoped<ICapabilityRepository, CapabilityRepository>();
+		}
 
-            app.UseRouting();
+		public void Configure( IApplicationBuilder app, IWebHostEnvironment env ) {
+			if( env.IsDevelopment() )
+				app.UseDeveloperExceptionPage();
 
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-        }
-    }
+			app.UseHttpsRedirection()
+				.UseSerilogRequestLogging()
+				.UseRouting()
+				.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+		}
+	}
 }
