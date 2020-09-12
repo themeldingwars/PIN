@@ -6,25 +6,28 @@ using System.Reflection;
 namespace Core.Data {
 	internal static class MagicManager {
 		private static ConcurrentDictionary<Type, Func<IDataRecord, IRowView>> converters;
-		public static T GetActiveRecord<T>(IDataRecord rec) where T : IRowView {
+		public static T GetActiveRecord<T>( IDataRecord rec ) where T : IRowView {
 			if( converters == null )
 				converters = new ConcurrentDictionary<Type, Func<IDataRecord, IRowView>>();
 
 			var t = typeof(T);
-			if( !converters.ContainsKey(t) )
-				converters.TryAdd(t, BuildConverter<T>());
+			Func<IDataRecord, IRowView> c;
+			if( !converters.ContainsKey( t ) )
+				c = converters.AddOrUpdate( t, BuildConverter<T>(), ( t2, nc ) => nc );
+			else
+				c = converters[t];
 
-			return (T)converters[t](rec);
+			return (T)c( rec );
 		}
 
 		private static Func<IDataRecord, IRowView> BuildConverter<T>() {
-			return BuildConverter(typeof(T));
+			return BuildConverter( typeof( T ) );
 		}
 
-		private static Func<IDataRecord, IRowView> BuildConverter(Type t) {
+		private static Func<IDataRecord, IRowView> BuildConverter( Type t ) {
 			return ( IDataRecord dr ) => {
 				var ret = Activator.CreateInstance(t) as IRowView;
-				ret.Load(dr);
+				ret.Load( dr );
 				return ret;
 			};
 		}

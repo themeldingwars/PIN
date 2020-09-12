@@ -16,7 +16,8 @@ namespace MyGameServer {
 			Shared.Udp.PacketServer.Logger = Logger;
 
 			// TODO: Handle/allow args and configuration
-			var server = new GameServer(25001);
+			var serverId = unchecked((uint)((new Random()).Next(1000,ushort.MaxValue)));
+			var server = new GameServer(25001, serverId);
 			server.Run();
 		}
 	}

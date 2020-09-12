@@ -10,25 +10,61 @@ using System.Reflection.Metadata.Ecma335;
 using System.Buffers;
 using System.Net.Sockets;
 using System.Net;
+using System.Threading;
 
 namespace MyGameServer {
 	class GameServer : PacketServer {
+		public const double GameTickRate = 1.0 / 60.0;
+		public const int MinPlayersPerShard = 16;
+		public const int MaxPlayersPerShard = 64;
 		public delegate void SendPacketDelegate<T>( T pkt, IPEndPoint ep ) where T : struct;
-		
-		protected ConcurrentDictionary<uint, INetworkClient> Clients;
-		public GameServer( ushort port ) : base(port) {
-			Clients = new ConcurrentDictionary<uint, INetworkClient>();
+
+		protected ConcurrentDictionary<uint, INetworkPlayer> ClientMap;
+		protected ConcurrentDictionary<ulong, IShard> Shards;
+
+		protected ushort nextShardID;
+		protected uint ServerID;
+
+		public GameServer( ushort port, uint serverID ) : base( port ) {
+			ClientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
+			Shards = new ConcurrentDictionary<ulong, IShard>();
+
+			nextShardID = 1;
+			ServerID = serverID;
 		}
 
 		protected override void Startup() {
 			Test.DataUtils.Init();
 			Controllers.Factory.Init();
 		}
-		protected override void Tick() {
+
+		protected IShard GetNextShard() {
+			foreach( var s in Shards.Values ) {
+				if( s.CurrentPlayers < MaxPlayersPerShard )
+					return s;
+			}
+
+			return NewShard();
 		}
-		protected override void NetworkTick() {
-			foreach(var c in Clients.Values) {
-				c.NetworkTick();
+
+		protected IShard NewShard() {
+			var id = unchecked((((ulong)ServerID) << 32) & (ulong)((nextShardID++) << 8));
+			return Shards.AddOrUpdate( id, new Shard( GameTickRate, id, this ), ( id, old ) => old );
+		}
+
+		protected override bool Tick( double deltaTime, double currTime ) {
+			foreach( var s in Shards.Values ) {
+				if( !s.Tick( deltaTime, currTime ) || s.CurrentPlayers < MinPlayersPerShard ) {
+					// TODO: Shutdown Shard
+				}
+			}
+
+			return true;
+		}
+
+		protected override void NetworkTick( double deltaTime, double currTime ) {
+			foreach( var s in Shards.Values ) {
+				s.NetworkTick( deltaTime, currTime );
 			}
 		}
 		protected override void Shutdown() {
@@ -39,14 +75,17 @@ namespace MyGameServer {
 			//Program.Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 
 			var socketID = packet.ReadBE<uint>();
+			INetworkClient client;
 
-			if( !Clients.ContainsKey(socketID) ) {
-				var c = new NetworkClient(packet.RemoteEndpoint, socketID, this);
-				c.Init();
-				Clients.AddOrUpdate(socketID, c, ( id, nc ) => { return nc; });
-			}
+			if( !ClientMap.ContainsKey( socketID ) ) {
+				var c = new NetworkPlayer(packet.RemoteEndpoint, socketID);
+				
+				client = ClientMap.AddOrUpdate( socketID, c, ( id, nc ) => { return nc; } );
+				_ = GetNextShard().MigrateIn( (INetworkPlayer)client );
+			} else
+				client = ClientMap[socketID];
 
-			Clients[socketID].HandlePacket(packet.PacketData.Slice(4));
+			client.HandlePacket( packet.PacketData.Slice( 4 ) );
 		}
 	}
 }

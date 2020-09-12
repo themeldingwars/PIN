@@ -20,9 +20,9 @@ namespace MyGameServer.Controllers {
 			}
 		}
 
-		public abstract void Init( INetworkClient client, IInstance inst );
+		public abstract void Init( INetworkClient client, IPlayer player, IInstance inst );
 
-		public void HandlePacket(INetworkClient client, ulong EntityID, byte MsgID, GamePacket packet) {
+		public void HandlePacket(INetworkClient client, IPlayer player, ulong EntityID, byte MsgID, GamePacket packet) {
 			var method = ReflectionUtils.FindMethodsByAttribute<MessageIDAttribute>(this).Where(( mi ) => mi.GetAttribute<MessageIDAttribute>().MsgID == MsgID).FirstOrDefault();
 
 			if( method == null ) {
@@ -30,7 +30,7 @@ namespace MyGameServer.Controllers {
 				return;
 			}
 
-			method.Invoke(this, new object[] { client, EntityID, packet });
+			_ = method.Invoke(this, new object[] { client, player, EntityID, packet });
 		}
 	}
 }

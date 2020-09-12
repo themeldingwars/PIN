@@ -15,4 +15,8 @@
     <PackageReference Include="System.Net.Sockets" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Shared.Common\Shared.Common.csproj" />
+  </ItemGroup>
+
 </Project>

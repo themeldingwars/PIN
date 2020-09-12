@@ -18,16 +18,15 @@ namespace MyGameServer {
 	}
 
 	public interface INetworkClient {
-		Status ClientStatus { get; }
+		Status NetClientStatus { get; }
 		uint SocketID { get; }
-		IPEndPoint RemoteClient { get; }
-		DateTime LastActive { get; }
-		Player Player { get; }
-		ImmutableDictionary<ChannelType, Channel> Channels { get; }
+		IPEndPoint RemoteEndpoint { get; }
+		DateTime NetLastActive { get; }
+		ImmutableDictionary<ChannelType, Channel> NetChans { get; }
 
-		void Init();
+		void Init( IPlayer player, IPacketSender sender);
 		void HandlePacket( Memory<byte> packet );
-		void NetworkTick();
+		void NetworkTick( double deltaTime, double currTime );
 		void Send( Memory<byte> p );
 		void SendAck( ChannelType forChannel, ushort forSeqNumber );
 	}
