@@ -17,7 +17,7 @@ namespace WebHost.ClientApi.Controllers {
 			return new CharatersList {
 				Characters = new List<Character> {
 					new Character {
-						CharacterGuid = 0x99aabbccddeeff00,
+						CharacterGuid = 0x0099aabbccddeeff,
 						Name = "Ascendant",
 						UniqueName = "Ascendant",
 						IsDev = false,

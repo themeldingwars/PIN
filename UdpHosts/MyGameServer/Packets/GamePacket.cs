@@ -28,12 +28,14 @@ namespace MyGameServer.Packets {
 			return Utils.ReadStructBE<T>(PacketData.Slice(p, len));
 		}
 
-		public T Read<T>() where T : struct {
-			var len = Unsafe.SizeOf<T>();
-			var p = CurrentPosition;
-			CurrentPosition += len;
+		public T Read<T>() {
 
-			return Utils.ReadStruct<T>(PacketData.Slice(p, len));
+			var buf = PacketData.Slice(CurrentPosition);
+			var ret = Utils.Read<T>(ref buf);
+
+			CurrentPosition = (TotalBytes - buf.Length);
+
+			return ret;
 		}
 
 		public Memory<byte> Read( int len ) {
@@ -44,9 +46,8 @@ namespace MyGameServer.Packets {
 		}
 
 		public T Peek<T>() where T : struct {
-			var len = Unsafe.SizeOf<T>();
-
-			return Utils.ReadStruct<T>(PacketData.Slice(CurrentPosition, len));
+			var buf = PacketData.Slice(CurrentPosition);
+			return Utils.Read<T>(ref buf);
 		}
 		public Memory<byte> Peek( int len ) {
 			return PacketData.Slice(CurrentPosition, len);

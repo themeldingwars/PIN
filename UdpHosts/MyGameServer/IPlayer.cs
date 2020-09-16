@@ -13,6 +13,7 @@ namespace MyGameServer {
 			Connected,
 			LoggingIn,
 			LoggedIn,
+			Loading,
 
 			Playing = 999
 		}

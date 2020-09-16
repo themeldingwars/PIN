@@ -10,9 +10,9 @@ using Packet = MyGameServer.Packets.GSS.Character.BaseController;
 
 namespace MyGameServer.Test.GSS.Character.BaseController {
 	internal static class KeyFrame {
-		public static Packets.GSS.Character.BaseController.KeyFrame Test( IPlayer p ) {
+		public static Packet.KeyFrame Test( IPlayer p, IInstance inst ) {
 			var gametime = 0xAAAAAAAAu;
-			var ret = new Packets.GSS.Character.BaseController.KeyFrame();
+			var ret = new Packet.KeyFrame();
 			var cd = p.CharacterEntity.CharData;
 
 			ret.KeyFrameTime_0 = gametime;
@@ -22,7 +22,7 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 			ret.KeyFrameTime_4 = gametime;
 			ret.KeyFrameTime_5 = gametime;
 
-			ret.PlayerID = p.CharacterID;
+			ret.InstanceID = inst.InstanceID;
 			ret.UnkInt1 = 0xffffffffu;
 			ret.UnkInt2 = 0x0000003fu;
 

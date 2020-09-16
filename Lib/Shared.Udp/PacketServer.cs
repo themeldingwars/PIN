@@ -12,7 +12,7 @@ using Shared.Common;
 namespace Shared.Udp {
 	public abstract class PacketServer : IPacketSender {
 		public const double NetworkTickRate = 1.0 / 20.0;
-		public const int MTU = 1400;
+		public const int MTU = 1500;
 
 		public static ILogger Logger;
 		
@@ -88,6 +88,7 @@ namespace Shared.Udp {
 		private void ListenThread() {
 			serverSocket.Blocking = true;
 			serverSocket.ReceiveBufferSize = MTU * 100;
+			serverSocket.SendBufferSize = MTU * 100;
 			serverSocket.SetSocketOption( SocketOptionLevel.IP, SocketOptionName.PacketInformation, true );
 			serverSocket.Bind( listenEndpoint );
 
@@ -95,7 +96,7 @@ namespace Shared.Udp {
 
 			incomingPackets = new ConcurrentQueue<Packet>();
 			outgoingPackets = new ConcurrentQueue<Packet>();
-			byte[] buffer = new byte[MTU];
+			byte[] buffer = new byte[MTU*10];
 			EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 			int c;
 
@@ -133,9 +134,9 @@ namespace Shared.Udp {
 			int c;
 			while( true ) {
 				while( outgoingPackets.TryDequeue( out Packet p ) ) {
-					c = serverSocket.SendTo( p.PacketData.ToArray(), p.RemoteEndpoint );
-					//Logger.Verbose( "<- sent {0}/{1} bytes.", c, p.PacketData.Length );
-					//Logger.Verbose("<  {0}", BitConverter.ToString(p.PacketData.ToArray()).Replace("-", " "));
+					c = serverSocket.SendTo( p.PacketData.ToArray(), p.PacketData.Length, SocketFlags.None, p.RemoteEndpoint );
+					Logger.Verbose( "<- sent {0}/{1} bytes.", c, p.PacketData.Length );
+					Logger.Verbose("<  {0}", BitConverter.ToString(p.PacketData.ToArray()).Replace("-", ""));
 				}
 
 				Thread.Sleep( 1 );
