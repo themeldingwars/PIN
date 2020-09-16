@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace MyGameServer.Packets {
-	[StructLayout( LayoutKind.Sequential, Pack = 1 )]
+	[StructLayout( LayoutKind.Sequential, Pack = 1, Size = 2 )]
 	public readonly struct GamePacketHeader {
 		public readonly UInt16 PacketHeader;
 

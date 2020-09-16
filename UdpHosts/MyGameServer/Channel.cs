@@ -85,7 +85,7 @@ namespace MyGameServer {
 				}
 
 				if( packet.Header.IsSplit )
-					Program.Logger.Fatal("<--- Split packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
+					Program.Logger.Fatal("---> Split packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
 
 				if( IsReliable )
 					client.SendAck(Type, seqNum);
@@ -94,8 +94,9 @@ namespace MyGameServer {
 			}
 
 			while(outgoingPackets.TryDequeue(out Memory<byte> qi) ) {
+				Program.Logger.Verbose( "<  {0}", BitConverter.ToString( qi.ToArray() ).Replace( "-", "" ) );
 				client.Send(qi);
-				//Program.Logger.Verbose("<--- {0}: {1} bytes", Type, qi.Length);
+				Program.Logger.Verbose("<--- {0}: {1} bytes", Type, qi.Length);
 			}
 		}
 
@@ -212,7 +213,7 @@ namespace MyGameServer {
 				var t = new Memory<byte>(new byte[9 + p.Length]);
 				p.CopyTo( t.Slice( 9 ) );
 
-				Utils.WriteStruct( entityID ).CopyTo( t );
+				Utils.WriteStructBE( entityID ).CopyTo( t );
 
 				// Intentionally overwrite first byte of Entity ID
 				if( controllerID.HasValue )
@@ -238,29 +239,33 @@ namespace MyGameServer {
 			Send( p );
 		}
 
+		private const int ProtocolHeaderSize = 80; // UDP + IP
+		private const int GameSocketHeaderSize = 4;
+		private const int TotalHeaderSize = ProtocolHeaderSize + GameSocketHeaderSize;
+		private const int MaxPacketSize = PacketServer.MTU - TotalHeaderSize;
 		public void Send( Memory<byte> p ) {
-			var extraLen = 2;
+			var hdrLen = 2;
 			if( IsSequenced )
-				extraLen += 2;
+				hdrLen += 2;
 
 			// TODO: Send UGSS messages that are split over RGSS
 			while( p.Length > 0 ) {
-				var len = Math.Min(p.Length + extraLen, PacketServer.MTU);
+				var len = Math.Min(p.Length + hdrLen, MaxPacketSize);
 
 				var t = new Memory<byte>(new byte[len]);
-				p.Slice(0, len - extraLen).CopyTo(t.Slice(extraLen));
+				p.Slice(0, len - hdrLen).CopyTo(t.Slice(hdrLen));
 
 				if( IsSequenced ) {
 					Utils.WriteStructBE(CurrentSequenceNumber).CopyTo(t.Slice(2, 2));
 					unchecked { CurrentSequenceNumber++; }
 				}
 
-				var hdr = new GamePacketHeader(Type, 0, (p.Length > (PacketServer.MTU - extraLen)), (ushort)(t.Length));
+				var hdr = new GamePacketHeader(Type, 0, (p.Length + hdrLen) > MaxPacketSize, (ushort)t.Length);
 				Utils.WriteStructBE(hdr).CopyTo(t);
 
 				outgoingPackets.Enqueue(t);
 
-				p = p.Slice(len - extraLen);
+				p = p.Slice(len - hdrLen);
 			}
 		}
 	}

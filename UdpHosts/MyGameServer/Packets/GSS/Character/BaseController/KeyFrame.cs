@@ -9,7 +9,7 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 	[GSSMessage( Enums.GSS.Controllers.Character_BaseController, (byte)Enums.GSS.Character.Events.KeyFrame )]
 	public class KeyFrame {
 		[Field]
-		public ulong PlayerID;
+		public ulong InstanceID;
 		[Field]
 		public uint UnkInt1;
 		[Field]

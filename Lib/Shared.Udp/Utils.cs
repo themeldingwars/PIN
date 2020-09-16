@@ -40,7 +40,7 @@ namespace Shared.Udp {
 		public static T ReadStruct<T>( Memory<byte> mem ) where T : struct {
 			int size = Unsafe.SizeOf<T>();
 			if( mem.Length < size )
-				return default( T );
+				return default;
 
 			return MemoryMarshal.Read<T>( mem.Span.Slice( 0, size ) );
 		}
@@ -99,14 +99,170 @@ namespace Shared.Udp {
 			return false;
 		}
 
+		public static T Read<T>( ref Memory<byte> data ) {
+			return (T)Read( ref data, typeof( T ) );
+		}
+
+		public unsafe static object Read( ref Memory<byte> data, Type t, IEnumerable<Attribute> attrs = null ) {
+			if( attrs == null )
+				attrs = t.GetCustomAttributes();
+
+			var preLen = attrs.Where(a => a is LengthPrefixedAttribute).FirstOrDefault() as LengthPrefixedAttribute;
+			var len = attrs.Where(a => a is LengthAttribute).FirstOrDefault() as LengthAttribute;
+			var pad = attrs.Where(a => a is PaddingAttribute).FirstOrDefault() as PaddingAttribute;
+			var exists = attrs.Where(a => a is ExistsPrefixAttribute).FirstOrDefault() as ExistsPrefixAttribute;
+
+			object ret = null;
+
+			if( pad != null )
+				data = data.Slice( pad.Size );
+
+			if( exists != null ) {
+				if( Read( ref data, exists.ExistsType ) != exists.TrueValue )
+					return null;
+				else
+					data = data.Slice( Marshal.SizeOf( exists.ExistsType ) );
+			}
+
+			if( typeof( IEnumerable ).IsAssignableFrom( t ) && t.GenericTypeArguments != null && t.GenericTypeArguments.Length > 0 ) {
+				int l=0;
+				if( preLen != null ) {
+					l = (int)Convert.ChangeType( Read( ref data, preLen.LengthType ), typeof( int ) );
+					data = data.Slice( Marshal.SizeOf( preLen.LengthType ) );
+				} else if( len != null )
+					l = len.Length;
+				else
+					throw new Exception();
+
+				var tempRet = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(t.GenericTypeArguments));
+				for( var i = 0; i < l; i++ )
+					_ = tempRet.Add( Read( ref data, t.GenericTypeArguments[0] ) );
+
+				ret = tempRet;
+			} else if( typeof( string ) == t ) {
+				var l = 0;
+
+				while( l < data.Length && data.Span[l] != 0x00 )
+					l++;
+
+				ret = Encoding.ASCII.GetString( data.Slice( 0, l - 1 ).Span.ToArray() );
+				data = data.Slice( l );
+			} else if( t.IsClass ) {
+				ret = ReadClass( ref data, t );
+			} else if( t.IsPrimitive || typeof( Half ) == t ) {
+				ret = ReadPrimitive( ref data, t );
+			} else if( t.IsValueType && t.BaseType == typeof( Enum ) ) {
+				ret = Enum.ToObject( t, Read( ref data, Enum.GetUnderlyingType( t ) ) );
+			} else if( t.IsValueType ) { 
+				
+				int size = Marshal.SizeOf(t);
+				var mh = data.Slice( 0, size ).Pin();
+
+				ret = Marshal.PtrToStructure( new IntPtr( mh.Pointer ), t );
+				data = data.Slice( size );
+
+				mh.Dispose();
+			}
+
+			return ret;
+		}
+
+		public unsafe static object ReadPrimitive( ref Memory<byte> data, Type t ) {
+			Span<byte> span;
+
+			if( typeof( byte ) == t ) {
+				span = data.Slice( 0, 1 ).Span;
+				data = data.Slice( 1 );
+				return span[0];
+			} else if( typeof( char ) == t ) {
+				span = data.Slice( 0, 1 ).Span;
+				data = data.Slice( 1 );
+				return Encoding.ASCII.GetChars( span.ToArray() )[0];
+			} else if( typeof( short ) == t ) {
+				span = data.Slice( 0, 1 ).Span;
+				data = data.Slice( 1 );
+				return BinaryPrimitives.ReadInt16LittleEndian( span );
+			} else if( typeof( ushort ) == t ) {
+				span = data.Slice( 0, 2 ).Span;
+				data = data.Slice( 2 );
+				return BinaryPrimitives.ReadUInt16LittleEndian( span );
+			} else if( typeof( int ) == t ) {
+				span = data.Slice( 0, 2 ).Span;
+				data = data.Slice( 2 );
+				return BinaryPrimitives.ReadInt32LittleEndian( span );
+			} else if( typeof( uint ) == t ) {
+				span = data.Slice( 0, 4 ).Span;
+				data = data.Slice( 4 );
+				return BinaryPrimitives.ReadUInt32LittleEndian( span );
+			} else if( typeof( long ) == t ) {
+				span = data.Slice( 0, 4 ).Span;
+				data = data.Slice( 4 );
+				return BinaryPrimitives.ReadInt64LittleEndian( span );
+			} else if( typeof( ulong ) == t ) {
+				span = data.Slice( 0, 8 ).Span;
+				data = data.Slice( 8 );
+				return BinaryPrimitives.ReadUInt64LittleEndian( span );
+			} else if( typeof( Half ) == t ) {
+				span = data.Slice( 0, 2 ).Span;
+				data = data.Slice( 2 );
+				return BinaryPrimitives.ReadUInt16LittleEndian( span );
+			} else if( typeof( float ) == t ) {
+				span = data.Slice( 0, 4 ).Span;
+				data = data.Slice( 4 );
+				return MemoryMarshal.Cast<byte, float>( span )[0];
+			} else if( typeof( double ) == t ) {
+				span = data.Slice( 0, 8 ).Span;
+				data = data.Slice( 8 );
+				return MemoryMarshal.Cast<byte, double>( span )[0];
+			} else
+				throw new Exception();
+		}
+
+		public static T ReadClass<T>( ref Memory<byte> data ) where T : class {
+			return (T)ReadClass( ref data, typeof( T ) );
+		}
+
+		public static object ReadClass( ref Memory<byte> data, Type t ) {
+			var props = from prop in t.GetFields()
+						where Attribute.IsDefined(prop, typeof(FieldAttribute))
+						orderby ((FieldAttribute)prop
+							.GetCustomAttributes(typeof(FieldAttribute), false)
+							.Single()).Order
+						select prop;
+
+			var ret = Activator.CreateInstance(t);
+			foreach( var p in props ) {
+				var attrs = p.GetCustomAttributes();
+
+
+				var v = Read( ref data, p.FieldType, attrs );
+
+				p.SetValue( ret, v );
+			}
+
+			return ret;
+		}
+
 		public unsafe static Memory<byte> Write( object o, Type t, IEnumerable<Attribute> attrs = null ) {
 			var preLen = attrs?.Where(a => a is LengthPrefixedAttribute).FirstOrDefault() as LengthPrefixedAttribute;
 			var len = attrs?.Where(a => a is LengthAttribute).FirstOrDefault() as LengthAttribute;
 			var pad = attrs?.Where(a => a is PaddingAttribute).FirstOrDefault() as PaddingAttribute;
+			var exists = attrs?.Where(a => a is ExistsPrefixAttribute).FirstOrDefault() as ExistsPrefixAttribute;
 			var ret = new List<Memory<byte>>();
 
 			if( pad != null )
 				ret.Add( new byte[pad.Size].AsMemory() );
+
+			if( exists != null ) {
+				if( o != null )
+					ret.Add( Write( Convert.ChangeType( exists.TrueValue, exists.ExistsType ), exists.ExistsType ) );
+				else {
+					ret.Add( Write( Convert.ChangeType( 0, exists.ExistsType ), exists.ExistsType ) );
+
+					return Combine( ret );
+				}
+
+			}
 
 			if( o == null ) {
 				if( preLen != null )
@@ -115,7 +271,7 @@ namespace Shared.Udp {
 				if( len != null ) {
 					if( typeof( IEnumerable ).IsAssignableFrom( t ) && t.GenericTypeArguments != null && t.GenericTypeArguments.Length > 0 ) {
 						var st = t.GenericTypeArguments[0];
-						ret.Add(new byte[Marshal.SizeOf( st ) * len.Length]);
+						ret.Add( new byte[Marshal.SizeOf( st ) * len.Length] );
 					} else
 						throw new Exception();
 				}
@@ -136,7 +292,7 @@ namespace Shared.Udp {
 				}
 			}
 
-			return Combine(ret);
+			return Combine( ret );
 		}
 
 		public unsafe static Memory<byte> WriteList( IList ienum, LengthAttribute len = null ) {
@@ -152,7 +308,7 @@ namespace Shared.Udp {
 				t = ienum?.GetType().GenericTypeArguments[0] ?? ienum[0]?.GetType() ?? typeof( object );
 
 			foreach( var item in ienum ) {
-				
+
 				var mem = Write(item, t);
 				totalSize += mem.Length;
 				mems.Add( mem );
@@ -200,7 +356,7 @@ namespace Shared.Udp {
 			} else if( val is ulong ul ) {
 				span = new byte[8];
 				BinaryPrimitives.WriteUInt64LittleEndian( span, ul );
-			} else if( val is Half h) {
+			} else if( val is Half h ) {
 				span = new byte[2];
 				BinaryPrimitives.WriteUInt16LittleEndian( span, h.Value );
 			} else if( val is float f ) {
@@ -338,7 +494,7 @@ namespace Shared.Udp {
 				mems.Add( vm );
 			}
 
-			return Combine(mems,totalSize);
+			return Combine( mems, totalSize );
 		}
 
 		public static Memory<byte> Combine( IList<Memory<byte>> mems ) {
@@ -347,10 +503,10 @@ namespace Shared.Udp {
 				totalSize += m.Length;
 			}
 
-			return Combine(mems, totalSize);
+			return Combine( mems, totalSize );
 		}
 
-		public static Memory<byte> Combine( IList<Memory<byte>> mems, int totalSize) {
+		public static Memory<byte> Combine( IList<Memory<byte>> mems, int totalSize ) {
 			var ret = new Memory<byte>(new byte[totalSize]);
 			var idx = 0;
 			foreach( var m in mems ) {

@@ -9,6 +9,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Linq;
 using MyGameServer.Data;
+using System.Diagnostics;
 
 namespace MyGameServer {
 	public class NetworkClient : INetworkClient, IInstance {
@@ -95,8 +96,8 @@ namespace MyGameServer {
 			switch( msgID ) {
 			case Enums.MatrixPacketType.Login:
 				// Login
-				var pkt = packet.Read<Packets.Matrix.Login>();
-				Player.Login( pkt.CharacterGUID );
+				var loginpkt = packet.Read<Packets.Matrix.Login>();
+				Player.Login( loginpkt.CharacterGUID );
 				
 				break;
 			case Enums.MatrixPacketType.EnterZoneAck:
@@ -108,38 +109,13 @@ namespace MyGameServer {
 
 				Controllers.Factory.Get<Controllers.Character.BaseController>().Init( this, Player, this );
 
-				// TODO: Setup Character Controllers
-				//		BaseController (2)
-				//		CombatController (5)				???
-				//		LocalEffectsController (6)			???
-				//		MissionAndMarkerController (4)		???
-
-				// EliteLevels_InitAllFrames				???
-				// Character Loaded
-				// Tutorial State Init						???
-				// Combat Controller Ability Coldowns 1		???
-				// Combat Controller Ability Coldowns 2		???
-				// Combat Controller Ability Coldowns 3		???
-
-				// sendProgressionXPRefresh					???
-				// sendInventoryUpdate						???
-				// sendPrivateCombatLog (114)				???
-				// sendUpdateCharacterControllers			???
-				// sendEliteLevelsInitInfo					???
-				// sendCharCombatController_Msg1 (124)		???
-				// sendCharCombatController_Msg1 (126)		???
-				// sendCharCombatController_Msg1 (128)		???
-				// sendPrivateCombatLog (140)				???
-				// sendCharCombatController_Msg1 (124)		???
-				// sendUnknownCID2_1 (199)					???
-				// sendPrivateCombatLog (1069)				???
-				// sendCharCombatController_Msg1 ("1081_context_adapted") ???
-				// sendPrivateCombatLog (1102)				???
-				// sendPrivateCombatLog (1135)				???
-
 				break;
 			case Enums.MatrixPacketType.KeyframeRequest:
 				// TODO; See onKeyframeRequest in server_gamesocket.js
+				var kfrpkt = packet.Read<Packets.Matrix.KeyFrameRequest>();
+
+				int i=0;
+
 				break;
 			case Enums.MatrixPacketType.ClientStatus:
 				var matStatus = new Packets.Matrix.MatrixStatus() {
@@ -147,6 +123,10 @@ namespace MyGameServer {
 				};
 
 				NetChans[ChannelType.Matrix].Send( matStatus );
+				break;
+			case Enums.MatrixPacketType.LogInstrumentation:
+				// Ignore
+
 				break;
 			default:
 				Program.Logger.Error( "---> Unrecognized Matrix Packet {0}[{1}]!!!", msgID, ((byte)msgID) );

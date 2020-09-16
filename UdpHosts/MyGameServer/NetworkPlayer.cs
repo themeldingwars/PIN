@@ -32,14 +32,26 @@ namespace MyGameServer {
 			CharacterEntity.Load( charID );
 			Status = IPlayer.PlayerStatus.LoggedIn;
 
-			// Send WelcomeToTheMatrix here?
-			CurrentZone = Test.DataUtils.GetZone( 448 );
-
-			CharacterEntity.Position = CurrentZone.POIs["watchtower"];
-
 			// WelcomeToTheMatrix
 			var wel = new Packets.Matrix.WelcomeToTheMatrix(InstanceID, 0, 0);
 			NetChans[ChannelType.Matrix].Send( wel );
+
+			EnterZone( Test.DataUtils.GetZone( 448 ) );
+
+			/*var syncReq = new Packets.Matrix.SynchronizationRequest() {
+				Unk = new byte[] {
+					0xb4, 0x50, 0xaf, 0xa8, 0x1c, 0xa5, 0x45, 0x15, 0x00, 0x0d, 0x0c, 0x0c, 0xcc, 0xcc, 0xc6, 0x1b,
+					0xcd, 0x05, 0xc6, 0xcc, 0xcc, 0xcc, 0x21, 0xe3, 0x9e, 0x37, 0x71, 0x0d, 0x3f, 0xb9, 0xb4, 0xd6,
+					0x9c, 0x20, 0x36, 0xf7, 0x4a, 0x01
+				}
+			};
+
+			Channels[ChannelType.Matrix].Send(syncReq);*/
+		}
+
+		public void EnterZone(Zone z) {
+			CurrentZone = z;
+			CharacterEntity.Position = CurrentZone.POIs["watchtower"];
 
 			// EnterZone
 			var enterZone = new Packets.Matrix.EnterZone();
@@ -64,27 +76,15 @@ namespace MyGameServer {
 			enterZone.SpectatorModeFlag = 0;
 
 			NetChans[ChannelType.Matrix].Send( enterZone );
-
-			/*var syncReq = new Packets.Matrix.SynchronizationRequest() {
-				Unk = new byte[] {
-					0xb4, 0x50, 0xaf, 0xa8, 0x1c, 0xa5, 0x45, 0x15, 0x00, 0x0d, 0x0c, 0x0c, 0xcc, 0xcc, 0xc6, 0x1b,
-					0xcd, 0x05, 0xc6, 0xcc, 0xcc, 0xcc, 0x21, 0xe3, 0x9e, 0x37, 0x71, 0x0d, 0x3f, 0xb9, 0xb4, 0xd6,
-					0x9c, 0x20, 0x36, 0xf7, 0x4a, 0x01
-				}
-			};
-
-			Channels[ChannelType.Matrix].Send(syncReq);*/
+			Status = IPlayer.PlayerStatus.Loading;
 		}
 
 		public void Tick( double deltaTime, double currTime ) {
 			// TODO: Implement FSM here to move player thru log in process to connecting to a shard to playing
 			if( Status == IPlayer.PlayerStatus.Connected ) {
 				Status = IPlayer.PlayerStatus.LoggingIn;
-				// Wait for Login message
-			} else if( Status == IPlayer.PlayerStatus.LoggedIn ) {
-				// Shunt to Instance/Shard?
-				// Send EnterZone?
-				Status = IPlayer.PlayerStatus.Playing;
+			} else if( Status == IPlayer.PlayerStatus.Loading ) {
+				
 			}
 		}
 	}
