@@ -27,6 +27,7 @@ namespace MyGameServer.Data {
 		public uint NameLocalizationID { get; set; }
 		public byte Level { get; set; }
 		public byte EffectiveLevel { get; set; }
+		public float JumpJetEnergy { get; set; }
 		public uint MaxJumpJetEnergy { get; set; }
 		public float JumpJetRecharge { get; set; }
 		public uint MaxHealth { get; set; }
@@ -76,7 +77,8 @@ namespace MyGameServer.Data {
 			NameLocalizationID = 0;
 			Level = 45;
 			EffectiveLevel = 30;
-			MaxJumpJetEnergy = 300;
+			JumpJetEnergy = 300f;
+			MaxJumpJetEnergy = 500;
 			JumpJetRecharge = 156.414169f;
 			MaxHealth = 19192;
 

@@ -9,7 +9,7 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 	[GSSMessage( Enums.GSS.Controllers.Character_BaseController, (byte)Enums.GSS.Character.Events.KeyFrame )]
 	public class KeyFrame {
 		[Field]
-		public ulong InstanceID;
+		public ulong PlayerID;
 		[Field]
 		public uint UnkInt1;
 		[Field]
@@ -97,9 +97,11 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 		[Padding(8)]
 		public uint SecondaryWeaponID;
 		[Field]
-		[Padding(3)]
+		[Length(3)]
+		public IList<byte> UnkBytes5 = new List<byte>();
+		[Field]
 		[LengthPrefixed(typeof(byte))]
-		public IList<WeaponModule> SecondaryWeaponModules = new List<WeaponModule>();
+        public IList<WeaponModule> SecondaryWeaponModules = new List<WeaponModule>();
 		[Field]
 		public Visuals SecondaryWeaponVisuals = new Visuals();
 		[Field]
@@ -207,7 +209,8 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 		public ulong ArmyID;
 
 		[Field]
-		[Length(292)]
+		[Length(292)] // This matches Xsear's packet
+		//[Length(204)] // Minimum allowed if all zeros?
 		public IList<byte> Unk = new List<byte>();
 
 		public class Palette {

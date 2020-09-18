@@ -94,9 +94,9 @@ namespace MyGameServer {
 			}
 
 			while(outgoingPackets.TryDequeue(out Memory<byte> qi) ) {
-				Program.Logger.Verbose( "<  {0}", BitConverter.ToString( qi.ToArray() ).Replace( "-", "" ) );
+				//Program.Logger.Verbose( "<  {0}", BitConverter.ToString( qi.ToArray() ).Replace( "-", "" ) );
 				client.Send(qi);
-				Program.Logger.Verbose("<--- {0}: {1} bytes", Type, qi.Length);
+				//Program.Logger.Verbose("<--- {0}: {1} bytes", Type, qi.Length);
 			}
 		}
 
@@ -232,7 +232,7 @@ namespace MyGameServer {
 				else
 					Program.Logger.Verbose( "<-- {0}: {1} - {2} ({3:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, Enum.Parse( msgEnumType, Enum.GetName( msgEnumType, msgID ) ), msgID );
 
-				Program.Logger.Verbose( "<--- Sending {0} bytes", p.Length );
+				//Program.Logger.Verbose( "<--- Sending {0} bytes", p.Length );
 			} else
 				throw new Exception();
 
@@ -261,7 +261,8 @@ namespace MyGameServer {
 				}
 
 				var hdr = new GamePacketHeader(Type, 0, (p.Length + hdrLen) > MaxPacketSize, (ushort)t.Length);
-				Utils.WriteStructBE(hdr).CopyTo(t);
+				var bytes = Utils.WriteStructBE(hdr);
+				bytes.CopyTo(t);
 
 				outgoingPackets.Enqueue(t);
 
