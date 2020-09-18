@@ -58,35 +58,6 @@ namespace MyGameServer {
 
 			//Program.Logger.Verbose("--> GSS; Controller = {0} Entity = 0x{1:X8} MsgID = {2}", ControllerID, EntityID, MsgID);
 			conn.HandlePacket( this, Player, EntityID, MsgID, packet );
-
-			// Character_BaseController = 115
-			// Character_BaseController = 145
-			// Character_BaseController = 148
-			// Character_BaseController = 150
-
-			// Character_BaseController = 179 ???
-			// Character_BaseController = 180 ???
-			// Character_BaseController = 181 ???
-			// Character_BaseController = 182 ???
-			// Character_BaseController = 140 ???
-			// Character_BaseController = 216 ???
-			// Character_BaseController = 142 ???
-
-			// Character_CombatController = 138 ???
-			// Character_CombatController = 134 ???
-			// Character_CombatController = 118 ???
-			// Character_CombatController = 119 ???
-			// Character_CombatController = 120 ???
-			// Character_CombatController = 121 ???
-			// Character_CombatController = 122 ???
-			// Character_CombatController = 123 ???
-			// Character_CombatController = 124 ???
-			// Character_CombatController = 125 ???
-			// Character_CombatController = 126 ???
-
-			// Vehicle_BaseController = 83 ???
-			// Vehicle_BaseController = 86 ???
-			// Vehicle_BaseController = 90 ???
 		}
 
 		private unsafe void Matrix_PacketAvailable( GamePacket packet ) {
@@ -101,12 +72,6 @@ namespace MyGameServer {
 				
 				break;
 			case Enums.MatrixPacketType.EnterZoneAck:
-				//Channels[ChannelType.ReliableGss].SendGSS( Test.GSS.ArcCompletionHistoryUpdate.GetEmpty(), InstanceID, msgEnumType: typeof( Enums.GSS.Generic.Events ) );
-				//Channels[ChannelType.ReliableGss].SendGSS( new Packets.GSS.JobLedgerEntriesUpdate { Unk1 = 0x00 }, InstanceID, msgEnumType: typeof( Enums.GSS.Generic.Events ) );
-				//Channels[ChannelType.ReliableGss].SendGSS( Test.GSS.ConfirmedPoseUpdate.GetPreSpawnConfirmedPoseUpdate(), Player.EntityID, msgEnumType: typeof( Enums.GSS.Character.Events ) );
-				//Channels[ChannelType.ReliableGss].SendGSS( new Packets.GSS.TotalAchievementPoints { Number = 0x00000ad2 }, InstanceID, msgEnumType: typeof( Enums.GSS.Generic.Events ) );
-				//Channels[ChannelType.ReliableGss].SendGSS( new Packets.GSS.InteractableStatusChanged { Unk1 = 0x0006eb22, Unk4 = 0x0100 }, InstanceID, msgEnumType: typeof( Enums.GSS.Generic.Events ) );
-
 				Controllers.Factory.Get<Controllers.Character.BaseController>().Init( this, Player, this );
 
 				break;

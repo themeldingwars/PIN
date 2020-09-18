@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Serilog;
 
@@ -87,6 +88,7 @@ namespace Shared.Udp {
 
 		private void ListenThread() {
 			serverSocket.Blocking = true;
+			serverSocket.DontFragment = true;
 			serverSocket.ReceiveBufferSize = MTU * 100;
 			serverSocket.SendBufferSize = MTU * 100;
 			serverSocket.SetSocketOption( SocketOptionLevel.IP, SocketOptionName.PacketInformation, true );
@@ -123,7 +125,7 @@ namespace Shared.Udp {
 					HandlePacket( p );
 				}
 
-				Thread.Sleep( 1 );
+				_ = Thread.Yield();
 			}
 		}
 
@@ -139,7 +141,7 @@ namespace Shared.Udp {
 					Logger.Verbose("<  {0}", BitConverter.ToString(p.PacketData.ToArray()).Replace("-", ""));
 				}
 
-				Thread.Sleep( 1 );
+				_ = Thread.Yield();
 			}
 		}
 
