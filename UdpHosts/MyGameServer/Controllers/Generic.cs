@@ -16,6 +16,17 @@ namespace MyGameServer.Controllers {
 		[MessageID((byte)Enums.GSS.Generic.Commands.ScheduleUpdateRequest)]
 		public void ScheduleUpdateRequest( INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet) {
 			// TODO: implement
+			var req = packet.Read<Packets.GSS.Generic.ScheduleUpdateRequest>();
+
+			var i = 0;
+		}
+
+		[MessageID((byte)Enums.GSS.Generic.Commands.UIToEncounterMessage)]
+		public void UIToEncounterMessage( INetworkClient client, IPlayer player, ulong EntityID, Packets.GamePacket packet ) {
+		}
+
+		[MessageID((byte)Enums.GSS.Generic.Commands.RequestLogout)]
+		public void RequestLogout( INetworkClient client, IPlayer player, ulong EntityID, Packets.GamePacket packet ) {
 		}
 	}
 }

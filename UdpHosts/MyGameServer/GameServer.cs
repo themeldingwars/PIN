@@ -22,10 +22,10 @@ namespace MyGameServer {
 		protected ConcurrentDictionary<uint, INetworkPlayer> ClientMap;
 		protected ConcurrentDictionary<ulong, IShard> Shards;
 
-		protected ushort nextShardID;
-		protected uint ServerID;
+		protected byte nextShardID;
+		protected ulong ServerID;
 
-		public GameServer( ushort port, uint serverID ) : base( port ) {
+		public GameServer( ushort port, ulong serverID ) : base( port ) {
 			ClientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
 			Shards = new ConcurrentDictionary<ulong, IShard>();
 
@@ -48,7 +48,7 @@ namespace MyGameServer {
 		}
 
 		protected IShard NewShard() {
-			var id = unchecked((((ulong)ServerID) << 32) & (ulong)((nextShardID++) << 8));
+			var id = ServerID | (ulong)((nextShardID++) << 8);
 			return Shards.AddOrUpdate( id, new Shard( GameTickRate, id, this ), ( id, old ) => old );
 		}
 

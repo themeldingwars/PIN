@@ -11,7 +11,7 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
 		[Field]
 		public ulong PlayerID;
 		[Field]
-		[Length(290)]
+		[Length(294)]
 		public IList<byte> UnkBytes;
 
 		public KeyFrame() {
@@ -40,8 +40,6 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
 
                 0x01, 0x00,
                 0x00, 0x00,
-
-                // 42
 
                 0xAA, 0xAA, 0xAA, 0xAA,
                 0x00, 0x00, 0x80, 0x3f,
@@ -179,13 +177,11 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
                 0x00, 0x00, 0x00, 0x00, // guess 61
 
                 // match 62
-                0x1f, 0xe0, 0x2d,
-
-                0x64, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x01, 0x00,
+                0xAA, 0xAA, 0xAA, 0xAA,
                 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00,
-                0x06, 0x2e,
+                0x00, 0x01, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x06, 0x2e,
             };
 		}
 	}
