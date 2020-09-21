@@ -104,12 +104,8 @@ namespace Shared.Udp {
 
 			while( true ) {
 				if( (c = serverSocket.ReceiveFrom( buffer, SocketFlags.None, ref remoteEP )) > 0 ) {
-					// Make sure each Packet has its own memory to prevent corruption
 					// Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
-					Memory<byte> buf = new byte[c];
-					buffer.AsSpan( 0, c ).CopyTo( buf.Span );
-					var p = new Packet((IPEndPoint)remoteEP, buf);
-					incomingPackets.Enqueue( p );
+					incomingPackets.Enqueue( new Packet( (IPEndPoint)remoteEP, new ReadOnlyMemory<byte>( buffer, 0, c ) ) );
 
 					remoteEP = new IPEndPoint( IPAddress.Any, 0 );
 				}
@@ -143,12 +139,6 @@ namespace Shared.Udp {
 
 				_ = Thread.Yield();
 			}
-		}
-
-
-
-		public void SendBE<T>( T pkt, IPEndPoint ep ) where T : struct {
-			Send( Utils.WriteStructBE( pkt ), ep );
 		}
 
 		public void Send<T>( T pkt, IPEndPoint ep ) where T : struct {

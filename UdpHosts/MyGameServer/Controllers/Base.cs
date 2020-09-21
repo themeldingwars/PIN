@@ -20,7 +20,7 @@ namespace MyGameServer.Controllers {
 			}
 		}
 
-		public abstract void Init( INetworkClient client, IPlayer player, IInstance inst );
+		public abstract void Init( INetworkClient client, IPlayer player, IShard shard );
 
 		public void HandlePacket(INetworkClient client, IPlayer player, ulong EntityID, byte MsgID, GamePacket packet) {
 			var method = ReflectionUtils.FindMethodsByAttribute<MessageIDAttribute>(this).Where(( mi ) => mi.GetAttribute<MessageIDAttribute>().MsgID == MsgID).FirstOrDefault();
