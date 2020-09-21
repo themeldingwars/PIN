@@ -93,11 +93,45 @@ namespace MyGameServer {
 				PacketAvailable?.Invoke(packet);
 			}
 
-			while(outgoingPackets.TryDequeue(out Memory<byte> qi) ) {
+			while( outgoingPackets.TryDequeue(out Memory<byte> qi) ) {
 				//Program.Logger.Verbose( "<  {0}", BitConverter.ToString( qi.ToArray() ).Replace( "-", "" ) );
 				client.Send(qi);
 				//Program.Logger.Verbose("<--- {0}: {1} bytes", Type, qi.Length);
 			}
+		}
+
+		public void SendClass<T>( T pkt, Type msgEnumType = null ) where T : class {
+			Memory<byte> p;
+			if( pkt is IWritable write )
+				p = write.Write();
+			else
+				p = Utils.WriteClass(pkt);
+
+			var controlMsgAttr = (typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault()) as ControlMessageAttribute;
+			var matrixMsgAttr = (typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault()) as MatrixMessageAttribute;
+			byte msgID;
+
+			if( controlMsgAttr != null )
+				msgID = (byte)controlMsgAttr.MsgID;
+			else if( matrixMsgAttr != null )
+				msgID = (byte)matrixMsgAttr.MsgID;
+			else
+				throw new Exception();
+
+			var t = new Memory<byte>(new byte[1 + p.Length]);
+			p.CopyTo(t.Slice(1));
+
+			Utils.WriteStruct(msgID).CopyTo(t);
+
+			p = t;
+
+			if( msgEnumType == null )
+				Program.Logger.Verbose("<-- {0}: MsgID = {3:X2}", Type, msgID);
+			else
+				Program.Logger.Verbose("<-- {0}: MsgID = {3} ({4:X2})", Type, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
+
+
+			Send(p);
 		}
 
 		public void Send<T>( T pkt ) where T : struct {
@@ -116,14 +150,14 @@ namespace MyGameServer {
 				p.CopyTo(t.Slice(1));
 				Utils.WriteStruct((byte)msgID).CopyTo(t);
 				p = t;
-				Program.Logger.Verbose("<-- {0}: {1} ({2})", Type, msgID, (byte)msgID);
+				Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
 			} else if( matMsgAttr != null ) {
 				var msgID = matMsgAttr.MsgID;
 				var t = new Memory<byte>(new byte[1 + p.Length]);
 				p.CopyTo(t.Slice(1));
 				Utils.WriteStruct((byte)msgID).CopyTo(t);
 				p = t;
-				Program.Logger.Verbose("<-- {0}: {1} ({2})", Type, msgID, (byte)msgID);
+				Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
 			} else
 				throw new Exception();
 
@@ -146,14 +180,14 @@ namespace MyGameServer {
 				p.CopyTo(t.Slice(1));
 				Utils.WriteStructBE((byte)msgID).CopyTo(t);
 				p = t;
-				Program.Logger.Verbose("<-- {0}: {1} ({2})", Type, msgID, (byte)msgID);
+				Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
 			} else if( matMsgAttr != null ) {
 				var msgID = matMsgAttr.MsgID;
 				var t = new Memory<byte>(new byte[1 + p.Length]);
 				p.CopyTo(t.Slice(1));
 				Utils.WriteStructBE((byte)msgID).CopyTo(t);
 				p = t;
-				Program.Logger.Verbose("<-- {0}: {1} ({2})", Type, msgID, (byte)msgID);
+				Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
 			} else
 				throw new Exception();
 
@@ -189,9 +223,9 @@ namespace MyGameServer {
 				p = t;
 
 				if( msgEnumType == null )
-					Program.Logger.Verbose("<-- {0}: {1} - {2:X2}", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, msgID);
+					Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3:X2}", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID, msgID);
 				else
-					Program.Logger.Verbose("<-- {0}: {1} - {2} ({3:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
+					Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} ({4:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
 			} else
 				throw new Exception();
 
@@ -203,40 +237,40 @@ namespace MyGameServer {
 			if( pkt is IWritable write ) {
 				p = write.Write();
 			} else
-				p = Utils.WriteClass( pkt );
+				p = Utils.WriteClass(pkt);
 
-			Console.WriteLine( string.Concat( p.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
+			//Console.WriteLine( string.Concat( p.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
 			var gssMsgAttr = (typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault()) as GSSMessageAttribute;
 
 			if( gssMsgAttr != null ) {
 				var msgID = gssMsgAttr.MsgID;
 				var t = new Memory<byte>(new byte[9 + p.Length]);
-				p.CopyTo( t.Slice( 9 ) );
+				p.CopyTo(t.Slice(9));
 
-				Utils.WriteStructBE( entityID ).CopyTo( t );
+				Utils.WriteStruct(entityID).CopyTo(t);
 
 				// Intentionally overwrite first byte of Entity ID
 				if( controllerID.HasValue )
-					Utils.WriteStruct( controllerID.Value ).CopyTo( t );
+					Utils.WriteStruct(controllerID.Value).CopyTo(t);
 				else if( gssMsgAttr.ControllerID.HasValue )
-					Utils.WriteStruct( gssMsgAttr.ControllerID.Value ).CopyTo( t );
+					Utils.WriteStruct(gssMsgAttr.ControllerID.Value).CopyTo(t);
 				else
 					throw new Exception();
 
-				Utils.WriteStruct( msgID ).CopyTo( t.Slice( 8 ) );
+				Utils.WriteStruct(msgID).CopyTo(t.Slice(8));
 
 				p = t;
 
 				if( msgEnumType == null )
-					Program.Logger.Verbose( "<-- {0}: {1} - {2:X2}", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, msgID );
+					Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3:X2}", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID, msgID);
 				else
-					Program.Logger.Verbose( "<-- {0}: {1} - {2} ({3:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, Enum.Parse( msgEnumType, Enum.GetName( msgEnumType, msgID ) ), msgID );
+					Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} ({4:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
 
 				//Program.Logger.Verbose( "<--- Sending {0} bytes", p.Length );
 			} else
 				throw new Exception();
 
-			Send( p );
+			Send(p);
 		}
 
 		private const int ProtocolHeaderSize = 80; // UDP + IP

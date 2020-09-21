@@ -20,13 +20,14 @@ namespace MyGameServer {
 
 		public ulong CharacterID { get; }
 		public Entities.Character CharacterEntity { get; }
-		public ulong EntityID { get { return (CharacterID & 0x00ffffffffffffff); } } // Ignore top byte
+		public ulong EntityID { get { return (CharacterID & 0xffffffffffffff00); } } // Ignore last byte
 		public PlayerStatus Status { get; }
 		public Zone CurrentZone { get; }
 
 		public void Init(IShard shard);
 
 		public void Login( ulong charID );
+		void Ready();
 
 		public void Tick( double deltaTime, double currTime );
 	}

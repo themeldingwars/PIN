@@ -24,7 +24,7 @@ namespace MyGameServer {
 		DateTime NetLastActive { get; }
 		ImmutableDictionary<ChannelType, Channel> NetChans { get; }
 
-		void Init( IPlayer player, IPacketSender sender);
+		void Init( IPlayer player, IShard shard, IPacketSender sender);
 		void HandlePacket( Memory<byte> packet );
 		void NetworkTick( double deltaTime, double currTime );
 		void Send( Memory<byte> p );

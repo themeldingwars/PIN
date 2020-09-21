@@ -10,6 +10,10 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 	public class CharacterLoaded {
 		[Field]
 		[Length(2)]
-		public IList<byte> UnkBytes = new List<byte>();
+		public IList<byte> UnkBytes;
+
+		public CharacterLoaded() {
+			UnkBytes = new byte[] { 0x00, 0x00 };
+		}
 	}
 }
