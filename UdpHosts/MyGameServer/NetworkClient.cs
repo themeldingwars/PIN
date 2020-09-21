@@ -12,8 +12,7 @@ using MyGameServer.Data;
 using System.Diagnostics;
 
 namespace MyGameServer {
-	public class NetworkClient : INetworkClient, IInstance {
-		public ulong InstanceID { get { return 0x4658119e70100000u; } }
+	public class NetworkClient : INetworkClient {
 		public Status NetClientStatus { get; protected set; }
 		public uint SocketID { get; protected set; }
 		public IPEndPoint RemoteEndpoint { get; protected set; }
@@ -21,6 +20,7 @@ namespace MyGameServer {
 		protected IPacketSender Sender { get; set; }
 		protected IPlayer Player { get; private set; }
 		public ImmutableDictionary<ChannelType, Channel> NetChans { get; protected set; }
+		public IShard AssignedShard { get; protected set; }
 
 		public NetworkClient( IPEndPoint ep, uint socketID ) {
 			SocketID = socketID;
@@ -29,10 +29,11 @@ namespace MyGameServer {
 			NetLastActive = DateTime.Now;
 		}
 
-		public void Init( IPlayer player, IPacketSender sender ) {
+		public void Init( IPlayer player, IShard shard, IPacketSender sender ) {
 			Player = player;
 			Sender = sender;
 			NetClientStatus = Status.Connecting;
+			AssignedShard = shard;
 
 			NetChans = Channel.GetChannels( this ).ToImmutableDictionary();
 			NetChans[ChannelType.Control].PacketAvailable += Control_PacketAvailable;
@@ -43,26 +44,26 @@ namespace MyGameServer {
 
 		private void GSS_PacketAvailable( GamePacket packet ) {
 			var ControllerID = packet.Read<Enums.GSS.Controllers>();
-			Span<byte> entity = new byte[8];
-			packet.Read( 7 ).ToArray().Reverse().ToArray().CopyTo( entity );
-			var EntityID = BitConverter.ToUInt64(entity.ToArray());
+			Span<byte> entity = stackalloc byte[8];
+			packet.Read( 7 ).ToArray().CopyTo( entity );
+			var EntityID = unchecked(BitConverter.ToUInt64(entity) << 8);
 			var MsgID = packet.Read<byte>();
 
 			var conn = Controllers.Factory.Get(ControllerID);
 
 			if( conn == null ) {
-				Program.Logger.Verbose( "---> Unrecognized ControllerID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, EntityID, MsgID );
-				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
+				Program.Logger.Verbose( "---> Unrecognized ControllerID for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", ControllerID, EntityID, MsgID );
+				//Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				return;
 			}
 
-			//Program.Logger.Verbose("--> GSS; Controller = {0} Entity = 0x{1:X8} MsgID = {2}", ControllerID, EntityID, MsgID);
+			Program.Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", ChannelType.ReliableGss, ControllerID, EntityID, MsgID);
 			conn.HandlePacket( this, Player, EntityID, MsgID, packet );
 		}
 
 		private unsafe void Matrix_PacketAvailable( GamePacket packet ) {
 			var msgID = packet.Read<Enums.MatrixPacketType>();
-			Program.Logger.Verbose( "--> {0} ({1})", msgID, ((byte)msgID) );
+			Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Matrix, msgID, ((byte)msgID) );
 
 			switch( msgID ) {
 			case Enums.MatrixPacketType.Login:
@@ -72,7 +73,7 @@ namespace MyGameServer {
 				
 				break;
 			case Enums.MatrixPacketType.EnterZoneAck:
-				Controllers.Factory.Get<Controllers.Character.BaseController>().Init( this, Player, this );
+				Controllers.Factory.Get<Controllers.Character.BaseController>().Init( this, Player, AssignedShard );
 
 				break;
 			case Enums.MatrixPacketType.KeyframeRequest:
@@ -83,11 +84,7 @@ namespace MyGameServer {
 
 				break;
 			case Enums.MatrixPacketType.ClientStatus:
-				var matStatus = new Packets.Matrix.MatrixStatus() {
-					Unk = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
-				};
-
-				NetChans[ChannelType.Matrix].Send( matStatus );
+				//NetChans[ChannelType.Matrix].SendClass(new Packets.Matrix.MatrixStatus() );
 				break;
 			case Enums.MatrixPacketType.LogInstrumentation:
 				// Ignore
@@ -95,14 +92,14 @@ namespace MyGameServer {
 				break;
 			default:
 				Program.Logger.Error( "---> Unrecognized Matrix Packet {0}[{1}]!!!", msgID, ((byte)msgID) );
-				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
+				//Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				break;
 			}
 		}
 
 		private void Control_PacketAvailable( GamePacket packet ) {
-			var msgID = packet.ReadBE<Enums.ControlPacketType>();
-			Program.Logger.Verbose( "--> {0} ({1})", msgID, ((byte)msgID) );
+			var msgID = packet.Read<Enums.ControlPacketType>();
+			Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Control, msgID, ((byte)msgID) );
 
 			switch( msgID ) {
 			case Enums.ControlPacketType.CloseConnection:
@@ -128,7 +125,7 @@ namespace MyGameServer {
 				break;
 			default:
 				Program.Logger.Error( "---> Unrecognized Control Packet {0} ({1:X2})!!!", msgID, ((byte)msgID) );
-				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
+				//Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				break;
 			}
 		}
@@ -181,7 +178,7 @@ namespace MyGameServer {
 			if( forSeqNum == 0 )
 				return;
 
-			Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
+			//Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
 
 			if( forChannel == ChannelType.Matrix )
 				NetChans[ChannelType.Control].SendBE( new Packets.Control.MatrixAck( NetChans[forChannel].CurrentSequenceNumber, forSeqNum ) );

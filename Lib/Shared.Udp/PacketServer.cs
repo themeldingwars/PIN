@@ -13,7 +13,7 @@ using Shared.Common;
 namespace Shared.Udp {
 	public abstract class PacketServer : IPacketSender {
 		public const double NetworkTickRate = 1.0 / 20.0;
-		public const int MTU = 1500;
+		public const int MTU = 1400;
 
 		public static ILogger Logger;
 		
@@ -137,8 +137,8 @@ namespace Shared.Udp {
 			while( true ) {
 				while( outgoingPackets.TryDequeue( out Packet p ) ) {
 					c = serverSocket.SendTo( p.PacketData.ToArray(), p.PacketData.Length, SocketFlags.None, p.RemoteEndpoint );
-					Logger.Verbose( "<- sent {0}/{1} bytes.", c, p.PacketData.Length );
-					Logger.Verbose("<  {0}", BitConverter.ToString(p.PacketData.ToArray()).Replace("-", ""));
+					//Logger.Verbose( "<- sent {0}/{1} bytes.", c, p.PacketData.Length );
+					//Logger.Verbose("<  {0}", BitConverter.ToString(p.PacketData.ToArray()).Replace("-", ""));
 				}
 
 				_ = Thread.Yield();

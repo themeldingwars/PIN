@@ -13,6 +13,7 @@ namespace MyGameServer {
 		public AIEngine AI { get; protected set; }
 		public ulong InstanceID { get; }
 		protected IPacketSender Sender { get; }
+		public double CurrentTick { get; protected set; }
 
 		public Shard( double gameTickRate, ulong instID, IPacketSender sender ) {
 			Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
@@ -23,6 +24,7 @@ namespace MyGameServer {
 		}
 
 		public bool Tick( double deltaTime, double currTime ) {
+			CurrentTick = currTime;
 			foreach( var c in Clients.Values ) {
 				c.Tick( deltaTime, currTime );
 			}

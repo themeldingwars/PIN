@@ -20,7 +20,26 @@ namespace MyGameServer.Controllers.Character {
 
 		[MessageID((byte)Enums.GSS.Character.Commands.FetchQueueInfo)]
 		public void FetchQueueInfo( INetworkClient client, IPlayer player, ulong EntityID, Packets.GamePacket packet ) {
+		}
+
+		[MessageID((byte)Enums.GSS.Character.Commands.PlayerReady)]
+		public void PlayerReady( INetworkClient client, IPlayer player, ulong EntityID, Packets.GamePacket packet ) {
 			// TODO: Implement
+			player.Ready();
+		}
+
+		[MessageID((byte)Enums.GSS.Character.Commands.MovementInput)]
+		public void MovementInput( INetworkClient client, IPlayer player, ulong EntityID, Packets.GamePacket packet ) {
+			// TODO: Implement
+		}
+
+		[MessageID((byte)Enums.GSS.Character.Commands.SetMovementSimulation)]
+		public void SetMovementSimulation( INetworkClient client, IPlayer player, ulong EntityID, Packets.GamePacket packet ) {
+			// TODO: Implement
+		}
+
+		[MessageID((byte)Enums.GSS.Character.Commands.BagInventorySettings)]
+		public void BagInventorySettings( INetworkClient client, IPlayer player, ulong EntityID, Packets.GamePacket packet ) {
 		}
 	}
 }
