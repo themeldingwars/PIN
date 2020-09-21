@@ -19,7 +19,7 @@ namespace MyMatrixServer {
 		protected override void Shutdown() { }
 
 		protected unsafe override void HandlePacket(Packet packet) {
-			Memory<byte> mem = packet.PacketData;
+			ReadOnlyMemory<byte> mem = packet.PacketData;
 			var SocketID = Utils.ReadStruct<uint>(mem);
 			if( SocketID != 0 )
 				return;
@@ -35,12 +35,12 @@ namespace MyMatrixServer {
 				Program.Logger.Verbose( "[POKE]" );
 				var socketID = GenerateSocketID();
 				Program.Logger.Information("Assigning SocketID [" + socketID.ToString()+"] to ["+packet.RemoteEndpoint.ToString()+"]");
-				SendBE( new MatrixPacketHehe(socketID), packet.RemoteEndpoint );
+				Send( new MatrixPacketHehe(socketID), packet.RemoteEndpoint );
 				break;
 			case "KISS":    // KISS
 				var kiss = Utils.ReadStruct<MatrixPacketKiss>(mem);
 				Program.Logger.Verbose( "[KISS]" );
-				SendBE( new MatrixPacketHugg( 1, 25001 ), packet.RemoteEndpoint );
+				Send( new MatrixPacketHugg( 1, 25001 ), packet.RemoteEndpoint );
 				break;
 			case "ABRT":    // ABRT
 				var abrt = Utils.ReadStruct<MatrixPacketAbrt>(mem);

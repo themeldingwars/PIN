@@ -7,22 +7,10 @@ using Shared.Udp;
 
 namespace MyGameServer.Packets.GSS {
 	[GSSMessage(Enums.GSS.Controllers.Generic, (byte)Enums.GSS.Generic.Events.ArcCompletionHistoryUpdate)]
-	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	public unsafe struct ArcCompletionHistoryUpdate : IWritable {
-		public static ArcCompletionHistoryUpdate Parse(Packet packet) {
-			var ret = new ArcCompletionHistoryUpdate();
-
-			var num = packet.Read<byte>();
-			ret.Entries = new Entry[num];
-
-			for( var i=0; i<num; i++ ) {
-				ret.Entries[i] = packet.Read<Entry>();
-			}
-
-			return ret;
-		}
-
-		public Entry[] Entries;
+	public class ArcCompletionHistoryUpdate {
+		[Field]
+		[LengthPrefixed(typeof(byte))]
+		public IList<Entry> Entries;
 
 		[StructLayout(LayoutKind.Sequential, Pack = 1)]
 		public struct Entry {
@@ -37,30 +25,6 @@ namespace MyGameServer.Packets.GSS {
 				Unk3 = u3;
 				Unk4 = u4;
 			}
-		}
-
-		public Memory<byte> Write(  ) {
-			Memory<byte> mem = new byte[1 + (4*Entries.Length)];
-
-			Utils.WriteStruct(mem, (byte)Entries.Length);
-			
-			for(var i=0; i<Entries.Length; i++) {
-				Utils.WriteStruct(mem.Slice(1 + (i * 4)), Entries[i]);
-			}
-
-			return mem;
-		}
-
-		public Memory<byte> WriteBE( ) {
-			Memory<byte> mem = new byte[1 + (4 * Entries.Length)];
-
-			Utils.WriteStructBE( mem, (byte)Entries.Length);
-
-			for( var i = 0; i < Entries.Length; i++ ) {
-				Utils.WriteStructBE(mem.Slice(1 + (i * 4)), Entries[i]);
-			}
-
-			return mem;
 		}
 	}
 }
