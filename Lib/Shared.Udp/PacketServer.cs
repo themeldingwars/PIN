@@ -13,7 +13,7 @@ using Shared.Common;
 namespace Shared.Udp {
 	public abstract class PacketServer : IPacketSender {
 		public const double NetworkTickRate = 1.0 / 20.0;
-		public const int MTU = 1500;
+		public const int MTU = 1400;
 
 		public static ILogger Logger;
 		
