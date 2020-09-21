@@ -116,7 +116,9 @@ namespace MyGameServer {
 				break;
 			case Enums.ControlPacketType.TimeSyncRequest:
 				var req = packet.Read<Packets.Control.TimeSyncRequest>();
-				var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()*1000u));
+				var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/2));
+				//var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)((uint)Math.Round(AssignedShard.CurrentTick*1000u)));
+				Program.Logger.Error( "TSR: C {0} => S {1}", resp.ClientTime, resp.ServerTime );
 				NetChans[ChannelType.Control].Send( resp );
 				break;
 			case Enums.ControlPacketType.MTUProbe:
@@ -130,7 +132,7 @@ namespace MyGameServer {
 			}
 		}
 
-		public void HandlePacket( Memory<byte> packet ) {
+		public void HandlePacket( ReadOnlyMemory<byte> packet ) {
 			if( NetClientStatus == Status.Connecting )
 				NetClientStatus = Status.Connected;
 
@@ -140,7 +142,7 @@ namespace MyGameServer {
 			var idx = 0;
 			var hdrSize = Unsafe.SizeOf<GamePacketHeader>();
 			while( (idx + 2) < packet.Length ) {
-				var hdr = Utils.ReadStructBE<GamePacketHeader>(packet.Slice(idx));
+				var hdr = Utils.ReadStruct<GamePacketHeader>(packet.Slice(idx,2).ToArray().Reverse().ToArray().AsMemory());
 
 				if( hdr.Length == 0 || packet.Length < (hdr.Length + idx) )
 					break;
@@ -168,7 +170,7 @@ namespace MyGameServer {
 
 			var t = new Memory<byte>(new byte[4 + p.Length]);
 			p.CopyTo( t.Slice( 4 ) );
-			Utils.WriteStructBE( SocketID ).CopyTo( t );
+			Utils.WriteStruct( Utils.SimpleFixEndianess(SocketID) ).CopyTo( t );
 
 			Sender.Send( t, RemoteEndpoint );
 		}
@@ -181,9 +183,9 @@ namespace MyGameServer {
 			//Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
 
 			if( forChannel == ChannelType.Matrix )
-				NetChans[ChannelType.Control].SendBE( new Packets.Control.MatrixAck( NetChans[forChannel].CurrentSequenceNumber, forSeqNum ) );
+				NetChans[ChannelType.Control].Send( new Packets.Control.MatrixAck( NetChans[forChannel].CurrentSequenceNumber, forSeqNum ) );
 			else if( forChannel == ChannelType.ReliableGss )
-				NetChans[ChannelType.Control].SendBE( new Packets.Control.ReliableGSSAck( NetChans[forChannel].CurrentSequenceNumber, forSeqNum ) );
+				NetChans[ChannelType.Control].Send( new Packets.Control.ReliableGSSAck( NetChans[forChannel].CurrentSequenceNumber, forSeqNum ) );
 		}
 	}
 }

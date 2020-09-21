@@ -65,23 +65,26 @@ namespace MyGameServer {
 
 				ushort seqNum = 0;
 				if( IsSequenced ) {
-					seqNum = packet.ReadBE<ushort>();
+					seqNum = Utils.SimpleFixEndianess(packet.Read<ushort>());
 					// TODO: Implement SequencedPacketQueue
 				}
 
 				if( packet.Header.ResendCount > 0 ) {
 					// de-xor data
 					int x = packet.PacketData.Length >> 3;
+					var data = packet.PacketData.ToArray();
 
 					if( x > 0 ) {
-						Span<ulong> uSpan = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, ulong>(packet.PacketData.Span);
+						Span<ulong> uSpan = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, ulong>(data);
 
 						for( int i = 0; i < x; i++ )
 							uSpan[i] ^= xorULong[packet.Header.ResendCount];
 					}
 
 					for( int i = x * 8; i < packet.PacketData.Length; i++ )
-						packet.PacketData.Span[i] ^= xorByte[packet.Header.ResendCount];
+						data[i] ^= xorByte[packet.Header.ResendCount];
+
+					packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>( data ));
 				}
 
 				if( packet.Header.IsSplit )
@@ -100,40 +103,6 @@ namespace MyGameServer {
 			}
 		}
 
-		public void SendClass<T>( T pkt, Type msgEnumType = null ) where T : class {
-			Memory<byte> p;
-			if( pkt is IWritable write )
-				p = write.Write();
-			else
-				p = Utils.WriteClass(pkt);
-
-			var controlMsgAttr = (typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault()) as ControlMessageAttribute;
-			var matrixMsgAttr = (typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault()) as MatrixMessageAttribute;
-			byte msgID;
-
-			if( controlMsgAttr != null )
-				msgID = (byte)controlMsgAttr.MsgID;
-			else if( matrixMsgAttr != null )
-				msgID = (byte)matrixMsgAttr.MsgID;
-			else
-				throw new Exception();
-
-			var t = new Memory<byte>(new byte[1 + p.Length]);
-			p.CopyTo(t.Slice(1));
-
-			Utils.WriteStruct(msgID).CopyTo(t);
-
-			p = t;
-
-			if( msgEnumType == null )
-				Program.Logger.Verbose("<-- {0}: MsgID = {3:X2}", Type, msgID);
-			else
-				Program.Logger.Verbose("<-- {0}: MsgID = {3} ({4:X2})", Type, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
-
-
-			Send(p);
-		}
-
 		public void Send<T>( T pkt ) where T : struct {
 			Memory<byte> p;
 			if( pkt is IWritable write ) {
@@ -148,14 +117,14 @@ namespace MyGameServer {
 				var msgID = conMsgAttr.MsgID;
 				var t = new Memory<byte>(new byte[1 + p.Length]);
 				p.CopyTo(t.Slice(1));
-				Utils.WriteStruct((byte)msgID).CopyTo(t);
+				Utils.WritePrimitive( (byte)msgID).CopyTo(t);
 				p = t;
 				Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
 			} else if( matMsgAttr != null ) {
 				var msgID = matMsgAttr.MsgID;
 				var t = new Memory<byte>(new byte[1 + p.Length]);
 				p.CopyTo(t.Slice(1));
-				Utils.WriteStruct((byte)msgID).CopyTo(t);
+				Utils.WritePrimitive( (byte)msgID).CopyTo(t);
 				p = t;
 				Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
 			} else
@@ -164,34 +133,38 @@ namespace MyGameServer {
 			Send(p);
 		}
 
-		public void SendBE<T>( T pkt ) where T : struct {
+		public void SendClass<T>( T pkt, Type msgEnumType = null ) where T : class {
 			Memory<byte> p;
-			if( pkt is IWritable write ) {
-				p = write.WriteBE();
-			} else
-				p = Utils.WriteStructBE(pkt);
+			if( pkt is IWritable write )
+				p = write.Write();
+			else
+				p = Utils.WriteClass( pkt );
 
-			var conMsgAttr = (typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault()) as ControlMessageAttribute;
-			var matMsgAttr = (typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault()) as MatrixMessageAttribute;
+			var controlMsgAttr = (typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault()) as ControlMessageAttribute;
+			var matrixMsgAttr = (typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault()) as MatrixMessageAttribute;
+			byte msgID;
 
-			if( conMsgAttr != null ) {
-				var msgID = conMsgAttr.MsgID;
-				var t = new Memory<byte>(new byte[1 + p.Length]);
-				p.CopyTo(t.Slice(1));
-				Utils.WriteStructBE((byte)msgID).CopyTo(t);
-				p = t;
-				Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
-			} else if( matMsgAttr != null ) {
-				var msgID = matMsgAttr.MsgID;
-				var t = new Memory<byte>(new byte[1 + p.Length]);
-				p.CopyTo(t.Slice(1));
-				Utils.WriteStructBE((byte)msgID).CopyTo(t);
-				p = t;
-				Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
-			} else
+			if( controlMsgAttr != null )
+				msgID = (byte)controlMsgAttr.MsgID;
+			else if( matrixMsgAttr != null )
+				msgID = (byte)matrixMsgAttr.MsgID;
+			else
 				throw new Exception();
 
-			Send(p);
+			var t = new Memory<byte>(new byte[1 + p.Length]);
+			p.CopyTo( t.Slice( 1 ) );
+
+			Utils.WritePrimitive( msgID ).CopyTo( t );
+
+			p = t;
+
+			if( msgEnumType == null )
+				Program.Logger.Verbose( "<-- {0}: MsgID = {3:X2}", Type, msgID );
+			else
+				Program.Logger.Verbose( "<-- {0}: MsgID = {3} ({4:X2})", Type, Enum.Parse( msgEnumType, Enum.GetName( msgEnumType, msgID ) ), msgID );
+
+
+			Send( p );
 		}
 
 		public void SendGSS<T>( T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null ) where T : struct {
@@ -208,17 +181,17 @@ namespace MyGameServer {
 				var t = new Memory<byte>(new byte[9 + p.Length]);
 				p.CopyTo(t.Slice(9));
 
-				Utils.WriteStruct(entityID).CopyTo(t);
+				Utils.WritePrimitive(entityID).CopyTo(t);
 
 				// Intentionally overwrite first byte of Entity ID
 				if( controllerID.HasValue )
-					Utils.WriteStruct(controllerID.Value).CopyTo(t);
+					Utils.WritePrimitive( controllerID.Value).CopyTo(t);
 				else if( gssMsgAttr.ControllerID.HasValue )
-					Utils.WriteStruct(gssMsgAttr.ControllerID.Value).CopyTo(t);
+					Utils.WritePrimitive( gssMsgAttr.ControllerID.Value).CopyTo(t);
 				else
 					throw new Exception();
 
-				Utils.WriteStruct(msgID).CopyTo(t.Slice(8));
+				Utils.WritePrimitive( msgID).CopyTo(t.Slice(8));
 
 				p = t;
 
@@ -247,17 +220,17 @@ namespace MyGameServer {
 				var t = new Memory<byte>(new byte[9 + p.Length]);
 				p.CopyTo(t.Slice(9));
 
-				Utils.WriteStruct(entityID).CopyTo(t);
+				Utils.WritePrimitive( entityID).CopyTo(t);
 
 				// Intentionally overwrite first byte of Entity ID
 				if( controllerID.HasValue )
-					Utils.WriteStruct(controllerID.Value).CopyTo(t);
+					Utils.WritePrimitive( controllerID.Value).CopyTo(t);
 				else if( gssMsgAttr.ControllerID.HasValue )
-					Utils.WriteStruct(gssMsgAttr.ControllerID.Value).CopyTo(t);
+					Utils.WritePrimitive( gssMsgAttr.ControllerID.Value).CopyTo(t);
 				else
 					throw new Exception();
 
-				Utils.WriteStruct(msgID).CopyTo(t.Slice(8));
+				Utils.WritePrimitive( msgID).CopyTo(t.Slice(8));
 
 				p = t;
 
@@ -290,13 +263,13 @@ namespace MyGameServer {
 				p.Slice(0, len - hdrLen).CopyTo(t.Slice(hdrLen));
 
 				if( IsSequenced ) {
-					Utils.WriteStructBE(CurrentSequenceNumber).CopyTo(t.Slice(2, 2));
+					Utils.WritePrimitive(CurrentSequenceNumber).CopyTo(t.Slice(2, 2));
 					unchecked { CurrentSequenceNumber++; }
 				}
 
 				var hdr = new GamePacketHeader(Type, 0, (p.Length + hdrLen) > MaxPacketSize, (ushort)t.Length);
-				var bytes = Utils.WriteStructBE(hdr);
-				bytes.CopyTo(t);
+				var hdrBytes = Utils.WritePrimitive(Utils.SimpleFixEndianess(hdr.PacketHeader));
+				hdrBytes.CopyTo(t);
 
 				outgoingPackets.Enqueue(t);
 

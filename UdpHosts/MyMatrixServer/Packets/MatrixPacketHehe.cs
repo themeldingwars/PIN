@@ -18,7 +18,7 @@ namespace MyMatrixServer.Packets {
 
 		public MatrixPacketHehe( UInt32 clientID ) {
 			SocketID = 0;
-			ClientSocketID = clientID;
+			ClientSocketID = Utils.SimpleFixEndianess(clientID);
 			Type = "HEHE";
 		}
 	}

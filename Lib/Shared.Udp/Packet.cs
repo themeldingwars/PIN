@@ -9,52 +9,47 @@ using System.Text;
 namespace Shared.Udp {
 	public struct Packet {
 		public readonly IPEndPoint RemoteEndpoint;
-		public readonly Memory<byte> PacketData;
+		public readonly ReadOnlyMemory<byte> PacketData;
 		public int CurrentPosition { get; private set; }
 		public int TotalBytes { get { return PacketData.Length; } }
 		public int BytesRemaining { get { return TotalBytes - CurrentPosition; } }
 
-		public Packet( IPEndPoint ep, Memory<byte> data ) {
+		public Packet( IPEndPoint ep, ReadOnlyMemory<byte> data ) {
 			RemoteEndpoint = ep;
 			PacketData = data;
 			CurrentPosition = 0;
 		}
 
-		public T ReadBE<T>() where T : struct {
+		/*public T ReadBE<T>() where T : struct {
 			var len = Unsafe.SizeOf<T>();
 			var p = CurrentPosition;
 			CurrentPosition += len;
 
 			return Utils.ReadStructBE<T>(PacketData.Slice(p, len));
-		}
+		}*/
 
-		public T Read<T>() where T : struct {
-			if( Utils.TryParseStruct<T>(this, out T pkt) )
-				return pkt;
-
-			var len = Unsafe.SizeOf<T>();
+		public T Read<T>() {
 			var p = CurrentPosition;
-			CurrentPosition += len;
+			var data = PacketData.Slice(CurrentPosition);
 
-			return Utils.ReadStruct<T>(PacketData.Slice(p, len));
+			var ret = Utils.Read<T>(ref data);
+			CurrentPosition = PacketData.Length - data.Length;
+
+			return ret;
 		}
 
-		public Memory<byte> Read(int len) {
+		public ReadOnlyMemory<byte> Read(int len) {
 			var p = CurrentPosition;
 			CurrentPosition += len;
 
 			return PacketData.Slice(p, len);
 		}
 
-		public T Peek<T>() where T : struct {
-			if( Utils.TryParseStruct<T>(this, out T pkt) )
-				return pkt;
-
-			var len = Unsafe.SizeOf<T>();
-
-			return Utils.ReadStruct<T>(PacketData.Slice(CurrentPosition, len));
+		public T Peek<T>() {
+			var dis = PacketData.Slice(CurrentPosition);
+			return Utils.Read<T>(ref dis);
 		}
-		public Memory<byte> Peek( int len ) {
+		public ReadOnlyMemory<byte> Peek( int len ) {
 			return PacketData.Slice(CurrentPosition, len);
 		}
 
