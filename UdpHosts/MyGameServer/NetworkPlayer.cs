@@ -13,7 +13,8 @@ namespace MyGameServer {
 		public Entities.Character CharacterEntity { get; protected set; }
 		public IPlayer.PlayerStatus Status { get; protected set; }
 		public Zone CurrentZone { get; protected set; }
-		public IShard AssignedShard { get; protected set; }
+
+		private double lastKeyFrame;
 
 		public NetworkPlayer( IPEndPoint ep, uint socketID )
 			: base( ep, socketID ) {
@@ -22,9 +23,7 @@ namespace MyGameServer {
 		}
 
 		public void Init(IShard shard) {
-			Init( this, shard );
-
-			AssignedShard = shard;
+			Init( this, shard, shard );
 		}
 
 		public void Login( ulong charID ) {
@@ -33,7 +32,7 @@ namespace MyGameServer {
 			Status = IPlayer.PlayerStatus.LoggedIn;
 
 			// WelcomeToTheMatrix
-			var wel = new Packets.Matrix.WelcomeToTheMatrix(InstanceID, 0, 0);
+			var wel = new Packets.Matrix.WelcomeToTheMatrix(AssignedShard.InstanceID, 0, 0);
 			NetChans[ChannelType.Matrix].Send( wel );
 
 			EnterZone( Test.DataUtils.GetZone( 448 ) );
@@ -55,7 +54,7 @@ namespace MyGameServer {
 
 			// EnterZone
 			var enterZone = new Packets.Matrix.EnterZone();
-			enterZone.InstanceId = InstanceID;// | 448; // 0x4658119E701000FB; // 0xFB0010709E115846u;
+			enterZone.InstanceId = AssignedShard.InstanceID;
 			enterZone.ZoneId = CurrentZone.ID;
 			enterZone.ZoneTimestamp = CurrentZone.Timestamp;
 			enterZone.PreviewModeFlag = 0;
@@ -77,6 +76,12 @@ namespace MyGameServer {
 
 			NetChans[ChannelType.Matrix].Send( enterZone );
 			Status = IPlayer.PlayerStatus.Loading;
+
+			lastKeyFrame = AssignedShard.CurrentTick;
+		}
+
+		public void Ready() {
+			Status = IPlayer.PlayerStatus.Playing;
 		}
 
 		public void Tick( double deltaTime, double currTime ) {
@@ -85,6 +90,10 @@ namespace MyGameServer {
 				Status = IPlayer.PlayerStatus.LoggingIn;
 			} else if( Status == IPlayer.PlayerStatus.Loading ) {
 				
+			} else if( Status == IPlayer.PlayerStatus.Playing ) {
+				if( AssignedShard.CurrentTick - lastKeyFrame > 0.5 ) {
+					//NetChans[ChannelType.ReliableGss].SendGSSClass(Test.GSS.Character.BaseController.KeyFrame.Test(this, this), this.InstanceID, msgEnumType: typeof(Enums.GSS.Character.Events));
+				}
 			}
 		}
 	}

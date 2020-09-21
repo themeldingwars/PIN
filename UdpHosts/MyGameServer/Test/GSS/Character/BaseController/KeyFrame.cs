@@ -22,12 +22,12 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 			ret.KeyFrameTime_4 = gametime;
 			ret.KeyFrameTime_5 = gametime;
 
-			ret.PlayerID = p.CharacterID;
+			ret.InstanceID = inst.InstanceID;
 			ret.UnkInt1 = 0xffffffffu;
 			ret.UnkInt2 = 0x0000003fu;
 
 			ret.UsedInvSlots = 0;
-			ret.MaxInvSlots = 0;// cd.MaxInventorySlots;
+			ret.MaxInvSlots = cd.MaxInventorySlots;
 
 			ret.DisplayName = cd.Name;
 			ret.UniqueName = cd.Name;
@@ -50,15 +50,9 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 			ret.VehicleLoadout = cd.Loadout.VehicleID;
 			ret.GliderLoadout = cd.Loadout.GliderID;
 
-			// Character Visuals
-			//ret.CharacterVisuals = new Packets.GSS.Character.BaseController.KeyFrame.Visuals();
-			//ret.CharacterVisuals.Colors = cd.CharVisuals.Colors;
-			//ret.CharacterVisuals.OrnamentGroups = cd.CharVisuals.OrnamentGroups;
 			ret.CharacterVisuals = cd.CharVisuals;
 
 			ret.ArmyName = cd.Army.Name;
-
-			ret.KeyFrameTime_0 = 0x64372cb9u;
 
 			ret.ChassisLoadout = cd.Loadout.ChassisID;
 
@@ -82,8 +76,6 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 			ret.SecondaryWeaponVisuals = cd.Loadout.SecondaryWeaponVisuals;
 
 			ret.LoadoutID = cd.Loadout.GUID;
-
-			ret.KeyFrameTime_1 = 0x64372b8du; // 0x64372b8du 8D2B3764
 
 			ret.PosX = p.CharacterEntity.Position.X;
 			ret.PosY = p.CharacterEntity.Position.Y;
@@ -111,20 +103,15 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 
 			ret.CharacterState = 0;
 
-			ret.KeyFrameTime_2 = 0x64372cb9u;
-
 			ret.FactionMode = cd.Faction.Mode;
 			ret.FactionID = cd.Faction.ID;
 
-			ret.CurrentHealth = 0x00000718;
-			ret.KeyFrameTime_3 = 0x64364259u;
-			ret.MaxHealth = 0x00000718;
-			ret.KeyFrameTime_4 = 0x64364259u;
+			ret.CurrentHealth = 25000;
+			ret.MaxHealth = 25000;
 			ret.EffectsFlag = 0x52;
 			ret.JumpJetEnergy = cd.JumpJetEnergy;
 			ret.MaxJumpJetEnergy = cd.MaxJumpJetEnergy;
 			ret.JumpJetRecharge = cd.JumpJetRecharge;
-			ret.KeyFrameTime_5 = 0x64372cb9u;
 
 			ret.ItemStatValues.AddAll( new[] {
 				new Packet.KeyFrame.StatValue{ StatID = 5, Value = 156.414169f },
