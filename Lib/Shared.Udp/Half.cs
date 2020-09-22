@@ -30,10 +30,10 @@ namespace System {
     [Serializable]
     public struct Half : IComparable, IFormattable, IConvertible, IComparable<Half>, IEquatable<Half> {
         /// <summary>
-        /// Internal representation of the half-precision floating-point number.
+        /// public representation of the half-precision floating-point number.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal ushort Value;
+        public ushort Value;
 
         #region Constants
         /// <summary>
@@ -832,7 +832,7 @@ namespace System {
     ///     - Code retrieved from http://sourceforge.net/p/csharp-half/code/HEAD/tree/ on 2015-12-04
     ///     - Fast Half Float Conversions, Jeroen van der Zijp, link: http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
     /// </remarks>
-    internal static class HalfHelper {
+    public static class HalfHelper {
         private static readonly uint[] MantissaTable = GenerateMantissaTable();
         private static readonly uint[] ExponentTable = GenerateExponentTable();
         private static readonly ushort[] OffsetTable = GenerateOffsetTable();

@@ -38,7 +38,7 @@ namespace Shared.Udp {
 
 
 
-		protected abstract void HandlePacket( Packet p );
+		protected abstract Task HandlePacket( Packet p );
 		protected abstract void Startup();
 		protected abstract bool Tick( double deltaTime, double currTime );
 		protected abstract void NetworkTick( double deltaTime, double currTime );
@@ -102,6 +102,8 @@ namespace Shared.Udp {
 			EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 			int c;
 
+			Thread.CurrentThread.Priority = ThreadPriority.Highest;
+
 			while( true ) {
 				if( (c = serverSocket.ReceiveFrom( buffer, SocketFlags.None, ref remoteEP )) > 0 ) {
 					// Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
@@ -118,7 +120,8 @@ namespace Shared.Udp {
 
 			while( true ) {
 				while( incomingPackets.TryDequeue( out Packet p ) ) {
-					HandlePacket( p );
+					//_ = Task.Run(() => HandlePacket( p ));
+					HandlePacket(p).Wait();
 				}
 
 				_ = Thread.Yield();
@@ -129,12 +132,11 @@ namespace Shared.Udp {
 			while( outgoingPackets == null )
 				Thread.Sleep( 10 );
 
+			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 			int c;
 			while( true ) {
 				while( outgoingPackets.TryDequeue( out Packet p ) ) {
-					c = serverSocket.SendTo( p.PacketData.ToArray(), p.PacketData.Length, SocketFlags.None, p.RemoteEndpoint );
-					//Logger.Verbose( "<- sent {0}/{1} bytes.", c, p.PacketData.Length );
-					//Logger.Verbose("<  {0}", BitConverter.ToString(p.PacketData.ToArray()).Replace("-", ""));
+					_ = serverSocket.SendTo( p.PacketData.ToArray(), p.PacketData.Length, SocketFlags.None, p.RemoteEndpoint );
 				}
 
 				_ = Thread.Yield();

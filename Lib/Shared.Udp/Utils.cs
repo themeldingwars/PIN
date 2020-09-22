@@ -137,24 +137,24 @@ namespace Shared.Udp {
 				data = data.Slice( 1 );
 				return Encoding.ASCII.GetChars( span.ToArray() )[0];
 			} else if( typeof( short ) == t ) {
-				span = data.Slice( 0, 1 ).Span;
-				data = data.Slice( 1 );
+				span = data.Slice( 0, 2 ).Span;
+				data = data.Slice( 2 );
 				return BinaryPrimitives.ReadInt16LittleEndian( span );
 			} else if( typeof( ushort ) == t ) {
 				span = data.Slice( 0, 2 ).Span;
 				data = data.Slice( 2 );
 				return BinaryPrimitives.ReadUInt16LittleEndian( span );
 			} else if( typeof( int ) == t ) {
-				span = data.Slice( 0, 2 ).Span;
-				data = data.Slice( 2 );
+				span = data.Slice( 0, 4 ).Span;
+				data = data.Slice( 4 );
 				return BinaryPrimitives.ReadInt32LittleEndian( span );
 			} else if( typeof( uint ) == t ) {
 				span = data.Slice( 0, 4 ).Span;
 				data = data.Slice( 4 );
 				return BinaryPrimitives.ReadUInt32LittleEndian( span );
 			} else if( typeof( long ) == t ) {
-				span = data.Slice( 0, 4 ).Span;
-				data = data.Slice( 4 );
+				span = data.Slice( 0, 8 ).Span;
+				data = data.Slice( 8 );
 				return BinaryPrimitives.ReadInt64LittleEndian( span );
 			} else if( typeof( ulong ) == t ) {
 				span = data.Slice( 0, 8 ).Span;
