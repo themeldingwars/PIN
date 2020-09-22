@@ -3,12 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{E5A312E7-CE2F-4350-AC2E-889E63DD0024}"
-	ProjectSection(SolutionItems) = preProject
-		PIN.sln.DotSettings = PIN.sln.DotSettings
-		README.md = README.md
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Common", "Lib\Shared.Common\Shared.Common.csproj", "{B0713AD9-4EF4-4740-93A5-6F756BA130E4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bitter", "Lib\Bitter\Bitter\Bitter.csproj", "{E89592B3-3A8E-47F0-A273-EB1FFFFD990C}"
@@ -50,6 +44,13 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebHost.Market", "WebHosts\WebHost.Market\WebHost.Market.csproj", "{5BCD2370-4CB3-4630-9CEF-F56CA3C53397}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebHost.WebAsset", "WebHosts\WebHost.WebAsset\WebHost.WebAsset.csproj", "{DB635FA7-60AA-45C1-815C-DEC7B34949E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "Solution Items", "{1191B69C-BCE5-484D-B938-030EBE130B2B}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		PIN.sln.DotSettings = PIN.sln.DotSettings
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
