@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MyGameServer.Controllers.Character {
 	[ControllerID(Enums.GSS.Controllers.Character_CombatController)]
-	internal class CombatController : Base {
+	public class CombatController : Base {
 		public override void Init( INetworkClient client, IPlayer player, IShard shard ) {
 			// TODO: Implement
 			

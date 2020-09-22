@@ -61,9 +61,13 @@ namespace MyGameServer {
 		}
 
 		public void Process() {
+			while( outgoingPackets.TryDequeue(out Memory<byte> qi) ) {
+				client.Send(qi);
+			}
+
 			while( incomingPackets.TryDequeue(out GamePacket packet) ) {
-				Console.Write("> " + string.Concat(BitConverter.GetBytes(packet.Header.PacketHeader).ToArray().Select(b => b.ToString("X2")).ToArray()));
-				Console.WriteLine(" "+string.Concat(packet.PacketData.ToArray().Select(b => b.ToString("X2")).ToArray()));
+				//Console.Write("> " + string.Concat(BitConverter.GetBytes(packet.Header.PacketHeader).ToArray().Select(b => b.ToString("X2")).ToArray()));
+				//Console.WriteLine(" "+string.Concat(packet.PacketData.ToArray().Select(b => b.ToString("X2")).ToArray()));
 				ushort seqNum = 0;
 				if( IsSequenced ) {
 					seqNum = Utils.SimpleFixEndianess(packet.Read<ushort>());
@@ -75,14 +79,19 @@ namespace MyGameServer {
 					int x = packet.PacketData.Length >> 3;
 					var data = packet.PacketData.ToArray();
 
-					if( x > 0 ) {
+					/*if( x > 0 ) {
 						Span<ulong> uSpan = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, ulong>(data);
 
 						for( int i = 0; i < x; i++ )
 							uSpan[i] ^= xorULong[packet.Header.ResendCount];
+
+						data = System.Runtime.InteropServices.MemoryMarshal.Cast<ulong, byte>(uSpan).ToArray();
 					}
 
 					for( int i = x * 8; i < packet.PacketData.Length; i++ )
+						data[i] ^= xorByte[packet.Header.ResendCount];*/
+
+					for( int i = 0; i < data.Length; i++ )
 						data[i] ^= xorByte[packet.Header.ResendCount];
 
 					packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>( data ));
@@ -95,12 +104,6 @@ namespace MyGameServer {
 					client.SendAck(Type, seqNum);
 
 				PacketAvailable?.Invoke(packet);
-			}
-
-			while( outgoingPackets.TryDequeue(out Memory<byte> qi) ) {
-				//Program.Logger.Verbose( "<  {0}", BitConverter.ToString( qi.ToArray() ).Replace( "-", "" ) );
-				client.Send(qi);
-				//Program.Logger.Verbose("<--- {0}: {1} bytes", Type, qi.Length);
 			}
 		}
 
@@ -271,8 +274,8 @@ namespace MyGameServer {
 				var hdrBytes = Utils.WritePrimitive(Utils.SimpleFixEndianess(hdr.PacketHeader));
 				hdrBytes.CopyTo(t);
 
-				Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianess(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));
-				Console.WriteLine( " "+string.Concat( t.Slice(2).ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
+				//Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianess(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));
+				//Console.WriteLine( " "+string.Concat( t.Slice(2).ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
 
 				outgoingPackets.Enqueue(t);
 

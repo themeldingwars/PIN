@@ -149,7 +149,7 @@ namespace MyGameServer {
 
 				var p = new GamePacket(hdr, packet.Slice(idx + hdrSize, hdr.Length - hdrSize));
 
-				//Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
+				Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
 
 				NetChans[hdr.Channel].HandlePacket( p );
 
@@ -177,15 +177,15 @@ namespace MyGameServer {
 
 
 		public void SendAck( ChannelType forChannel, ushort forSeqNum ) {
-			if( forSeqNum == 0 )
-				return;
+			Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
 
-			//Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
+			forSeqNum = Utils.SimpleFixEndianess(forSeqNum);
+			var currSeqNum = Utils.SimpleFixEndianess(NetChans[forChannel].CurrentSequenceNumber);
 
 			if( forChannel == ChannelType.Matrix )
-				NetChans[ChannelType.Control].Send( new Packets.Control.MatrixAck( NetChans[forChannel].CurrentSequenceNumber, forSeqNum ) );
+				NetChans[ChannelType.Control].Send( new Packets.Control.MatrixAck(currSeqNum, forSeqNum ) );
 			else if( forChannel == ChannelType.ReliableGss )
-				NetChans[ChannelType.Control].Send( new Packets.Control.ReliableGSSAck( NetChans[forChannel].CurrentSequenceNumber, forSeqNum ) );
+				NetChans[ChannelType.Control].Send( new Packets.Control.ReliableGSSAck(currSeqNum, forSeqNum ) );
 		}
 	}
 }
