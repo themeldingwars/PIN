@@ -4,7 +4,7 @@ using System.Data;
 using System.Reflection;
 
 namespace Core.Data {
-	internal static class MagicManager {
+	public static class MagicManager {
 		private static ConcurrentDictionary<Type, Func<IDataRecord, IRowView>> converters;
 		public static T GetActiveRecord<T>( IDataRecord rec ) where T : IRowView {
 			if( converters == null )

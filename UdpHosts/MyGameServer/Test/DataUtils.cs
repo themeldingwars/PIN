@@ -23,7 +23,7 @@ namespace MyGameServer.Test {
 			ret.Timestamp = 1461290346895u;
 
 			ret.POIs.Add("origin", new System.Numerics.Vector3(0,0,0));
-			ret.POIs.Add("watchtower", new System.Numerics.Vector3(177f, 250f, 751f)); // 433484
+			ret.POIs.Add("watchtower", new System.Numerics.Vector3(177f, 250f, 451f)); // 433484
 			ret.POIs.Add("jacuzzi", new System.Numerics.Vector3(-532.0f, -469.0f, 473.0f));
 
 			return _zones.AddOrUpdate(id, ret, ( k, nc ) => nc);

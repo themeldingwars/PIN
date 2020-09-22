@@ -12,7 +12,7 @@ namespace Shared.Udp.Packets {
 		BigEndian,
 	}
 
-	internal class BasePacketView : IPacketView {
+	public class BasePacketView : IPacketView {
 		public BitEndianess Endianess { get; protected set; }
 
 		protected ConcurrentDictionary<string, object> fields;

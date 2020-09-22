@@ -6,7 +6,7 @@ using MyGameServer.Packets;
 
 namespace MyGameServer.Controllers.Character {
 	[ControllerID(Enums.GSS.Controllers.Character_MissionAndMarkerController)]
-	internal class MissionAndMarkerController : Base {
+	public class MissionAndMarkerController : Base {
 		public override void Init( INetworkClient client, IPlayer player, IShard shard ) {
 
 		}

@@ -18,7 +18,7 @@ namespace MyGameServer {
 
 		public NetworkPlayer( IPEndPoint ep, uint socketID )
 			: base( ep, socketID ) {
-			CharacterEntity = new Entities.Character();
+			CharacterEntity = null;
 			Status = IPlayer.PlayerStatus.Connecting;
 		}
 
@@ -28,6 +28,7 @@ namespace MyGameServer {
 
 		public void Login( ulong charID ) {
 			CharacterID = charID;
+			CharacterEntity = new Entities.Character(AssignedShard, charID & 0xffffffffffffff00);
 			CharacterEntity.Load( charID );
 			Status = IPlayer.PlayerStatus.LoggedIn;
 
@@ -38,16 +39,6 @@ namespace MyGameServer {
 			NetChans[ChannelType.Matrix].SendClass( wel );
 
 			EnterZone( Test.DataUtils.GetZone( 448 ) );
-
-			/*var syncReq = new Packets.Matrix.SynchronizationRequest() {
-				Unk = new byte[] {
-					0xb4, 0x50, 0xaf, 0xa8, 0x1c, 0xa5, 0x45, 0x15, 0x00, 0x0d, 0x0c, 0x0c, 0xcc, 0xcc, 0xc6, 0x1b,
-					0xcd, 0x05, 0xc6, 0xcc, 0xcc, 0xcc, 0x21, 0xe3, 0x9e, 0x37, 0x71, 0x0d, 0x3f, 0xb9, 0xb4, 0xd6,
-					0x9c, 0x20, 0x36, 0xf7, 0x4a, 0x01
-				}
-			};
-
-			Channels[ChannelType.Matrix].Send(syncReq);*/
 		}
 
 		public void EnterZone(Zone z) {
