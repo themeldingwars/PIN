@@ -79,7 +79,7 @@ namespace MyGameServer {
 			case Enums.MatrixPacketType.KeyframeRequest:
 				// TODO; See onKeyframeRequest in server_gamesocket.js
 				var kfrpkt = packet.Read<Packets.Matrix.KeyFrameRequest>();
-
+				
 				int i=0;
 
 				break;
@@ -116,7 +116,7 @@ namespace MyGameServer {
 				break;
 			case Enums.ControlPacketType.TimeSyncRequest:
 				var req = packet.Read<Packets.Control.TimeSyncRequest>();
-				var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/2));
+				var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()*1000u));
 				//var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)((uint)Math.Round(AssignedShard.CurrentTick*1000u)));
 				Program.Logger.Error( "TSR: C {0} => S {1}", resp.ClientTime, resp.ServerTime );
 				NetChans[ChannelType.Control].Send( resp );
