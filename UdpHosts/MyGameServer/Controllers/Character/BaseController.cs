@@ -48,8 +48,6 @@ namespace MyGameServer.Controllers.Character {
 			};
 
 			client.NetChans[ChannelType.UnreliableGss].SendGSSClass(resp, player.EntityID, msgEnumType: typeof(Enums.GSS.Character.Events));
-
-			//int i = 0;
 		}
 
 		[MessageID((byte)Enums.GSS.Character.Commands.SetMovementSimulation)]
