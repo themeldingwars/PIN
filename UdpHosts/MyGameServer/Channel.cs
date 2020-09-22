@@ -62,7 +62,8 @@ namespace MyGameServer {
 
 		public void Process() {
 			while( incomingPackets.TryDequeue(out GamePacket packet) ) {
-
+				Console.Write("> " + string.Concat(BitConverter.GetBytes(packet.Header.PacketHeader).ToArray().Select(b => b.ToString("X2")).ToArray()));
+				Console.WriteLine(" "+string.Concat(packet.PacketData.ToArray().Select(b => b.ToString("X2")).ToArray()));
 				ushort seqNum = 0;
 				if( IsSequenced ) {
 					seqNum = Utils.SimpleFixEndianess(packet.Read<ushort>());
@@ -159,10 +160,9 @@ namespace MyGameServer {
 			p = t;
 
 			if( msgEnumType == null )
-				Program.Logger.Verbose( "<-- {0}: MsgID = {3:X2}", Type, msgID );
+				Program.Logger.Verbose( "<-- {0}: MsgID = {1:X2}", Type, msgID );
 			else
-				Program.Logger.Verbose( "<-- {0}: MsgID = {3} ({4:X2})", Type, Enum.Parse( msgEnumType, Enum.GetName( msgEnumType, msgID ) ), msgID );
-
+				Program.Logger.Verbose( "<-- {0}: MsgID = {1} ({2:X2})", Type, Enum.Parse( msgEnumType, Enum.GetName( msgEnumType, msgID ) ), msgID );
 
 			Send( p );
 		}
@@ -185,9 +185,9 @@ namespace MyGameServer {
 
 				// Intentionally overwrite first byte of Entity ID
 				if( controllerID.HasValue )
-					Utils.WritePrimitive( controllerID.Value).CopyTo(t);
+					Utils.WritePrimitive((byte)controllerID.Value).CopyTo(t);
 				else if( gssMsgAttr.ControllerID.HasValue )
-					Utils.WritePrimitive( gssMsgAttr.ControllerID.Value).CopyTo(t);
+					Utils.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
 				else
 					throw new Exception();
 
@@ -224,9 +224,9 @@ namespace MyGameServer {
 
 				// Intentionally overwrite first byte of Entity ID
 				if( controllerID.HasValue )
-					Utils.WritePrimitive( controllerID.Value).CopyTo(t);
+					Utils.WritePrimitive((byte)controllerID.Value).CopyTo(t);
 				else if( gssMsgAttr.ControllerID.HasValue )
-					Utils.WritePrimitive( gssMsgAttr.ControllerID.Value).CopyTo(t);
+					Utils.WritePrimitive( (byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
 				else
 					throw new Exception();
 
@@ -263,13 +263,16 @@ namespace MyGameServer {
 				p.Slice(0, len - hdrLen).CopyTo(t.Slice(hdrLen));
 
 				if( IsSequenced ) {
-					Utils.WritePrimitive(CurrentSequenceNumber).CopyTo(t.Slice(2, 2));
+					Utils.WritePrimitive(Utils.SimpleFixEndianess(CurrentSequenceNumber)).CopyTo(t.Slice(2, 2));
 					unchecked { CurrentSequenceNumber++; }
 				}
 
 				var hdr = new GamePacketHeader(Type, 0, (p.Length + hdrLen) > MaxPacketSize, (ushort)t.Length);
 				var hdrBytes = Utils.WritePrimitive(Utils.SimpleFixEndianess(hdr.PacketHeader));
 				hdrBytes.CopyTo(t);
+
+				Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianess(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));
+				Console.WriteLine( " "+string.Concat( t.Slice(2).ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
 
 				outgoingPackets.Enqueue(t);
 

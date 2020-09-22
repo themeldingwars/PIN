@@ -12,7 +12,7 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 	internal static class KeyFrame {
 		public static Packet.KeyFrame Test( IPlayer p, IShard shard ) {
 			//var gametime = (uint)Math.Round(shard.CurrentTick*1000);
-			var gametime = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 2;
+			var gametime = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 			Program.Logger.Error( "KF: Game Time: {0}", gametime );
 			var ret = new Packet.KeyFrame();
 			var cd = p.CharacterEntity.CharData;

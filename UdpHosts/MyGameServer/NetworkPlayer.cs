@@ -32,8 +32,10 @@ namespace MyGameServer {
 			Status = IPlayer.PlayerStatus.LoggedIn;
 
 			// WelcomeToTheMatrix
-			var wel = new Packets.Matrix.WelcomeToTheMatrix(AssignedShard.InstanceID, 0, 0);
-			NetChans[ChannelType.Matrix].Send( wel );
+			var wel = new Packets.Matrix.WelcomeToTheMatrix {
+				InstanceID = AssignedShard.InstanceID
+			};
+			NetChans[ChannelType.Matrix].SendClass( wel );
 
 			EnterZone( Test.DataUtils.GetZone( 448 ) );
 
@@ -66,15 +68,15 @@ namespace MyGameServer {
 			enterZone.ZoneName = CurrentZone.Name;
 			enterZone.Unk3 = 0;
 			enterZone.Unk_ZoneTime = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x41, 0x7A, 0x7D, 0x65, 0x3F };
-			enterZone.Unk4 = 0x2894E7951D410500u;
-			enterZone.Unk5 = 0xEA5BD613F0400500u;
-			enterZone.Unk6 = 0x000000000000F03Fu;
+			enterZone.Unk4 = 0x0005411D95E79428u;
+			enterZone.Unk5 = 0x000540F013D65BEAu;
+			enterZone.Unk6 = 0x3FF0000000000000u;
 			enterZone.Unk7 = 0x0000000000000000u;
 			enterZone.Unk8 = 0x0000000000000000u;
 			enterZone.Unk9 = 0;
 			enterZone.SpectatorModeFlag = 0;
 
-			NetChans[ChannelType.Matrix].Send( enterZone );
+			NetChans[ChannelType.Matrix].SendClass( enterZone );
 			Status = IPlayer.PlayerStatus.Loading;
 
 			lastKeyFrame = AssignedShard.CurrentTick;
