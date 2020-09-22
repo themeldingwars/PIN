@@ -36,7 +36,11 @@
 		<ProjectReference Include="..\WebHosts\WebHost.Chat\WebHost.Chat.csproj" />
 		<ProjectReference Include="..\WebHosts\WebHost.ClientApi\WebHost.ClientApi.csproj" />
 		<ProjectReference Include="..\WebHosts\WebHost.InGameApi\WebHost.InGameApi.csproj" />
+		<ProjectReference Include="..\WebHosts\WebHost.Market\WebHost.Market.csproj" />
 		<ProjectReference Include="..\WebHosts\WebHost.OperatorApi\WebHost.OperatorApi.csproj" />
+		<ProjectReference Include="..\WebHosts\WebHost.Replay\WebHost.Replay.csproj" />
+		<ProjectReference Include="..\WebHosts\WebHost.Store\WebHost.Store.csproj" />
+		<ProjectReference Include="..\WebHosts\WebHost.WebAsset\WebHost.WebAsset.csproj" />
 	</ItemGroup>
 
 </Project>

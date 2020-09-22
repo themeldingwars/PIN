@@ -12,8 +12,11 @@ That's why PIN, the Pirate Intelligence Network, has been created.
 2. Edit the `firefall.ini` located in `steamapps\common\Firefall`
 3. Add content from below
 4. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
-5. Build & run `Multiple Startup Projects` target
-6. Start Firefall
+5. Build the solution
+6. Start multiple targets at once
+	- Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, MyGameServer and MyMatrixServer
+	- ReShaper: Create a `Compound` target that starts WebHostManager, MyGameServer and MyMatrixServer
+7. Start Firefall
 
 ```ini
 [Config]

@@ -12,8 +12,12 @@ using Microsoft.AspNetCore.Builder;
 namespace Shared.Web {
 	public abstract class BaseWebServer {
 		public static IWebHost Build( Type serverType, IConfiguration configuration ) {
-			try {
-				Log.Information( "Starting web host {ProjectName}", serverType.FullName );
+			try
+			{
+				if (serverType.FullName == null)
+					throw new ArgumentNullException( nameof(serverType.FullName) );
+				
+				Log.Information( $"Starting web host {serverType.FullName}" );
 				return WebHost.CreateDefaultBuilder()
 					   .UseConfiguration( configuration )
 					   .UseSerilog()

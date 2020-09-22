@@ -7,28 +7,30 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 using Serilog;
 
 namespace WebHostManager {
-	class Program {
-		public static IConfiguration Configuration { get; } = new ConfigurationBuilder()
-							.SetBasePath(Path.Combine(Directory.GetCurrentDirectory(),"config"))
-							.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-							.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
-							.AddEnvironmentVariables()
-							.Build();
+	internal static class Program {
+		private static IConfiguration Configuration { get; } = new ConfigurationBuilder()
+		                                                       .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(),"config"))
+		                                                       .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+		                                                       .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+		                                                       .AddEnvironmentVariables()
+		                                                       .Build();
 
-		private static IEnumerable<Type> hostTypes = new[] {
-			typeof(WebHost.Chat.WebServer),
-			typeof(WebHost.ClientApi.WebServer),
-			typeof(WebHost.OperatorApi.WebServer),
-			typeof(WebHost.InGameApi.WebServer),
-		};
+		private static readonly IEnumerable<Type> HostTypes = new[] {
+			                                                            typeof(WebHost.Chat.WebServer),
+			                                                            typeof(WebHost.ClientApi.WebServer),
+			                                                            typeof(WebHost.OperatorApi.WebServer),
+			                                                            typeof(WebHost.InGameApi.WebServer),
+			                                                            typeof(WebHost.Store.WebServer),
+			                                                            typeof(WebHost.Replay.WebServer),
+			                                                            typeof(WebHost.Market.WebServer),
+			                                                            typeof(WebHost.WebAsset.WebServer),
+		                                                            };
 
-		static void Main( string[] args ) {
+		private static void Main( string[] args ) {
 			Log.Logger = new LoggerConfiguration()
 			   .ReadFrom.Configuration(Configuration)
 			   .CreateLogger();
@@ -50,12 +52,7 @@ namespace WebHostManager {
 		}
 
 		private static IEnumerable<Task> StartHosts( CancellationToken ct ) {
-			var ret = new List<Task>();
-
-			foreach( var t in hostTypes )
-				ret.Add(Shared.Web.BaseWebServer.Build(t, Configuration).RunAsync(ct));
-
-			return ret;
+			return HostTypes.Select(t => Shared.Web.BaseWebServer.Build(t, Configuration).RunAsync(ct)).ToList();
 		}
 	}
 }
