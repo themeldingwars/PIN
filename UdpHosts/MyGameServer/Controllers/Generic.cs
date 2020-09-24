@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using MyGameServer.Packets;
+using MyGameServer.Packets.Control;
 
 namespace MyGameServer.Controllers {
 	[ControllerID(Enums.GSS.Controllers.Generic)]
@@ -14,11 +15,15 @@ namespace MyGameServer.Controllers {
 
 		[MessageID((byte)Enums.GSS.Generic.Commands.ScheduleUpdateRequest)]
 		public void ScheduleUpdateRequest( INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet ) {
-			// TODO: implement
 			var req = packet.Read<Packets.GSS.Generic.ScheduleUpdateRequest>();
-			//Program.Logger.Error("SUR: Requested Client Time: {0}", req.requestClientTime);
+		}
 
-			var i = 0;
+		[MessageID((byte)Enums.GSS.Generic.Commands.RequestLogout)]
+		public void RequestLogout( INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet ) {
+			var resp = new CloseConnection {
+				Unk1 = 0
+			};
+			client.NetChans[ChannelType.Control].SendClass(resp, msgEnumType: typeof(Enums.ControlPacketType));
 		}
 	}
 }

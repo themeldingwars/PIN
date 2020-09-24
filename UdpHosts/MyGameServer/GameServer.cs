@@ -71,7 +71,7 @@ namespace MyGameServer {
 		protected override void Shutdown() {
 		}
 
-		protected override async Task HandlePacket( Packet packet ) {
+		protected override void HandlePacket( Packet packet ) {
 			//Program.Logger.Information("[GAME] {0} sent {1} bytes.", packet.RemoteEndpoint, packet.PacketData.Length);
 			//Program.Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 

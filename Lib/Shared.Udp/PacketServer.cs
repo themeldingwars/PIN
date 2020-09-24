@@ -38,7 +38,7 @@ namespace Shared.Udp {
 
 
 
-		protected abstract Task HandlePacket( Packet p );
+		protected abstract void HandlePacket( Packet p );
 		protected abstract void Startup();
 		protected abstract bool Tick( double deltaTime, double currTime );
 		protected abstract void NetworkTick( double deltaTime, double currTime );
@@ -84,8 +84,6 @@ namespace Shared.Udp {
 			Shutdown();
 		}
 
-
-
 		private void ListenThread() {
 			serverSocket.Blocking = true;
 			serverSocket.DontFragment = true;
@@ -105,12 +103,20 @@ namespace Shared.Udp {
 			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
 			while( true ) {
-				if( (c = serverSocket.ReceiveFrom( buffer, SocketFlags.None, ref remoteEP )) > 0 ) {
-					// Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
-					incomingPackets.Enqueue( new Packet( (IPEndPoint)remoteEP, new ReadOnlyMemory<byte>( buffer, 0, c ) ) );
+				try {
+					if( (c = serverSocket.ReceiveFrom(buffer, SocketFlags.None, ref remoteEP)) > 0 ) {
+						// Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
+						var buf = new byte[c];
+						buffer.AsSpan().Slice(0, c).ToArray().CopyTo(buf, 0);
+						incomingPackets.Enqueue(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c)));
 
-					remoteEP = new IPEndPoint( IPAddress.Any, 0 );
+						remoteEP = new IPEndPoint(IPAddress.Any, 0);
+					}
+				} catch( Exception ex ) {
+					Logger.Error(ex, "Error {0}", "listenThread");
 				}
+
+				_ = Thread.Yield();
 			}
 		}
 
@@ -118,10 +124,12 @@ namespace Shared.Udp {
 			while( incomingPackets == null )
 				Thread.Sleep( 10 );
 
+			Thread.CurrentThread.Priority = ThreadPriority.Highest;
+
 			while( true ) {
 				while( incomingPackets.TryDequeue( out Packet p ) ) {
-					//_ = Task.Run(() => HandlePacket( p ));
-					HandlePacket(p).Wait();
+					_ = Task.Run(() => HandlePacket( p ));
+					//HandlePacket(p);
 				}
 
 				_ = Thread.Yield();

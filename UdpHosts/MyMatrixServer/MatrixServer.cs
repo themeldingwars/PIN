@@ -19,7 +19,7 @@ namespace MyMatrixServer {
 		protected override void NetworkTick( double deltaTime, double currTime ) { }
 		protected override void Shutdown() { }
 
-		protected unsafe override async Task HandlePacket(Packet packet) {
+		protected unsafe override void HandlePacket(Packet packet) {
 			ReadOnlyMemory<byte> mem = packet.PacketData;
 			var SocketID = Utils.ReadStruct<uint>(mem);
 			if( SocketID != 0 )
