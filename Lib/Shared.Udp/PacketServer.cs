@@ -40,11 +40,11 @@ namespace Shared.Udp {
 
 		protected abstract void HandlePacket( Packet p );
 		protected abstract void Startup();
-		protected abstract bool Tick( double deltaTime, double currTime );
-		protected abstract void NetworkTick( double deltaTime, double currTime );
+		protected abstract bool Tick( double deltaTime, uint currTime );
+		protected abstract void NetworkTick( double deltaTime, uint currTime );
 		protected abstract void Shutdown();
 
-		protected virtual bool ShouldNetworkTick( double deltaTime, double currTime ) => deltaTime >= NetworkTickRate;
+		protected virtual bool ShouldNetworkTick( double deltaTime, uint currTime ) => deltaTime >= NetworkTickRate;
 
 
 
@@ -58,7 +58,7 @@ namespace Shared.Udp {
 
 			var sw = new Stopwatch();
 			var lastTime = 0.0;
-			var currTime = 0.0;
+			var currTime = 0u;
 			var delta = 0.0;
 
 			Startup();
@@ -66,7 +66,7 @@ namespace Shared.Udp {
 			sw.Start();
 
 			while( true ) {
-				currTime = sw.Elapsed.TotalSeconds;
+				currTime = unchecked((uint)sw.Elapsed.TotalMilliseconds);
 				delta = currTime - lastTime;
 
 				if( !Tick( delta, currTime ) )

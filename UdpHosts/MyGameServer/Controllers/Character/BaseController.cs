@@ -32,14 +32,24 @@ namespace MyGameServer.Controllers.Character {
 				return;
 
 			var pkt = packet.Read<MovementInput>();
+
+			if( player.CharacterEntity.Alive ) {
+				player.CharacterEntity.Position = pkt.Position;
+				player.CharacterEntity.Rotation = pkt.Rotation;
+				player.CharacterEntity.Velocity = pkt.Velocity;
+				player.CharacterEntity.AimDirection = pkt.AimDirection;
+				player.CharacterEntity.MovementState = (Entities.Character.CharMovement)pkt.State;
+			}
+			//Program.Logger.Warning( "Movement State: {0} {1:X4}", player.CharacterEntity.MovementState, pkt.State );
+
 			var resp = new ConfirmedPoseUpdate {
 				Key = pkt.Key,
 				UnkByte1 = 1,
 				UnkByte2 = 0,
-				Position = pkt.Position,
-				Rotation = pkt.Rotation,
-				State = pkt.State,
-				Velocity = pkt.Velocity,
+				Position = player.CharacterEntity.Position,
+				Rotation = player.CharacterEntity.Rotation,
+				State = (ushort)player.CharacterEntity.MovementState,
+				Velocity = player.CharacterEntity.Velocity,
 				UnkUShort1 = pkt.UnkUShort1,
 				UnkShort1 = pkt.UnkShort2,
 				LastJumpTimer = pkt.LastJumpTimer,

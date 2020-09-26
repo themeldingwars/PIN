@@ -13,11 +13,12 @@ namespace MyGameServer {
 		PhysicsEngine Physics { get; }
 		AIEngine AI { get; }
 		int CurrentPlayers => Clients.Count;
-		double CurrentTick { get; }
+		uint CurrentTime { get; }
+		ushort CurrentShortTime { get { return unchecked((ushort)CurrentTime); } }
 		IDictionary<ushort, Tuple<Entities.IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 
-		bool Tick( double deltaTime, double currTime );
-		void NetworkTick( double deltaTime, double currTime );
+		bool Tick( double deltaTime, uint currTime );
+		void NetworkTick( double deltaTime, uint currTime );
 		bool MigrateOut( INetworkPlayer player );
 		bool MigrateIn( INetworkPlayer player );
 		ushort AssignNewRefId( Entities.IEntity entity, Enums.GSS.Controllers controller);

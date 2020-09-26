@@ -23,12 +23,16 @@ namespace MyGameServer {
 		Entities.Character CharacterEntity { get; }
 		PlayerStatus Status { get; }
 		Zone CurrentZone { get; }
+		double LastRequestedUpdate { get; set; }
+		uint RequestedClientTime { get; set; }
+		bool FirstUpdateRequested { get; set; }
 
 		void Init(IShard shard);
 
 		void Login( ulong charID );
 		void Ready();
+		void Respawn( );
 
-		void Tick( double deltaTime, double currTime );
+		void Tick( double deltaTime, uint currTime );
 	}
 }

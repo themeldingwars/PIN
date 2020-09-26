@@ -16,6 +16,16 @@ namespace MyGameServer.Controllers {
 		[MessageID((byte)Enums.GSS.Generic.Commands.ScheduleUpdateRequest)]
 		public void ScheduleUpdateRequest( INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet ) {
 			var req = packet.Read<Packets.GSS.Generic.ScheduleUpdateRequest>();
+			
+			player.LastRequestedUpdate = ((float)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())/1000f;
+			player.RequestedClientTime = Math.Max(req.requestClientTime, player.RequestedClientTime);
+
+			if( !player.FirstUpdateRequested ) {
+				player.FirstUpdateRequested = true;
+				player.Respawn();
+			}
+
+			//Program.Logger.Error( "Update scheduled" );
 		}
 
 		[MessageID((byte)Enums.GSS.Generic.Commands.RequestLogout)]

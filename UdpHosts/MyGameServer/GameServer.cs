@@ -53,7 +53,7 @@ namespace MyGameServer {
 			return Shards.AddOrUpdate( id, new Shard( GameTickRate, id, this ), ( id, old ) => old );
 		}
 
-		protected override bool Tick( double deltaTime, double currTime ) {
+		protected override bool Tick( double deltaTime, uint currTime ) {
 			foreach( var s in Shards.Values ) {
 				if( !s.Tick( deltaTime, currTime ) || s.CurrentPlayers < MinPlayersPerShard ) {
 					// TODO: Shutdown Shard
@@ -63,7 +63,7 @@ namespace MyGameServer {
 			return true;
 		}
 
-		protected override void NetworkTick( double deltaTime, double currTime ) {
+		protected override void NetworkTick( double deltaTime, uint currTime ) {
 			foreach( var s in Shards.Values ) {
 				s.NetworkTick( deltaTime, currTime );
 			}

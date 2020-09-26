@@ -17,7 +17,7 @@ namespace MyGameServer {
 		public AIEngine AI { get; protected set; }
 		public ulong InstanceID { get; }
 		protected IPacketSender Sender { get; }
-		public double CurrentTick { get; protected set; }
+		public uint CurrentTime { get; protected set; }
 		public IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 		private ushort LastEntityRefId;
 
@@ -32,8 +32,8 @@ namespace MyGameServer {
 			LastEntityRefId = 0;
 		}
 
-		public bool Tick( double deltaTime, double currTime ) {
-			CurrentTick = currTime;
+		public bool Tick( double deltaTime, uint currTime ) {
+			CurrentTime = currTime;
 			foreach( var c in Clients.Values ) {
 				c.Tick( deltaTime, currTime );
 			}
@@ -44,7 +44,7 @@ namespace MyGameServer {
 			return true;
 		}
 
-		public void NetworkTick( double deltaTime, double currTime ) {
+		public void NetworkTick( double deltaTime, uint currTime ) {
 			// Handle timeoutd, reliable retransmission, normal rx/tx
 			foreach( var c in Clients.Values ) {
 				c.NetworkTick( deltaTime, currTime );

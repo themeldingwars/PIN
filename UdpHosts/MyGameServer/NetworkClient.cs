@@ -159,7 +159,7 @@ namespace MyGameServer {
 			NetLastActive = DateTime.Now;
 		}
 
-		public virtual void NetworkTick( double deltaTime, double currTime ) {
+		public virtual void NetworkTick( double deltaTime, uint currTime ) {
 			foreach( var c in NetChans.Values ) {
 				c.Process();
 			}

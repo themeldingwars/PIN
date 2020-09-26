@@ -96,21 +96,21 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 			ret.VelY = 0;
 			ret.VelZ = 0;
 
-			ret.MovementState = 0x1001;
+			ret.MovementState = 0x0000;
 			ret.Jets = 0x639c;
 			ret.AirGroundTimer = 0;
 			ret.JumpTimer = 0;
 
 			ret.UnkSfxID_0d = 0x370A2C01;//0x012c0a37;
 
-			ret.CharacterState = 6;
+			ret.CharacterState = 0;
 
 			ret.FactionMode = cd.Faction.Mode;
 			ret.FactionID = cd.Faction.ID;
 
 			ret.CurrentHealth = 25000;
 			ret.MaxHealth = 25000;
-			ret.EffectsFlag = 0x52;
+			ret.EffectsFlag = 0;
 			ret.JumpJetEnergy = cd.JumpJetEnergy;
 			ret.MaxJumpJetEnergy = cd.MaxJumpJetEnergy;
 			ret.JumpJetRecharge = cd.JumpJetRecharge;

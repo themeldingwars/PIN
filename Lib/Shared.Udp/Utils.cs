@@ -362,7 +362,7 @@ namespace Shared.Udp {
 		}
 
 		public static Memory<byte> WriteClass( object pkt, Type t ) {
-			var props = from prop in t.GetFields()
+			var props = from prop in pkt.GetType().GetFields()
 						where Attribute.IsDefined(prop, typeof(FieldAttribute))
 						orderby ((FieldAttribute)prop
 							.GetCustomAttributes(typeof(FieldAttribute), false)
