@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -14,12 +15,15 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
 		[Length(294)]
 		public IList<byte> UnkBytes;
 
-		public KeyFrame() {
-			UnkBytes = new List<byte> {
+		public KeyFrame( IShard shard ) {
+            var c = shard.CurrentTime;
+            var b = Utils.WritePrimitive( c ).ToArray();
+
+            UnkBytes = new List<byte> {
                 0xff, 0xff, 0xff, 0xff, // Identical 4 bytes across all these
                 0xff, 0x03,
                 // not sure if we have a longer header or not
-            
+
                 0xa8, 0xff, // 0
                 0x98, 0x4e, // 1
                 0x15, 0x1b, // 2
@@ -41,10 +45,10 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
                 0x01, 0x00,
                 0x00, 0x00,
 
-                0x7a, 0x42, 0x36, 0x64, // 0x7a, 0x42, 0x36, 0x64 6436427A
+                b[3], b[2], b[1], b[0],
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
+                b[3], b[2], b[1], b[0],
 
                 0x01, 0x61, 0x6e, 0x74,
                 0x00, 0x00, 0x00, 0x00,
@@ -52,81 +56,81 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
 
                 // 40
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 41
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 42
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 43
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 44
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 45
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 46
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 47
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 48
                 0x00, 0x00, 0x00, 0x00,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 49
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 4a
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 4b
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 4c
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 4d
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 4e
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 4f
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 50
                 0x00, 0x00, 0x80, 0x3f,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 42 + (41 * 4) = 206
 
                 // 51 - Fire mode
                 0x00,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 52 - In scope
                 0x00,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // 53 - Primary 1 Ammo Count
                 0xff, 0x00,
@@ -154,7 +158,7 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
 
                 // 5b - Selected Weapon
                 0x00, 0x01, 0x00,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                  // guess 5c
                 0x00, 0x00, 0x00,
@@ -166,18 +170,18 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
 
                 // match 5e
                 0x00, 0x00, 0x00, 0x00,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 // match 5f
                 0xff, 0xe0, 0xe4, 0xdf,
                 0x00, 0x00, 0x00, 0x00,
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
 
                 0x00, 0x00, 0x00, 0x00, // guess 60
                 0x00, 0x00, 0x00, 0x00, // guess 61
 
                 // match 62
-                0x7a, 0x42, 0x36, 0x64,
+                b[3], b[2], b[1], b[0],
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x01, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00,

@@ -14,7 +14,7 @@ namespace MyGameServer {
 			DT = dt;
 		}
 
-		public void Tick( double deltaTime, uint currTime ) {
+		public void Tick( double deltaTime, ulong currTime ) {
 			Accumulator += deltaTime;
 
 			while( Accumulator >= DT ) {

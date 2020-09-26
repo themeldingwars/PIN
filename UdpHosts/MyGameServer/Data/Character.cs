@@ -35,7 +35,7 @@ namespace MyGameServer.Data {
 
 
 		// Looks / Voice
-		
+
 		public uint VoiceSet { get; set; }
 		public ushort TitleID { get; set; }
 		public CharacterVisuals CharVisuals { get; protected set; }
@@ -55,7 +55,7 @@ namespace MyGameServer.Data {
 		public Faction Faction { get; set; }
 		public ulong ArmyGUID { get; set; }
 		public Army Army { get; set; }
-		
+
 
 		// TODO: Stats and Visuals
 		protected Character() {

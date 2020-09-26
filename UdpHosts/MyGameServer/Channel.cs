@@ -235,9 +235,6 @@ namespace MyGameServer {
 
 				Utils.WritePrimitive( msgID).CopyTo(t.Slice(8));
 
-				if( msgID == 1)
-					Console.WriteLine( string.Concat( p.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
-
 				p = t;
 
 				if( msgEnumType == null )

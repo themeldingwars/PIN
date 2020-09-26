@@ -8,7 +8,7 @@ namespace MyGameServer {
 
 		}
 
-		public void Tick( double deltaTime, uint currTime ) {
+		public void Tick( double deltaTime, ulong currTime ) {
 
 		}
 	}

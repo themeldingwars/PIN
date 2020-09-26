@@ -17,7 +17,7 @@ namespace MyGameServer {
 		public AIEngine AI { get; protected set; }
 		public ulong InstanceID { get; }
 		protected IPacketSender Sender { get; }
-		public uint CurrentTime { get; protected set; }
+		public ulong CurrentTimeLong { get; protected set; }
 		public IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 		private ushort LastEntityRefId;
 
@@ -32,8 +32,8 @@ namespace MyGameServer {
 			LastEntityRefId = 0;
 		}
 
-		public bool Tick( double deltaTime, uint currTime ) {
-			CurrentTime = currTime;
+		public bool Tick( double deltaTime, ulong currTime ) {
+			CurrentTimeLong = currTime;
 			foreach( var c in Clients.Values ) {
 				c.Tick( deltaTime, currTime );
 			}
@@ -44,7 +44,7 @@ namespace MyGameServer {
 			return true;
 		}
 
-		public void NetworkTick( double deltaTime, uint currTime ) {
+		public void NetworkTick( double deltaTime, ulong currTime ) {
 			// Handle timeoutd, reliable retransmission, normal rx/tx
 			foreach( var c in Clients.Values ) {
 				c.NetworkTick( deltaTime, currTime );
@@ -69,7 +69,7 @@ namespace MyGameServer {
 		}
 
 		public ushort AssignNewRefId( IEntity entity, Enums.GSS.Controllers controller ) {
-			while( EntityRefMap.ContainsKey(unchecked(++LastEntityRefId)) && LastEntityRefId != 0 && LastEntityRefId != 0xffff )
+			while( EntityRefMap.ContainsKey(unchecked(++LastEntityRefId)) || LastEntityRefId == 0 || LastEntityRefId == 0xffff )
 				;
 
 			EntityRefMap.Add(LastEntityRefId, new Tuple<IEntity, Enums.GSS.Controllers>(entity, controller));

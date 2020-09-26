@@ -15,8 +15,8 @@ namespace MyMatrixServer {
 		}
 
 		protected override void Startup() { }
-		protected override bool Tick( double deltaTime, uint currTime ) { return true; }
-		protected override void NetworkTick( double deltaTime, uint currTime ) { }
+		protected override bool Tick( double deltaTime, ulong currTime ) { return true; }
+		protected override void NetworkTick( double deltaTime, ulong currTime ) { }
 		protected override void Shutdown() { }
 
 		protected unsafe override void HandlePacket(Packet packet) {

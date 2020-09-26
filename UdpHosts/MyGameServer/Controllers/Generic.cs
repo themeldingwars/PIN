@@ -10,14 +10,14 @@ namespace MyGameServer.Controllers {
 	public class Generic : Base {
 
 		public override void Init( INetworkClient client, IPlayer player, IShard shard ) {
-			
+
 		}
 
 		[MessageID((byte)Enums.GSS.Generic.Commands.ScheduleUpdateRequest)]
 		public void ScheduleUpdateRequest( INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet ) {
 			var req = packet.Read<Packets.GSS.Generic.ScheduleUpdateRequest>();
-			
-			player.LastRequestedUpdate = ((float)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds())/1000f;
+
+			player.LastRequestedUpdate = client.AssignedShard.CurrentTime;
 			player.RequestedClientTime = Math.Max(req.requestClientTime, player.RequestedClientTime);
 
 			if( !player.FirstUpdateRequested ) {

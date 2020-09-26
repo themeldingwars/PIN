@@ -16,7 +16,7 @@ namespace Shared.Udp {
 		public const int MTU = 1400;
 
 		public static ILogger Logger;
-		
+
 		public DateTime StartTime { get { return DateTimeExtensions.Epoch.AddSeconds( startTime ); } }
 
 
@@ -25,7 +25,7 @@ namespace Shared.Udp {
 		private readonly IPEndPoint listenEndpoint;
 		private ConcurrentQueue<Packet> incomingPackets = null;
 		private ConcurrentQueue<Packet> outgoingPackets = null;
-		
+
 		protected long startTime;
 		protected double lastNetTick;
 
@@ -40,11 +40,11 @@ namespace Shared.Udp {
 
 		protected abstract void HandlePacket( Packet p );
 		protected abstract void Startup();
-		protected abstract bool Tick( double deltaTime, uint currTime );
-		protected abstract void NetworkTick( double deltaTime, uint currTime );
+		protected abstract bool Tick( double deltaTime, ulong currTime );
+		protected abstract void NetworkTick( double deltaTime, ulong currTime );
 		protected abstract void Shutdown();
 
-		protected virtual bool ShouldNetworkTick( double deltaTime, uint currTime ) => deltaTime >= NetworkTickRate;
+		protected virtual bool ShouldNetworkTick( double deltaTime, ulong currTime ) => deltaTime >= NetworkTickRate;
 
 
 
@@ -58,7 +58,7 @@ namespace Shared.Udp {
 
 			var sw = new Stopwatch();
 			var lastTime = 0.0;
-			var currTime = 0u;
+			var currTime = 0uL;
 			var delta = 0.0;
 
 			Startup();
@@ -66,14 +66,15 @@ namespace Shared.Udp {
 			sw.Start();
 
 			while( true ) {
-				currTime = unchecked((uint)sw.Elapsed.TotalMilliseconds);
+				var ct = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
+				currTime = unchecked((ulong)sw.Elapsed.TotalMilliseconds);
 				delta = currTime - lastTime;
 
-				if( !Tick( delta, currTime ) )
+				if( !Tick( delta, ct ) )
 					break;
 
-				if( ShouldNetworkTick( currTime - lastNetTick, currTime ) ) {
-					NetworkTick( currTime - lastNetTick, currTime );
+				if( ShouldNetworkTick( currTime - lastNetTick, ct ) ) {
+					NetworkTick( currTime - lastNetTick, ct );
 					lastNetTick = currTime;
 				}
 

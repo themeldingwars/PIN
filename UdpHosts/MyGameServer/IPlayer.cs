@@ -23,7 +23,7 @@ namespace MyGameServer {
 		Entities.Character CharacterEntity { get; }
 		PlayerStatus Status { get; }
 		Zone CurrentZone { get; }
-		double LastRequestedUpdate { get; set; }
+		uint LastRequestedUpdate { get; set; }
 		uint RequestedClientTime { get; set; }
 		bool FirstUpdateRequested { get; set; }
 
@@ -33,6 +33,6 @@ namespace MyGameServer {
 		void Ready();
 		void Respawn( );
 
-		void Tick( double deltaTime, uint currTime );
+		void Tick( double deltaTime, ulong currTime );
 	}
 }

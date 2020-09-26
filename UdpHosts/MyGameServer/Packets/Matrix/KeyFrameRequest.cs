@@ -7,29 +7,27 @@ using Shared.Udp;
 namespace MyGameServer.Packets.Matrix {
 	[MatrixMessage( Enums.MatrixPacketType.KeyframeRequest )]
 	public class KeyFrameRequest {
-        [Field]
-        public byte HaveRequestByEntityID;
-        [Field]
-        [LengthPrefixed(typeof(byte))]
-        public IList<RequestByEntity> EntityRequests;
-        [Field]
-        public byte HaveRequestByRefID;
-        [Field]
-        [LengthPrefixed(typeof(byte))]
-        public IList<ushort> RefRequests;
+		[ExistsPrefix( typeof( byte ), 1 )]
+		[Field]
+		[LengthPrefixed(typeof(byte))]
+		public IList<RequestByEntity> EntityRequests;
+		[ExistsPrefix( typeof( byte ), 1 )]
+		[Field]
+		[LengthPrefixed(typeof(byte))]
+		public IList<ushort> RefRequests;
 
-        public class RequestByEntity {
-            [Field]
-            public byte ControllerID;
-            [Field]
-            [Length(7)]
-            public byte[] EntityID;
-            [Field]
-            public ushort RefID;
-            [Field]
-            public byte Unk2;
-            [Field]
-            public uint Checksum;
-        }
-    }
+		public class RequestByEntity {
+			[Field]
+			public byte ControllerID;
+			[Field]
+			[Length(7)]
+			public IList<byte> EntityID;
+			[Field]
+			public ushort RefID;
+			[Field]
+			public byte Unk2;
+			[Field]
+			public uint Checksum;
+		}
+	}
 }
