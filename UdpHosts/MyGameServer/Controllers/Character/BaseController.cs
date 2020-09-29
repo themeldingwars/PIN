@@ -51,7 +51,7 @@ namespace MyGameServer.Controllers.Character {
 				State = (ushort)player.CharacterEntity.MovementState,
 				Velocity = player.CharacterEntity.Velocity,
 				UnkUShort1 = pkt.UnkUShort1,
-				UnkShort1 = pkt.UnkShort2,
+				UnkShort1 = pkt.UnkShort3,
 				LastJumpTimer = pkt.LastJumpTimer,
 				UnkByte3 = 0,
 				NextKey = unchecked((ushort)(pkt.Key + 90))

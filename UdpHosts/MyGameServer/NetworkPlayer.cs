@@ -83,6 +83,8 @@ namespace MyGameServer {
 
 		public void Respawn( ) {
 			var p = Test.DataUtils.GetZone( 448 ).POIs["watchtower"];
+			CharacterEntity.Position = p;
+
 			var forcedMove = new ForcedMovement {
 				Type = 1,
 				Unk1 = 0,
@@ -93,7 +95,7 @@ namespace MyGameServer {
 				KeyFrame = AssignedShard.CurrentShortTime
 			};
 
-			//NetChans[ChannelType.ReliableGss].SendGSSClass( forcedMove, CharacterEntity.EntityID );
+			NetChans[ChannelType.ReliableGss].SendGSSClass( forcedMove, CharacterEntity.EntityID );
 
 			var respawnMsg = new Respawned {
 				LastUpdateTime = AssignedShard.CurrentTime - 2,
