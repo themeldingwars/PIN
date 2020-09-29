@@ -8,7 +8,7 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 	[GSSMessage(Enums.GSS.Controllers.Character_BaseController, (byte)Enums.GSS.Character.Events.ConfirmedPoseUpdate)]
 	public class ConfirmedPoseUpdate {
 		[Field]
-		public ushort Key;
+		public ushort ShortTime;
 		[Field]
 		public byte UnkByte1;
 		[Field]
@@ -24,12 +24,12 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 		[Field]
 		public ushort UnkUShort1;
 		[Field]
-		public short UnkShort1;
+		public ushort UnkUShort2;
 		[Field]
-		public short LastJumpTimer;
+		public ushort LastJumpTimer;
 		[Field]
 		public byte UnkByte3;
 		[Field]
-		public ushort NextKey;
+		public ushort NextShortTime;
 	}
 }

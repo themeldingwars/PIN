@@ -32,6 +32,7 @@ namespace MyGameServer {
 		void Login( ulong charID );
 		void Ready();
 		void Respawn( );
+		void Jump( );
 
 		void Tick( double deltaTime, ulong currTime );
 	}

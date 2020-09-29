@@ -8,15 +8,15 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 	[GSSMessage(Enums.GSS.Controllers.Character_BaseController, (byte)Enums.GSS.Character.Commands.MovementInput)]
 	public class MovementInput {
 		[Field]
-		public ushort Key;
+		public ushort ShortTime;
 		[Field]
 		public byte UnkByte1;
 		[Field]
 		public byte UnkByte2;
 		[Field]
-		public short UnkShort1;
+		public ushort UnkUShort1;
 		[Field]
-		public short UnkShort2;
+		public ushort UnkUShort2;
 		[Field]
 		public byte UnkByte3;
 		[Field]
@@ -36,11 +36,11 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 		[Field]
 		public Common.Vector AimDirection;
 		[Field]
-		public ushort UnkUShort1;
+		public ushort UnkUShort3;
 		[Field]
-		public short UnkShort3;
+		public ushort UnkUShort4;
 		[Field]
-		public short LastJumpTimer;
+		public ushort LastJumpTimer;
 		[Field]
 		public int UnkInt1;
 	}
