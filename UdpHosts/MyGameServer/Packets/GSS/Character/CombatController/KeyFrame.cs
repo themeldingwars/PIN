@@ -173,7 +173,7 @@ namespace MyGameServer.Packets.GSS.Character.CombatController {
                 b[3], b[2], b[1], b[0],
 
                 // match 5f
-                0xff, 0xe0, 0xe4, 0xdf,
+                0xff, 0xf0, 0xe4, 0xdf, // 2nd byte 0xe0 = no jetpack, 0xf0 = jetpack
                 0x00, 0x00, 0x00, 0x00,
                 b[3], b[2], b[1], b[0],
 

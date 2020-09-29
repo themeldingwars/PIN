@@ -24,6 +24,7 @@ namespace MyGameServer.Entities {
 		public System.Numerics.Vector3 AimDirection { get; set; }
 		public CharMovement MovementState { get; set; }
 		public bool Alive { get; set; }
+		public ushort? LastJumpTime { get; set; }
 
 		public Character( IShard owner, ulong eid ) : base(owner, eid) {
 			Position = new System.Numerics.Vector3();
@@ -32,6 +33,7 @@ namespace MyGameServer.Entities {
 			AimDirection = System.Numerics.Vector3.UnitZ;
 
 			Alive = false;
+			LastJumpTime = null;
 
 			/*RegisterController(Enums.GSS.Controllers.Character_BaseController);
 			RegisterController(Enums.GSS.Controllers.Character_CombatController);
