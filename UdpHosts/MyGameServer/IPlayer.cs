@@ -18,17 +18,21 @@ namespace MyGameServer {
 			Playing = 999
 		}
 
-		public ulong CharacterID { get; }
-		public Entities.Character CharacterEntity { get; }
-		public ulong EntityID { get { return (CharacterID & 0xffffffffffffff00); } } // Ignore last byte
-		public PlayerStatus Status { get; }
-		public Zone CurrentZone { get; }
+		ulong CharacterID { get; }
+		ulong EntityID { get { return (CharacterID & 0xffffffffffffff00); } } // Ignore last byte
+		Entities.Character CharacterEntity { get; }
+		PlayerStatus Status { get; }
+		Zone CurrentZone { get; }
+		uint LastRequestedUpdate { get; set; }
+		uint RequestedClientTime { get; set; }
+		bool FirstUpdateRequested { get; set; }
 
-		public void Init(IShard shard);
+		void Init(IShard shard);
 
-		public void Login( ulong charID );
+		void Login( ulong charID );
 		void Ready();
+		void Respawn( );
 
-		public void Tick( double deltaTime, double currTime );
+		void Tick( double deltaTime, ulong currTime );
 	}
 }

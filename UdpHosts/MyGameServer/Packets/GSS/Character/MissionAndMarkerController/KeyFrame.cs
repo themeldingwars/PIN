@@ -14,7 +14,7 @@ namespace MyGameServer.Packets.GSS.Character.MissionAndMarkerController {
 		[Length(12)]
 		public IList<byte> UnkBytes;
 
-		public KeyFrame() {
+		public KeyFrame( IShard shard ) {
 			UnkBytes = new List<byte> {
                 0xff, 0xff, 0xff, 0xff,
                 0xff, 0xff, 0xff, 0xff,

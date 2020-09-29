@@ -45,7 +45,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebHost.Market", "WebHosts\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebHost.WebAsset", "WebHosts\WebHost.WebAsset\WebHost.WebAsset.csproj", "{DB635FA7-60AA-45C1-815C-DEC7B34949E0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "Solution Items", "{1191B69C-BCE5-484D-B938-030EBE130B2B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{1191B69C-BCE5-484D-B938-030EBE130B2B}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		PIN.sln.DotSettings = PIN.sln.DotSettings

@@ -23,10 +23,11 @@ namespace MyGameServer {
 		IPEndPoint RemoteEndpoint { get; }
 		DateTime NetLastActive { get; }
 		ImmutableDictionary<ChannelType, Channel> NetChans { get; }
+		IShard AssignedShard { get; }
 
 		void Init( IPlayer player, IShard shard, IPacketSender sender);
 		void HandlePacket( ReadOnlyMemory<byte> packet );
-		void NetworkTick( double deltaTime, double currTime );
+		void NetworkTick( double deltaTime, ulong currTime );
 		void Send( Memory<byte> p );
 		void SendAck( ChannelType forChannel, ushort forSeqNumber );
 	}

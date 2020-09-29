@@ -7,7 +7,7 @@ namespace MyGameServer.Controllers.Character {
 	public class CombatController : Base {
 		public override void Init( INetworkClient client, IPlayer player, IShard shard ) {
 			// TODO: Implement
-			
+
 		}
 
 		[MessageID((byte)Enums.GSS.Character.Commands.FireInputIgnored)]

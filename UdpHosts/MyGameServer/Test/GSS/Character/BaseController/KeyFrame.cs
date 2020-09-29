@@ -12,8 +12,8 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 	public static class KeyFrame {
 		public static Packet.KeyFrame Test( IPlayer p, IShard shard ) {
 			//var gametime = (uint)Math.Round(shard.CurrentTick*1000);
-			var gametime = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-			Program.Logger.Error( "KF: Game Time: {0}", gametime );
+			var gametime = shard.CurrentTime;
+			//Program.Logger.Error( "KF: Game Time: {0}", gametime );
 			var ret = new Packet.KeyFrame();
 			var cd = p.CharacterEntity.CharData;
 
@@ -85,25 +85,25 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 
 			ret.RotW = 0;
 			ret.RotX = 0;
-			ret.RotY = 0.394583433866501f; // 0xd7, 0x06, 0xca, 0x3e 0x3eca06d7
-			ret.RotZ = 0.918860137462616f; // 0x6b, 0x3a, 0x6b, 0x3f 0x3f6b3a6b
+			ret.RotY = 0.394583433866501f;
+			ret.RotZ = 0.918860137462616f;
 
-			ret.AimX = 0.725133955478668f; // 0x61, 0xa2, 0x39, 0x3f 0x3f39a261
-			ret.AimY = 0.688607811927795f; // 0x9a, 0x48, 0x30, 0x3f 0x3f30489a
+			ret.AimX = 0.725133955478668f;
+			ret.AimY = 0.688607811927795f;
 			ret.AimZ = 0; // 0
 
 			ret.VelX = 0;
 			ret.VelY = 0;
 			ret.VelZ = 0;
 
-			ret.MovementState = 0x1000;
+			ret.MovementState = 0x0000;
 			ret.Jets = 0x639c;
 			ret.AirGroundTimer = 0;
 			ret.JumpTimer = 0;
 
-			ret.UnkSfxID_0d = 0x370A2C01;//0x012c0a37;
+			ret.UnkSfxID_0d = 0x370A2C01;
 
-			ret.CharacterState = 6;
+			ret.CharacterState = 0;
 
 			ret.FactionMode = cd.Faction.Mode;
 			ret.FactionID = cd.Faction.ID;
@@ -263,8 +263,8 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 				0x75, 0x01,
 				0x00, 0x00, 0x00, 0x00, 0x00,
 				0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00,
+				0x80, 0x00, 0x00, 0x00,
+				0x80, 0x80, 0x00, 0x00,
 				0x00, 0x00, 0x00, 0x00,
 				0xcb, 0x10, 0x00, 0x00,
 				0x10, 0x00, 0x00, 0x00

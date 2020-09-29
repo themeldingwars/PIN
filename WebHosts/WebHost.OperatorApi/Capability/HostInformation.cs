@@ -1,7 +1,7 @@
 ﻿namespace WebHost.OperatorApi.Capability
 {
     public class HostInformation
-    { 
+    {
         public string FrontendHost { get; set; }
 
         public string StoreHost { get; set; }

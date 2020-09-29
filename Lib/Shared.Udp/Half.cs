@@ -9,17 +9,17 @@ using System.Globalization;
 
 namespace System {
     /// <summary>
-    /// Represents a half-precision floating point number. 
+    /// Represents a half-precision floating point number.
     /// </summary>
     /// <remarks>
     /// Note:
-    ///     Half is not fast enought and precision is also very bad, 
+    ///     Half is not fast enought and precision is also very bad,
     ///     so is should not be used for mathematical computation (use Single instead).
-    ///     The main advantage of Half type is lower memory cost: two bytes per number. 
+    ///     The main advantage of Half type is lower memory cost: two bytes per number.
     ///     Half is typically used in graphical applications.
-    ///     
-    /// Note: 
-    ///     All functions, where is used conversion half->float/float->half, 
+    ///
+    /// Note:
+    ///     All functions, where is used conversion half->float/float->half,
     ///     are approx. ten times slower than float->double/double->float, i.e. ~3ns on 2GHz CPU.
     ///
     /// References:
@@ -174,7 +174,7 @@ namespace System {
         /// </summary>
         /// <param name="half1">A System.Half.</param>
         /// <param name="half2">A System.Half.</param>
-        /// <returns>The System.Half result of subtracting half1 and half2.</returns>        
+        /// <returns>The System.Half result of subtracting half1 and half2.</returns>
         public static Half operator -( Half half1, Half half2 ) { return (Half)(half1 - (float)half2); }
         /// <summary>
         /// Multiplies two specified System.Half values.
@@ -484,7 +484,7 @@ namespace System {
         /// Converts the value of a specified instance of System.Half to its equivalent binary representation.
         /// </summary>
         /// <param name="value">A System.Half value.</param>
-        /// <returns>A 16-bit unsigned integer that contain the binary representation of value.</returns>        
+        /// <returns>A 16-bit unsigned integer that contain the binary representation of value.</returns>
         public static ushort GetBits( Half value ) {
             return value.Value;
         }
@@ -615,7 +615,7 @@ namespace System {
             return (Half)float.Parse( value, CultureInfo.InvariantCulture );
         }
         /// <summary>
-        /// Converts the string representation of a number to its System.Half equivalent 
+        /// Converts the string representation of a number to its System.Half equivalent
         /// using the specified culture-specific format information.
         /// </summary>
         /// <param name="value">The string representation of the number to convert.</param>
@@ -648,13 +648,13 @@ namespace System {
             return (Half)float.Parse( value, style, CultureInfo.InvariantCulture );
         }
         /// <summary>
-        /// Converts the string representation of a number to its System.Half equivalent 
+        /// Converts the string representation of a number to its System.Half equivalent
         /// using the specified style and culture-specific format.
         /// </summary>
         /// <param name="value">The string representation of the number to convert.</param>
         /// <param name="style">
         /// A bitwise combination of System.Globalization.NumberStyles values that indicates
-        /// the style elements that can be present in value. A typical value to specify is 
+        /// the style elements that can be present in value. A typical value to specify is
         /// System.Globalization.NumberStyles.Number.
         /// </param>
         /// <param name="provider">An System.IFormatProvider object that supplies culture-specific information about the format of value.</param>
@@ -712,7 +712,7 @@ namespace System {
         /// </param>
         /// <returns>true if s was converted successfully; otherwise, false.</returns>
         /// <exception cref="System.ArgumentException">
-        /// style is not a System.Globalization.NumberStyles value. -or- style 
+        /// style is not a System.Globalization.NumberStyles value. -or- style
         /// is the System.Globalization.NumberStyles.AllowHexSpecifier value.
         /// </exception>
         public static bool TryParse( string value, NumberStyles style, IFormatProvider provider, out Half result ) {
@@ -752,7 +752,7 @@ namespace System {
             return ((float)this).ToString( format, CultureInfo.InvariantCulture );
         }
         /// <summary>
-        /// Converts the numeric value of this instance to its equivalent string representation 
+        /// Converts the numeric value of this instance to its equivalent string representation
         /// using the specified format and culture-specific format information.
         /// </summary>
         /// <param name="format">A numeric format string.</param>
@@ -839,7 +839,7 @@ namespace System {
         private static readonly ushort[] BaseTable = GenerateBaseTable();
         private static readonly sbyte[] ShiftTable = GenerateShiftTable();
 
-        // Transforms the subnormal representation to a normalized one. 
+        // Transforms the subnormal representation to a normalized one.
         private static uint ConvertMantissa( int i ) {
             uint m = (uint)(i << 13); // Zero pad mantissa bits
             uint e = 0; // Zero exponent
@@ -847,7 +847,7 @@ namespace System {
             // While not normalized
             while( (m & 0x00800000) == 0 ) {
                 e -= 0x00800000; // Decrement exponent (1<<23)
-                m <<= 1; // Shift mantissa                
+                m <<= 1; // Shift mantissa
             }
             m &= unchecked((uint)~0x00800000); // Clear leading 1 bit
             e += 0x38800000; // Adjust bias ((127-14)<<23)

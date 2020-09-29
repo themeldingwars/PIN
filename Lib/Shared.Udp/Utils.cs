@@ -111,8 +111,8 @@ namespace Shared.Udp {
 				ret = ReadPrimitive( ref data, t );
 			} else if( t.IsValueType && t.BaseType == typeof( Enum ) ) {
 				ret = Enum.ToObject( t, Read( ref data, Enum.GetUnderlyingType( t ) ) );
-			} else if( t.IsValueType ) { 
-				
+			} else if( t.IsValueType ) {
+
 				int size = Marshal.SizeOf(t);
 				var mh = data.Slice( 0, size ).Pin();
 
@@ -362,7 +362,7 @@ namespace Shared.Udp {
 		}
 
 		public static Memory<byte> WriteClass( object pkt, Type t ) {
-			var props = from prop in t.GetFields()
+			var props = from prop in pkt.GetType().GetFields()
 						where Attribute.IsDefined(prop, typeof(FieldAttribute))
 						orderby ((FieldAttribute)prop
 							.GetCustomAttributes(typeof(FieldAttribute), false)

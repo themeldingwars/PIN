@@ -251,7 +251,7 @@ namespace MyGameServer.Enums {
 
 		namespace Character {
 			enum Events {
-				BigUpdate = 1,
+				PartialUpdate = 1,
 				KeyFrame = 4,
 				MarketRequestComplete = 83,
 				ReceiveWeaponTweaks = 84,
@@ -544,7 +544,7 @@ namespace MyGameServer.Enums {
 
 		namespace AreaVisualData {
 			enum Events {
-				BigUpdate = 1,
+				PartialUpdate = 1,
 				KeyFrame = 4,
 				LootObjectCollected = 83,
 				AudioEmitterSpawned = 84,
@@ -565,7 +565,7 @@ namespace MyGameServer.Enums {
 			}
 
 			enum Events {
-				BigUpdate = 1,
+				PartialUpdate = 1,
 				KeyFrame = 4,
 				AbilityActivated = 83,
 				AbilityFailed = 84,
@@ -581,7 +581,7 @@ namespace MyGameServer.Enums {
 
 		namespace Deployable {
 			enum Events {
-				BigUpdate = 1,
+				PartialUpdate = 1,
 				KeyFrame = 4,
 				TookHit = 83,
 				AbilityProjectileFired = 84,
@@ -593,7 +593,7 @@ namespace MyGameServer.Enums {
 
 		namespace Turret {
 			enum Events {
-				BigUpdate = 1,
+				PartialUpdate = 1,
 				KeyFrame = 4,
 				WeaponProjectileFired = 83,
 			}
@@ -609,7 +609,7 @@ namespace MyGameServer.Enums {
 
 		namespace LootStoreExtensions {
 			enum Events {
-				BigUpdate = 1,
+				PartialUpdate = 1,
 				KeyFrame = 4,
 				LootObjectCollected = 83,
 			}

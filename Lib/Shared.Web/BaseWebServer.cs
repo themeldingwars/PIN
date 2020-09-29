@@ -16,7 +16,7 @@ namespace Shared.Web {
 			{
 				if (serverType.FullName == null)
 					throw new ArgumentNullException( nameof(serverType.FullName) );
-				
+
 				Log.Information( $"Starting web host {serverType.FullName}" );
 				return WebHost.CreateDefaultBuilder()
 					   .UseConfiguration( configuration )

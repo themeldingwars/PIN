@@ -119,8 +119,8 @@ namespace Core.Data {
 
 			return cmd;
 		}
-		
-		
+
+
 		public string DelimDatabase( string val ) { return Delim(val, DelimType.Database); }
 		public string DelimSchema( string val ) { return Delim(val, DelimType.Schema); }
 		public string DelimTable( string val ) { return Delim(val, DelimType.Table); }

@@ -53,7 +53,7 @@ namespace MyGameServer {
 			return Shards.AddOrUpdate( id, new Shard( GameTickRate, id, this ), ( id, old ) => old );
 		}
 
-		protected override bool Tick( double deltaTime, double currTime ) {
+		protected override bool Tick( double deltaTime, ulong currTime ) {
 			foreach( var s in Shards.Values ) {
 				if( !s.Tick( deltaTime, currTime ) || s.CurrentPlayers < MinPlayersPerShard ) {
 					// TODO: Shutdown Shard
@@ -63,7 +63,7 @@ namespace MyGameServer {
 			return true;
 		}
 
-		protected override void NetworkTick( double deltaTime, double currTime ) {
+		protected override void NetworkTick( double deltaTime, ulong currTime ) {
 			foreach( var s in Shards.Values ) {
 				s.NetworkTick( deltaTime, currTime );
 			}
@@ -71,7 +71,7 @@ namespace MyGameServer {
 		protected override void Shutdown() {
 		}
 
-		protected override async Task HandlePacket( Packet packet ) {
+		protected override void HandlePacket( Packet packet ) {
 			//Program.Logger.Information("[GAME] {0} sent {1} bytes.", packet.RemoteEndpoint, packet.PacketData.Length);
 			//Program.Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 
@@ -80,7 +80,7 @@ namespace MyGameServer {
 
 			if( !ClientMap.ContainsKey( socketID ) ) {
 				var c = new NetworkPlayer(packet.RemoteEndpoint, socketID);
-				
+
 				client = ClientMap.AddOrUpdate( socketID, c, ( id, nc ) => { return nc; } );
 				_ = GetNextShard().MigrateIn( (INetworkPlayer)client );
 			} else

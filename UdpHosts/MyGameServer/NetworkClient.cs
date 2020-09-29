@@ -53,7 +53,7 @@ namespace MyGameServer {
 
 			if( conn == null ) {
 				Program.Logger.Verbose( "---> Unrecognized ControllerID for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", ControllerID, EntityID, MsgID );
-				//Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
+				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				return;
 			}
 
@@ -70,7 +70,7 @@ namespace MyGameServer {
 				// Login
 				var loginpkt = packet.Read<Packets.Matrix.Login>();
 				Player.Login( loginpkt.CharacterGUID );
-				
+
 				break;
 			case Enums.MatrixPacketType.EnterZoneAck:
 				Controllers.Factory.Get<Controllers.Character.BaseController>().Init( this, Player, AssignedShard );
@@ -79,7 +79,7 @@ namespace MyGameServer {
 			case Enums.MatrixPacketType.KeyframeRequest:
 				// TODO; See onKeyframeRequest in server_gamesocket.js
 				var kfrpkt = packet.Read<Packets.Matrix.KeyFrameRequest>();
-				
+
 				int i=0;
 
 				break;
@@ -92,7 +92,7 @@ namespace MyGameServer {
 				break;
 			default:
 				Program.Logger.Error( "---> Unrecognized Matrix Packet {0}[{1}]!!!", msgID, ((byte)msgID) );
-				//Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
+				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				break;
 			}
 		}
@@ -116,10 +116,8 @@ namespace MyGameServer {
 				break;
 			case Enums.ControlPacketType.TimeSyncRequest:
 				var req = packet.Read<Packets.Control.TimeSyncRequest>();
-				var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()*1000u));
-				//var resp = new Packets.Control.TimeSyncResponse(req.ClientTime, (ulong)((uint)Math.Round(AssignedShard.CurrentTick*1000u)));
-				Program.Logger.Error( "TSR: C {0} => S {1}", resp.ClientTime, resp.ServerTime );
-				NetChans[ChannelType.Control].Send( resp );
+
+				NetChans[ChannelType.Control].Send( new Packets.Control.TimeSyncResponse( req.ClientTime, unchecked(AssignedShard.CurrentTimeLong*1000) ) );
 				break;
 			case Enums.ControlPacketType.MTUProbe:
 				var mtuPkt = packet.Read<Packets.Control.MTUProbe>();
@@ -127,7 +125,7 @@ namespace MyGameServer {
 				break;
 			default:
 				Program.Logger.Error( "---> Unrecognized Control Packet {0} ({1:X2})!!!", msgID, ((byte)msgID) );
-				//Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
+				Program.Logger.Warning( ">  {0}", BitConverter.ToString( packet.PacketData.ToArray() ).Replace( "-", " " ) );
 				break;
 			}
 		}
@@ -149,7 +147,7 @@ namespace MyGameServer {
 
 				var p = new GamePacket(hdr, packet.Slice(idx + hdrSize, hdr.Length - hdrSize));
 
-				Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
+				//Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
 
 				NetChans[hdr.Channel].HandlePacket( p );
 
@@ -159,7 +157,7 @@ namespace MyGameServer {
 			NetLastActive = DateTime.Now;
 		}
 
-		public virtual void NetworkTick( double deltaTime, double currTime ) {
+		public virtual void NetworkTick( double deltaTime, ulong currTime ) {
 			foreach( var c in NetChans.Values ) {
 				c.Process();
 			}
@@ -177,7 +175,7 @@ namespace MyGameServer {
 
 
 		public void SendAck( ChannelType forChannel, ushort forSeqNum ) {
-			Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
+			//Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
 
 			forSeqNum = Utils.SimpleFixEndianess(forSeqNum);
 			var currSeqNum = Utils.SimpleFixEndianess(NetChans[forChannel].CurrentSequenceNumber);

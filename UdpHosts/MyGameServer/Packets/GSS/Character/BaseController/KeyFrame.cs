@@ -48,7 +48,7 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 		public ushort TitleID;
 		[Field]
 		public uint NameLocaliztionID;
-		
+
 		[Field]
 		[LengthPrefixed(typeof(byte))]
 		public IList<uint> HeadAccessories = new List<uint>();
@@ -82,7 +82,7 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 		[Field]
 		[LengthPrefixed(typeof(byte))]
 		public IList<Ability> Abilities = new List<Ability>();
-		
+
 		[Field]
 		[Padding(9)]
 		public uint PrimaryWeaponID;
@@ -184,17 +184,17 @@ namespace MyGameServer.Packets.GSS.Character.BaseController {
 		[Field]
 		[LengthPrefixed(typeof(ushort))]
 		public IList<StatValue> ItemStatValues = new List<StatValue>();
-		
+
 		[Field]
 		[Padding(4)]
 		[LengthPrefixed(typeof(ushort))]
 		public IList<StatValue> Weapon1StatValues = new List<StatValue>();
-		
+
 		[Field]
 		[Padding(4)]
 		[LengthPrefixed(typeof(ushort))]
 		public IList<StatValue> Weapon2StatValues = new List<StatValue>();
-		
+
 		[Field]
 		[Padding(4)]
 		[LengthPrefixed(typeof(ushort))]
