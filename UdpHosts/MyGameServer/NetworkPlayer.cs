@@ -6,6 +6,7 @@ using System.Text;
 
 using MyGameServer.Data;
 using MyGameServer.Packets.GSS;
+using MyGameServer.Packets.GSS.Character.BaseController;
 using MyGameServer.Packets.GSS.Character.BaseController.PartialUpdates;
 using MyGameServer.Packets.GSS.Character.CombatController;
 using MyGameServer.Packets.GSS.Character.ObserverView;
@@ -30,13 +31,13 @@ namespace MyGameServer {
 			Status = IPlayer.PlayerStatus.Connecting;
 		}
 
-		public void Init(IShard shard) {
+		public void Init( IShard shard ) {
 			Init( this, shard, shard );
 		}
 
 		public void Login( ulong charID ) {
 			CharacterID = charID;
-			CharacterEntity = new Entities.Character(AssignedShard, charID & 0xffffffffffffff00);
+			CharacterEntity = new Entities.Character( AssignedShard, charID & 0xffffffffffffff00 );
 			CharacterEntity.Load( charID );
 			Status = IPlayer.PlayerStatus.LoggedIn;
 
@@ -49,7 +50,7 @@ namespace MyGameServer {
 			EnterZone( Test.DataUtils.GetZone( 448 ) );
 		}
 
-		public void EnterZone(Zone z) {
+		public void EnterZone( Zone z ) {
 			CurrentZone = z;
 			CharacterEntity.Position = CurrentZone.POIs["watchtower"];
 
@@ -115,8 +116,8 @@ namespace MyGameServer {
 				State = (ushort)CharacterEntity.MovementState,
 				Unk1 = 0,
 				Jets = (ushort)CharacterEntity.CharData.JumpJetEnergy,
-				AirGroundTimer = 0,
-				JumpTimer = 0,
+				AirGroundTimer = 0x3a7f,
+				JumpTimer = 0x3cdb,
 				Unk2 = 0,
 			} );
 
@@ -128,11 +129,11 @@ namespace MyGameServer {
 			upd.Add( new Unknown1 {
 			} );
 
-			/*upd.Add( new Unknown2 {
+			upd.Add( new Unknown2 {
 				Unk1 = 0x0100,
 				Unk2 = 0x0100,
 				LastUpdateTime = AssignedShard.CurrentTime,
-			} );*/
+			} );
 
 			NetChans[ChannelType.ReliableGss].SendGSSClass( upd, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
 
@@ -160,11 +161,24 @@ namespace MyGameServer {
 			} );
 
 			NetChans[ChannelType.ReliableGss].SendGSSClass( upd, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
+
+			upd = new PartialUpdate();
+
+			upd.Add( new Unknown5 {
+				LastUpdateTime = AssignedShard.CurrentTime,
+			} );
+
+			NetChans[ChannelType.ReliableGss].SendGSSClass( upd, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
 		}
 
-		public void Ready() {
+		public void Ready( ) {
 			Status = IPlayer.PlayerStatus.Playing;
 			CharacterEntity.Alive = true;
+		}
+
+		public void Jump( ) {
+			NetChans[ChannelType.ReliableGss].SendGSSClass( new JumpActioned { JumpTime = AssignedShard.CurrentShortTime }, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
+			CharacterEntity.LastJumpTime = AssignedShard.CurrentShortTime;
 		}
 
 		public void Tick( double deltaTime, ulong currTime ) {

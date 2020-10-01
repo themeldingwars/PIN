@@ -77,7 +77,7 @@ namespace MyGameServer.Data {
 			NameLocalizationID = 0;
 			Level = 45;
 			EffectiveLevel = 30;
-			JumpJetEnergy = 300f;
+			JumpJetEnergy = 500f;
 			MaxJumpJetEnergy = 500;
 			JumpJetRecharge = 156.414169f;
 			MaxHealth = 19192;

@@ -110,7 +110,7 @@ namespace MyGameServer.Test.GSS.Character.BaseController {
 
 			ret.CurrentHealth = 25000;
 			ret.MaxHealth = 25000;
-			ret.EffectsFlag = 0x52;
+			ret.EffectsFlag = 0;
 			ret.JumpJetEnergy = cd.JumpJetEnergy;
 			ret.MaxJumpJetEnergy = cd.MaxJumpJetEnergy;
 			ret.JumpJetRecharge = cd.JumpJetRecharge;
