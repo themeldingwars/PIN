@@ -61,7 +61,7 @@ namespace MyGameServer {
 			conn.HandlePacket( this, Player, EntityID, MsgID, packet );
 		}
 
-		private unsafe void Matrix_PacketAvailable( GamePacket packet ) {
+		private void Matrix_PacketAvailable( GamePacket packet ) {
 			var msgID = packet.Read<Enums.MatrixPacketType>();
 			Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Matrix, msgID, ((byte)msgID) );
 
