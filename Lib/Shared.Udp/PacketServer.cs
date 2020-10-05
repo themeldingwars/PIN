@@ -24,8 +24,8 @@ namespace Shared.Udp {
 
 		private readonly Socket serverSocket;
 		private readonly IPEndPoint listenEndpoint;
-		private ConcurrentQueue<Packet> incomingPackets = null;
-		private ConcurrentQueue<Packet> outgoingPackets = null;
+		private BufferBlock<Packet?> incomingPackets = null;
+		private BufferBlock<Packet?> outgoingPackets = null;
 
 		protected long startTime;
 		protected double lastNetTick;
@@ -80,6 +80,7 @@ namespace Shared.Udp {
 				}
 
 				lastTime = currTime;
+				_ = Thread.Yield();
 			}
 
 			sw.Stop();
@@ -96,8 +97,8 @@ namespace Shared.Udp {
 
 			Logger.Information( "Listening on {0}", listenEndpoint );
 
-			incomingPackets = new ConcurrentQueue<Packet>();
-			outgoingPackets = new ConcurrentQueue<Packet>();
+			incomingPackets = new BufferBlock<Packet?>();
+			outgoingPackets = new BufferBlock<Packet?>();
 			byte[] buffer = new byte[MTU*10];
 			EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 			int c;
@@ -110,7 +111,7 @@ namespace Shared.Udp {
 						// Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
 						var buf = new byte[c];
 						buffer.AsSpan().Slice(0, c).ToArray().CopyTo(buf, 0);
-						incomingPackets.Enqueue(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c)));
+						_ = incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c)));
 
 						remoteEP = new IPEndPoint(IPAddress.Any, 0);
 					}
@@ -122,31 +123,32 @@ namespace Shared.Udp {
 			}
 		}
 
-		private void ReadThread() {
+		private async void ReadThread() {
 			while( incomingPackets == null )
 				Thread.Sleep( 10 );
 
 			Thread.CurrentThread.Priority = ThreadPriority.Highest;
+			Packet? p;
 
 			while( true ) {
-				while( incomingPackets.TryDequeue( out Packet p ) ) {
-					_ = Task.Run(() => HandlePacket( p ));
-					//HandlePacket(p);
+				while( (p = await incomingPackets.ReceiveAsync()) != null ) {
+					_ = Task.Run(() => HandlePacket( p.Value ));
 				}
 
 				_ = Thread.Yield();
 			}
 		}
 
-		private void SendThread() {
+		private async void SendThread() {
 			while( outgoingPackets == null )
 				Thread.Sleep( 10 );
 
 			Thread.CurrentThread.Priority = ThreadPriority.Highest;
-			int c;
+			Packet? p;
+
 			while( true ) {
-				while( outgoingPackets.TryDequeue( out Packet p ) ) {
-					_ = serverSocket.SendTo( p.PacketData.ToArray(), p.PacketData.Length, SocketFlags.None, p.RemoteEndpoint );
+				while( (p = await outgoingPackets.ReceiveAsync()) != null ) {
+					_ = serverSocket.SendTo( p.Value.PacketData.ToArray(), p.Value.PacketData.Length, SocketFlags.None, p.Value.RemoteEndpoint );
 				}
 
 				_ = Thread.Yield();
@@ -159,7 +161,7 @@ namespace Shared.Udp {
 
 		public void Send( Memory<byte> p, IPEndPoint ep ) {
 			var pkt = new Packet(ep, p);
-			outgoingPackets.Enqueue( pkt );
+			_ = outgoingPackets.SendAsync( pkt );
 		}
 	}
 }
