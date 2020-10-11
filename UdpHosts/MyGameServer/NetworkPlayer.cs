@@ -177,7 +177,7 @@ namespace MyGameServer {
 		}
 
 		public void Jump( ) {
-			NetChans[ChannelType.ReliableGss].SendGSSClass( new JumpActioned { JumpTime = AssignedShard.CurrentShortTime }, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
+			//NetChans[ChannelType.UnreliableGss].SendGSSClass( new JumpActioned { JumpTime = AssignedShard.CurrentShortTime }, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
 			CharacterEntity.LastJumpTime = AssignedShard.CurrentShortTime;
 		}
 

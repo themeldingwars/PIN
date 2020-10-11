@@ -13,11 +13,13 @@ namespace Shared.Udp {
 		public int CurrentPosition { get; private set; }
 		public int TotalBytes { get { return PacketData.Length; } }
 		public int BytesRemaining { get { return TotalBytes - CurrentPosition; } }
+		public DateTime Recieved { get; set; }
 
-		public Packet( IPEndPoint ep, ReadOnlyMemory<byte> data ) {
+		public Packet( IPEndPoint ep, ReadOnlyMemory<byte> data, DateTime? recvd = null ) {
 			RemoteEndpoint = ep;
 			PacketData = data;
 			CurrentPosition = 0;
+			Recieved = recvd == null ? DateTime.Now : recvd.Value;
 		}
 
 		/*public T ReadBE<T>() where T : struct {

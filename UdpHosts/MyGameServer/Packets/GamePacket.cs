@@ -13,11 +13,13 @@ namespace MyGameServer.Packets {
 		public int CurrentPosition { get; private set; }
 		public int TotalBytes { get { return PacketData.Length; } }
 		public int BytesRemaining { get { return TotalBytes - CurrentPosition; } }
+		public DateTime Recieved { get; set; }
 
-		public GamePacket( GamePacketHeader hdr, ReadOnlyMemory<byte> data ) {
+		public GamePacket( GamePacketHeader hdr, ReadOnlyMemory<byte> data, DateTime? recvd = null ) {
 			Header = hdr;
 			PacketData = data;
 			CurrentPosition = 0;
+			Recieved = recvd == null ? DateTime.Now : recvd.Value;
 		}
 
 		public T Read<T>() {

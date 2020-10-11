@@ -26,9 +26,9 @@ namespace MyGameServer {
 		IShard AssignedShard { get; }
 
 		void Init( IPlayer player, IShard shard, IPacketSender sender);
-		void HandlePacket( ReadOnlyMemory<byte> packet );
+		void HandlePacket( ReadOnlyMemory<byte> data, Packet packet );
 		void NetworkTick( double deltaTime, ulong currTime );
 		void Send( Memory<byte> p );
-		void SendAck( ChannelType forChannel, ushort forSeqNumber );
+		void SendAck( ChannelType forChannel, ushort forSeqNumber, DateTime? recvd = null );
 	}
 }

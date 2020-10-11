@@ -86,7 +86,7 @@ namespace MyGameServer {
 			} else
 				client = ClientMap[socketID];
 
-			client.HandlePacket( packet.PacketData.Slice( 4 ) );
+			client.HandlePacket( packet.PacketData.Slice( 4 ), packet );
 		}
 	}
 }

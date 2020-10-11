@@ -218,7 +218,7 @@ namespace MyGameServer.Enums {
 				PingMap = 110,
 				PingMapMarker = 111,
 				EncounterPublicInfo = 112,
-				RequestActiveEncounters_Respons = 113,
+				RequestActiveEncounters_Response = 113,
 				ShoppingListInit = 114,
 				SetClientDailyInfo = 115,
 				GlobalCounterUpdate = 116,

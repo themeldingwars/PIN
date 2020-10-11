@@ -57,7 +57,7 @@ namespace MyGameServer {
 				return;
 			}
 
-			Program.Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", ChannelType.ReliableGss, ControllerID, EntityID, MsgID);
+			Program.Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", packet.Header.Channel, ControllerID, EntityID, MsgID);
 			conn.HandlePacket( this, Player, EntityID, MsgID, packet );
 		}
 
@@ -84,7 +84,7 @@ namespace MyGameServer {
 
 				break;
 			case Enums.MatrixPacketType.ClientStatus:
-				//NetChans[ChannelType.Matrix].SendClass(new Packets.Matrix.MatrixStatus() );
+				NetChans[ChannelType.Matrix].SendClass(new Packets.Matrix.MatrixStatus() );
 				break;
 			case Enums.MatrixPacketType.LogInstrumentation:
 				// Ignore
@@ -108,10 +108,12 @@ namespace MyGameServer {
 				break;
 			case Enums.ControlPacketType.MatrixAck:
 				var mAckPkt = packet.Read<Packets.Control.MatrixAck>();
+				Program.Logger.Verbose( "--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianess( mAckPkt.AckFor), ChannelType.Matrix );
 				// TODO: Track reliable packets
 				break;
 			case Enums.ControlPacketType.ReliableGSSAck:
 				var gssAckPkt = packet.Read<Packets.Control.ReliableGSSAck>();
+				Program.Logger.Verbose( "--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianess( gssAckPkt.AckFor), ChannelType.ReliableGss );
 				// TODO: Track reliable packets
 				break;
 			case Enums.ControlPacketType.TimeSyncRequest:
@@ -130,7 +132,7 @@ namespace MyGameServer {
 			}
 		}
 
-		public void HandlePacket( ReadOnlyMemory<byte> packet ) {
+		public void HandlePacket( ReadOnlyMemory<byte> data, Packet packet ) {
 			if( NetClientStatus == Status.Connecting )
 				NetClientStatus = Status.Connected;
 
@@ -139,13 +141,13 @@ namespace MyGameServer {
 
 			var idx = 0;
 			var hdrSize = Unsafe.SizeOf<GamePacketHeader>();
-			while( (idx + 2) < packet.Length ) {
-				var hdr = Utils.ReadStruct<GamePacketHeader>(packet.Slice(idx,2).ToArray().Reverse().ToArray().AsMemory());
+			while( (idx + 2) < data.Length ) {
+				var hdr = Utils.ReadStruct<GamePacketHeader>(data.Slice(idx,2).ToArray().Reverse().ToArray().AsMemory());
 
-				if( hdr.Length == 0 || packet.Length < (hdr.Length + idx) )
+				if( hdr.Length == 0 || data.Length < (hdr.Length + idx) )
 					break;
 
-				var p = new GamePacket(hdr, packet.Slice(idx + hdrSize, hdr.Length - hdrSize));
+				var p = new GamePacket(hdr, data.Slice(idx + hdrSize, hdr.Length - hdrSize), packet.Recieved);
 
 				//Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
 
@@ -174,16 +176,19 @@ namespace MyGameServer {
 		}
 
 
-		public void SendAck( ChannelType forChannel, ushort forSeqNum ) {
-			//Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
+		public void SendAck( ChannelType forChannel, ushort forSeqNum, DateTime? recvd = null ) {
+			if( recvd != null )
+				Program.Logger.Verbose( "<-- {0} Ack for {1} on {2} after {3}ms.", ChannelType.Control, forSeqNum, forChannel, (DateTime.Now - recvd.Value).TotalMilliseconds );
+			else
+				Program.Logger.Verbose( "<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel );
 
-			forSeqNum = Utils.SimpleFixEndianess(forSeqNum);
-			var currSeqNum = Utils.SimpleFixEndianess(NetChans[forChannel].CurrentSequenceNumber);
+			var forNum = Utils.SimpleFixEndianess( forSeqNum );
+			var nextNum = Utils.SimpleFixEndianess(  unchecked((ushort)(forSeqNum+1)) );
 
 			if( forChannel == ChannelType.Matrix )
-				NetChans[ChannelType.Control].Send( new Packets.Control.MatrixAck(currSeqNum, forSeqNum ) );
+				NetChans[ChannelType.Control].SendClass( new Packets.Control.MatrixAck { AckFor = forNum, NextSeqNum = nextNum } );
 			else if( forChannel == ChannelType.ReliableGss )
-				NetChans[ChannelType.Control].Send( new Packets.Control.ReliableGSSAck(currSeqNum, forSeqNum ) );
+				NetChans[ChannelType.Control].SendClass( new Packets.Control.ReliableGSSAck { AckFor = forNum, NextSeqNum = nextNum } );
 		}
 	}
 }

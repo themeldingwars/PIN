@@ -111,7 +111,7 @@ namespace Shared.Udp {
 						// Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
 						var buf = new byte[c];
 						buffer.AsSpan().Slice(0, c).ToArray().CopyTo(buf, 0);
-						_ = incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c)));
+						_ = incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c), DateTime.Now));
 
 						remoteEP = new IPEndPoint(IPAddress.Any, 0);
 					}
@@ -132,7 +132,7 @@ namespace Shared.Udp {
 
 			while( true ) {
 				while( (p = await incomingPackets.ReceiveAsync()) != null ) {
-					_ = Task.Run(() => HandlePacket( p.Value ));
+					HandlePacket( p.Value );
 				}
 
 				_ = Thread.Yield();
