@@ -26,6 +26,7 @@ namespace Shared.Udp {
 		private readonly IPEndPoint listenEndpoint;
 		private BufferBlock<Packet?> incomingPackets = null;
 		private BufferBlock<Packet?> outgoingPackets = null;
+		private CancellationTokenSource source;
 
 		protected long startTime;
 		protected double lastNetTick;
@@ -40,54 +41,69 @@ namespace Shared.Udp {
 
 
 		protected abstract void HandlePacket( Packet p );
-		protected abstract void Startup();
-		protected abstract bool Tick( double deltaTime, ulong currTime );
-		protected abstract void NetworkTick( double deltaTime, ulong currTime );
-		protected abstract void Shutdown();
+		protected abstract void Startup( CancellationToken ct );
+		protected abstract bool Tick( double deltaTime, ulong currTime, CancellationToken ct );
+		protected abstract void Shutdown( CancellationToken ct );
+
+
 
 		protected virtual bool ShouldNetworkTick( double deltaTime, ulong currTime ) => deltaTime >= NetworkTickRate;
+		protected virtual void NetworkTick( double deltaTime, ulong currTime, CancellationToken ct ) {
+			Packet? p;
+			while( incomingPackets.Count > 0 && ( p = incomingPackets.Receive( ct )) != null ) {
+				HandlePacket( p.Value );
+			}
+		}
 
 
 
+		// TODO: Move to seperate thread? add console/rcon handling here?
 		public void Run() {
-			var listenThread = Utils.RunThread(ListenThread);
-			var readThread = Utils.RunThread(ReadThread);
-			var sendThread = Utils.RunThread(SendThread);
+			source = new CancellationTokenSource();
+
+			var ct = source.Token;
+			var listenThread = Utils.RunThread(ListenThread, ct);
+			//var readThread = Utils.RunThread(ReadThread, ct);
+			var sendThread = Utils.RunThread(SendThread, ct);
+
+			Startup(ct);
 
 			startTime = (long)DateTime.Now.UnixTimestamp();
 			lastNetTick = 0;
 
 			var sw = new Stopwatch();
 			var lastTime = 0.0;
-			var currTime = 0uL;
-			var delta = 0.0;
-
-			Startup();
+			ulong currTime;
+			double delta;
 
 			sw.Start();
 
 			while( true ) {
-				var ct = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
+				var currt = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
 				currTime = unchecked((ulong)sw.Elapsed.TotalMilliseconds);
 				delta = currTime - lastTime;
 
-				if( !Tick( delta, ct ) )
-					break;
-
-				if( ShouldNetworkTick( currTime - lastNetTick, ct ) ) {
-					NetworkTick( currTime - lastNetTick, ct );
+				if( ShouldNetworkTick( currTime - lastNetTick, currt ) ) {
+					NetworkTick( currTime - lastNetTick, currt, ct );
 					lastNetTick = currTime;
 				}
+
+				if( !Tick( delta, currt, ct ) )
+					break;
 
 				lastTime = currTime;
 				_ = Thread.Yield();
 			}
 
 			sw.Stop();
-			Shutdown();
+
+			if( !source.IsCancellationRequested)
+				source.Cancel();
+
+			Shutdown(ct);
 		}
 
-		private void ListenThread() {
+		private async void ListenThread( CancellationToken ct ) {
 			serverSocket.Blocking = true;
 			serverSocket.DontFragment = true;
 			serverSocket.ReceiveBufferSize = MTU * 100;
@@ -106,14 +122,18 @@ namespace Shared.Udp {
 			Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
 			while( true ) {
+				if( ct.IsCancellationRequested )
+					break;
+				
 				try {
+					// Sockets don't support async yet :( Blocking here bc the win api will yiald and wait better on the native side than we can here
 					if( (c = serverSocket.ReceiveFrom(buffer, SocketFlags.None, ref remoteEP)) > 0 ) {
 						// Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
 						var buf = new byte[c];
 						buffer.AsSpan().Slice(0, c).ToArray().CopyTo(buf, 0);
-						_ = incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c), DateTime.Now));
+						_ = await incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c), DateTime.Now), ct);
 
-						remoteEP = new IPEndPoint(IPAddress.Any, 0);
+						//remoteEP = new IPEndPoint(IPAddress.Any, 0);
 					}
 				} catch( Exception ex ) {
 					Logger.Error(ex, "Error {0}", "listenThread");
@@ -123,7 +143,8 @@ namespace Shared.Udp {
 			}
 		}
 
-		private async void ReadThread() {
+		// FIXME: Move this to NetworkTick
+		private async void ReadThread( CancellationToken ct ) {
 			while( incomingPackets == null )
 				Thread.Sleep( 10 );
 
@@ -131,7 +152,10 @@ namespace Shared.Udp {
 			Packet? p;
 
 			while( true ) {
-				while( (p = await incomingPackets.ReceiveAsync()) != null ) {
+				if( ct.IsCancellationRequested )
+					break;
+
+				while( (p = await incomingPackets.ReceiveAsync(ct)) != null ) {
 					HandlePacket( p.Value );
 				}
 
@@ -139,7 +163,7 @@ namespace Shared.Udp {
 			}
 		}
 
-		private async void SendThread() {
+		private async void SendThread( CancellationToken ct ) {
 			while( outgoingPackets == null )
 				Thread.Sleep( 10 );
 
@@ -147,7 +171,10 @@ namespace Shared.Udp {
 			Packet? p;
 
 			while( true ) {
-				while( (p = await outgoingPackets.ReceiveAsync()) != null ) {
+				if( ct.IsCancellationRequested )
+					break;
+
+				while( (p = await outgoingPackets.ReceiveAsync(ct)) != null ) {
 					_ = serverSocket.SendTo( p.Value.PacketData.ToArray(), p.Value.PacketData.Length, SocketFlags.None, p.Value.RemoteEndpoint );
 				}
 
@@ -155,13 +182,6 @@ namespace Shared.Udp {
 			}
 		}
 
-		public void Send<T>( T pkt, IPEndPoint ep ) where T : struct {
-			Send( Utils.WriteStruct( pkt ), ep );
-		}
-
-		public void Send( Memory<byte> p, IPEndPoint ep ) {
-			var pkt = new Packet(ep, p);
-			_ = outgoingPackets.SendAsync( pkt );
-		}
+		public async Task<bool> Send( Memory<byte> p, IPEndPoint ep ) => await outgoingPackets.SendAsync( new Packet( ep, p ) );
 	}
 }

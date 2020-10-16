@@ -34,7 +34,7 @@ namespace MyGameServer {
 			ServerID = serverID;
 		}
 
-		protected override void Startup() {
+		protected override void Startup( CancellationToken ct ) {
 			Test.DataUtils.Init();
 			Controllers.Factory.Init();
 		}
@@ -53,7 +53,7 @@ namespace MyGameServer {
 			return Shards.AddOrUpdate( id, new Shard( GameTickRate, id, this ), ( id, old ) => old );
 		}
 
-		protected override bool Tick( double deltaTime, ulong currTime ) {
+		protected override bool Tick( double deltaTime, ulong currTime, CancellationToken ct ) {
 			foreach( var s in Shards.Values ) {
 				if( !s.Tick( deltaTime, currTime ) || s.CurrentPlayers < MinPlayersPerShard ) {
 					// TODO: Shutdown Shard
@@ -63,12 +63,12 @@ namespace MyGameServer {
 			return true;
 		}
 
-		protected override void NetworkTick( double deltaTime, ulong currTime ) {
+		protected override void NetworkTick( double deltaTime, ulong currTime, CancellationToken ct ) {
 			foreach( var s in Shards.Values ) {
 				s.NetworkTick( deltaTime, currTime );
 			}
 		}
-		protected override void Shutdown() {
+		protected override void Shutdown( CancellationToken ct ) {
 		}
 
 		protected override void HandlePacket( Packet packet ) {

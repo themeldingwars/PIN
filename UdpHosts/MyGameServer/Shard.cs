@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 using MyGameServer.Data;
 using MyGameServer.Entities;
@@ -64,9 +65,7 @@ namespace MyGameServer {
 			return true;
 		}
 
-		public void Send( Memory<byte> p, IPEndPoint ep ) {
-			Sender.Send( p, ep );
-		}
+		public async Task<bool> Send( Memory<byte> p, IPEndPoint ep ) => await Sender.Send( p, ep );
 
 		public ushort AssignNewRefId( IEntity entity, Enums.GSS.Controllers controller ) {
 			while( EntityRefMap.ContainsKey(unchecked(++LastEntityRefId)) || LastEntityRefId == 0 || LastEntityRefId == 0xffff )

@@ -19,6 +19,13 @@ namespace Shared.Udp {
 			return t;
 		}
 
+		public static Thread RunThread( Action<CancellationToken> action, CancellationToken ct ) {
+			var t = new Thread((o) => action((CancellationToken)o));
+			t.Start(ct);
+
+			return t;
+		}
+
 		public unsafe static void WriteFixed( byte* dest, byte[] src ) {
 			for( var i = 0; i < src.Length; i++ )
 				*(dest + i) = src[i];

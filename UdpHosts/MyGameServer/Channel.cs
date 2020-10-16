@@ -7,6 +7,7 @@ using MyGameServer.Packets;
 using System.Linq;
 using System.Collections.Concurrent;
 using MyGameServer.Packets.Control;
+using System.Threading.Tasks;
 
 namespace MyGameServer {
 	public enum ChannelType : byte {
@@ -83,22 +84,22 @@ namespace MyGameServer {
 					int x = packet.PacketData.Length >> 3;
 					var data = packet.PacketData.ToArray();
 
-					/*if( x > 0 ) {
-						Span<ulong> uSpan = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, ulong>(data);
+                    if( x > 0 ) {
+                        Span<ulong> uSpan = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, ulong>(data);
 
-						for( int i = 0; i < x; i++ )
-							uSpan[i] ^= xorULong[packet.Header.ResendCount];
+                        for( int i = 0; i < x; i++ )
+                            uSpan[i] ^= xorULong[packet.Header.ResendCount];
 
-						data = System.Runtime.InteropServices.MemoryMarshal.Cast<ulong, byte>(uSpan).ToArray();
-					}
+                        data = System.Runtime.InteropServices.MemoryMarshal.Cast<ulong, byte>( uSpan ).ToArray();
+                    }
 
-					for( int i = x * 8; i < packet.PacketData.Length; i++ )
-						data[i] ^= xorByte[packet.Header.ResendCount];*/
+                    for( int i = x * 8; i < packet.PacketData.Length; i++ )
+                        data[i] ^= xorByte[packet.Header.ResendCount];
 
-					for( int i = 0; i < data.Length; i++ )
-						data[i] ^= xorByte[packet.Header.ResendCount];
+                    //for( int i = 0; i < data.Length; i++ )
+                    //	data[i] ^= xorByte[packet.Header.ResendCount];
 
-					packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>( data ));
+                    packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>( data ));
 					Program.Logger.Fatal( "---> Resent packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes );
 				}
 
@@ -119,7 +120,7 @@ namespace MyGameServer {
             }
 		}
 
-		public void Send<T>( T pkt ) where T : struct {
+		public async Task<bool> Send<T>( T pkt ) where T : struct {
 			Memory<byte> p;
 			if( pkt is IWritable write ) {
 				p = write.Write();
@@ -146,10 +147,10 @@ namespace MyGameServer {
 			} else
 				throw new Exception();
 
-			Send(p);
+			return await Send(p);
 		}
 
-		public void SendClass<T>( T pkt, Type msgEnumType = null ) where T : class {
+		public async Task<bool> SendClass<T>( T pkt, Type msgEnumType = null ) where T : class {
 			Memory<byte> p;
 			if( pkt is IWritable write )
 				p = write.Write();
@@ -179,10 +180,10 @@ namespace MyGameServer {
             else
                 Program.Logger.Verbose( "<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse( msgEnumType, Enum.GetName( msgEnumType, msgID ) ), msgID );
 
-            Send( p );
+			return await Send( p );
 		}
 
-		public void SendGSS<T>( T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null ) where T : struct {
+		public async Task<bool> SendGSS<T>( T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null ) where T : struct {
 			Memory<byte> p;
 			if( pkt is IWritable write ) {
 				p = write.Write();
@@ -217,10 +218,10 @@ namespace MyGameServer {
             } else
 				throw new Exception();
 
-			Send(p);
+			return await Send( p);
 		}
 
-		public void SendGSSClass<T>( T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null ) where T : class {
+		public async Task<bool> SendGSSClass<T>( T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null ) where T : class {
 			Memory<byte> p;
 			if( pkt is IWritable write ) {
 				p = write.Write();
@@ -258,14 +259,14 @@ namespace MyGameServer {
             } else
 				throw new Exception();
 
-			Send(p);
+			return await Send( p);
 		}
 
 		private const int ProtocolHeaderSize = 80; // UDP + IP
 		private const int GameSocketHeaderSize = 4;
 		private const int TotalHeaderSize = ProtocolHeaderSize + GameSocketHeaderSize;
 		private const int MaxPacketSize = PacketServer.MTU - TotalHeaderSize;
-		public void Send( Memory<byte> p ) {
+		public async Task<bool> Send( Memory<byte> p ) {
 			var hdrLen = 2;
 			if( IsSequenced )
 				hdrLen += 2;
@@ -296,6 +297,8 @@ namespace MyGameServer {
 
 				p = p.Slice(len - hdrLen);
 			}
+
+			return true;
 		}
 	}
 }

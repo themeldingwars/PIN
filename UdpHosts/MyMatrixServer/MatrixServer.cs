@@ -19,13 +19,12 @@ namespace MyMatrixServer {
 		protected override void NetworkTick( double deltaTime, ulong currTime ) { }
 		protected override void Shutdown() { }
 
-		protected unsafe override void HandlePacket(Packet packet) {
+		protected override void HandlePacket(Packet packet) {
 			ReadOnlyMemory<byte> mem = packet.PacketData;
 			var SocketID = Utils.ReadStruct<uint>(mem);
 			if( SocketID != 0 )
 				return;
 
-			//mem = mem.Slice(4);
 			Program.Logger.Verbose("[MATRIX] "+packet.RemoteEndpoint.ToString()+" sent "+packet.PacketData.Length.ToString()+" bytes.");
 
 			var matrixPkt = Utils.ReadStruct<MatrixPacketBase>(mem);
@@ -36,12 +35,12 @@ namespace MyMatrixServer {
 				Program.Logger.Verbose( "[POKE]" );
 				var socketID = GenerateSocketID();
 				Program.Logger.Information("Assigning SocketID [" + socketID.ToString()+"] to ["+packet.RemoteEndpoint.ToString()+"]");
-				Send( new MatrixPacketHehe(socketID), packet.RemoteEndpoint );
+				_ = Send( Utils.WriteStruct(new MatrixPacketHehe(socketID)), packet.RemoteEndpoint );
 				break;
 			case "KISS":    // KISS
 				var kiss = Utils.ReadStruct<MatrixPacketKiss>(mem);
 				Program.Logger.Verbose( "[KISS]" );
-				Send( new MatrixPacketHugg( 1, 25001 ), packet.RemoteEndpoint );
+				_ = Send( Utils.WriteStruct( new MatrixPacketHugg( 1, 25001 )), packet.RemoteEndpoint );
 				break;
 			case "ABRT":    // ABRT
 				var abrt = Utils.ReadStruct<MatrixPacketAbrt>(mem);
