@@ -8,6 +8,7 @@ using System.Linq;
 using System.Collections.Concurrent;
 using MyGameServer.Packets.Control;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace MyGameServer {
 	public enum ChannelType : byte {
@@ -64,7 +65,7 @@ namespace MyGameServer {
 			incomingPackets.Enqueue(packet);
 		}
 
-		public void Process() {
+		public void Process(CancellationToken ct ) {
 			while( outgoingPackets.TryDequeue(out Memory<byte> qi) ) {
 				client.Send(qi);
 				LastActivity = DateTime.Now;

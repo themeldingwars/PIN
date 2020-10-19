@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 
 using MyGameServer.Data;
 using MyGameServer.Packets.GSS;
@@ -181,7 +182,7 @@ namespace MyGameServer {
 			CharacterEntity.LastJumpTime = AssignedShard.CurrentShortTime;
 		}
 
-		public void Tick( double deltaTime, ulong currTime ) {
+		public void Tick( double deltaTime, ulong currTime, CancellationToken ct ) {
 			// TODO: Implement FSM here to move player thru log in process to connecting to a shard to playing
 			if( Status == IPlayer.PlayerStatus.Connected ) {
 				Status = IPlayer.PlayerStatus.LoggingIn;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 using MyGameServer.Data;
 
@@ -34,6 +35,6 @@ namespace MyGameServer {
 		void Respawn( );
 		void Jump( );
 
-		void Tick( double deltaTime, ulong currTime );
+		void Tick( double deltaTime, ulong currTime, CancellationToken ct );
 	}
 }

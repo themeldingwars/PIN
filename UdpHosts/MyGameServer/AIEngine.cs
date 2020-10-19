@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace MyGameServer {
 	public class AIEngine {
@@ -8,7 +9,7 @@ namespace MyGameServer {
 
 		}
 
-		public void Tick( double deltaTime, ulong currTime ) {
+		public void Tick( double deltaTime, ulong currTime, CancellationToken ct ) {
 
 		}
 	}

@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Linq;
 using MyGameServer.Data;
 using System.Diagnostics;
+using System.Threading;
 
 namespace MyGameServer {
 	public class NetworkClient : INetworkClient {
@@ -159,9 +160,9 @@ namespace MyGameServer {
 			NetLastActive = DateTime.Now;
 		}
 
-		public virtual void NetworkTick( double deltaTime, ulong currTime ) {
+		public virtual void NetworkTick( double deltaTime, ulong currTime, CancellationToken ct ) {
 			foreach( var c in NetChans.Values ) {
-				c.Process();
+				c.Process(ct);
 			}
 		}
 

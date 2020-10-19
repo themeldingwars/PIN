@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace MyGameServer {
 	public class PhysicsEngine {
@@ -14,10 +15,10 @@ namespace MyGameServer {
 			DT = dt;
 		}
 
-		public void Tick( double deltaTime, ulong currTime ) {
+		public void Tick( double deltaTime, ulong currTime, CancellationToken ct ) {
 			Accumulator += deltaTime;
 
-			while( Accumulator >= DT ) {
+			while( !ct.IsCancellationRequested && Accumulator >= DT ) {
 				Integrate( /*state*/null, SimulatedTime, DT );
 				Accumulator -= DT;
 				SimulatedTime += DT;

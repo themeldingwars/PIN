@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 using MyGameServer.Data;
 
@@ -18,8 +19,10 @@ namespace MyGameServer {
 		ushort CurrentShortTime { get { return unchecked((ushort)CurrentTime); } }
 		IDictionary<ushort, Tuple<Entities.IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 
-		bool Tick( double deltaTime, ulong currTime );
-		void NetworkTick( double deltaTime, ulong currTime );
+		void Run( CancellationToken ct );
+		void Stop();
+		bool Tick( double deltaTime, ulong currTime, CancellationToken ct );
+		void NetworkTick( double deltaTime, ulong currTime, CancellationToken ct );
 		bool MigrateOut( INetworkPlayer player );
 		bool MigrateIn( INetworkPlayer player );
 		ushort AssignNewRefId( Entities.IEntity entity, Enums.GSS.Controllers controller);

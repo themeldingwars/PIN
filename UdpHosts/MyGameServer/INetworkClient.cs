@@ -6,6 +6,7 @@ using System.Text;
 using Shared.Udp;
 using MyGameServer.Packets;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace MyGameServer {
 	public enum Status {
@@ -27,7 +28,7 @@ namespace MyGameServer {
 
 		void Init( IPlayer player, IShard shard, IPacketSender sender);
 		void HandlePacket( ReadOnlyMemory<byte> data, Packet packet );
-		void NetworkTick( double deltaTime, ulong currTime );
+		void NetworkTick( double deltaTime, ulong currTime, CancellationToken ct );
 		void Send( Memory<byte> p );
 		void SendAck( ChannelType forChannel, ushort forSeqNumber, DateTime? recvd = null );
 	}

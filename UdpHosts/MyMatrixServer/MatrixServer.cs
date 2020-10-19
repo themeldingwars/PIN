@@ -8,18 +8,14 @@ using Shared.Udp;
 using MyMatrixServer.Packets;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace MyMatrixServer {
 	class MatrixServer : PacketServer {
 		public MatrixServer( ushort port ) : base(port) {
 		}
 
-		protected override void Startup() { }
-		protected override bool Tick( double deltaTime, ulong currTime ) { return true; }
-		protected override void NetworkTick( double deltaTime, ulong currTime ) { }
-		protected override void Shutdown() { }
-
-		protected override void HandlePacket(Packet packet) {
+		protected override void HandlePacket(Packet packet, CancellationToken ct ) {
 			ReadOnlyMemory<byte> mem = packet.PacketData;
 			var SocketID = Utils.ReadStruct<uint>(mem);
 			if( SocketID != 0 )
