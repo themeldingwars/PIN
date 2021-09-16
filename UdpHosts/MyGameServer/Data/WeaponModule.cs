@@ -1,18 +1,21 @@
-﻿namespace MyGameServer.Data {
-	public class WeaponModule {
-		public uint ID { get; set; }
-		public byte[] UnkBytes { get; protected set; }
+﻿using MyGameServer.Packets.GSS.Character.BaseController;
 
-		public WeaponModule(uint id) {
-			ID = id;
-			UnkBytes = new byte[] { 0xff, 0x00, 0x00 };
-		}
+namespace MyGameServer.Data
+{
+    public class WeaponModule
+    {
+        public WeaponModule(uint id)
+        {
+            ID = id;
+            UnkBytes = new byte[] { 0xff, 0x00, 0x00 };
+        }
 
-		public static implicit operator Packets.GSS.Character.BaseController.KeyFrame.WeaponModule( WeaponModule o ) {
-			return new Packets.GSS.Character.BaseController.KeyFrame.WeaponModule {
-				ID = o.ID,
-				Unk = o.UnkBytes
-			};
-		}
-	}
+        public uint ID { get; set; }
+        public byte[] UnkBytes { get; protected set; }
+
+        public static implicit operator KeyFrame.WeaponModule(WeaponModule o)
+        {
+            return new KeyFrame.WeaponModule { ID = o.ID, Unk = o.UnkBytes };
+        }
+    }
 }

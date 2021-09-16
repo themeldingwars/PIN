@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
+﻿using System.Data;
 
-namespace Core.Data {
-	public interface IRowView {
-		void Load( IDataRecord row );
-	}
+namespace Core.Data
+{
+    public interface IRowView
+    {
+        void Load(IDataRecord row);
+    }
 }

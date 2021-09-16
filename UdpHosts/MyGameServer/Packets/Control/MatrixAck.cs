@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-
+﻿using MyGameServer.Enums;
 using Shared.Udp;
 
-namespace MyGameServer.Packets.Control {
-	[ControlMessage(Enums.ControlPacketType.MatrixAck)]
-	public class MatrixAck {
-		[Field]
-		public ushort NextSeqNum;
-		[Field]
-		public ushort AckFor;
-	}
+namespace MyGameServer.Packets.Control
+{
+    [ControlMessage(ControlPacketType.MatrixAck)]
+    public class MatrixAck
+    {
+        [Field] public ushort AckFor;
+
+        [Field] public ushort NextSeqNum;
+    }
 }

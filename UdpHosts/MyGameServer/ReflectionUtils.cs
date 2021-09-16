@@ -1,22 +1,25 @@
-﻿using System;
+﻿using MyGameServer.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using MyGameServer.Extensions;
+namespace MyGameServer
+{
+    public static class ReflectionUtils
+    {
+        public static IEnumerable<Type> FindTypesByAttribute<T>() where T : Attribute
+        {
+            return from t in Assembly.GetExecutingAssembly().GetTypes()
+                   where t.GetAttribute<T>() != null
+                   select t;
+        }
 
-namespace MyGameServer {
-	public static class ReflectionUtils {
-		public static IEnumerable<Type> FindTypesByAttribute<T>() where T : Attribute {
-			return (from t in Assembly.GetExecutingAssembly().GetTypes()
-					where t.GetAttribute<T>() != null
-					select t);
-		}
-
-		public static IEnumerable<MethodInfo> FindMethodsByAttribute<T>(object obj) where T : Attribute {
-			return (from m in obj.GetType().GetMethods()
-					where m.GetAttribute<T>() != null
-					select m);
-		}
-	}
+        public static IEnumerable<MethodInfo> FindMethodsByAttribute<T>(object obj) where T : Attribute
+        {
+            return from m in obj.GetType().GetMethods()
+                   where m.GetAttribute<T>() != null
+                   select m;
+        }
+    }
 }

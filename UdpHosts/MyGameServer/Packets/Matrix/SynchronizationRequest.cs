@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-
+﻿using MyGameServer.Enums;
 using Shared.Udp;
+using System.Collections.Generic;
 
-namespace MyGameServer.Packets.Matrix {
-	[MatrixMessage(Enums.MatrixPacketType.SynchronizationRequest)]
-    public class SynchronizationRequest {
-		[Field]
-		[Length(1)]
-		public IList<byte> Unk;
-	}
+namespace MyGameServer.Packets.Matrix
+{
+    [MatrixMessage(MatrixPacketType.SynchronizationRequest)]
+    public class SynchronizationRequest
+    {
+        [Field] [Length(1)] public IList<byte> Unk;
+    }
 }

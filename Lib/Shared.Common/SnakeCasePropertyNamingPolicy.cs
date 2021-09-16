@@ -1,8 +1,9 @@
 using System.Linq;
 using System.Text.Json;
 
-namespace Shared.Common {
-	public class SnakeCasePropertyNamingPolicy : JsonNamingPolicy
+namespace Shared.Common
+{
+    public class SnakeCasePropertyNamingPolicy : JsonNamingPolicy
     {
         public override string ConvertName(string name)
         {

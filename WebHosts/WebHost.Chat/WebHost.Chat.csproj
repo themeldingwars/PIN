@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.8" />
-    <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.8"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="3.4.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />
-    <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj"/>
+        <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj"/>
+    </ItemGroup>
 
 </Project>

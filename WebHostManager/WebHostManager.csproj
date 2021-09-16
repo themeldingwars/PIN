@@ -1,46 +1,46 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<TargetFramework>net5.0</TargetFramework>
-	</PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
 
-	<ItemGroup>
-	  <None Remove="cert.pfx" />
-	  <None Remove="config\appsettings.Development.json" />
-	</ItemGroup>
+    <ItemGroup>
+        <None Remove="cert.pfx"/>
+        <None Remove="config\appsettings.Development.json"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<Content Include="config\appsettings.Development.json">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="config\appsettings.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-	</ItemGroup>
+    <ItemGroup>
+        <Content Include="config\appsettings.Development.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="config\appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
-		<PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.8" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.8" />
-		<PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
-		<PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
-		<PackageReference Include="Serilog.Sinks.Debug" Version="1.0.1" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7"/>
+        <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2"/>
+        <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.8"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.8"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="3.4.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1"/>
+        <PackageReference Include="Serilog.Sinks.Debug" Version="1.0.1"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Lib\Shared.Common\Shared.Common.csproj" />
-		<ProjectReference Include="..\Lib\Shared.Web\Shared.Web.csproj" />
-		<ProjectReference Include="..\WebHosts\WebHost.Chat\WebHost.Chat.csproj" />
-		<ProjectReference Include="..\WebHosts\WebHost.ClientApi\WebHost.ClientApi.csproj" />
-		<ProjectReference Include="..\WebHosts\WebHost.InGameApi\WebHost.InGameApi.csproj" />
-		<ProjectReference Include="..\WebHosts\WebHost.Market\WebHost.Market.csproj" />
-		<ProjectReference Include="..\WebHosts\WebHost.OperatorApi\WebHost.OperatorApi.csproj" />
-		<ProjectReference Include="..\WebHosts\WebHost.Replay\WebHost.Replay.csproj" />
-		<ProjectReference Include="..\WebHosts\WebHost.Store\WebHost.Store.csproj" />
-		<ProjectReference Include="..\WebHosts\WebHost.WebAsset\WebHost.WebAsset.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Lib\Shared.Common\Shared.Common.csproj"/>
+        <ProjectReference Include="..\Lib\Shared.Web\Shared.Web.csproj"/>
+        <ProjectReference Include="..\WebHosts\WebHost.Chat\WebHost.Chat.csproj"/>
+        <ProjectReference Include="..\WebHosts\WebHost.ClientApi\WebHost.ClientApi.csproj"/>
+        <ProjectReference Include="..\WebHosts\WebHost.InGameApi\WebHost.InGameApi.csproj"/>
+        <ProjectReference Include="..\WebHosts\WebHost.Market\WebHost.Market.csproj"/>
+        <ProjectReference Include="..\WebHosts\WebHost.OperatorApi\WebHost.OperatorApi.csproj"/>
+        <ProjectReference Include="..\WebHosts\WebHost.Replay\WebHost.Replay.csproj"/>
+        <ProjectReference Include="..\WebHosts\WebHost.Store\WebHost.Store.csproj"/>
+        <ProjectReference Include="..\WebHosts\WebHost.WebAsset\WebHost.WebAsset.csproj"/>
+    </ItemGroup>
 
 </Project>

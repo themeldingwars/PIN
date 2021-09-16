@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MyGameServer.Enums;
+using System;
 
-namespace MyGameServer.Packets {
-	public class MatrixMessageAttribute : Attribute {
-		public Enums.MatrixPacketType MsgID { get; protected set; }
+namespace MyGameServer.Packets
+{
+    public class MatrixMessageAttribute : Attribute
+    {
+        public MatrixMessageAttribute(MatrixPacketType mID)
+        {
+            MsgID = mID;
+        }
 
-		public MatrixMessageAttribute( Enums.MatrixPacketType mID ) {
-			MsgID = mID;
-		}
-	}
+        public MatrixPacketType MsgID { get; protected set; }
+    }
 }

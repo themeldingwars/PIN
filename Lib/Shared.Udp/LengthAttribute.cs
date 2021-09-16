@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Shared.Udp {
-	public sealed class LengthAttribute : Attribute {
-		public int Length { get; private set; }
+namespace Shared.Udp
+{
+    public sealed class LengthAttribute : Attribute
+    {
+        public LengthAttribute(int len)
+        {
+            Length = len;
+        }
 
-		public LengthAttribute(int len) {
-			Length = len;
-		}
-	}
+        public int Length { get; }
+    }
 }

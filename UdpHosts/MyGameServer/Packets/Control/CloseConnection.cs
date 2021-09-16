@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using MyGameServer.Enums;
 
-namespace MyGameServer.Packets.Control {
-	[ControlMessage(Enums.ControlPacketType.CloseConnection)]
-	public class CloseConnection {
-		public uint Unk1;
-	}
+namespace MyGameServer.Packets.Control
+{
+    [ControlMessage(ControlPacketType.CloseConnection)]
+    public class CloseConnection
+    {
+        public uint Unk1;
+    }
 }

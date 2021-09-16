@@ -1,35 +1,47 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Data;
-using System.Reflection;
 
-namespace Core.Data {
-	public static class MagicManager {
-		private static ConcurrentDictionary<Type, Func<IDataRecord, IRowView>> converters;
-		public static T GetActiveRecord<T>( IDataRecord rec ) where T : IRowView {
-			if( converters == null )
-				converters = new ConcurrentDictionary<Type, Func<IDataRecord, IRowView>>();
+namespace Core.Data
+{
+    public static class MagicManager
+    {
+        private static ConcurrentDictionary<Type, Func<IDataRecord, IRowView>> converters;
 
-			var t = typeof(T);
-			Func<IDataRecord, IRowView> c;
-			if( !converters.ContainsKey( t ) )
-				c = converters.AddOrUpdate( t, BuildConverter<T>(), ( t2, nc ) => nc );
-			else
-				c = converters[t];
+        public static T GetActiveRecord<T>(IDataRecord rec) where T : IRowView
+        {
+            if (converters == null)
+            {
+                converters = new ConcurrentDictionary<Type, Func<IDataRecord, IRowView>>();
+            }
 
-			return (T)c( rec );
-		}
+            var t = typeof(T);
+            Func<IDataRecord, IRowView> c;
+            if (!converters.ContainsKey(t))
+            {
+                c = converters.AddOrUpdate(t, BuildConverter<T>(), (t2, nc) => nc);
+            }
+            else
+            {
+                c = converters[t];
+            }
 
-		private static Func<IDataRecord, IRowView> BuildConverter<T>() {
-			return BuildConverter( typeof( T ) );
-		}
+            return (T)c(rec);
+        }
 
-		private static Func<IDataRecord, IRowView> BuildConverter( Type t ) {
-			return ( IDataRecord dr ) => {
-				var ret = Activator.CreateInstance(t) as IRowView;
-				ret.Load( dr );
-				return ret;
-			};
-		}
-	}
+        private static Func<IDataRecord, IRowView> BuildConverter<T>()
+        {
+            return BuildConverter(typeof(T));
+        }
+
+        private static Func<IDataRecord, IRowView> BuildConverter(Type t)
+        {
+            return dr =>
+                   {
+                       var ret = Activator.CreateInstance(t) as IRowView;
+                       ret.Load(dr);
+                       return ret;
+                   };
+        }
+    }
 }

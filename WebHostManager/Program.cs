@@ -1,58 +1,62 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Serilog;
+using Shared.Web;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WebHost.Chat;
 
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+namespace WebHostManager
+{
+    internal static class Program
+    {
+        private static readonly IEnumerable<Type> HostTypes = new[]
+                                                              {
+                                                                  typeof(WebServer), typeof(WebHost.ClientApi.WebServer), typeof(WebHost.OperatorApi.WebServer), typeof(WebHost.InGameApi.WebServer), typeof(WebHost.Store.WebServer),
+                                                                  typeof(WebHost.Replay.WebServer), typeof(WebHost.Market.WebServer), typeof(WebHost.WebAsset.WebServer)
+                                                              };
 
-using Serilog;
+        private static IConfiguration Configuration { get; } = new ConfigurationBuilder()
+                                                               .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "config"))
+                                                               .AddJsonFile("appsettings.json", false, true)
+                                                               .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", true)
+                                                               .AddEnvironmentVariables()
+                                                               .Build();
 
-namespace WebHostManager {
-	internal static class Program {
-		private static IConfiguration Configuration { get; } = new ConfigurationBuilder()
-		                                                       .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(),"config"))
-		                                                       .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-		                                                       .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
-		                                                       .AddEnvironmentVariables()
-		                                                       .Build();
+        private static void Main(string[] args)
+        {
+            Log.Logger = new LoggerConfiguration()
+                         .ReadFrom.Configuration(Configuration)
+                         .CreateLogger();
 
-		private static readonly IEnumerable<Type> HostTypes = new[] {
-			                                                            typeof(WebHost.Chat.WebServer),
-			                                                            typeof(WebHost.ClientApi.WebServer),
-			                                                            typeof(WebHost.OperatorApi.WebServer),
-			                                                            typeof(WebHost.InGameApi.WebServer),
-			                                                            typeof(WebHost.Store.WebServer),
-			                                                            typeof(WebHost.Replay.WebServer),
-			                                                            typeof(WebHost.Market.WebServer),
-			                                                            typeof(WebHost.WebAsset.WebServer),
-		                                                            };
+            try
+            {
+                Log.Information("Starting Web Hosts");
+                var ct = new CancellationToken();
 
-		private static void Main( string[] args ) {
-			Log.Logger = new LoggerConfiguration()
-			   .ReadFrom.Configuration(Configuration)
-			   .CreateLogger();
+                var hostsTasks = StartHosts(ct);
 
-			try {
-				Log.Information("Starting Web Hosts");
-				var ct = new CancellationToken();
+                Log.Information("All Web Hosts started, waiting for all to stop or break/kill signal. (Ctrl-c on Windows)");
 
-				var hostsTasks = StartHosts(ct);
+                Task.WaitAll(hostsTasks.ToArray(), ct);
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        }
 
-				Log.Information("All Web Hosts started, waiting for all to stop or break/kill signal. (Ctrl-c on Windows)");
-
-				Task.WaitAll(hostsTasks.ToArray(), ct);
-			} catch( Exception ex ) {
-				Log.Fatal(ex, "Host terminated unexpectedly");
-			} finally {
-				Log.CloseAndFlush();
-			}
-		}
-
-		private static IEnumerable<Task> StartHosts( CancellationToken ct ) {
-			return HostTypes.Select(t => Shared.Web.BaseWebServer.Build(t, Configuration).RunAsync(ct)).ToList();
-		}
-	}
+        private static IEnumerable<Task> StartHosts(CancellationToken ct)
+        {
+            return HostTypes.Select(t => BaseWebServer.Build(t, Configuration).RunAsync(ct)).ToList();
+        }
+    }
 }

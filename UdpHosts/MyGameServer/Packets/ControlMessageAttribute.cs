@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MyGameServer.Enums;
+using System;
 
-namespace MyGameServer.Packets {
-	public class ControlMessageAttribute : Attribute {
-		public Enums.ControlPacketType MsgID { get; protected set; }
+namespace MyGameServer.Packets
+{
+    public class ControlMessageAttribute : Attribute
+    {
+        public ControlMessageAttribute(ControlPacketType mID)
+        {
+            MsgID = mID;
+        }
 
-		public ControlMessageAttribute( Enums.ControlPacketType mID ) {
-			MsgID = mID;
-		}
-	}
+        public ControlPacketType MsgID { get; protected set; }
+    }
 }

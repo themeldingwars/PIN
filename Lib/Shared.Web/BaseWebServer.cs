@@ -1,79 +1,100 @@
-﻿using System;
-
-using Microsoft.AspNetCore;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-
-using Serilog;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+using Serilog;
+using Shared.Common;
+using Shared.Web.Config;
+using System;
+using System.Security.Authentication;
+using WebHost = Microsoft.AspNetCore.WebHost;
 
-namespace Shared.Web {
-	public abstract class BaseWebServer {
-		public static IWebHost Build( Type serverType, IConfiguration configuration ) {
-			try
-			{
-				if (serverType.FullName == null)
-					throw new ArgumentNullException( nameof(serverType.FullName) );
+namespace Shared.Web
+{
+    public abstract class BaseWebServer
+    {
+        public BaseWebServer(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
 
-				Log.Information( $"Starting web host {serverType.FullName}" );
-				return WebHost.CreateDefaultBuilder()
-					   .UseConfiguration( configuration )
-					   .UseSerilog()
-					   .UseKestrel((builder, serverOpts) => {
-						   serverOpts.ConfigureHttpsDefaults( opts => {
-							   opts.SslProtocols = System.Security.Authentication.SslProtocols.Tls |	// Required by FF itself *sigh*, completely insecure
-													System.Security.Authentication.SslProtocols.Tls12 |
-													System.Security.Authentication.SslProtocols.Tls13;
-						   } );
-					   } )
-					   .UseStartup( serverType )
-					   .UseUrls( configuration.GetSection( "Firefall" ).Get<Config.Firefall>().WebHosts[serverType.FullName.Replace( ".WebServer", "" )].Urls.Split( ";" ) )
-					   .Build();
-			} catch( Exception ex ) {
-				Log.Fatal( ex, "Host terminated unexpectedly" );
+        public IConfiguration Configuration { get; }
 
-				return null;
-			}
-		}
+        public static IWebHost Build(Type serverType, IConfiguration configuration)
+        {
+            try
+            {
+                if (serverType.FullName == null)
+                {
+                    throw new ArgumentNullException(nameof(serverType.FullName));
+                }
 
-		public static IWebHost Build<T>( IConfiguration configuration ) where T : BaseWebServer {
-			return Build( typeof( T ), configuration );
-		}
+                Log.Information($"Starting web host {serverType.FullName}");
+                return WebHost.CreateDefaultBuilder()
+                              .UseConfiguration(configuration)
+                              .UseSerilog()
+                              .UseKestrel((builder, serverOpts) =>
+                                          {
+                                              serverOpts.ConfigureHttpsDefaults(opts =>
+                                                                                {
+                                                                                    opts.SslProtocols =
+                                                                                        SslProtocols
+                                                                                            .Tls | // Required by FF itself *sigh*, completely insecure
+                                                                                        SslProtocols.Tls12 |
+                                                                                        SslProtocols.Tls13;
+                                                                                });
+                                          })
+                              .UseStartup(serverType)
+                              .UseUrls(configuration.GetSection("Firefall").Get<Firefall>()
+                                                    .WebHosts[serverType.FullName.Replace(".WebServer", "")].Urls
+                                                    .Split(";"))
+                              .Build();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Host terminated unexpectedly");
 
-		public IConfiguration Configuration { get; private set; }
+                return null;
+            }
+        }
 
-		public BaseWebServer( IConfiguration configuration ) {
-			Configuration = configuration;
-		}
+        public static IWebHost Build<T>(IConfiguration configuration) where T : BaseWebServer
+        {
+            return Build(typeof(T), configuration);
+        }
 
-		public void ConfigureServices( IServiceCollection services ) {
-			_ = services.AddControllers()
-					.AddJsonOptions( options => {
-						options.JsonSerializerOptions.PropertyNamingPolicy =
-							new Common.SnakeCasePropertyNamingPolicy();
-					} );
+        public void ConfigureServices(IServiceCollection services)
+        {
+            _ = services.AddControllers()
+                        .AddJsonOptions(options =>
+                                        {
+                                            options.JsonSerializerOptions.PropertyNamingPolicy =
+                                                new SnakeCasePropertyNamingPolicy();
+                                        });
 
-			_ = services.AddSingleton( Configuration.GetSection( "Firefall" ).Get<Config.Firefall>() );
+            _ = services.AddSingleton(Configuration.GetSection("Firefall").Get<Firefall>());
 
-			ConfigureChildServices( services );
-		}
+            ConfigureChildServices(services);
+        }
 
-		protected virtual void ConfigureChildServices( IServiceCollection services ) { }
+        protected virtual void ConfigureChildServices(IServiceCollection services) { }
 
-		public void Configure( IApplicationBuilder app, IWebHostEnvironment env ) {
-			if( env.IsDevelopment() )
-				_ = app.UseDeveloperExceptionPage();
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                _ = app.UseDeveloperExceptionPage();
+            }
 
-			_ = app.UseHttpsRedirection()
-				.UseSerilogRequestLogging()
-				.UseRouting()
-				.UseEndpoints( endpoints => { _ = endpoints.MapControllers(); } );
+            _ = app.UseHttpsRedirection()
+                   .UseSerilogRequestLogging()
+                   .UseRouting()
+                   .UseEndpoints(endpoints => { _ = endpoints.MapControllers(); });
 
-			ConfigureChild( app, env );
-		}
+            ConfigureChild(app, env);
+        }
 
-		protected virtual void ConfigureChild( IApplicationBuilder app, IWebHostEnvironment env ) { }
-	}
+        protected virtual void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env) { }
+    }
 }

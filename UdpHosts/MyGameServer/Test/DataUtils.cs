@@ -1,32 +1,40 @@
-﻿using System;
+﻿using MyGameServer.Data;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
+using System.Numerics;
 
-namespace MyGameServer.Test {
-	public static class DataUtils {
-		public static void Init() {
-			_zones = new ConcurrentDictionary<uint, Data.Zone>();
-		}
+namespace MyGameServer.Test
+{
+    public static class DataUtils
+    {
+        private static ConcurrentDictionary<uint, Zone> _zones;
 
-		private static ConcurrentDictionary<uint, Data.Zone> _zones;
-		public static Data.Zone GetZone( uint id ) {
-			if( _zones.ContainsKey(id) )
-				return _zones[id];
+        public static void Init()
+        {
+            _zones = new ConcurrentDictionary<uint, Zone>();
+        }
 
-			if( id != 448 )
-				return null;
+        public static Zone GetZone(uint id)
+        {
+            if (_zones.ContainsKey(id))
+            {
+                return _zones[id];
+            }
 
-			var ret = new Data.Zone();
-			ret.ID = id;
-			ret.Name = "New Eden";
-			ret.Timestamp = 1461290346895u;
+            if (id != 448)
+            {
+                return null;
+            }
 
-			ret.POIs.Add("origin", new System.Numerics.Vector3(0,0,0));
-			ret.POIs.Add("watchtower", new System.Numerics.Vector3(176.65f, 250.13f, 491.94f));
-			ret.POIs.Add("jacuzzi", new System.Numerics.Vector3(-532.0f, -469.0f, 473.0f));
+            var ret = new Zone();
+            ret.ID = id;
+            ret.Name = "New Eden";
+            ret.Timestamp = 1461290346895u;
 
-			return _zones.AddOrUpdate(id, ret, ( k, nc ) => nc);
-		}
-	}
+            ret.POIs.Add("origin", new Vector3(0, 0, 0));
+            ret.POIs.Add("watchtower", new Vector3(176.65f, 250.13f, 491.94f));
+            ret.POIs.Add("jacuzzi", new Vector3(-532.0f, -469.0f, 473.0f));
+
+            return _zones.AddOrUpdate(id, ret, (k, nc) => nc);
+        }
+    }
 }

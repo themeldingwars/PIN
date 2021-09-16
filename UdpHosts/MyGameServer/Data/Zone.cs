@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Numerics;
 
-namespace MyGameServer.Data {
-	public class Zone {
-		public uint ID { get; set; }
-		public string Name { get; set; }
-		public ulong Timestamp { get; set; }
-		public Dictionary<string, System.Numerics.Vector3> POIs { get; protected set; }
+namespace MyGameServer.Data
+{
+    public class Zone
+    {
+        public Zone()
+        {
+            POIs = new Dictionary<string, Vector3>();
+        }
 
-		public Zone() {
-			POIs = new Dictionary<string, System.Numerics.Vector3>();
-		}
-	}
+        public uint ID { get; set; }
+        public string Name { get; set; }
+        public ulong Timestamp { get; set; }
+        public Dictionary<string, Vector3> POIs { get; protected set; }
+    }
 }
