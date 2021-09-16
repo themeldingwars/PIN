@@ -321,7 +321,7 @@ namespace Shared.Udp {
 				BinaryPrimitives.WriteUInt64LittleEndian( span, ul );
 			} else if( val is Half h ) {
 				span = new byte[2];
-				BinaryPrimitives.WriteUInt16LittleEndian( span, h.Value );
+				BinaryPrimitives.WriteUInt16LittleEndian( span, Convert.ToUInt16(h) );
 			} else if( val is float f ) {
 				span = MemoryMarshal.Cast<float, byte>( new[] { f } ).ToArray();
 			} else if( val is double d ) {

@@ -72,8 +72,8 @@ namespace MyGameServer.Data {
 			PrimaryWeaponVisuals.Palettes.Add( new CommonVisuals.Palette { ID = 117006, Type = Enums.Visuals.PaletteType.WeaponA } );
 
 			PrimaryWeaponVisuals.Patterns.Add( new CommonVisuals.Pattern { ID = 10192, Usage = 2, Transform = new Half[] {
-				Half.ToHalf((ushort)12743u), Half.ToHalf((ushort)2753u),
-				Half.ToHalf((ushort)2042u), Half.ToHalf((ushort)3676u)
+				(Half)(ushort)12743u, (Half)(ushort)2753u,
+				(Half)(ushort)2042u, (Half)(ushort)3676u
 			} } );
 
 			PrimaryWeaponVisuals.OrnamentGroups.Add( 10283 );
