@@ -29,7 +29,7 @@ The Pirate Intelligence Network is here to serve you all the content you'd want
 
         [Route("api/v2/zone_settings")]
         [HttpGet]
-        public async Task<object> ZoneSettings()
+        public object[] ZoneSettings()
         {
             return new object[] { };
         }

@@ -8,7 +8,7 @@ namespace WebHost.Chat.Controllers
     {
         [Route("")]
         [HttpGet]
-        public async Task<object> Test()
+        public object Test()
         {
             return new { test = true };
         }

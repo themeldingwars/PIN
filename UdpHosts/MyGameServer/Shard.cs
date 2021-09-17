@@ -68,7 +68,7 @@ namespace MyGameServer
 
         public void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct)
         {
-            // Handle timeoutd, reliable retransmission, normal rx/tx
+            // Handle timeout, reliable retransmission, normal rx/tx
             foreach (var c in Clients.Values)
             {
                 c.NetworkTick(deltaTime, currTime, ct);

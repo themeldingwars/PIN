@@ -168,8 +168,6 @@ namespace MyGameServer
                     // TODO; See onKeyframeRequest in server_gamesocket.js
                     var kfrpkt = packet.Read<KeyFrameRequest>();
 
-                    var i = 0;
-
                     break;
                 case MatrixPacketType.ClientStatus:
                     NetChans[ChannelType.Matrix].SendClass(new MatrixStatus());

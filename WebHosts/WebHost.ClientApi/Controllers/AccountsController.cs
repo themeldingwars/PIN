@@ -10,7 +10,7 @@ namespace WebHost.ClientApi.Controllers
     {
         [Route("api/v2/accounts")]
         [HttpPost]
-        public async Task<object> CreateAccount([FromBody] CreateAccountPost post)
+        public object CreateAccount([FromBody] CreateAccountPost post)
         {
             return new { error = false };
         }
@@ -23,7 +23,7 @@ namespace WebHost.ClientApi.Controllers
 
         [Route("api/v2/accounts/login")]
         [HttpPost]
-        public async Task<AccountStatus> Login()
+        public AccountStatus Login()
         {
             return new AccountStatus
                    {
@@ -42,14 +42,14 @@ namespace WebHost.ClientApi.Controllers
 
         [Route("api/v2/accounts/change_language")]
         [HttpPost]
-        public async Task ChangeLanguage()
+        public void ChangeLanguage()
         {
             Ok();
         }
 
         [Route("api/v2/accounts/character_slots")]
         [HttpGet]
-        public async Task<object> CharacterSlots()
+        public object CharacterSlots()
         {
             return new { };
         }

@@ -141,7 +141,7 @@ namespace MyGameServer
             }
         }
 
-        public async Task<bool> Send<T>(T pkt) where T : struct
+        public bool Send<T>(T pkt) where T : struct
         {
             Memory<byte> p;
             if (pkt is IWritable write)
@@ -179,10 +179,10 @@ namespace MyGameServer
                 throw new Exception();
             }
 
-            return await Send(p);
+            return Send(p);
         }
 
-        public async Task<bool> SendClass<T>(T pkt, Type msgEnumType = null) where T : class
+        public bool SendClass<T>(T pkt, Type msgEnumType = null) where T : class
         {
             Memory<byte> p;
             if (pkt is IWritable write)
@@ -227,10 +227,10 @@ namespace MyGameServer
                 Program.Logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
             }
 
-            return await Send(p);
+            return Send(p);
         }
 
-        public async Task<bool> SendGSS<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null) where T : struct
+        public bool SendGSS<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null) where T : struct
         {
             Memory<byte> p;
             if (pkt is IWritable write)
@@ -285,10 +285,10 @@ namespace MyGameServer
                 throw new Exception();
             }
 
-            return await Send(p);
+            return Send(p);
         }
 
-        public async Task<bool> SendGSSClass<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null) where T : class
+        public bool SendGSSClass<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null) where T : class
         {
             Memory<byte> p;
             if (pkt is IWritable write)
@@ -346,10 +346,10 @@ namespace MyGameServer
                 throw new Exception();
             }
 
-            return await Send(p);
+            return Send(p);
         }
 
-        public async Task<bool> Send(Memory<byte> p)
+        public bool Send(Memory<byte> p)
         {
             var hdrLen = 2;
             if (IsSequenced)
