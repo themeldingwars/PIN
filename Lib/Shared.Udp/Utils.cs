@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Half = PIN.Half;
 
 namespace Shared.Udp
 {
@@ -463,7 +462,7 @@ namespace Shared.Udp
             else if (val is Half h)
             {
                 span = new byte[2];
-                BinaryPrimitives.WriteUInt16LittleEndian(span, h.Value);
+                BinaryPrimitives.WriteUInt16LittleEndian(span, (ushort)h);
             }
             else if (val is float f)
             {
