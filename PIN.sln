@@ -19,9 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Web", "Lib\Shared.We
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebHost.Chat", "WebHosts\WebHost.Chat\WebHost.Chat.csproj", "{E62C2A80-5055-4DEE-8528-51C9236AC1EB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyGameServer", "UdpHosts\MyGameServer\MyGameServer.csproj", "{871FE1C9-F8CE-4143-9975-02DA0F545C7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameServer", "UdpHosts\GameServer\GameServer.csproj", "{871FE1C9-F8CE-4143-9975-02DA0F545C7C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyMatrixServer", "UdpHosts\MyMatrixServer\MyMatrixServer.csproj", "{4F39E065-B6DA-4195-BA98-7688C13F4B07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MatrixServer", "UdpHosts\MatrixServer\MatrixServer.csproj", "{4F39E065-B6DA-4195-BA98-7688C13F4B07}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebHost.OperatorApi", "WebHosts\WebHost.OperatorApi\WebHost.OperatorApi.csproj", "{A7183B07-DE4C-4911-BE4B-3ECD4E9BDBC0}"
 EndProject

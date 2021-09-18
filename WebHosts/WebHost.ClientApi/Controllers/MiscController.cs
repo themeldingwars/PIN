@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace WebHost.ClientApi.Controllers
 {

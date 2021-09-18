@@ -13,10 +13,11 @@ That's why PIN, the Pirate Intelligence Network, has been created.
 3. Add content from below
 4. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
 5. Build the solution
-6. Start multiple targets at once
-    - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, MyGameServer and MyMatrixServer
-    - ReShaper: Create a `Compound` target that starts WebHostManager, MyGameServer and MyMatrixServer
-7. Start Firefall
+6. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
+7. Start multiple targets at once
+    - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, GameServer and MatrixServer
+    - Rider: Create a `Compound` target that starts WebHostManager, GameServer and MatrixServer
+8. Start Firefall
 
 ```ini
 [Config]
