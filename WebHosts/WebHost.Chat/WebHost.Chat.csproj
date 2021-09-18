@@ -5,14 +5,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.8"/>
-        <PackageReference Include="Serilog.AspNetCore" Version="3.4.0"/>
+        <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj"/>
-        <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj"/>
+        <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />
+        <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj" />
     </ItemGroup>
 
 </Project>
