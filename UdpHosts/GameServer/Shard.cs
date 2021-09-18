@@ -14,10 +14,10 @@ namespace GameServer
     public class Shard : IShard, IPacketSender
     {
         public const double NetworkTickRate = 1.0 / 20.0;
-        private ushort LastEntityRefId;
-        protected double lastNetTick;
-        protected Thread runThread;
         protected long startTime;
+        protected double lastNetTick;
+        private ushort LastEntityRefId;
+        protected Thread runThread;
 
         public Shard(double gameTickRate, ulong instID, IPacketSender sender)
         {
@@ -68,7 +68,7 @@ namespace GameServer
 
         public void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct)
         {
-            // Handle timeout, reliable retransmission, normal rx/tx
+            // Handle timeoutd, reliable retransmission, normal rx/tx
             foreach (var c in Clients.Values)
             {
                 c.NetworkTick(deltaTime, currTime, ct);

@@ -9,14 +9,17 @@ namespace GameServer.Packets.GSS
     [GSSMessage((byte)Events.PartialUpdate)]
     public class PartialUpdate
     {
-        [Field] public IList<PartialView> Fields = new List<PartialView>();
+        [Field]
+        public IList<PartialView> Fields = new List<PartialView>();
 
-        public void Add<T>(T data) where T : class
+        public void Add<T>(T data)
+            where T : class
         {
             Fields.Add(new PartialView<T> { ShadowFieldIndex = getIndex<T>(), Data = data });
         }
 
-        public T Get<T>() where T : class
+        public T Get<T>()
+            where T : class
         {
             return Get(typeof(T)) as T;
         }
@@ -46,14 +49,17 @@ namespace GameServer.Packets.GSS
 
         public class PartialView
         {
-            public object Data;
+            [Field]
+            public byte ShadowFieldIndex;
 
-            [Field] public byte ShadowFieldIndex;
+            public object Data;
         }
 
-        public class PartialView<T> : PartialView where T : class
+        public class PartialView<T> : PartialView
+            where T : class
         {
-            [Field] public new T Data;
+            [Field]
+            public new T Data;
         }
 
         public class PartialShadowFieldAttribute : Attribute

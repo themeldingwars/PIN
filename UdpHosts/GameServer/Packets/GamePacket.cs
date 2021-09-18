@@ -38,7 +38,8 @@ namespace GameServer.Packets
             return PacketData.Slice(p, len);
         }
 
-        public T Peek<T>() where T : struct
+        public T Peek<T>()
+            where T : struct
         {
             var buf = PacketData.Slice(CurrentPosition);
             return Utils.Read<T>(ref buf);

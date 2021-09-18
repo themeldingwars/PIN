@@ -13,10 +13,10 @@ namespace Shared.Udp
         public const int MTU = 1400;
 
         public static ILogger Logger;
-        protected readonly IPEndPoint listenEndpoint;
 
 
         protected readonly Socket serverSocket;
+        protected readonly IPEndPoint listenEndpoint;
         protected BufferBlock<Packet?> incomingPackets;
         protected BufferBlock<Packet?> outgoingPackets;
         protected CancellationTokenSource source;
@@ -126,11 +126,7 @@ namespace Shared.Udp
                         // TODO: Move Endpoint and Memory<byte> management to Packet (constructor + destructor)
                         var buf = new byte[c];
                         buffer.AsSpan().Slice(0, c).ToArray().CopyTo(buf, 0);
-                        _ =
-                            await
-                                incomingPackets
-                                    .SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c), DateTime.Now),
-                                               ct);
+                        _ = await incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c), DateTime.Now), ct);
 
                         // Not 100% sure this needs to be cleared?
                         remoteEP = new IPEndPoint(IPAddress.Any, 0);
@@ -164,8 +160,7 @@ namespace Shared.Udp
 
                 while ((p = await outgoingPackets.ReceiveAsync(ct)) != null)
                 {
-                    _ = serverSocket.SendTo(p.Value.PacketData.ToArray(), p.Value.PacketData.Length, SocketFlags.None,
-                                            p.Value.RemoteEndpoint);
+                    _ = serverSocket.SendTo(p.Value.PacketData.ToArray(), p.Value.PacketData.Length, SocketFlags.None, p.Value.RemoteEndpoint);
                 }
 
                 _ = Thread.Yield();

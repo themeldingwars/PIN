@@ -5,11 +5,14 @@ namespace GameServer.Packets.Common
 {
     public class Vector
     {
-        [Field] public float X;
+        [Field]
+        public float X;
 
-        [Field] public float Y;
+        [Field]
+        public float Y;
 
-        [Field] public float Z;
+        [Field]
+        public float Z;
 
         public static implicit operator Vector3(Vector v)
         {

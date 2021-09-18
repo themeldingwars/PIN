@@ -38,17 +38,13 @@ namespace Shared.Web
                                           {
                                               serverOpts.ConfigureHttpsDefaults(opts =>
                                                                                 {
-                                                                                    opts.SslProtocols =
-                                                                                        SslProtocols
-                                                                                            .Tls | // Required by FF itself *sigh*, completely insecure
-                                                                                        SslProtocols.Tls12 |
-                                                                                        SslProtocols.Tls13;
+                                                                                    opts.SslProtocols = SslProtocols.Tls | // Required by FF itself *sigh*, completely insecure
+                                                                                                        SslProtocols.Tls12 |
+                                                                                                        SslProtocols.Tls13;
                                                                                 });
                                           })
                               .UseStartup(serverType)
-                              .UseUrls(configuration.GetSection("Firefall").Get<Firefall>()
-                                                    .WebHosts[serverType.FullName.Replace(".WebServer", "")].Urls
-                                                    .Split(";"))
+                              .UseUrls(configuration.GetSection("Firefall").Get<Firefall>().WebHosts[serverType.FullName.Replace(".WebServer", "")].Urls.Split(";"))
                               .Build();
             }
             catch (Exception ex)
@@ -59,7 +55,8 @@ namespace Shared.Web
             }
         }
 
-        public static IWebHost Build<T>(IConfiguration configuration) where T : BaseWebServer
+        public static IWebHost Build<T>(IConfiguration configuration)
+            where T : BaseWebServer
         {
             return Build(typeof(T), configuration);
         }

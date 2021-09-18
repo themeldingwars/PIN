@@ -7,9 +7,12 @@ namespace GameServer.Packets.GSS.Character.LocalEffectsController
     [GSSMessage(Enums.GSS.Controllers.Character_LocalEffectsController, (byte)Events.KeyFrame)]
     public class KeyFrame
     {
-        [Field] public ulong PlayerID;
+        [Field]
+        public ulong PlayerID;
 
-        [Field] [Length(8)] public IList<byte> UnkBytes;
+        [Field]
+        [Length(8)]
+        public IList<byte> UnkBytes;
 
         public KeyFrame(IShard shard)
         {

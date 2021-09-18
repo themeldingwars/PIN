@@ -1,8 +1,6 @@
 # PIN - Pirate Intelligence Network
 
-The Accord may think their Shared Intelligence Network is unique and impenetrable,
-but not everyone agrees with their restricted access and constant surveillance.
-That's why PIN, the Pirate Intelligence Network, has been created.
+The Accord may think their Shared Intelligence Network is unique and impenetrable, but not everyone agrees with their restricted access and constant surveillance. That's why PIN, the Pirate Intelligence Network, has been created.
 
 *Fight the Accord - Kill the Chosen*
 

@@ -8,7 +8,9 @@ namespace GameServer.Packets.GSS
     [GSSMessage(Enums.GSS.Controllers.Generic, (byte)Events.ArcCompletionHistoryUpdate)]
     public class ArcCompletionHistoryUpdate
     {
-        [Field] [LengthPrefixed(typeof(byte))] public IList<Entry> Entries;
+        [Field]
+        [LengthPrefixed(typeof(byte))]
+        public IList<Entry> Entries;
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct Entry

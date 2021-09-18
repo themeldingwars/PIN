@@ -86,8 +86,8 @@ namespace GameServer
                 if (IsSequenced)
                 {
                     seqNum = Utils.SimpleFixEndianess(packet.Read<ushort>());
-                    // TODO: Implement SequencedPacketQueue
                 }
+                // TODO: Implement SequencedPacketQueue
 
                 if (packet.Header.ResendCount > 0)
                 {
@@ -140,7 +140,8 @@ namespace GameServer
             }
         }
 
-        public bool Send<T>(T pkt) where T : struct
+        public bool Send<T>(T pkt)
+            where T : struct
         {
             Memory<byte> p;
             if (pkt is IWritable write)
@@ -181,7 +182,8 @@ namespace GameServer
             return Send(p);
         }
 
-        public bool SendClass<T>(T pkt, Type msgEnumType = null) where T : class
+        public bool SendClass<T>(T pkt, Type msgEnumType = null)
+            where T : class
         {
             Memory<byte> p;
             if (pkt is IWritable write)
@@ -229,7 +231,8 @@ namespace GameServer
             return Send(p);
         }
 
-        public bool SendGSS<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null) where T : struct
+        public bool SendGSS<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null)
+            where T : struct
         {
             Memory<byte> p;
             if (pkt is IWritable write)
@@ -287,7 +290,8 @@ namespace GameServer
             return Send(p);
         }
 
-        public bool SendGSSClass<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null) where T : class
+        public bool SendGSSClass<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null)
+            where T : class
         {
             Memory<byte> p;
             if (pkt is IWritable write)

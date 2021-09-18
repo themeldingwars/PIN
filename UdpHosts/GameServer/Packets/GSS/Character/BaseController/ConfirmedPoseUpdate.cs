@@ -7,28 +7,40 @@ namespace GameServer.Packets.GSS.Character.BaseController
     [GSSMessage(Enums.GSS.Controllers.Character_BaseController, (byte)Events.ConfirmedPoseUpdate)]
     public class ConfirmedPoseUpdate
     {
-        [Field] public ushort LastJumpTimer;
+        [Field]
+        public ushort ShortTime;
 
-        [Field] public ushort NextShortTime;
+        [Field]
+        public byte UnkByte1;
 
-        [Field] public Vector Position;
+        [Field]
+        public byte UnkByte2;
 
-        [Field] public Quaternion Rotation;
+        [Field]
+        public Vector Position;
 
-        [Field] public ushort ShortTime;
+        [Field]
+        public Quaternion Rotation;
 
-        [Field] public ushort State;
+        [Field]
+        public ushort State;
 
-        [Field] public byte UnkByte1;
+        [Field]
+        public Vector Velocity;
 
-        [Field] public byte UnkByte2;
+        [Field]
+        public ushort UnkUShort1;
 
-        [Field] public byte UnkByte3;
+        [Field]
+        public ushort UnkUShort2;
 
-        [Field] public ushort UnkUShort1;
+        [Field]
+        public ushort LastJumpTimer;
 
-        [Field] public ushort UnkUShort2;
+        [Field]
+        public byte UnkByte3;
 
-        [Field] public Vector Velocity;
+        [Field]
+        public ushort NextShortTime;
     }
 }

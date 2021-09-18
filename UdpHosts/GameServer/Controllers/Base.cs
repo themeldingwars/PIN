@@ -1,5 +1,5 @@
-﻿using GameServer.Packets;
-using GameServer.Extensions;
+﻿using GameServer.Extensions;
+using GameServer.Packets;
 using Serilog;
 using System;
 using System.Linq;

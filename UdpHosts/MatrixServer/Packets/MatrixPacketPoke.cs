@@ -1,5 +1,4 @@
 ﻿using Shared.Udp;
-using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -8,7 +7,7 @@ namespace MatrixServer.Packets
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal unsafe struct MatrixPacketPoke
     {
-        public readonly UInt32 SocketID;
+        public readonly uint SocketID;
         private fixed byte type[4];
 
         public string Type
@@ -29,6 +28,6 @@ namespace MatrixServer.Packets
             }
         }
 
-        public readonly UInt32 ProtocolVersion;
+        public readonly uint ProtocolVersion;
     }
 }

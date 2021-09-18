@@ -11,17 +11,18 @@ namespace GameServer
 {
     internal class GameServer : PacketServer
     {
-        public delegate void SendPacketDelegate<T>(T pkt, IPEndPoint ep) where T : struct;
+        public delegate void SendPacketDelegate<T>(T pkt, IPEndPoint ep)
+            where T : struct;
 
         public const double GameTickRate = 1.0 / 60.0;
         public const int MinPlayersPerShard = 16;
         public const int MaxPlayersPerShard = 64;
 
         protected ConcurrentDictionary<uint, INetworkPlayer> ClientMap;
+        protected ConcurrentDictionary<ulong, IShard> Shards;
 
         protected byte nextShardID;
         protected ulong ServerID;
-        protected ConcurrentDictionary<ulong, IShard> Shards;
 
         public GameServer(ushort port, ulong serverID) : base(port)
         {
@@ -90,7 +91,7 @@ namespace GameServer
 
             if (!ClientMap.ContainsKey(socketID))
             {
-                NetworkPlayer c = new(packet.RemoteEndpoint, socketID);
+                var c = new NetworkPlayer(packet.RemoteEndpoint, socketID);
 
                 client = ClientMap.AddOrUpdate(socketID, c, (id, nc) => { return nc; });
                 _ = GetNextShard(ct).MigrateIn((INetworkPlayer)client);

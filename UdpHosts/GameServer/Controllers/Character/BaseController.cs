@@ -10,7 +10,7 @@ namespace GameServer.Controllers.Character
     {
         public override void Init(INetworkClient client, IPlayer player, IShard shard)
         {
-            client.NetChans[ChannelType.ReliableGss].SendGSSClass(Test.GSS.Character.BaseController.KeyFrame.Test(player, shard), player.EntityID, msgEnumType: typeof(Events));
+            client.NetChans[ChannelType.ReliableGss].SendGSSClass(KeyFrame.Test(player, shard), player.EntityID, msgEnumType: typeof(Events));
             client.NetChans[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.CombatController.KeyFrame(shard) { PlayerID = player.CharacterID }, player.EntityID, msgEnumType: typeof(Events));
             client.NetChans[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.LocalEffectsController.KeyFrame(shard) { PlayerID = player.CharacterID }, player.EntityID, msgEnumType: typeof(Events));
             client.NetChans[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.MissionAndMarkerController.KeyFrame(shard) { PlayerID = player.CharacterID }, player.EntityID, msgEnumType: typeof(Events));
@@ -56,21 +56,21 @@ namespace GameServer.Controllers.Character
 
             //Program.Logger.Warning( "Movement Unk1: {0:X4} {1:X4} {2:X4} {3:X4} {4:X4}", pkt.UnkUShort1, pkt.UnkUShort2, pkt.UnkUShort3, pkt.UnkUShort4, pkt.LastJumpTimer );
 
-            ConfirmedPoseUpdate resp = new()
-                                       {
-                                           ShortTime = pkt.ShortTime,
-                                           UnkByte1 = 1,
-                                           UnkByte2 = 0,
-                                           Position = player.CharacterEntity.Position,
-                                           Rotation = player.CharacterEntity.Rotation,
-                                           State = (ushort)player.CharacterEntity.MovementState,
-                                           Velocity = player.CharacterEntity.Velocity,
-                                           UnkUShort1 = pkt.UnkUShort3,
-                                           UnkUShort2 = pkt.UnkUShort4, // Somehow affects gravity
-                                           LastJumpTimer = pkt.LastJumpTimer,
-                                           UnkByte3 = 0,
-                                           NextShortTime = unchecked((ushort)(pkt.ShortTime + 90))
-                                       };
+            var resp = new ConfirmedPoseUpdate
+                       {
+                           ShortTime = pkt.ShortTime,
+                           UnkByte1 = 1,
+                           UnkByte2 = 0,
+                           Position = player.CharacterEntity.Position,
+                           Rotation = player.CharacterEntity.Rotation,
+                           State = (ushort)player.CharacterEntity.MovementState,
+                           Velocity = player.CharacterEntity.Velocity,
+                           UnkUShort1 = pkt.UnkUShort3,
+                           UnkUShort2 = pkt.UnkUShort4, // Somehow affects gravity
+                           LastJumpTimer = pkt.LastJumpTimer,
+                           UnkByte3 = 0,
+                           NextShortTime = unchecked((ushort)(pkt.ShortTime + 90))
+                       };
 
             client.NetChans[ChannelType.UnreliableGss].SendGSSClass(resp, player.EntityID, msgEnumType: typeof(Events));
 

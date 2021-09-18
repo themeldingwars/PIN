@@ -6,26 +6,37 @@ namespace GameServer.Packets.GSS.Character.BaseController.PartialUpdates
     [PartialUpdate.PartialShadowFieldAttribute(0x0c)]
     public class MovementView
     {
-        [Field] public Vector AimDirection;
+        [Field]
+        public uint LastUpdateTime;
 
-        [Field] public ushort AirGroundTimer;
+        [Field]
+        public Vector Position;
 
-        [Field] public ushort Jets;
+        [Field]
+        public Quaternion Rotation;
 
-        [Field] public ushort JumpTimer;
+        [Field]
+        public Vector AimDirection;
 
-        [Field] public uint LastUpdateTime;
+        [Field]
+        public Vector Velocity;
 
-        [Field] public Vector Position;
+        [Field]
+        public ushort State;
 
-        [Field] public Quaternion Rotation;
+        [Field]
+        public ushort Unk1;
 
-        [Field] public ushort State;
+        [Field]
+        public ushort Jets;
 
-        [Field] public ushort Unk1;
+        [Field]
+        public ushort AirGroundTimer;
 
-        [Field] public byte Unk2;
+        [Field]
+        public ushort JumpTimer;
 
-        [Field] public Vector Velocity;
+        [Field]
+        public byte Unk2;
     }
 }

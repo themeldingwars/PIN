@@ -15,6 +15,7 @@ namespace WebHost.OperatorApi
         {
             services.AddScoped<ICapabilityRepository, CapabilityRepository>();
         }
+
         protected override void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env) { }
     }
 }

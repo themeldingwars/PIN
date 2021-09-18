@@ -1,5 +1,4 @@
 ﻿using Shared.Udp;
-using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -8,7 +7,7 @@ namespace MatrixServer.Packets
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal unsafe struct MatrixPacketHugg
     {
-        public readonly UInt32 SocketID;
+        public readonly uint SocketID;
         private fixed byte type[4];
 
         public string Type
@@ -29,10 +28,10 @@ namespace MatrixServer.Packets
             }
         }
 
-        public readonly UInt16 SequenceStart;
-        public readonly UInt16 GameServerPort;
+        public readonly ushort SequenceStart;
+        public readonly ushort GameServerPort;
 
-        public MatrixPacketHugg(UInt16 seqStart, UInt16 port)
+        public MatrixPacketHugg(ushort seqStart, ushort port)
         {
             SocketID = 0;
             SequenceStart = Utils.SimpleFixEndianess(seqStart);

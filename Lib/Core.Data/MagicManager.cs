@@ -8,7 +8,8 @@ namespace Core.Data
     {
         private static ConcurrentDictionary<Type, Func<IDataRecord, IRowView>> converters;
 
-        public static T GetActiveRecord<T>(IDataRecord rec) where T : IRowView
+        public static T GetActiveRecord<T>(IDataRecord rec)
+            where T : IRowView
         {
             if (converters == null)
             {

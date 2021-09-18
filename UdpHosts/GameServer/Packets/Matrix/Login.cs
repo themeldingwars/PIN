@@ -7,18 +7,28 @@ namespace GameServer.Packets.Matrix
     [MatrixMessage(MatrixPacketType.Login)]
     public class Login
     {
-        [Field] public ulong CharacterGUID;
+        [Field]
+        public byte Unk1;
 
-        [Field] public ushort ClientVersion;
+        [Field]
+        public ushort ClientVersion;
 
-        [Field] [Length(370)] public IList<byte> Red5Sig1; // From Web Requests to ClientAPI
+        [Field]
+        [Length(3)]
+        public IList<byte> Unk2;
 
-        [Field] public string Red5Sig2; // From Web Requests to ClientAPI
+        [Field]
+        public ulong CharacterGUID;
 
-        [Field] public byte Unk1;
+        [Field]
+        [Length(13)]
+        public IList<byte> Unk3;
 
-        [Field] [Length(3)] public IList<byte> Unk2;
+        [Field]
+        public string Red5Sig2; // From Web Requests to ClientAPI
 
-        [Field] [Length(13)] public IList<byte> Unk3;
+        [Field]
+        [Length(370)]
+        public IList<byte> Red5Sig1; // From Web Requests to ClientAPI
     }
 }

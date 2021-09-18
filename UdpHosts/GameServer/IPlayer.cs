@@ -21,7 +21,7 @@ namespace GameServer
 
         ulong CharacterID { get; }
         ulong EntityID => CharacterID & 0xffffffffffffff00; // Ignore last byte
-        Entities.Character CharacterEntity { get; }
+        Character CharacterEntity { get; }
         PlayerStatus Status { get; }
         Zone CurrentZone { get; }
         uint LastRequestedUpdate { get; set; }

@@ -6,8 +6,10 @@ namespace GameServer.Packets.GSS.Character.ObserverView
     [GSSMessage(Enums.GSS.Controllers.Character_ObserverView, (byte)Events.Respawned)]
     public class Respawned
     {
-        [Field] public uint LastUpdateTime;
+        [Field]
+        public uint LastUpdateTime;
 
-        [Field] public ushort Unk1;
+        [Field]
+        public ushort Unk1;
     }
 }

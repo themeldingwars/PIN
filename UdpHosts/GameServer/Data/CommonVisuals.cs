@@ -1,6 +1,6 @@
 ﻿using GameServer.Enums.Visuals;
 using GameServer.Packets.GSS.Character.BaseController;
-using System;
+using PIN;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -54,8 +54,8 @@ namespace GameServer.Data
 
         public class Palette
         {
-            public uint ID;
             public PaletteType Type;
+            public uint ID;
 
             public static implicit operator KeyFrame.Palette(Palette p)
             {
@@ -77,8 +77,8 @@ namespace GameServer.Data
 
         public class Decal
         {
-            public uint Color;
             public uint ID;
+            public uint Color;
             public IList<Half> Transform = new List<Half>();
             public byte Usage;
 

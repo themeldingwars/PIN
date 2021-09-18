@@ -4,13 +4,17 @@ namespace GameServer.Packets.Common
 {
     public class Quaternion
     {
-        [Field] public float W;
+        [Field]
+        public float W;
 
-        [Field] public float X;
+        [Field]
+        public float X;
 
-        [Field] public float Y;
+        [Field]
+        public float Y;
 
-        [Field] public float Z;
+        [Field]
+        public float Z;
 
         public static implicit operator System.Numerics.Quaternion(Quaternion q)
         {

@@ -10,8 +10,10 @@ namespace Shared.Common
                                                                                   new Dictionary<ConsoleThemeStyle, SystemConsoleThemeStyle>
                                                                                   {
                                                                                       [ConsoleThemeStyle.Text] = new SystemConsoleThemeStyle { Foreground = ConsoleColor.White },
-                                                                                      [ConsoleThemeStyle.SecondaryText] = new SystemConsoleThemeStyle { Foreground = ConsoleColor.Gray },
-                                                                                      [ConsoleThemeStyle.TertiaryText] = new SystemConsoleThemeStyle { Foreground = ConsoleColor.DarkGray },
+                                                                                      [ConsoleThemeStyle.SecondaryText] =
+                                                                                          new SystemConsoleThemeStyle { Foreground = ConsoleColor.Gray },
+                                                                                      [ConsoleThemeStyle.TertiaryText] =
+                                                                                          new SystemConsoleThemeStyle { Foreground = ConsoleColor.DarkGray },
                                                                                       [ConsoleThemeStyle.Invalid] = new SystemConsoleThemeStyle { Foreground = ConsoleColor.Yellow },
                                                                                       [ConsoleThemeStyle.Null] = new SystemConsoleThemeStyle { Foreground = ConsoleColor.Blue },
                                                                                       [ConsoleThemeStyle.Name] = new SystemConsoleThemeStyle { Foreground = ConsoleColor.Gray },

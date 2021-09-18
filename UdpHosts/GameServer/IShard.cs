@@ -11,7 +11,9 @@ namespace GameServer
         IDictionary<uint, INetworkPlayer> Clients { get; }
         PhysicsEngine Physics { get; }
         AIEngine AI { get; }
+
         int CurrentPlayers => Clients.Count;
+
         ulong CurrentTimeLong { get; }
         uint CurrentTime => unchecked((uint)CurrentTimeLong);
         ushort CurrentShortTime => unchecked((ushort)CurrentTime);

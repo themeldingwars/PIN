@@ -7,7 +7,9 @@ namespace GameServer.Packets.GSS.Character.BaseController
     [GSSMessage(Enums.GSS.Controllers.Character_BaseController, (byte)Events.CharacterLoaded)]
     public class CharacterLoaded
     {
-        [Field] [Length(2)] public IList<byte> UnkBytes;
+        [Field]
+        [Length(2)]
+        public IList<byte> UnkBytes;
 
         public CharacterLoaded()
         {

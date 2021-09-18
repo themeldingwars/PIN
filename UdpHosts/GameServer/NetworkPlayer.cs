@@ -24,7 +24,7 @@ namespace GameServer
         }
 
         public ulong CharacterID { get; protected set; }
-        public Entities.Character CharacterEntity { get; protected set; }
+        public Character CharacterEntity { get; protected set; }
         public IPlayer.PlayerStatus Status { get; protected set; }
         public Zone CurrentZone { get; protected set; }
         public uint LastRequestedUpdate { get; set; }
@@ -39,7 +39,7 @@ namespace GameServer
         public void Login(ulong charID)
         {
             CharacterID = charID;
-            CharacterEntity = new Entities.Character(AssignedShard, charID & 0xffffffffffffff00);
+            CharacterEntity = new Character(AssignedShard, charID & 0xffffffffffffff00);
             CharacterEntity.Load(charID);
             Status = IPlayer.PlayerStatus.LoggedIn;
 

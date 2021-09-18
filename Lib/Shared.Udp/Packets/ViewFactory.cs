@@ -24,7 +24,8 @@ namespace Shared.Udp.Packets
             // TODO: Runtime generation of BasePacketView subclasses that implement user defined Intefaces
         }
 
-        public static T Get<T>() where T : IPacketView
+        public static T Get<T>()
+            where T : IPacketView
         {
             return (T)Get(typeof(T));
         }

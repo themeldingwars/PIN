@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Half = PIN.Half;
 
 namespace Shared.Udp
 {
@@ -55,7 +56,8 @@ namespace Shared.Udp
             return new Span<byte>(src, len).ToArray();
         }
 
-        public static T ReadStruct<T>(ReadOnlyMemory<byte> mem) where T : struct
+        public static T ReadStruct<T>(ReadOnlyMemory<byte> mem)
+            where T : struct
         {
             var size = Unsafe.SizeOf<T>();
             if (mem.Length < size)
@@ -66,7 +68,8 @@ namespace Shared.Udp
             return MemoryMarshal.Read<T>(mem.Span.Slice(0, size));
         }
 
-        public static T ReadStruct<T>(ReadOnlyMemory<byte> mem, out int size) where T : struct
+        public static T ReadStruct<T>(ReadOnlyMemory<byte> mem, out int size)
+            where T : struct
         {
             size = Unsafe.SizeOf<T>();
             if (mem.Length < size)
@@ -77,7 +80,8 @@ namespace Shared.Udp
             return MemoryMarshal.Read<T>(mem.Span.Slice(0, size));
         }
 
-        public static unsafe T ReadStruct<T>(byte* mem, int len) where T : struct
+        public static unsafe T ReadStruct<T>(byte* mem, int len)
+            where T : struct
         {
             return ReadStruct<T>(new ReadOnlyMemory<byte>(new Span<byte>(mem, 0).ToArray()));
         }
@@ -94,12 +98,10 @@ namespace Shared.Udp
                 attrs = t.GetCustomAttributes();
             }
 
-            var preLen =
-                attrs.Where(a => a is LengthPrefixedAttribute).FirstOrDefault() as LengthPrefixedAttribute;
+            var preLen = attrs.Where(a => a is LengthPrefixedAttribute).FirstOrDefault() as LengthPrefixedAttribute;
             var len = attrs.Where(a => a is LengthAttribute).FirstOrDefault() as LengthAttribute;
             var pad = attrs.Where(a => a is PaddingAttribute).FirstOrDefault() as PaddingAttribute;
-            var exists =
-                attrs.Where(a => a is ExistsPrefixAttribute).FirstOrDefault() as ExistsPrefixAttribute;
+            var exists = attrs.Where(a => a is ExistsPrefixAttribute).FirstOrDefault() as ExistsPrefixAttribute;
 
             object ret = null;
 
@@ -118,8 +120,7 @@ namespace Shared.Udp
                 data = data.Slice(Marshal.SizeOf(exists.ExistsType));
             }
 
-            if (typeof(IEnumerable).IsAssignableFrom(t) && t.GenericTypeArguments != null &&
-                t.GenericTypeArguments.Length > 0)
+            if (typeof(IEnumerable).IsAssignableFrom(t) && t.GenericTypeArguments != null && t.GenericTypeArguments.Length > 0)
             {
                 var l = 0;
                 if (preLen != null)
@@ -136,8 +137,7 @@ namespace Shared.Udp
                     throw new Exception();
                 }
 
-                var tempRet =
-                    (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(t.GenericTypeArguments));
+                var tempRet = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(t.GenericTypeArguments));
                 for (var i = 0; i < l; i++)
                 {
                     _ = tempRet.Add(Read(ref data, t.GenericTypeArguments[0]));
@@ -267,7 +267,8 @@ namespace Shared.Udp
             throw new Exception();
         }
 
-        public static T ReadClass<T>(ref ReadOnlyMemory<byte> data) where T : class
+        public static T ReadClass<T>(ref ReadOnlyMemory<byte> data)
+            where T : class
         {
             return (T)ReadClass(ref data, typeof(T));
         }
@@ -277,8 +278,7 @@ namespace Shared.Udp
             var props = from prop in t.GetFields()
                         where Attribute.IsDefined(prop, typeof(FieldAttribute))
                         orderby ((FieldAttribute)prop
-                                                 .GetCustomAttributes(typeof(FieldAttribute),
-                                                                      false)
+                                                 .GetCustomAttributes(typeof(FieldAttribute), false)
                                                  .Single()).Order
                         select prop;
 
@@ -296,12 +296,10 @@ namespace Shared.Udp
 
         public static Memory<byte> Write(object o, Type t, IEnumerable<Attribute> attrs = null)
         {
-            var preLen =
-                attrs?.Where(a => a is LengthPrefixedAttribute).FirstOrDefault() as LengthPrefixedAttribute;
+            var preLen = attrs?.Where(a => a is LengthPrefixedAttribute).FirstOrDefault() as LengthPrefixedAttribute;
             var len = attrs?.Where(a => a is LengthAttribute).FirstOrDefault() as LengthAttribute;
             var pad = attrs?.Where(a => a is PaddingAttribute).FirstOrDefault() as PaddingAttribute;
-            var exists =
-                attrs?.Where(a => a is ExistsPrefixAttribute).FirstOrDefault() as ExistsPrefixAttribute;
+            var exists = attrs?.Where(a => a is ExistsPrefixAttribute).FirstOrDefault() as ExistsPrefixAttribute;
             var ret = new List<Memory<byte>>();
 
             if (pad != null)
@@ -332,8 +330,7 @@ namespace Shared.Udp
 
                 if (len != null)
                 {
-                    if (typeof(IEnumerable).IsAssignableFrom(t) && t.GenericTypeArguments != null &&
-                        t.GenericTypeArguments.Length > 0)
+                    if (typeof(IEnumerable).IsAssignableFrom(t) && t.GenericTypeArguments != null && t.GenericTypeArguments.Length > 0)
                     {
                         var st = t.GenericTypeArguments[0];
                         ret.Add(new byte[Marshal.SizeOf(st) * len.Length]);
@@ -413,7 +410,8 @@ namespace Shared.Udp
             return Combine(mems, totalSize);
         }
 
-        public static Memory<byte> WritePrimitive<T>(T val) where T : struct
+        public static Memory<byte> WritePrimitive<T>(T val)
+            where T : struct
         {
             return WritePrimitive(val, typeof(T));
         }
@@ -465,7 +463,7 @@ namespace Shared.Udp
             else if (val is Half h)
             {
                 span = new byte[2];
-                BinaryPrimitives.WriteUInt16LittleEndian(span, Convert.ToUInt16(h));
+                BinaryPrimitives.WriteUInt16LittleEndian(span, h.Value);
             }
             else if (val is float f)
             {
@@ -483,7 +481,8 @@ namespace Shared.Udp
             return span.AsMemory();
         }
 
-        public static Memory<byte> WriteStruct<T>(T pkt) where T : struct
+        public static Memory<byte> WriteStruct<T>(T pkt)
+            where T : struct
         {
             if (pkt is IWritable write)
             {
@@ -498,7 +497,8 @@ namespace Shared.Udp
             return mem;
         }
 
-        public static void WriteStruct<T>(Memory<byte> mem, T pkt) where T : struct
+        public static void WriteStruct<T>(Memory<byte> mem, T pkt)
+            where T : struct
         {
             if (pkt is IWritable write)
             {
@@ -510,7 +510,8 @@ namespace Shared.Udp
             }
         }
 
-        public static T SimpleFixEndianess<T>(T val) where T : struct
+        public static T SimpleFixEndianess<T>(T val)
+            where T : struct
         {
             var s = MemoryMarshal.Cast<T, byte>(new[] { val });
             s.Reverse();
@@ -524,7 +525,8 @@ namespace Shared.Udp
             b = t;
         }
 
-        public static Memory<byte> WriteClass<T>(T pkt) where T : class
+        public static Memory<byte> WriteClass<T>(T pkt)
+            where T : class
         {
             return WriteClass(pkt, typeof(T));
         }
@@ -534,8 +536,7 @@ namespace Shared.Udp
             var props = from prop in pkt.GetType().GetFields()
                         where Attribute.IsDefined(prop, typeof(FieldAttribute))
                         orderby ((FieldAttribute)prop
-                                                 .GetCustomAttributes(typeof(FieldAttribute),
-                                                                      false)
+                                                 .GetCustomAttributes(typeof(FieldAttribute), false)
                                                  .Single()).Order
                         select prop;
 

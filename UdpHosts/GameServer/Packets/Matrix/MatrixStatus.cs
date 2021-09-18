@@ -8,7 +8,9 @@ namespace GameServer.Packets.Matrix
     [MatrixMessage(MatrixPacketType.MatrixStatus)]
     public class MatrixStatus
     {
-        [Field] [Length(16)] public IList<byte> Unk;
+        [Field]
+        [Length(16)]
+        public IList<byte> Unk;
 
         public MatrixStatus()
         {

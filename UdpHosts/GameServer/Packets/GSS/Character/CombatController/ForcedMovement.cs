@@ -7,18 +7,25 @@ namespace GameServer.Packets.GSS.Character.CombatController
     [GSSMessage(Enums.GSS.Controllers.Character_CombatController, (byte)Events.ForcedMovement)]
     public class ForcedMovement
     {
-        [Field] public Vector AimDirection;
+        [Field]
+        public ushort Type;
 
-        [Field] public uint GameTime;
+        [Field]
+        public uint Unk1;
 
-        [Field] public ushort KeyFrame;
+        [Field]
+        public Vector Position;
 
-        [Field] public Vector Position;
+        [Field]
+        public Vector AimDirection;
 
-        [Field] public ushort Type;
+        [Field]
+        public Vector Velocity;
 
-        [Field] public uint Unk1;
+        [Field]
+        public uint GameTime;
 
-        [Field] public Vector Velocity;
+        [Field]
+        public ushort KeyFrame;
     }
 }

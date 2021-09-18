@@ -7,9 +7,12 @@ namespace GameServer.Packets.GSS.Character.CombatController
     [GSSMessage(Enums.GSS.Controllers.Character_CombatController, (byte)Events.KeyFrame)]
     public class KeyFrame
     {
-        [Field] public ulong PlayerID;
+        [Field]
+        public ulong PlayerID;
 
-        [Field] [Length(294)] public IList<byte> UnkBytes;
+        [Field]
+        [Length(294)]
+        public IList<byte> UnkBytes;
 
         public KeyFrame(IShard shard)
         {

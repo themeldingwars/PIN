@@ -14,7 +14,8 @@ namespace GameServer.Controllers
             _controllers = new ConcurrentDictionary<Enums.GSS.Controllers, Base>();
         }
 
-        public static T Get<T>() where T : Base, new()
+        public static T Get<T>()
+            where T : Base, new()
         {
             var attr = typeof(T).GetAttribute<ControllerIDAttribute>();
 

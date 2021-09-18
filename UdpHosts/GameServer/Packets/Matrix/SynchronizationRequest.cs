@@ -7,6 +7,8 @@ namespace GameServer.Packets.Matrix
     [MatrixMessage(MatrixPacketType.SynchronizationRequest)]
     public class SynchronizationRequest
     {
-        [Field] [Length(1)] public IList<byte> Unk;
+        [Field]
+        [Length(1)]
+        public IList<byte> Unk;
     }
 }
