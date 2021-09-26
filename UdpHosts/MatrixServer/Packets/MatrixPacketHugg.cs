@@ -16,14 +16,14 @@ namespace MatrixServer.Packets
             {
                 fixed (byte* t = type)
                 {
-                    return Utils.ReadFixedString(t, 4);
+                    return Deserializer.ReadFixedString(t, 4);
                 }
             }
             set
             {
                 fixed (byte* t = type)
                 {
-                    Utils.WriteFixed(t, Encoding.ASCII.GetBytes(value.Substring(0, 4)));
+                    Serializer.WriteFixed(t, Encoding.ASCII.GetBytes(value.Substring(0, 4)));
                 }
             }
         }
@@ -34,8 +34,8 @@ namespace MatrixServer.Packets
         public MatrixPacketHugg(ushort seqStart, ushort port)
         {
             SocketID = 0;
-            SequenceStart = Utils.SimpleFixEndianess(seqStart);
-            GameServerPort = Utils.SimpleFixEndianess(port);
+            SequenceStart = Utils.SimpleFixEndianness(seqStart);
+            GameServerPort = Utils.SimpleFixEndianness(port);
             Type = "HUGG";
         }
     }

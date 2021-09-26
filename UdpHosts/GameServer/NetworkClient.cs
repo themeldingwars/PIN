@@ -63,7 +63,7 @@ namespace GameServer
             var hdrSize = Unsafe.SizeOf<GamePacketHeader>();
             while (idx + 2 < data.Length)
             {
-                var hdr = Utils.ReadStruct<GamePacketHeader>(data.Slice(idx, 2).ToArray().Reverse().ToArray().AsMemory());
+                var hdr = Deserializer.ReadStruct<GamePacketHeader>(data.Slice(idx, 2).ToArray().Reverse().ToArray().AsMemory());
 
                 if (hdr.Length == 0 || data.Length < hdr.Length + idx)
                 {
@@ -96,7 +96,7 @@ namespace GameServer
 
             var t = new Memory<byte>(new byte[4 + p.Length]);
             p.CopyTo(t.Slice(4));
-            Utils.WriteStruct(Utils.SimpleFixEndianess(SocketID)).CopyTo(t);
+            Serializer.WriteStruct(Utils.SimpleFixEndianness(SocketID)).CopyTo(t);
 
             Sender.Send(t, RemoteEndpoint);
         }
@@ -113,8 +113,8 @@ namespace GameServer
                 Program.Logger.Verbose("<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel);
             }
 
-            var forNum = Utils.SimpleFixEndianess(forSeqNum);
-            var nextNum = Utils.SimpleFixEndianess(unchecked((ushort)(forSeqNum + 1)));
+            var forNum = Utils.SimpleFixEndianness(forSeqNum);
+            var nextNum = Utils.SimpleFixEndianness(unchecked((ushort)(forSeqNum + 1)));
 
             if (forChannel == ChannelType.Matrix)
             {
@@ -196,12 +196,12 @@ namespace GameServer
                     break;
                 case ControlPacketType.MatrixAck:
                     var mAckPkt = packet.Read<MatrixAck>();
-                    Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianess(mAckPkt.AckFor), ChannelType.Matrix);
+                    Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(mAckPkt.AckFor), ChannelType.Matrix);
                     // TODO: Track reliable packets
                     break;
                 case ControlPacketType.ReliableGSSAck:
                     var gssAckPkt = packet.Read<ReliableGSSAck>();
-                    Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianess(gssAckPkt.AckFor), ChannelType.ReliableGss);
+                    Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(gssAckPkt.AckFor), ChannelType.ReliableGss);
                     // TODO: Track reliable packets
                     break;
                 case ControlPacketType.TimeSyncRequest:

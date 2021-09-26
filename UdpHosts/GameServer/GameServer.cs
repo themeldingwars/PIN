@@ -86,7 +86,7 @@ namespace GameServer
             //Program.Logger.Information("[GAME] {0} sent {1} bytes.", packet.RemoteEndpoint, packet.PacketData.Length);
             //Program.Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 
-            var socketID = Utils.SimpleFixEndianess(packet.Read<uint>());
+            var socketID = Utils.SimpleFixEndianness(packet.Read<uint>());
             INetworkClient client;
 
             if (!ClientMap.ContainsKey(socketID))

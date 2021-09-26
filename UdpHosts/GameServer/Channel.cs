@@ -85,7 +85,7 @@ namespace GameServer
                 ushort seqNum = 0;
                 if (IsSequenced)
                 {
-                    seqNum = Utils.SimpleFixEndianess(packet.Read<ushort>());
+                    seqNum = Utils.SimpleFixEndianness(packet.Read<ushort>());
                 }
                 // TODO: Implement SequencedPacketQueue
 
@@ -150,7 +150,7 @@ namespace GameServer
             }
             else
             {
-                p = Utils.WriteStruct(pkt);
+                p = Serializer.WriteStruct(pkt);
             }
 
             var conMsgAttr = typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() as ControlMessageAttribute;
@@ -161,7 +161,7 @@ namespace GameServer
                 var msgID = conMsgAttr.MsgID;
                 var t = new Memory<byte>(new byte[1 + p.Length]);
                 p.CopyTo(t.Slice(1));
-                Utils.WritePrimitive((byte)msgID).CopyTo(t);
+                Serializer.WritePrimitive((byte)msgID).CopyTo(t);
                 p = t;
                 Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
             }
@@ -170,7 +170,7 @@ namespace GameServer
                 var msgID = matMsgAttr.MsgID;
                 var t = new Memory<byte>(new byte[1 + p.Length]);
                 p.CopyTo(t.Slice(1));
-                Utils.WritePrimitive((byte)msgID).CopyTo(t);
+                Serializer.WritePrimitive((byte)msgID).CopyTo(t);
                 p = t;
                 Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
             }
@@ -192,7 +192,7 @@ namespace GameServer
             }
             else
             {
-                p = Utils.WriteClass(pkt);
+                p = Serializer.WriteClass(pkt);
             }
 
             var controlMsgAttr = typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() as ControlMessageAttribute;
@@ -215,7 +215,7 @@ namespace GameServer
             var t = new Memory<byte>(new byte[1 + p.Length]);
             p.CopyTo(t.Slice(1));
 
-            Utils.WritePrimitive(msgID).CopyTo(t);
+            Serializer.WritePrimitive(msgID).CopyTo(t);
 
             p = t;
 
@@ -241,7 +241,7 @@ namespace GameServer
             }
             else
             {
-                p = Utils.WriteStruct(pkt);
+                p = Serializer.WriteStruct(pkt);
             }
 
             var gssMsgAttr = typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() as GSSMessageAttribute;
@@ -252,23 +252,23 @@ namespace GameServer
                 var t = new Memory<byte>(new byte[9 + p.Length]);
                 p.CopyTo(t.Slice(9));
 
-                Utils.WritePrimitive(entityID).CopyTo(t);
+                Serializer.WritePrimitive(entityID).CopyTo(t);
 
                 // Intentionally overwrite first byte of Entity ID
                 if (controllerID.HasValue)
                 {
-                    Utils.WritePrimitive((byte)controllerID.Value).CopyTo(t);
+                    Serializer.WritePrimitive((byte)controllerID.Value).CopyTo(t);
                 }
                 else if (gssMsgAttr.ControllerID.HasValue)
                 {
-                    Utils.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
+                    Serializer.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
                 }
                 else
                 {
                     throw new Exception();
                 }
 
-                Utils.WritePrimitive(msgID).CopyTo(t.Slice(8));
+                Serializer.WritePrimitive(msgID).CopyTo(t.Slice(8));
 
                 p = t;
 
@@ -300,7 +300,7 @@ namespace GameServer
             }
             else
             {
-                p = Utils.WriteClass(pkt);
+                p = Serializer.WriteClass(pkt);
             }
 
             //Console.WriteLine( string.Concat( p.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
@@ -312,23 +312,23 @@ namespace GameServer
                 var t = new Memory<byte>(new byte[9 + p.Length]);
                 p.CopyTo(t.Slice(9));
 
-                Utils.WritePrimitive(entityID).CopyTo(t);
+                Serializer.WritePrimitive(entityID).CopyTo(t);
 
                 // Intentionally overwrite first byte of Entity ID
                 if (controllerID.HasValue)
                 {
-                    Utils.WritePrimitive((byte)controllerID.Value).CopyTo(t);
+                    Serializer.WritePrimitive((byte)controllerID.Value).CopyTo(t);
                 }
                 else if (gssMsgAttr.ControllerID.HasValue)
                 {
-                    Utils.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
+                    Serializer.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
                 }
                 else
                 {
                     throw new Exception();
                 }
 
-                Utils.WritePrimitive(msgID).CopyTo(t.Slice(8));
+                Serializer.WritePrimitive(msgID).CopyTo(t.Slice(8));
 
                 p = t;
 
@@ -375,12 +375,12 @@ namespace GameServer
                         Program.Logger.Verbose("<- {0} SeqNum =  {1}", Type, CurrentSequenceNumber);
                     }
 
-                    Utils.WritePrimitive(Utils.SimpleFixEndianess(CurrentSequenceNumber)).CopyTo(t.Slice(2, 2));
+                    Serializer.WritePrimitive(Utils.SimpleFixEndianness(CurrentSequenceNumber)).CopyTo(t.Slice(2, 2));
                     unchecked { CurrentSequenceNumber++; }
                 }
 
                 var hdr = new GamePacketHeader(Type, 0, p.Length + hdrLen > MaxPacketSize, (ushort)t.Length);
-                var hdrBytes = Utils.WritePrimitive(Utils.SimpleFixEndianess(hdr.PacketHeader));
+                var hdrBytes = Serializer.WritePrimitive(Utils.SimpleFixEndianness(hdr.PacketHeader));
                 hdrBytes.CopyTo(t);
 
                 //Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianess(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));

@@ -17,7 +17,7 @@ namespace GameServer.Packets.GSS.Character.CombatController
         public KeyFrame(IShard shard)
         {
             var c = shard.CurrentTime;
-            var b = Utils.WritePrimitive(c).ToArray();
+            var b = Serializer.WritePrimitive(c).ToArray();
 
             UnkBytes = new List<byte>
                        {

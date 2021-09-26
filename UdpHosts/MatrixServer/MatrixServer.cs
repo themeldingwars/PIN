@@ -16,7 +16,7 @@ namespace MatrixServer
         protected override void HandlePacket(Packet packet, CancellationToken ct)
         {
             var mem = packet.PacketData;
-            var SocketID = Utils.ReadStruct<uint>(mem);
+            var SocketID = Deserializer.ReadStruct<uint>(mem);
             if (SocketID != 0)
             {
                 return;
@@ -24,24 +24,24 @@ namespace MatrixServer
 
             Program.Logger.Verbose("[MATRIX] " + packet.RemoteEndpoint + " sent " + packet.PacketData.Length + " bytes.");
 
-            var matrixPkt = Utils.ReadStruct<MatrixPacketBase>(mem);
+            var matrixPkt = Deserializer.ReadStruct<MatrixPacketBase>(mem);
 
             switch (matrixPkt.Type)
             {
                 case "POKE": // POKE
-                    var poke = Utils.ReadStruct<MatrixPacketPoke>(mem);
+                    var poke = Deserializer.ReadStruct<MatrixPacketPoke>(mem);
                     Program.Logger.Verbose("[POKE]");
                     var socketID = GenerateSocketID();
                     Program.Logger.Information("Assigning SocketID [" + socketID + "] to [" + packet.RemoteEndpoint + "]");
-                    _ = Send(Utils.WriteStruct(new MatrixPacketHehe(socketID)), packet.RemoteEndpoint);
+                    _ = Send(Serializer.WriteStruct(new MatrixPacketHehe(socketID)), packet.RemoteEndpoint);
                     break;
                 case "KISS": // KISS
-                    var kiss = Utils.ReadStruct<MatrixPacketKiss>(mem);
+                    var kiss = Deserializer.ReadStruct<MatrixPacketKiss>(mem);
                     Program.Logger.Verbose("[KISS]");
-                    _ = Send(Utils.WriteStruct(new MatrixPacketHugg(1, 25001)), packet.RemoteEndpoint);
+                    _ = Send(Serializer.WriteStruct(new MatrixPacketHugg(1, 25001)), packet.RemoteEndpoint);
                     break;
                 case "ABRT": // ABRT
-                    var abrt = Utils.ReadStruct<MatrixPacketAbrt>(mem);
+                    var abrt = Deserializer.ReadStruct<MatrixPacketAbrt>(mem);
                     Program.Logger.Verbose("[ABRT]");
                     break;
                 default:

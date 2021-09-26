@@ -16,14 +16,14 @@ namespace MatrixServer.Packets
             {
                 fixed (byte* t = type)
                 {
-                    return Utils.ReadFixedString(t, 4);
+                    return Deserializer.ReadFixedString(t, 4);
                 }
             }
             set
             {
                 fixed (byte* t = type)
                 {
-                    Utils.WriteFixed(t, Encoding.ASCII.GetBytes(value.Substring(0, 4)));
+                    Serializer.WriteFixed(t, Encoding.ASCII.GetBytes(value.Substring(0, 4)));
                 }
             }
         }

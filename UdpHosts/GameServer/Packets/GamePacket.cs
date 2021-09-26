@@ -23,7 +23,7 @@ namespace GameServer.Packets
         public T Read<T>()
         {
             var buf = PacketData.Slice(CurrentPosition);
-            var ret = Utils.Read<T>(ref buf);
+            var ret = Deserializer.Read<T>(ref buf);
 
             CurrentPosition = TotalBytes - buf.Length;
 
@@ -42,7 +42,7 @@ namespace GameServer.Packets
             where T : struct
         {
             var buf = PacketData.Slice(CurrentPosition);
-            return Utils.Read<T>(ref buf);
+            return Deserializer.Read<T>(ref buf);
         }
 
         public ReadOnlyMemory<byte> Peek(int len)

@@ -33,7 +33,7 @@ namespace Shared.Udp
             var p = CurrentPosition;
             var data = PacketData.Slice(CurrentPosition);
 
-            var ret = Utils.Read<T>(ref data);
+            var ret = Deserializer.Read<T>(ref data);
             CurrentPosition = PacketData.Length - data.Length;
 
             return ret;
@@ -50,7 +50,7 @@ namespace Shared.Udp
         public T Peek<T>()
         {
             var dis = PacketData.Slice(CurrentPosition);
-            return Utils.Read<T>(ref dis);
+            return Deserializer.Read<T>(ref dis);
         }
 
         public ReadOnlyMemory<byte> Peek(int len)
