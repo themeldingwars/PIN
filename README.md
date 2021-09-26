@@ -4,18 +4,31 @@ The Accord may think their Shared Intelligence Network is unique and impenetrabl
 
 *Fight the Accord - Kill the Chosen*
 
+https://user-images.githubusercontent.com/920861/134824107-03e9f99c-b420-47c7-b742-efe68967161c.mp4
+
 ## Usage
 
-1. Install Firefall via Steam
+**Note:** If you want to play around with the configuration, see the Development section below
+
+1. [Install Firefall via Steam](steam://install/227700)
 2. Edit the `firefall.ini` located in `steamapps\common\Firefall`
 3. Add content from below
-4. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
-5. Build the solution
-6. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
-7. Start multiple targets at once
-    - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, GameServer and MatrixServer
-    - Rider: Create a `Compound` target that starts WebHostManager, GameServer and MatrixServer
-8. Start Firefall
+4. Download the [latest PIN release](https://github.com/themeldingwars/PIN/releases/latest)
+5. Make a backup copy of the original `FirefallClient.exe` in `Firefall\system\bin`
+6. Replace the `FirefallClient.exe` with the patched `FirefallClient.exe` from the PIN release
+7. Make sure the [.NET 5 Runtime](https://dotnet.microsoft.com/download/dotnet/5.0) is installed
+8. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
+9. Start all three applications:
+   - GameServer
+   - MatrixServer
+   - WebHostManager
+10. Start Firefall
+11. Login to the server:
+    - If Steam auto login has been enabled, you will directly ne navigated to the character selection screen
+    - Otherwise, leave the login fields blank or enter anything you want and click "Login"
+12. Load into the game by pressing the "Enter World" button
+
+### firefall.ini
 
 ```ini
 [Config]
@@ -29,7 +42,40 @@ VTRemotePath = "http://localhost:4401/vtex/%ENVMNEMONIC%-%BUILDNUM%/static.vtex"
 PlayIntroMovie = false
 ```
 
+### Features
+
+- Loading into the New Eden zone
+- Basic character movement, including jetpacks
+- Primary and secondary weapon usage
+  - **Note:** In about one third of the cases, the weapons can't be used, try a relog in those cases
+- One partially working ability that breaks the camera position
+- Sound effects, ambient and music
+
+### Limitations
+
+- Currently only one map is supported, other zones can be loaded with small modifications of the source code
+- Weapons don't always work
+- Jetpacks are missing all visual effects
+- Most of the UI doesn't work properly
+- No gliders
+- No abilities
+- No call downs
+- No NPCs of any sort
+- No Melding
+
 ## Development
+
+1. Install Visual Studio or JetBrains Rider
+   - Include the [.NET 5 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) component or install it separately
+2. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
+3. Build the solution
+4. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
+5. Start multiple targets at once
+   - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, GameServer and MatrixServer
+   - Rider: Create a `Compound` target that starts WebHostManager, GameServer and MatrixServer
+6. Edit the `firefall.ini` located in `steamapps\common\Firefall`
+7. Add content from above
+8. Start Firefall
 
 ### Web Hosts
 
@@ -48,8 +94,9 @@ PlayIntroMovie = false
 | Market     | 4410 | 44310 |
 | RedHanded  | 4411 | 44311 |
 
-### Game Server
+### UDP Servers
 
-| Host        | UDP   |
-|-------------|-------|
-| Game Server | 25000 |
+| Host          | UDP   |
+|---------------|-------|
+| Matrix Server | 25000 |
+| Game Server   | 25001 |
