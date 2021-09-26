@@ -5,6 +5,8 @@
 
 # Custom files
 .idea/
+Webhosts/WebHost.WebAsset/Assets/*
+!Webhosts/WebHost.WebAsset/Assets/.gitkeep
 
 # User-specific files
 *.rsuser
