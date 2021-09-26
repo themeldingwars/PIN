@@ -109,6 +109,8 @@ namespace GameServer
 
             upd.Add(new Unknown1());
 
+            upd.Add(new RegionUnlocks { Bitfield = 0xFFFFFFFFFFFFFFFFUL });
+
             NetChans[ChannelType.ReliableGss].SendGSSClass(upd, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController);
 
             upd = new PartialUpdate();
