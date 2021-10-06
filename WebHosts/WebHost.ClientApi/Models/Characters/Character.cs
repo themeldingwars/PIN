@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebHost.ClientApi.Models
+namespace WebHost.ClientApi.Models.Characters
 {
     public class Character
     {

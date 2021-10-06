@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using WebHost.ClientApi.Models;
+using WebHost.ClientApi.Models.Accounts;
 
 namespace WebHost.ClientApi.Controllers
 {
@@ -13,12 +14,6 @@ namespace WebHost.ClientApi.Controllers
         {
             return new { error = false };
         }
-
-        /*[Route("api/v2/accounts")]
-        [HttpGet]
-        public object AccountsGet() {
-            return new { error = false };
-        }*/
 
         [Route("api/v2/accounts/login")]
         [HttpPost]

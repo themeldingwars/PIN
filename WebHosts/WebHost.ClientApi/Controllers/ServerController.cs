@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebHost.ClientApi.Models;
+using WebHost.ClientApi.Models.Server;
 
 namespace WebHost.ClientApi.Controllers
 {

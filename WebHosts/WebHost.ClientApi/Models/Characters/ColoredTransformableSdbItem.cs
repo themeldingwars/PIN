@@ -1,4 +1,6 @@
-﻿namespace WebHost.ClientApi.Models
+﻿using WebHost.ClientApi.Models.Base;
+
+namespace WebHost.ClientApi.Models.Characters
 {
     public class ColoredTransformableSdbItem : TransformableSdbItem
     {

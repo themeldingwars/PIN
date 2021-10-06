@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using WebHost.ClientApi.Models;
+using WebHost.ClientApi.Models.Base;
+using WebHost.ClientApi.Models.Characters;
 
 namespace WebHost.ClientApi.Controllers
 {

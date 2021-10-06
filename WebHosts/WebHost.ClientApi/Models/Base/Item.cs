@@ -1,4 +1,4 @@
-﻿namespace WebHost.ClientApi.Models
+﻿namespace WebHost.ClientApi.Models.Base
 {
     public class Item
     {

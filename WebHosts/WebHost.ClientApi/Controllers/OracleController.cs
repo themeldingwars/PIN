@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using WebHost.ClientApi.Models;
+using WebHost.ClientApi.Models.Oracle;
 
 namespace WebHost.ClientApi.Controllers
 {
