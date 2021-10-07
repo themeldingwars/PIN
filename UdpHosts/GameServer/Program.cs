@@ -6,11 +6,11 @@ using System.Buffers.Binary;
 
 namespace GameServer
 {
-    internal class Program
+    internal static class Program
     {
-        public static ILogger Logger { get; protected set; }
+        public static ILogger Logger { get; private set; }
 
-        private static void Main(string[] args)
+        private static void Main(string[] arguments)
         {
             Logger = new LoggerConfiguration()
                      .MinimumLevel.Verbose()

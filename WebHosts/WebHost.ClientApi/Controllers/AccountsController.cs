@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
-using WebHost.ClientApi.Models;
 using WebHost.ClientApi.Models.Accounts;
 
 namespace WebHost.ClientApi.Controllers
