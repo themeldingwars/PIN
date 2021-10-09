@@ -1,4 +1,4 @@
-﻿namespace WebHost.ClientApi.Models.Characters
+﻿namespace WebHost.ClientApi.Characters.Models
 {
     public class ColorValue
     {

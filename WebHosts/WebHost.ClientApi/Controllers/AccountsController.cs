@@ -26,8 +26,8 @@ namespace WebHost.ClientApi.Controllers
                        SteamAuthPrompt = false,
                        SkipPrecursor = false,
                        CaisStatus = new CaisStatus { Duration = 0, ExpiresAt = 0, State = "disabled" },
-                       CharacterLimit = 2,
-                       IsVip = false,
+                       CharacterLimit = 40,
+                       IsVip = true,
                        VipExpiration = 0,
                        CreatedAt = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds()
                    };

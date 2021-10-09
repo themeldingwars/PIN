@@ -5,6 +5,7 @@ using GameServer.Packets.GSS.Character.CombatController;
 using GameServer.Packets.GSS.Character.ObserverView;
 using GameServer.Packets.Matrix;
 using GameServer.Test;
+using Serilog.Core;
 using System.Net;
 using System.Numerics;
 using System.Threading;
@@ -47,12 +48,16 @@ namespace GameServer
             var wel = new WelcomeToTheMatrix { InstanceID = AssignedShard.InstanceID };
             NetChans[ChannelType.Matrix].SendClass(wel);
 
-            EnterZone(DataUtils.GetZone(448));
+            var zone = (uint)(charID & 0x000000000000ffff);
+
+            Program.Logger.Verbose("Zone {0}", zone);
+
+            EnterZone(DataUtils.GetZone(zone));
         }
 
         public void Respawn()
         {
-            var p = DataUtils.GetZone(448).POIs["watchtower"];
+            var p = DataUtils.GetZone(CurrentZone.ID).POIs["spawn"];
             CharacterEntity.Position = p;
 
             var forcedMove = new ForcedMovement
@@ -154,7 +159,7 @@ namespace GameServer
         public void EnterZone(Zone z)
         {
             CurrentZone = z;
-            CharacterEntity.Position = CurrentZone.POIs["watchtower"];
+            CharacterEntity.Position = CurrentZone.POIs["spawn"];
 
             // EnterZone
             var enterZone = new EnterZone();

@@ -1,7 +1,6 @@
 ﻿using WebHost.ClientApi.Models.Base;
-using WebHost.ClientApi.Models.Characters;
 
-namespace WebHost.ClientApi.Models
+namespace WebHost.ClientApi.Characters.Models
 {
     public abstract class WarpaintPattern : TransformableSdbItem
     {

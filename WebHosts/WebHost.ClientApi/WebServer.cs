@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Web;
+using WebHost.ClientApi.Characters;
 
 namespace WebHost.ClientApi
 {
@@ -10,7 +11,10 @@ namespace WebHost.ClientApi
     {
         public WebServer(IConfiguration configuration) : base(configuration) { }
 
-        protected override void ConfigureChildServices(IServiceCollection services) { }
+        protected override void ConfigureChildServices(IServiceCollection services)
+        {
+            services.AddScoped<ICharactersRepository, CharactersRepository>();
+        }
         protected override void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env) { }
     }
 }

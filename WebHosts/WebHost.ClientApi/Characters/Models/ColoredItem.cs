@@ -1,6 +1,6 @@
 ﻿using WebHost.ClientApi.Models.Base;
 
-namespace WebHost.ClientApi.Models.Characters
+namespace WebHost.ClientApi.Characters.Models
 {
     public class ColoredItem : Item
     {

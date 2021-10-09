@@ -44,16 +44,16 @@ PlayIntroMovie = false
 
 ### Features
 
-- Loading into the New Eden zone
+- Loading into any of the existing zone
 - Basic character movement, including jetpacks
 - Primary and secondary weapon usage
   - **Note:** In about one third of the cases, the weapons can't be used, try a relog in those cases
 - One partially working ability that breaks the camera position
 - Sound effects, ambient and music
+- The map can be opened
 
 ### Limitations
 
-- Currently only one map is supported, other zones can be loaded with small modifications of the source code
 - Weapons don't always work
 - Jetpacks are missing all visual effects
 - Most of the UI doesn't work properly

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using WebHost.ClientApi.Models;
 using WebHost.ClientApi.Models.Base;
 
-namespace WebHost.ClientApi.Models.Characters
+namespace WebHost.ClientApi.Characters.Models
 {
     public class Visuals
     {

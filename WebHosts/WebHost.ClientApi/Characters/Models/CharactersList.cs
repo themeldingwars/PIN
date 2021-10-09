@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace WebHost.ClientApi.Models.Characters
+namespace WebHost.ClientApi.Characters.Models
 {
-    public class CharatersList
+    public class CharactersList
     {
         public IEnumerable<Character> Characters { get; set; }
         public bool IsDev { get; set; }

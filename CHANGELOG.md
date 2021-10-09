@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2021-10-09
+
+### Added
+
+- Characters for each available zone with usable spawn location
+
 ## [1.0.0] - 2021-10-06
 
 ### Added
