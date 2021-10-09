@@ -79,20 +79,22 @@ PlayIntroMovie = false
 
 ### Web Hosts
 
-| Host       | HTTP | HTTPS |
-|------------|------|-------|
-| Operator   | 4400 | 44300 |
-| WebAsset   | 4401 | 44301 |
-| ClientApi  | 4402 | 44302 |
-| InGame     | 4403 | 44303 |
-| WebAccount | 4404 | 44304 |
-| Frontend   | 4405 | 44305 |
-| Store      | 4406 | 44306 |
-| Chat       | 4407 | 44307 |
-| Replay     | 4408 | 44308 |
-| Web        | 4409 | 44309 |
-| Market     | 4410 | 44310 |
-| RedHanded  | 4411 | 44311 |
+CatchAll (4499 / 44399) is used for now, until the specific APIs are implemented.
+
+| Host       | HTTP | HTTPS | Catch All |
+|------------|------|-------|-----------|
+| Operator   | 4400 | 44300 | ❌        |
+| WebAsset   | 4401 | 44301 | ✔️        |
+| ClientApi  | 4402 | 44302 | ❌        |
+| InGame     | 4403 | 44303 | ❌        |
+| WebAccount | 4404 | 44304 | ✔️        |
+| Frontend   | 4405 | 44305 | ✔️        |
+| Store      | 4406 | 44306 | ✔️        |
+| Chat       | 4407 | 44307 | ❌        |
+| Replay     | 4408 | 44308 | ✔️        |
+| Web        | 4409 | 44309 | ✔️        |
+| Market     | 4410 | 44310 | ✔️        |
+| RedHanded  | 4411 | 44311 | ✔️        |
 
 ### UDP Servers
 

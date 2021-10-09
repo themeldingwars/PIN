@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update documentation regarding the usage of web hosts
+
 ## [1.1.0] - 2021-10-09
 
 ### Added
