@@ -5,8 +5,15 @@ using System.Text.RegularExpressions;
 
 namespace Shared.Common
 {
-    public static class FirefallLocationFinder
+    public static class LocationProvider
     {
+        public static string FindTheMeldingWarsLocation()
+        {
+            var localAppData = Environment.ExpandEnvironmentVariables(@"%LocalAppData%");
+
+            return string.IsNullOrEmpty(localAppData) ? null : Path.Combine(Environment.ExpandEnvironmentVariables(@"%LocalAppData%"), "TheMeldingWars");
+        }
+        
         public static string FindFirefallLocation()
         {
             return FindFirefallByShellCommand() ?? FindSteamLibraryLocation();

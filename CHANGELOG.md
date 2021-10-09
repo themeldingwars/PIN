@@ -5,6 +5,7 @@
 ### Changed
 
 - Update documentation regarding the usage of web hosts
+- Turn Firefall specific location finder to a common location provider
 
 ## [1.1.0] - 2021-10-09
 
