@@ -94,6 +94,7 @@ namespace GameServer
                     // de-xor data
                     var x = packet.PacketData.Length >> 3;
                     var data = packet.PacketData.ToArray();
+                    var dataTmp = Array.Empty<byte>();
 
                     if (x > 0)
                     {
@@ -104,8 +105,11 @@ namespace GameServer
                             uSpan[i] ^= xorULong[packet.Header.ResendCount];
                         }
 
-                        data = MemoryMarshal.Cast<ulong, byte>(uSpan).ToArray();
+                        dataTmp = MemoryMarshal.Cast<ulong, byte>(uSpan).ToArray(); // override old size
                     }
+
+                    for (int i = 0; i < dataTmp.Length; i++) // copy back
+                        data[i] = dataTmp[i];
 
                     for (var i = x * 8; i < packet.PacketData.Length; i++)
                     {
