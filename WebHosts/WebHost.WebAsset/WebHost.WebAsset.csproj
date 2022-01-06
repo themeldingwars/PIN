@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\PIN.targets" />
+    <Import Project="..\..\PIN.targets"/>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0"/>
@@ -15,6 +15,10 @@
         <Content Include="Assets\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Assets\1962-prod\vtex"/>
     </ItemGroup>
 
 </Project>

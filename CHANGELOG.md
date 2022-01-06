@@ -15,6 +15,10 @@
 
 ### Changed
 
+- Use modern namespace wrapping
+- Limit visibility where possible
+- Make use of slicing operators
+- Use consistent naming convention
 - Replace SharedAssemblyInfo with a targets file
 - Update to .NET 6
 - Changed 'missing MSGid' logging to include the details (1st message) in log level warning instead of verbose
@@ -23,6 +27,7 @@
 
 ### Fixed
 
+- Fix typos in class and property names
 - Fix IndexOutOfRangeException being thrown by the Matrix server
 - Fix string deserialization and corrected Matrix Login packet
 
@@ -37,15 +42,15 @@
 ### Added
 
 - MatrixServer to handle client connection establishment and hand off to GameServer
-  - Supports all five packets: ABRT, HEHE, HUGG, KISS, POKE
+    - Supports all five packets: ABRT, HEHE, HUGG, KISS, POKE
 - GameServer to handle map zoning and basic character movement
-  - Zone into New Eden
-  - Spawn on a Watch Tower
-  - Have a pre-defined set of Visuals
-  - Use your Primary and Secondary Weapon (sometimes it doesn't work)
-  - Run and sprint around the whole map
+    - Zone into New Eden
+    - Spawn on a Watch Tower
+    - Have a pre-defined set of Visuals
+    - Use your Primary and Secondary Weapon (sometimes it doesn't work)
+    - Run and sprint around the whole map
 - WebHostManager to deal with standard web requests from the client through different WebHosts
-  - Handle login requests via hardcoded Oracle ticket
-  - Provide hardcoded account details
-  - Serve the necessary Host Information
-  - Return static assets when provided by the user
+    - Handle login requests via hardcoded Oracle ticket
+    - Provide hardcoded account details
+    - Serve the necessary Host Information
+    - Return static assets when provided by the user

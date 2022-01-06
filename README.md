@@ -19,9 +19,9 @@ https://user-images.githubusercontent.com/920861/134824107-03e9f99c-b420-47c7-b7
 7. Make sure the [.NET 6 Runtime](https://dotnet.microsoft.com/download/dotnet/6.0) is installed
 8. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
 9. Start all three applications:
-   - GameServer
-   - MatrixServer
-   - WebHostManager
+    - GameServer
+    - MatrixServer
+    - WebHostManager
 10. Start Firefall
 11. Login to the server:
     - If Steam auto login has been enabled, you will directly be navigated to the character selection screen
@@ -47,7 +47,7 @@ PlayIntroMovie = false
 - Loading into any of the existing zone
 - Basic character movement, including jetpacks
 - Primary and secondary weapon usage
-  - **Note:** In about one third of the cases, the weapons can't be used, try a relog in those cases
+    - **Note:** In about one third of the cases, the weapons can't be used, try a relog in those cases
 - One partially working ability that breaks the camera position
 - Sound effects, ambient and music
 - The map can be opened
@@ -66,13 +66,13 @@ PlayIntroMovie = false
 ## Development
 
 1. Install Visual Studio or JetBrains Rider
-   - Include the [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) component or install it separately
+    - Include the [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) component or install it separately
 2. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
 3. Build the solution
 4. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
 5. Start multiple targets at once
-   - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, GameServer and MatrixServer
-   - Rider: Create a `Compound` target that starts WebHostManager, GameServer and MatrixServer
+    - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, GameServer and MatrixServer
+    - Rider: Create a `Compound` target that starts WebHostManager, GameServer and MatrixServer
 6. Edit the `firefall.ini` located in `steamapps\common\Firefall`
 7. Add content from above
 8. Start Firefall

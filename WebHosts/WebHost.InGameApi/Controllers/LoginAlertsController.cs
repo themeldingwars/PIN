@@ -2,18 +2,18 @@
 using System.Net.Http;
 using System.Text;
 
-namespace WebHost.InGameApi.Controllers
+namespace WebHost.InGameApi.Controllers;
+
+[Route("login_alerts")]
+[ApiController]
+public class LoginAlertsController : ControllerBase
 {
-    [Route("login_alerts")]
-    [ApiController]
-    public class LoginAlertsController : ControllerBase
+    [HttpGet]
+    public HttpResponseMessage GetLoginAlerts()
     {
-        [HttpGet]
-        public HttpResponseMessage GetLoginAlerts()
-        {
-            return new HttpResponseMessage
-                   {
-                       Content = new StringContent(@"<!DOCTYPE html>
+        return new HttpResponseMessage
+               {
+                   Content = new StringContent(@"<!DOCTYPE html>
 <html>
 <head>
 <meta charset=""utf - 8"" />
@@ -28,7 +28,6 @@ namespace WebHost.InGameApi.Controllers
 
 </body>
 </html>", Encoding.UTF8, "text/html")
-                   };
-        }
+               };
     }
 }

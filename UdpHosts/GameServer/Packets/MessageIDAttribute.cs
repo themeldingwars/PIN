@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace GameServer.Packets
-{
-    public class MessageIDAttribute : Attribute
-    {
-        public MessageIDAttribute(byte idNum)
-        {
-            IDNumber = idNum;
-        }
+namespace GameServer.Packets;
 
-        public byte IDNumber { get; protected set; }
+public class MessageIDAttribute : Attribute
+{
+    public MessageIDAttribute(byte idNum)
+    {
+        IDNumber = idNum;
     }
+
+    public byte IDNumber { get; protected set; }
 }

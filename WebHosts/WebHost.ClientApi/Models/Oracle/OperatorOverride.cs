@@ -1,8 +1,7 @@
-﻿namespace WebHost.ClientApi.Models.Oracle
+﻿namespace WebHost.ClientApi.Models.Oracle;
+
+public class OperatorOverride
 {
-    public class OperatorOverride
-    {
-        public string IngameHost { get; set; }
-        public string ClientapiHost { get; set; }
-    }
+    public string IngameHost { get; set; }
+    public string ClientapiHost { get; set; }
 }

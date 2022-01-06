@@ -1,7 +1,6 @@
-﻿namespace GameServer
+﻿namespace GameServer;
+
+public interface IInstance
 {
-    public interface IInstance
-    {
-        ulong InstanceID { get; }
-    }
+    ulong InstanceID { get; }
 }

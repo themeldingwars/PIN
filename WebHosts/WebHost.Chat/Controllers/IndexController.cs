@@ -1,15 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace WebHost.Chat.Controllers
+namespace WebHost.Chat.Controllers;
+
+[ApiController]
+public class IndexController : ControllerBase
 {
-    [ApiController]
-    public class IndexController : ControllerBase
+    [Route("")]
+    [HttpGet]
+    public object Test()
     {
-        [Route("")]
-        [HttpGet]
-        public object Test()
-        {
-            return new { test = true };
-        }
+        return new { test = true };
     }
 }

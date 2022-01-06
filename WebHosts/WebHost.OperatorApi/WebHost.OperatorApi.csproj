@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\PIN.targets" />
+    <Import Project="..\..\PIN.targets"/>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0"/>

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace WebHost.ClientApi.Models.Base
+namespace WebHost.ClientApi.Models.Base;
+
+public class TransformableSdbItem : SdbItem
 {
-    public class TransformableSdbItem : SdbItem
-    {
-        public IEnumerable<decimal> Transform { get; set; }
-    }
+    public IEnumerable<decimal> Transform { get; set; }
 }

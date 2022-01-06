@@ -1,7 +1,6 @@
-﻿namespace WebHost.ClientApi.Characters.Models
+﻿namespace WebHost.ClientApi.Characters.Models;
+
+public class ColorValue
 {
-    public class ColorValue
-    {
-        public long Color { get; set; }
-    }
+    public long Color { get; set; }
 }

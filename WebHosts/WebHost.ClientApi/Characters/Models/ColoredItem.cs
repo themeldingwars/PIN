@@ -1,9 +1,8 @@
 ﻿using WebHost.ClientApi.Models.Base;
 
-namespace WebHost.ClientApi.Characters.Models
+namespace WebHost.ClientApi.Characters.Models;
+
+public class ColoredItem : Item
 {
-    public class ColoredItem : Item
-    {
-        public ColorValue Value { get; set; }
-    }
+    public ColorValue Value { get; set; }
 }

@@ -1,15 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace WebHost.ClientApi.Controllers
+namespace WebHost.ClientApi.Controllers;
+
+[ApiController]
+public class TradeController : ControllerBase
 {
-    [ApiController]
-    public class TradeController : ControllerBase
+    [Route("api/v3/trade/products/garage_slot_perk_respec")]
+    [HttpGet]
+    public object GarageSlotPerkRespec()
     {
-        [Route("api/v3/trade/products/garage_slot_perk_respec")]
-        [HttpGet]
-        public object GarageSlotPerkRespec()
-        {
-            return new { };
-        }
+        return new { };
     }
 }

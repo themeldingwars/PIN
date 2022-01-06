@@ -6,165 +6,161 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-namespace Shared.Udp
+namespace Shared.Udp;
+
+public abstract class PacketServer : IPacketSender
 {
-    public abstract class PacketServer : IPacketSender
+    public const int Mtu = 1400;
+
+    private readonly Socket serverSocket;
+    private readonly IPEndPoint listenEndpoint;
+    private readonly CancellationTokenSource source = new();
+
+    protected BufferBlock<Packet?> _incomingPackets;
+    protected BufferBlock<Packet?> _outgoingPackets;
+
+    protected PacketServer(ushort port)
     {
-        public const int MTU = 1400;
+        listenEndpoint = new IPEndPoint(IPAddress.Any, port);
+        serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+    }
 
-        public static ILogger Logger;
+    public static ILogger Logger { get; set; }
+    public bool IsRunning { get; protected set; }
 
+    public async Task<bool> Send(Memory<byte> packet, IPEndPoint endPoint)
+    {
+        return await _outgoingPackets.SendAsync(new Packet(endPoint, packet));
+    }
 
-        protected readonly Socket serverSocket;
-        protected readonly IPEndPoint listenEndpoint;
-        protected BufferBlock<Packet?> incomingPackets;
-        protected BufferBlock<Packet?> outgoingPackets;
-        protected CancellationTokenSource source;
+    // TODO: Move to separate thread? add console/rcon handling here?
+    // FIXME: Move timing to GameServer
+    public void Run()
+    {
+        var ct = source.Token;
 
+        _incomingPackets = new BufferBlock<Packet?>();
+        _outgoingPackets = new BufferBlock<Packet?>();
 
-        public PacketServer(ushort port)
+        var listenThread = Utils.RunThread(ListenThread, ct);
+        var runThread = Utils.RunThread(ServerRunThreadAsync, ct);
+        var sendThread = Utils.RunThread(SendThread, ct);
+
+        Startup(ct);
+
+        IsRunning = true;
+
+        while (IsRunning)
         {
-            listenEndpoint = new IPEndPoint(IPAddress.Any, port);
-            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            // TODO: Handle Command
+            var line = Console.ReadLine();
+            HandleCommand(line);
         }
 
-        public bool IsRunning { get; protected set; }
-
-        public async Task<bool> Send(Memory<byte> p, IPEndPoint ep)
+        if (!source.IsCancellationRequested)
         {
-            return await outgoingPackets.SendAsync(new Packet(ep, p));
+            source.Cancel();
         }
 
+        Shutdown(ct);
+    }
 
-        protected virtual void HandleCommand(string line)
+    protected virtual void HandleCommand(string line)
+    {
+        if (!line.Trim().StartsWith("exit"))
         {
-            if (line.Trim().StartsWith("exit"))
+            return;
+        }
+
+        IsRunning = false;
+        source.Cancel();
+    }
+
+    protected abstract void HandlePacket(Packet p, CancellationToken ct);
+    protected virtual void Startup(CancellationToken ct) { }
+
+    protected virtual async void ServerRunThreadAsync(CancellationToken ct)
+    {
+        Packet? p;
+        while ((p = await _incomingPackets.ReceiveAsync(ct)) != null)
+        {
+            HandlePacket(p.Value, ct);
+        }
+    }
+
+    protected virtual void Shutdown(CancellationToken ct) { }
+
+    private async void ListenThread(CancellationToken ct)
+    {
+        serverSocket.Blocking = true;
+        serverSocket.DontFragment = true;
+        serverSocket.ReceiveBufferSize = Mtu * 100;
+        serverSocket.SendBufferSize = Mtu * 100;
+        serverSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
+        serverSocket.Bind(listenEndpoint);
+
+        Logger.Information("Listening on {0}", listenEndpoint);
+
+        var buffer = new byte[Mtu * 10];
+        EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        int c;
+
+        Thread.CurrentThread.Priority = ThreadPriority.Highest;
+
+        while (true)
+        {
+            if (ct.IsCancellationRequested)
             {
-                IsRunning = false;
-                source.Cancel();
+                break;
             }
-        }
 
-        protected abstract void HandlePacket(Packet p, CancellationToken ct);
-        protected virtual void Startup(CancellationToken ct) { }
-
-        protected virtual async void ServerRunThread(CancellationToken ct)
-        {
-            Packet? p;
-            while ((p = await incomingPackets.ReceiveAsync(ct)) != null)
+            try
             {
-                HandlePacket(p.Value, ct);
-            }
-        }
-
-        protected virtual void Shutdown(CancellationToken ct) { }
-
-
-        // TODO: Move to seperate thread? add console/rcon handling here?
-        // FIXME: Move timing to GameServer
-        public void Run()
-        {
-            source = new CancellationTokenSource();
-            var ct = source.Token;
-
-            incomingPackets = new BufferBlock<Packet?>();
-            outgoingPackets = new BufferBlock<Packet?>();
-
-            var listenThread = Utils.RunThread(ListenThread, ct);
-            var runThread = Utils.RunThread(ServerRunThread, ct);
-            var sendThread = Utils.RunThread(SendThread, ct);
-
-            Startup(ct);
-
-            IsRunning = true;
-
-            while (IsRunning)
-            {
-                // TODO: Handle Command
-                var line = Console.ReadLine();
-                HandleCommand(line);
-            }
-
-            if (!source.IsCancellationRequested)
-            {
-                source.Cancel();
-            }
-
-            Shutdown(ct);
-        }
-
-        private async void ListenThread(CancellationToken ct)
-        {
-            serverSocket.Blocking = true;
-            serverSocket.DontFragment = true;
-            serverSocket.ReceiveBufferSize = MTU * 100;
-            serverSocket.SendBufferSize = MTU * 100;
-            serverSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
-            serverSocket.Bind(listenEndpoint);
-
-            Logger.Information("Listening on {0}", listenEndpoint);
-
-            var buffer = new byte[MTU * 10];
-            EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-            int c;
-
-            Thread.CurrentThread.Priority = ThreadPriority.Highest;
-
-            while (true)
-            {
-                if (ct.IsCancellationRequested)
+                // Sockets don't support async yet :( Blocking here bc the win api will yield and wait better on the native side than we can here
+                if ((c = serverSocket.ReceiveFrom(buffer, SocketFlags.None, ref remoteEndPoint)) > 0)
                 {
-                    break;
-                }
+                    // Should probably change to ArrayPool<byte>, but can't return a Memory<byte> :(
+                    // TODO: Move Endpoint and Memory<byte> management to Packet (constructor + destructor)
+                    var buf = new byte[c];
+                    buffer.AsSpan().Slice(0, c).ToArray().CopyTo(buf, 0);
+                    _ = await _incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEndPoint, new ReadOnlyMemory<byte>(buf, 0, c), DateTime.Now), ct);
 
-                try
-                {
-                    // Sockets don't support async yet :( Blocking here bc the win api will yield and wait better on the native side than we can here
-                    if ((c = serverSocket.ReceiveFrom(buffer, SocketFlags.None, ref remoteEP)) > 0)
-                    {
-                        // Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
-                        // TODO: Move Endpoint and Memory<byte> management to Packet (constructor + destructor)
-                        var buf = new byte[c];
-                        buffer.AsSpan().Slice(0, c).ToArray().CopyTo(buf, 0);
-                        _ = await incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c), DateTime.Now), ct);
-
-                        // Not 100% sure this needs to be cleared?
-                        remoteEP = new IPEndPoint(IPAddress.Any, 0);
-                    }
+                    // Not 100% sure this needs to be cleared?
+                    remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
                 }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, "Error {0}", "listenThread");
-                }
-
-                _ = Thread.Yield();
             }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error {0}", "listenThread");
+            }
+
+            _ = Thread.Yield();
+        }
+    }
+
+    private async void SendThread(CancellationToken ct)
+    {
+        while (_outgoingPackets == null)
+        {
+            Thread.Sleep(10);
         }
 
-        private async void SendThread(CancellationToken ct)
+        Thread.CurrentThread.Priority = ThreadPriority.Highest;
+        Packet? p;
+
+        while (true)
         {
-            while (outgoingPackets == null)
+            if (ct.IsCancellationRequested)
             {
-                Thread.Sleep(10);
+                break;
             }
 
-            Thread.CurrentThread.Priority = ThreadPriority.Highest;
-            Packet? p;
-
-            while (true)
+            while ((p = await _outgoingPackets.ReceiveAsync(ct)) != null)
             {
-                if (ct.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                while ((p = await outgoingPackets.ReceiveAsync(ct)) != null)
-                {
-                    _ = serverSocket.SendTo(p.Value.PacketData.ToArray(), p.Value.PacketData.Length, SocketFlags.None, p.Value.RemoteEndpoint);
-                }
-
-                _ = Thread.Yield();
+                _ = serverSocket.SendTo(p.Value.PacketData.ToArray(), p.Value.PacketData.Length, SocketFlags.None, p.Value.RemoteEndpoint);
             }
+
+            _ = Thread.Yield();
         }
     }
 }
