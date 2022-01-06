@@ -24,7 +24,7 @@ https://user-images.githubusercontent.com/920861/134824107-03e9f99c-b420-47c7-b7
    - WebHostManager
 10. Start Firefall
 11. Login to the server:
-    - If Steam auto login has been enabled, you will directly ne navigated to the character selection screen
+    - If Steam auto login has been enabled, you will directly be navigated to the character selection screen
     - Otherwise, leave the login fields blank or enter anything you want and click "Login"
 12. Load into the game by pressing the "Enter World" button
 
