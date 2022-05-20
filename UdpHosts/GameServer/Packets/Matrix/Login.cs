@@ -7,28 +7,55 @@ namespace GameServer.Packets.Matrix
     [MatrixMessage(MatrixPacketType.Login)]
     public class Login
     {
+        public class UnkStructure1
+        {
+            [Field]
+            public ulong Unk1;
+
+            [Field]
+            public string Unk2;
+        }
+
         [Field]
         public byte Unk1;
 
         [Field]
-        public ushort ClientVersion;
+        public uint ClientVersion;
 
         [Field]
-        [Length(3)]
-        public IList<byte> Unk2;
+        public string Unk2;
 
         [Field]
         public ulong CharacterGUID;
 
         [Field]
-        [Length(13)]
-        public IList<byte> Unk3;
+        public uint Unk3;
+
+        [Field]
+        public uint Unk4;
+
+        [Field]
+        public ushort Unk5;
+
+        [Field]
+        public byte Unk6;
+
+        [Field]
+        public byte Unk7;
+
+        [Field]
+        public byte Unk8;
 
         [Field]
         public string Red5Sig2; // From Web Requests to ClientAPI
 
         [Field]
+        [ExistsPrefix(typeof(byte), 1)]
+        public UnkStructure1 Unk9;
+
+        // TODO: This should read to the end of the packet, it is not necessarily a predefined length
+        [Field]
         [Length(370)]
-        public IList<byte> Red5Sig1; // From Web Requests to ClientAPI
+        public IList<byte> OracleTicket;
     }
 }
