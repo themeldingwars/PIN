@@ -115,6 +115,7 @@ namespace Shared.Udp
                 {
                     l++;
                 }
+                l++; // null terminator
 
                 ret = Encoding.ASCII.GetString(data.Slice(0, l - 1).Span.ToArray());
                 data = data.Slice(l);
