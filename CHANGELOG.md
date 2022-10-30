@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Added configuration for the game server. You can edit the settings.json for working defaults and settings.development.json for local settings.
+  Currently, the only option is the log level
+- Added cli options parsing. Currently, the only option is the log level.
+- Added 404 handling to the web server pipeline which prints the contents of requests which produce 404 responses as warnings.
+- Changed missing MSGid parser logging to include the first message in log level warning as well
+- Added ClientEventController with a corresponding endpoint to receive the respective events from the client
 - Update documentation regarding the usage of web hosts
 - Turn Firefall specific location finder to a common location provider
 
