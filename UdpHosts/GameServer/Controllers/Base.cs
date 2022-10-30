@@ -25,18 +25,18 @@ namespace GameServer.Controllers
 
         public abstract void Init(INetworkClient client, IPlayer player, IShard shard);
 
-        public void HandlePacket(INetworkClient client, IPlayer player, ulong EntityID, byte MsgID, GamePacket packet)
+        public void HandlePacket(INetworkClient client, IPlayer player, ulong entityId, byte msgId, GamePacket packet)
         {
-            var method = ReflectionUtils.FindMethodsByAttribute<MessageIDAttribute>(this).Where(mi => mi.GetAttribute<MessageIDAttribute>().MsgID == MsgID).FirstOrDefault();
+            var method = ReflectionUtils.FindMethodsByAttribute<MessageIDAttribute>(this).FirstOrDefault(mi => mi.GetAttribute<MessageIDAttribute>().MsgID == msgId);
 
             if (method == null)
             {
-                Log.Verbose("---> Unrecognized MsgID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, EntityID, MsgID);
-                Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+                Log.Warning("---> Unrecognized MsgID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, entityId, msgId);
+                Log.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 return;
             }
 
-            _ = method.Invoke(this, new object[] { client, player, EntityID, packet });
+            _ = method.Invoke(this, new object[] { client, player, entityId, packet });
         }
     }
 }
