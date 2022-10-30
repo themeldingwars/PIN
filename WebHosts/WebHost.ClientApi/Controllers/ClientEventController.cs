@@ -18,7 +18,7 @@ namespace WebHost.ClientApi.Controllers
         [HttpPost]
         public object Post([FromBody]ClientEvent payload)
         {
-            Log.Logger.Information(JsonConvert.SerializeObject(payload));
+            Log.Logger.Verbose(JsonConvert.SerializeObject(payload));
             return new { };
         }
     }
