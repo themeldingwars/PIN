@@ -1,0 +1,1 @@
+start /D UdpHosts\MatrixServer\bin\Debug\net5.0 UdpHosts\MatrixServer\bin\Debug\net5.0\MatrixServer.exe
