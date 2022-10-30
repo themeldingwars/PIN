@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,7 +9,10 @@ using Serilog;
 using Shared.Common;
 using Shared.Web.Config;
 using System;
+using System.IO;
+using System.Net;
 using System.Security.Authentication;
+using System.Text;
 using WebHost = Microsoft.AspNetCore.WebHost;
 
 namespace Shared.Web
@@ -89,6 +94,22 @@ namespace Shared.Web
                              {
                                  c.SwaggerEndpoint("/swagger/v1/swagger.json", "Firefall API");
                              });
+
+            // log requests which produce 404 responses so we can fill in the missing endpoints
+            app.Use(async (context, next) =>
+                    {
+                        context.Request.EnableBuffering();
+                        await next();
+                        if (context.Response.StatusCode == (int)HttpStatusCode.NotFound)
+                        {
+                            var req = context.Request;
+                            using var streamReader =
+                                new StreamReader(req.Body, Encoding.UTF8, true, 1024, true);
+                            Log.Error($"NotFound: {req.GetEncodedUrl()} ;; {req.Method} ;; {await streamReader.ReadToEndAsync()}");
+                            req.Body.Position = 0;
+                            await next();
+                        }
+                    });
 
             if (env.IsDevelopment())
             {
