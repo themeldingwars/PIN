@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29409.12
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Common", "Lib\Shared.Common\Shared.Common.csproj", "{B0713AD9-4EF4-4740-93A5-6F756BA130E4}"
 EndProject
@@ -48,11 +48,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{1191B69C-BCE5-484D-B938-030EBE130B2B}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		CHANGELOG.md = CHANGELOG.md
 		PIN.sln.DotSettings = PIN.sln.DotSettings
 		README.md = README.md
 		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
 		Start.cmd = Start.cmd
-		CHANGELOG.md = CHANGELOG.md
 	EndProjectSection
 EndProject
 Global
