@@ -4,12 +4,13 @@
 
 ### Changed
 
-- Added configuration for the game server. You can edit the settings.json for working defaults and settings.development.json for local settings.
-  Currently, the only option is the log level
-- Added cli options parsing. Currently, the only option is the log level.
-- Added 404 handling to the web server pipeline which prints the contents of requests which produce 404 responses as warnings.
-- Changed missing MSGid parser logging to include the first message in log level warning as well
-- Added ClientEventController with a corresponding endpoint to receive the respective events from the client
+- Added individual .bat files for each game service pointing directly to the respective `bin\debug` folder.
+- Added configuration for the game server. You can edit `settings.json` in the `config` directory when adding working defaults and add a `settings.development.json` in the same folder for local/individual settings.
+  Currently, the only option is the log level.
+- Added cli options parsing. Currently, the only option is the log level. Specifying wrong options will not stop the server from starting.
+- Added 404 handling to the web server pipeline which prints the contents of 404-producing requests as warnings to see what's missing.
+- Changed 'missing MSGid' logging to include the details (1st message) in log level warning instead of verbose.
+- Added ClientEventController with a corresponding endpoint to receive the events from the client. Currently, only the client uptime seems to be posted on exit of the game.
 - Update documentation regarding the usage of web hosts
 - Turn Firefall specific location finder to a common location provider
 
