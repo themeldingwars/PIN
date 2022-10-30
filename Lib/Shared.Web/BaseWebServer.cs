@@ -63,6 +63,7 @@ namespace Shared.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSwaggerGen();
             _ = services.AddControllers()
                         .AddJsonOptions(options =>
                                         {
@@ -75,10 +76,20 @@ namespace Shared.Web
             ConfigureChildServices(services);
         }
 
-        protected virtual void ConfigureChildServices(IServiceCollection services) { }
+        protected virtual void ConfigureChildServices(IServiceCollection services)
+        {
+            services.AddSwaggerGen();
+        }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+                             {
+                                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Firefall API");
+                             });
+
             if (env.IsDevelopment())
             {
                 _ = app.UseDeveloperExceptionPage();
