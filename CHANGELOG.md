@@ -5,8 +5,9 @@
 ### Changed
 
 - Added individual .bat files for each game service pointing directly to the respective `bin\debug` folder.
-- Added configuration for the game server. You can edit `settings.json` in the `config` directory when adding working defaults and add a `settings.development.json` in the same folder for local/individual settings.
-  Currently, the only option is the log level.
+- Added configuration for the game server. You can edit the `App.config` file in the `GameServer` project root for local settings and add working defaults in `App.Default.config`.
+  `App.config` will be generated from `App.Default.config` if not present before build.
+  Currently, the only option present is the Serilog log level.
 - Added cli options parsing. Currently, the only option is the log level. Specifying wrong options will not stop the server from starting.
 - Added 404 handling to the web server pipeline which prints the contents of 404-producing requests as warnings to see what's missing.
 - Changed 'missing MSGid' logging to include the details (1st message) in log level warning instead of verbose.
