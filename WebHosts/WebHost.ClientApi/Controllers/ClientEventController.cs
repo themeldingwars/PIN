@@ -1,11 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using WebHost.ClientApi.Models.ClientEvent;
 
 namespace WebHost.ClientApi.Controllers
@@ -18,7 +13,7 @@ namespace WebHost.ClientApi.Controllers
         [HttpPost]
         public object Post([FromBody]ClientEvent payload)
         {
-            Log.Logger.Verbose(JsonConvert.SerializeObject(payload));
+            Log.Logger.Verbose(JsonSerializer.Serialize(payload));
             return new { };
         }
     }
