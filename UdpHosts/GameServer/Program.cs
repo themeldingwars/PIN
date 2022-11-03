@@ -19,13 +19,19 @@ namespace GameServer
         private static void Main(string[] arguments)
         {
 
-            LoadSettings();
             ParseAndApplyCliOptions(arguments);
 
-            Logger = new LoggerConfiguration()
-                     .MinimumLevel.Is(GameServerSettings.LogLevel.Value!)
-                     .WriteTo.Console(theme: SerilogTheme.Custom)
-                     .CreateLogger();
+            var loggerConfig = new LoggerConfiguration()
+                               .ReadFrom.AppSettings()
+                               .WriteTo.Console(theme: SerilogTheme.Custom);
+
+            if (GameServerSettings.LogLevel.HasValue)
+            {
+                loggerConfig = loggerConfig.MinimumLevel.Is(GameServerSettings.LogLevel.Value);
+            }
+
+            Logger = loggerConfig
+                .CreateLogger();
 
 
             // TODO: add DI?
@@ -38,32 +44,6 @@ namespace GameServer
             var serverId = BinaryPrimitives.ReadUInt64LittleEndian(ranSpan);
             var server = new GameServer(25001, serverId);
             server.Run();
-        }
-
-        /// <summary>
-        /// Load the settings from the current directory.
-        /// "settings.development.json" takes precedence over "settings.json"
-        /// <remarks>The ConfigurationExtensions used in the WebHostManager are only available for the Windows platform, hence we need to implement it manually</remarks>
-        /// </summary>
-        private static void LoadSettings()
-        {
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "config");
-            var developmentSettingsPath = Path.Combine(basePath, "settings.development.json");
-            var settingsPath = Path.Combine(basePath, "settings.json");
-
-            var sourcePath = File.Exists(developmentSettingsPath) ? developmentSettingsPath : settingsPath;
-
-            try
-            {
-                var json = File.ReadAllText(sourcePath);
-                GameServerSettings = JsonConvert.DeserializeObject<GameServerSettings>(json);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine($"Error when trying to read settings from \"{sourcePath}\" : {e}{Environment.NewLine}Using builtin default settings");
-                GameServerSettings = new GameServerSettings { LogLevel = LogEventLevel.Verbose };
-            }
-
         }
 
         private static void ParseAndApplyCliOptions(IEnumerable<string> arguments)

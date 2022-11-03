@@ -7,7 +7,7 @@
 .idea/
 Webhosts/WebHost.WebAsset/Assets/*
 !Webhosts/WebHost.WebAsset/Assets/.gitkeep
-UdpHosts/GameServer/config/settings.development.json
+UdpHosts/GameServer/App.config
 
 # User-specific files
 *.rsuser
