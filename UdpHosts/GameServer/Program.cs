@@ -1,13 +1,10 @@
 ﻿using CommandLine;
-using Newtonsoft.Json;
 using Serilog;
-using Serilog.Events;
 using Shared.Common;
 using Shared.Udp;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.IO;
 
 namespace GameServer
 {
