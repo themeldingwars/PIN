@@ -14,7 +14,7 @@
 
     <ItemGroup>
         <PackageReference Include="Serilog.Settings.AppSettings" Version="2.2.2" />
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     </ItemGroup>
 
     <ItemGroup>
