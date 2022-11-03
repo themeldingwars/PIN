@@ -28,6 +28,12 @@
     <ProjectReference Include="..\..\Lib\Shared.Udp\Shared.Udp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="App.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 
   <Target Name="Create_App-config_from_App-Default-config" Condition="!Exists('App.config')" BeforeTargets="Build">
     <Copy SourceFiles="App.Default.config" DestinationFiles="App.config"></Copy>
