@@ -1,31 +1,32 @@
-﻿using Newtonsoft.Json;
+﻿
+using System.Text.Json.Serialization;
 
 namespace WebHost.ClientApi.Models.Accounts
 {
     public class CreateAccountPost
     {
-        [JsonProperty("email")]
+        [JsonPropertyName("email")]
         public string Email { get; set; }
 
-        [JsonProperty("confirm_email")]
+        [JsonPropertyName("confirm_email")]
         public string ConfirmEmail { get; set; }
 
-        [JsonProperty("password")]
+        [JsonPropertyName("password")]
         public string Password { get; set; }
 
-        [JsonProperty("confirm_password")]
+        [JsonPropertyName("confirm_password")]
         public string ConfirmPassword { get; set; }
 
-        [JsonProperty("birthday")]
+        [JsonPropertyName("birthday")]
         public string Birthday { get; set; }
 
-        [JsonProperty("country")]
+        [JsonPropertyName("country")]
         public string Country { get; set; }
 
-        [JsonProperty("email_optin")]
+        [JsonPropertyName("email_optin")]
         public bool EmailOptIn { get; set; }
 
-        [JsonProperty("referral_key")]
+        [JsonPropertyName("referral_key")]
         public string ReferralKey { get; set; }
     }
 }
