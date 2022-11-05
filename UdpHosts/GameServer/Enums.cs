@@ -252,7 +252,7 @@
                 VotekickResponse = 28,
                 GlobalCounterRequest = 29,
                 CurrentLoadoutRequest = 30,
-                VendorProductReques = 31
+                VendorProductRequest = 31
             }
         }
 
