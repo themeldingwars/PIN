@@ -363,7 +363,12 @@ namespace GameServer
 
         }
 
-        public bool Send(Memory<byte> p)
+        /// <summary>
+        /// Send data to the client
+        /// </summary>
+        /// <param name="packetData"></param>
+        /// <returns>true if the operation succeeded, false in all other cases</returns>
+        public bool Send(Memory<byte> packetData)
         {
             var hdrLen = 2;
             if (IsSequenced)
@@ -372,12 +377,12 @@ namespace GameServer
             }
 
             // TODO: Send UGSS messages that are split over RGSS
-            while (p.Length > 0)
+            while (packetData.Length > 0)
             {
-                var len = Math.Min(p.Length + hdrLen, MaxPacketSize);
+                var len = Math.Min(packetData.Length + hdrLen, MaxPacketSize);
 
                 var t = new Memory<byte>(new byte[len]);
-                p.Slice(0, len - hdrLen).CopyTo(t.Slice(hdrLen));
+                packetData[..(len - hdrLen)].CopyTo(t[hdrLen..]);
 
                 if (IsSequenced)
                 {
@@ -390,7 +395,7 @@ namespace GameServer
                     unchecked { CurrentSequenceNumber++; }
                 }
 
-                var hdr = new GamePacketHeader(Type, 0, p.Length + hdrLen > MaxPacketSize, (ushort)t.Length);
+                var hdr = new GamePacketHeader(Type, 0, packetData.Length + hdrLen > MaxPacketSize, (ushort)t.Length);
                 var hdrBytes = Serializer.WritePrimitive(Utils.SimpleFixEndianness(hdr.PacketHeader));
                 hdrBytes.CopyTo(t);
 
@@ -399,7 +404,7 @@ namespace GameServer
 
                 outgoingPackets.Enqueue(t);
 
-                p = p.Slice(len - hdrLen);
+                packetData = packetData[(len - hdrLen)..];
             }
 
             return true;
