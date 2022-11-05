@@ -50,10 +50,10 @@ namespace GameServer.Packets.GSS.Character.BaseController
         public Vector AimDirection;
 
         [Field]
-        public ushort UnkUShort3;
+        public ushort UnkUShort3; // JetpackEnergy
 
         [Field]
-        public ushort UnkUShort4;
+        public ushort UnkUShort4; // GroundTimePositiveAirTimeNegative
 
         [Field]
         public ushort LastJumpTimer;
