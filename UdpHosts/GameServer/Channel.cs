@@ -1,4 +1,7 @@
 ﻿#nullable enable
+using Aero.Gen;
+using Aero.Gen.Attributes;
+using GameServer.Extensions;
 using GameServer.Packets;
 using Shared.Udp;
 using System;
@@ -342,7 +345,30 @@ namespace GameServer
 
             return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
         }
+
+        /// <summary>
+        /// Send an <see cref="IAero"/> package to the client
+        /// </summary>
+        /// <typeparam name="TPacket">The type of the packet</typeparam>
+        /// <param name="packet"></param>
+        /// <param name="entityId"></param>
+        /// <param name="msgEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
+        /// <returns>true if the operation succeeded, false in all other cases</returns>
+        /// <exception cref="ArgumentException"></exception>
+        public bool SendIAero<TPacket>(TPacket packet, ulong entityId, Type? msgEnumType = null) where TPacket : class, IAero
+        {
+            if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+            {
+                throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
+            }
+
+            var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+            var messageId = (byte)aeroMsgAttr.MessageId;
+
+            packet.SerializeToMemory(out var packetMemory);
+
             return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
+
         }
 
 
