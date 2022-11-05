@@ -1,8 +1,8 @@
-﻿using GameServer.Enums;
+﻿using AeroMessages.GSS.V66.Generic;
+using GameServer.Enums;
 using GameServer.Enums.GSS.Generic;
 using GameServer.Packets;
 using GameServer.Packets.Control;
-using GameServer.Packets.GSS.Generic;
 using System;
 
 namespace GameServer.Controllers
@@ -17,10 +17,11 @@ namespace GameServer.Controllers
         [MessageID((byte)Commands.ScheduleUpdateRequest)]
         public void ScheduleUpdateRequest(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
         {
-            var req = packet.Read<ScheduleUpdateRequest>();
+            var updateRequest = new ScheduleUpdateRequest();
+            updateRequest.Unpack(packet.PacketData.Span);
 
             player.LastRequestedUpdate = client.AssignedShard.CurrentTime;
-            player.RequestedClientTime = Math.Max(req.requestClientTime, player.RequestedClientTime);
+            player.RequestedClientTime = Math.Max(updateRequest.Time, player.RequestedClientTime);
 
             if (!player.FirstUpdateRequested)
             {
