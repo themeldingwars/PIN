@@ -5,7 +5,6 @@ using GameServer.Packets.GSS.Character.CombatController;
 using GameServer.Packets.GSS.Character.ObserverView;
 using GameServer.Packets.Matrix;
 using GameServer.Test;
-using Serilog.Core;
 using System.Net;
 using System.Numerics;
 using System.Threading;
@@ -17,8 +16,8 @@ namespace GameServer
     {
         private double lastKeyFrame;
 
-        public NetworkPlayer(IPEndPoint ep, uint socketID)
-            : base(ep, socketID)
+        public NetworkPlayer(IPEndPoint ep, uint socketId)
+            : base(ep, socketId)
         {
             CharacterEntity = null;
             Status = IPlayer.PlayerStatus.Connecting;
@@ -37,18 +36,18 @@ namespace GameServer
             Init(this, shard, shard);
         }
 
-        public void Login(ulong charID)
+        public void Login(ulong charId)
         {
-            CharacterID = charID;
-            CharacterEntity = new Character(AssignedShard, charID & 0xffffffffffffff00);
-            CharacterEntity.Load(charID);
+            CharacterID = charId;
+            CharacterEntity = new Character(AssignedShard, charId & 0xffffffffffffff00);
+            CharacterEntity.Load(charId);
             Status = IPlayer.PlayerStatus.LoggedIn;
 
             // WelcomeToTheMatrix
             var wel = new WelcomeToTheMatrix { InstanceID = AssignedShard.InstanceID };
             NetChans[ChannelType.Matrix].SendClass(wel);
 
-            var zone = (uint)(charID & 0x000000000000ffff);
+            var zone = (uint)(charId & 0x000000000000ffff);
 
             Program.Logger.Verbose("Zone {0}", zone);
 
@@ -137,7 +136,7 @@ namespace GameServer
             CharacterEntity.LastJumpTime = AssignedShard.CurrentShortTime;
         }
 
-        public void Tick(double deltaTime, ulong currTime, CancellationToken ct)
+        public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
         {
             // TODO: Implement FSM here to move player thru log in process to connecting to a shard to playing
             if (Status == IPlayer.PlayerStatus.Connected)
