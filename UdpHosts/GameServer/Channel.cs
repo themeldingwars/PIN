@@ -1,4 +1,5 @@
-﻿using GameServer.Packets;
+﻿#nullable enable
+using GameServer.Packets;
 using Shared.Udp;
 using System;
 using System.Collections.Concurrent;
@@ -294,73 +295,105 @@ namespace GameServer
             return Send(p);
         }
 
-        public bool SendGSSClass<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null)
-            where T : class
+        /// <summary>
+        /// Send a GSS class to the client
+        /// </summary>
+        /// <typeparam name="TPacket">The type of the packet</typeparam>
+        /// <param name="packet"></param>
+        /// <param name="entityId"></param>
+        /// <param name="controllerIdParameter">If not provided on the <see cref="GSSMessageAttribute"/> on the packet, the controller Id may be specified here</param>
+        /// <param name="msgEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
+        /// <returns>true if the operation succeeded, false in all other cases</returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown if either of the following applies:
+        /// <list type="bullet">
+        ///     <item><description><see cref="TPacket"/> is not annotated with <see cref="GSSMessageAttribute"/></description></item>
+        ///     <item><description>The <see cref="GSSMessageAttribute.ControllerID"/> value on the <see cref="GSSMessageAttribute"/> of <see cref="TPacket"/> and <see cref="controllerIdParameter"/> both are null</description></item>
+        /// </list>
+        /// </exception>
+        public bool SendGSSClass<TPacket>(TPacket packet, ulong entityId, Enums.GSS.Controllers? controllerIdParameter = null, Type? msgEnumType = null)
+            where TPacket : class
         {
-            if (typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() is not GSSMessageAttribute gssMsgAttr)
+            if (typeof(TPacket).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() is not GSSMessageAttribute gssMsgAttr)
             {
-                throw new ArgumentException($"The passed package is required to be annotated with {nameof(GSSMessageAttribute)} (Type: {typeof(T).FullName})");
+                throw new ArgumentException($"The passed package is required to be annotated with {nameof(GSSMessageAttribute)} (Type: {typeof(TPacket).FullName})");
             }
+            var messageId = gssMsgAttr.MsgID;
 
-            Memory<byte> p;
-            if (pkt is IWritable write)
+
+            var controllerId =
+                controllerIdParameter ??
+                gssMsgAttr.ControllerID ??
+                throw new ArgumentException(
+                                            $"No controller Id was provided, neither from the {nameof(GSSMessageAttribute)} present on {typeof(TPacket).FullName} nor via parameter"
+                                   );
+
+            Memory<byte> packetMemory;
+            if (packet is IWritable write)
             {
-                p = write.Write();
+                packetMemory = write.Write();
             }
             else
             {
-                p = Serializer.WriteClass(pkt);
+                packetMemory = Serializer.WriteClass(packet);
             }
 
-            //Console.WriteLine( string.Concat( p.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
+            //Console.WriteLine( string.Concat( packetData.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
+
+            return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
+        }
+            return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
+        }
 
 
-            var msgID = gssMsgAttr.MsgID;
-            var t = new Memory<byte>(new byte[9 + p.Length]);
-            p.CopyTo(t.Slice(9));
 
-            Serializer.WritePrimitive(entityID).CopyTo(t);
+        /// <summary>
+        /// Send serialized data of a packet to the client
+        /// </summary>
+        /// <param name="entityId"></param>
+        /// <param name="messageId"></param>
+        /// <param name="controllerId"></param>
+        /// <param name="packetMemory"></param>
+        /// <param name="msgEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
+        /// <returns>true if the operation succeeded, false in all other cases</returns>
+        /// <exception cref="InvalidOperationException">If <see cref="msgEnumType"/> is not null and does not contain an element with a value equal to <see cref="messageId"/> </exception>
+        private bool SendPacketMemory(ulong entityId,
+                                      byte messageId, Enums.GSS.Controllers controllerId,
+                                      ref Memory<byte> packetMemory, Type? msgEnumType = null)
+        {
+            const int HeaderByteSize = 9;
+
+            var serializedData = new Memory<byte>(new byte[HeaderByteSize + packetMemory.Length]);
+            packetMemory.CopyTo(serializedData[HeaderByteSize..]);
+
+            Serializer.WritePrimitive(entityId).CopyTo(serializedData);
 
             // Intentionally overwrite first byte of Entity ID
-            if (controllerID.HasValue)
-            {
-                Serializer.WritePrimitive((byte)controllerID.Value).CopyTo(t);
-            }
-            else if (gssMsgAttr.ControllerID.HasValue)
-            {
-                Serializer.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
-            }
-            else
-            {
-                throw new Exception();
-            }
+            Serializer.WritePrimitive((byte)controllerId).CopyTo(serializedData);
+            Serializer.WritePrimitive(messageId).CopyTo(serializedData[8..]);
 
-            Serializer.WritePrimitive(msgID).CopyTo(t.Slice(8));
-
-            p = t;
 
             if (msgEnumType == null)
             {
                 Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type,
-                                       controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value,
-                                       entityID, msgID);
+                                       controllerId,
+                                       entityId, messageId);
             }
             else
             {
                 Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type,
-                                       controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value,
-                                       entityID,
-                                       Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
+                                       controllerId,
+                                       entityId,
+                                       Enum.Parse(msgEnumType,
+                                                  Enum.GetName(msgEnumType, messageId) ??
+                                                  throw new
+                                                      InvalidOperationException($"Message enum type {msgEnumType.FullName} has no element with a value of {messageId}")),
+                                       messageId);
             }
 
-            //Program.Logger.Verbose( "<--- Sending {0} bytes", p.Length );
+            //Program.Logger.Verbose( "<--- Sending {0} bytes", packetData.Length );
 
-            return Send(p);
-        }
-
-        public bool SendIAero<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null) where T : class
-        {
-
+            return Send(serializedData);
         }
 
         /// <summary>
