@@ -28,6 +28,15 @@ namespace GameServer
         uint RequestedClientTime { get; set; }
         bool FirstUpdateRequested { get; set; }
 
+        /// <summary>
+        /// The player's user id on steam
+        /// </summary>
+        /// <remarks>
+        /// ToDo: Maybe persist the player's steam id?
+        /// ToDo: Maybe Parse and enable/disable stuff according to https://developer.valvesoftware.com/wiki/SteamID
+        /// </remarks>
+        ulong SteamUserId { get; set; }
+
         void Init(IShard shard);
 
         void Login(ulong charID);

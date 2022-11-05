@@ -87,7 +87,12 @@ namespace GameServer.Controllers.Character
 
         [MessageID((byte)Commands.BagInventorySettings)]
         public void BagInventorySettings(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+        [MessageID((byte)Commands.SetSteamUserId)]
+        public void SetSteamUserId(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
         {
+            var setSteamIdPacket = packet.Unpack<SetSteamUserId>();
+            player.SteamUserId = setSteamIdPacket.SteamUserId;
         }
+
     }
 }
