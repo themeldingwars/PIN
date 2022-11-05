@@ -51,12 +51,12 @@ namespace GameServer
         {
             if (NetClientStatus == Status.Connecting)
             {
-                NetClientStatus = Status.Connected;
+                NetClientStatus = Status.Connected; // the connection must have been established in order to receive a packet, so we must now be connected
             }
 
             if (NetClientStatus != Status.Connected && NetClientStatus != Status.Idle)
             {
-                return;
+                return; // can't do anything if we're not ready yet!
             }
 
             var idx = 0;
@@ -128,23 +128,23 @@ namespace GameServer
 
         private void GSS_PacketAvailable(GamePacket packet)
         {
-            var ControllerID = packet.Read<Enums.GSS.Controllers>();
+            var controllerId = packet.Read<Enums.GSS.Controllers>();
             Span<byte> entity = stackalloc byte[8];
             packet.Read(7).ToArray().CopyTo(entity);
-            var EntityID = BitConverter.ToUInt64(entity) << 8;
-            var MsgID = packet.Read<byte>();
+            var entityId = BitConverter.ToUInt64(entity) << 8;
+            var msgId = packet.Read<byte>();
 
-            var conn = Factory.Get(ControllerID);
+            var conn = Factory.Get(controllerId);
 
             if (conn == null)
             {
-                Program.Logger.Verbose("---> Unrecognized ControllerID for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", ControllerID, EntityID, MsgID);
+                Program.Logger.Verbose("---> Unrecognized ControllerId for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", controllerId, entityId, msgId);
                 Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 return;
             }
 
-            Program.Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", packet.Header.Channel, ControllerID, EntityID, MsgID);
-            conn.HandlePacket(this, Player, EntityID, MsgID, packet);
+            Program.Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", packet.Header.Channel, controllerId, entityId, msgId);
+            conn.HandlePacket(this, Player, entityId, msgId, packet);
         }
 
         private void Matrix_PacketAvailable(GamePacket packet)

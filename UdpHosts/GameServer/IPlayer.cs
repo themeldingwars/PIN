@@ -34,7 +34,6 @@ namespace GameServer
         void Ready();
         void Respawn();
         void Jump();
-
-        void Tick(double deltaTime, ulong currTime, CancellationToken ct);
+        void Tick(double deltaTime, ulong currentTime, CancellationToken ct);
     }
 }
