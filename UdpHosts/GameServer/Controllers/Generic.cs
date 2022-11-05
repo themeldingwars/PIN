@@ -14,6 +14,23 @@ namespace GameServer.Controllers
         {
         }
 
+        [MessageID((byte)Commands.ScheduleUpdateRequest)]
+        public void ScheduleUpdateRequest(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+        {
+            var req = packet.Read<ScheduleUpdateRequest>();
+
+            player.LastRequestedUpdate = client.AssignedShard.CurrentTime;
+            player.RequestedClientTime = Math.Max(req.requestClientTime, player.RequestedClientTime);
+
+            if (!player.FirstUpdateRequested)
+            {
+                player.FirstUpdateRequested = true;
+                player.Respawn();
+            }
+
+            //Program.Logger.Error( "Update scheduled" );
+        }
+
         [MessageID((byte)Commands.RequestLogout)]
         public void RequestLogout(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
         {
