@@ -30,6 +30,7 @@ namespace GameServer
         public uint LastRequestedUpdate { get; set; }
         public uint RequestedClientTime { get; set; }
         public bool FirstUpdateRequested { get; set; }
+        public ulong SteamUserId { get; set; }
 
         public void Init(IShard shard)
         {
