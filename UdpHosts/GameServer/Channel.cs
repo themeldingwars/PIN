@@ -297,6 +297,11 @@ namespace GameServer
         public bool SendGSSClass<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null)
             where T : class
         {
+            if (typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() is not GSSMessageAttribute gssMsgAttr)
+            {
+                throw new ArgumentException($"The passed package is required to be annotated with {nameof(GSSMessageAttribute)} (Type: {typeof(T).FullName})");
+            }
+
             Memory<byte> p;
             if (pkt is IWritable write)
             {
@@ -308,52 +313,54 @@ namespace GameServer
             }
 
             //Console.WriteLine( string.Concat( p.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
-            var gssMsgAttr = typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() as GSSMessageAttribute;
 
-            if (gssMsgAttr != null)
+
+            var msgID = gssMsgAttr.MsgID;
+            var t = new Memory<byte>(new byte[9 + p.Length]);
+            p.CopyTo(t.Slice(9));
+
+            Serializer.WritePrimitive(entityID).CopyTo(t);
+
+            // Intentionally overwrite first byte of Entity ID
+            if (controllerID.HasValue)
             {
-                var msgID = gssMsgAttr.MsgID;
-                var t = new Memory<byte>(new byte[9 + p.Length]);
-                p.CopyTo(t.Slice(9));
-
-                Serializer.WritePrimitive(entityID).CopyTo(t);
-
-                // Intentionally overwrite first byte of Entity ID
-                if (controllerID.HasValue)
-                {
-                    Serializer.WritePrimitive((byte)controllerID.Value).CopyTo(t);
-                }
-                else if (gssMsgAttr.ControllerID.HasValue)
-                {
-                    Serializer.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
-                }
-                else
-                {
-                    throw new Exception();
-                }
-
-                Serializer.WritePrimitive(msgID).CopyTo(t.Slice(8));
-
-                p = t;
-
-                if (msgEnumType == null)
-                {
-                    Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID, msgID);
-                }
-                else
-                {
-                    Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID,
-                                           Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
-                }
-
-                //Program.Logger.Verbose( "<--- Sending {0} bytes", p.Length );
+                Serializer.WritePrimitive((byte)controllerID.Value).CopyTo(t);
+            }
+            else if (gssMsgAttr.ControllerID.HasValue)
+            {
+                Serializer.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
             }
             else
             {
                 throw new Exception();
             }
 
+            Serializer.WritePrimitive(msgID).CopyTo(t.Slice(8));
+
+            p = t;
+
+            if (msgEnumType == null)
+            {
+                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type,
+                                       controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value,
+                                       entityID, msgID);
+            }
+            else
+            {
+                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type,
+                                       controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value,
+                                       entityID,
+                                       Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
+            }
+
+            //Program.Logger.Verbose( "<--- Sending {0} bytes", p.Length );
+
             return Send(p);
+        }
+
+        public bool SendIAero<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null) where T : class
+        {
+
         }
 
         public bool Send(Memory<byte> p)
