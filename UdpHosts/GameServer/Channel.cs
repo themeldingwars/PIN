@@ -134,7 +134,7 @@ namespace GameServer
 
                 if (IsReliable && (seqNum > LastAck || (seqNum < 0xff && LastAck > 0xff00)))
                 {
-                    client.SendAck(Type, seqNum, packet.Recieved);
+                    client.SendAck(Type, seqNum, packet.Received);
                     LastAck = seqNum;
                 }
 

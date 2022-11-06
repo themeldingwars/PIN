@@ -378,7 +378,7 @@
                 PerkRespecTimerReset = 196
             }
 
-            internal enum Commands
+            internal enum Commands : byte
             {
                 UiQueryResponse = 59,
                 ListItemForSale = 83,

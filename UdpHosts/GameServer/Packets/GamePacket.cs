@@ -6,10 +6,14 @@ namespace GameServer.Packets
     public struct GamePacket
     {
         public readonly GamePacketHeader Header;
+
+        /// <summary>
+        /// All of the data received from the client except the socket id
+        /// </summary>
         public readonly ReadOnlyMemory<byte> PacketData;
 
         /// <summary>
-        /// The position of the first unread byte within the packet
+        /// The position of the first unread byte within the packet data
         /// </summary>
         public int CurrentPosition { get; private set; }
 
