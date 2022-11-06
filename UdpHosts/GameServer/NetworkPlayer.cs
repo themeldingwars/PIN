@@ -23,7 +23,7 @@ namespace GameServer
             Status = IPlayer.PlayerStatus.Connecting;
         }
 
-        public ulong CharacterID { get; protected set; }
+        public ulong CharacterId { get; protected set; }
         public Character CharacterEntity { get; protected set; }
         public IPlayer.PlayerStatus Status { get; protected set; }
         public Zone CurrentZone { get; protected set; }
@@ -39,7 +39,7 @@ namespace GameServer
 
         public void Login(ulong charId)
         {
-            CharacterID = charId;
+            CharacterId = charId;
             CharacterEntity = new Character(AssignedShard, charId & 0xffffffffffffff00);
             CharacterEntity.Load(charId);
             Status = IPlayer.PlayerStatus.LoggedIn;
@@ -134,7 +134,7 @@ namespace GameServer
         public void Jump()
         {
             //NetChans[ChannelType.UnreliableGss].SendGSSClass( new JumpActioned { JumpTime = AssignedShard.CurrentShortTime }, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
-            CharacterEntity.LastJumpTime = AssignedShard.CurrentShortTime;
+            CharacterEntity.TimeSinceLastJump = AssignedShard.CurrentShortTime;
         }
 
         public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)

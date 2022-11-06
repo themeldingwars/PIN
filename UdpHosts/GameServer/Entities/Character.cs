@@ -6,7 +6,7 @@ namespace GameServer.Entities
     public class Character : BaseEntity
     {
         [Flags]
-        public enum CharMovement : ushort
+        public enum CharMovement : short
         {
             None,
             Crouch = 1,
@@ -25,7 +25,7 @@ namespace GameServer.Entities
             AimDirection = Vector3.UnitZ;
 
             Alive = false;
-            LastJumpTime = null;
+            TimeSinceLastJump = null;
 
             /*RegisterController(Enums.GSS.Controllers.Character_BaseController);
             RegisterController(Enums.GSS.Controllers.Character_CombatController);
@@ -40,7 +40,7 @@ namespace GameServer.Entities
         public Vector3 AimDirection { get; set; }
         public CharMovement MovementState { get; set; }
         public bool Alive { get; set; }
-        public ushort? LastJumpTime { get; set; }
+        public ushort? TimeSinceLastJump { get; set; }
 
         public void Load(ulong charID)
         {

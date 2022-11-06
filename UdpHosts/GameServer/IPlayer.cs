@@ -19,8 +19,8 @@ namespace GameServer
             Playing = 999
         }
 
-        ulong CharacterID { get; }
-        ulong EntityID => CharacterID & 0xffffffffffffff00; // Ignore last byte
+        ulong CharacterId { get; }
+        ulong EntityId => CharacterId & 0xffffffffffffff00; // Ignore last byte
         Character CharacterEntity { get; }
         PlayerStatus Status { get; }
         Zone CurrentZone { get; }

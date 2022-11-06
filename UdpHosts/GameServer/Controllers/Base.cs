@@ -38,5 +38,11 @@ namespace GameServer.Controllers
 
             _ = method.Invoke(this, new object[] { client, player, entityId, packet });
         }
+
+        protected void LogMissingImplementation<TController>(string endpointName, ulong entityId, GamePacket packet)
+        {
+            Log.Warning($"Unimplemented Endpoint was called by entity 0x{{0:X8}}: {typeof(TController).FullName}.{endpointName}", entityId);
+            Log.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+        }
     }
 }
