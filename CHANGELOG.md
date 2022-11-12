@@ -2,18 +2,28 @@
 
 ## [Unreleased]
 
-### Changed
+### Added
 
+- Basic GitHub Action to ensure continues integration
 - Added individual .bat files for each game service pointing directly to the respective `bin\debug` folder.
 - Added configuration for the game server. You can edit the `App.config` file in the `GameServer` project root for local settings and add working defaults in `App.Default.config`.
   `App.config` will be generated from `App.Default.config` if not present before build.
   Currently, the only option present is the Serilog log level.
 - Added cli options parsing. Currently, the only option is the log level. Specifying wrong options will not stop the server from starting.
 - Added 404 handling to the web server pipeline which prints the contents of 404-producing requests as warnings to see what's missing.
-- Changed 'missing MSGid' logging to include the details (1st message) in log level warning instead of verbose.
-- Added ClientEventController with a corresponding endpoint to receive the events from the client. Currently, only the client uptime seems to be posted on exit of the game.
+- Added ClientEventController with a corresponding endpoint to receive the events from the client. Currently, only the client uptime seems to be posted on exit of the game
+
+### Changed
+
+- Update to .NET 6
+- Changed 'missing MSGid' logging to include the details (1st message) in log level warning instead of verbose
 - Update documentation regarding the usage of web hosts
 - Turn Firefall specific location finder to a common location provider
+
+### Fixed
+
+- Fix IndexOutOfRangeException being thrown by the Matrix server
+- Fix string deserialization and corrected Matrix Login packet
 
 ## [1.1.0] - 2021-10-09
 
