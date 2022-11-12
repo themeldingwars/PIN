@@ -15,6 +15,7 @@
 
 ### Changed
 
+- Replace SharedAssemblyInfo with a targets file
 - Update to .NET 6
 - Changed 'missing MSGid' logging to include the details (1st message) in log level warning instead of verbose
 - Update documentation regarding the usage of web hosts

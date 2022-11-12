@@ -52,8 +52,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 		CHANGELOG.md = CHANGELOG.md
 		PIN.sln.DotSettings = PIN.sln.DotSettings
 		README.md = README.md
-		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
 		Start.cmd = Start.cmd
+		PIN.targets = PIN.targets
 	EndProjectSection
 EndProject
 Global
