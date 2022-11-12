@@ -8,7 +8,7 @@ using GameServer.Test;
 using System.Net;
 using System.Numerics;
 using System.Threading;
-using Character = GameServer.Entities.Character;
+using Character = GameServer.Entities.Character.Character;
 
 namespace GameServer
 {
@@ -86,7 +86,7 @@ namespace GameServer
                         Rotation = CharacterEntity.Rotation,
                         AimDirection = CharacterEntity.AimDirection,
                         Velocity = CharacterEntity.Velocity,
-                        State = (ushort)CharacterEntity.MovementState,
+                        State = (ushort)CharacterEntity.MovementStateContainer.MovementState,
                         Unk1 = 0,
                         Jets = (ushort)CharacterEntity.CharData.JumpJetEnergy,
                         AirGroundTimer = 0x3a7f,
