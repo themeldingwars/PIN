@@ -1,22 +1,10 @@
 ﻿using System;
 using System.Numerics;
 
-namespace GameServer.Entities
+namespace GameServer.Entities.Character
 {
     public class Character : BaseEntity
     {
-        [Flags]
-        public enum CharMovement : short
-        {
-            None,
-            Crouch = 1,
-            MovementKeys = 4,
-            Sprint = 1 << 4,
-            TryingToMove = 1 << 12,
-            IsMoving = 2 << 12,
-            Unk = 4 << 12
-        }
-
         public Character(IShard owner, ulong eid) : base(owner, eid)
         {
             Position = new Vector3();
@@ -38,7 +26,7 @@ namespace GameServer.Entities
         public Quaternion Rotation { get; set; }
         public Vector3 Velocity { get; set; }
         public Vector3 AimDirection { get; set; }
-        public CharMovement MovementState { get; set; }
+        internal MovementStateContainer MovementStateContainer { get; set; } = new();
         public bool Alive { get; set; }
         public ushort? TimeSinceLastJump { get; set; }
 

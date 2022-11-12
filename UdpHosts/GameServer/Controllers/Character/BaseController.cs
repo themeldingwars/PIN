@@ -1,5 +1,6 @@
 ﻿using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
+using GameServer.Entities.Character;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
@@ -66,11 +67,11 @@ namespace GameServer.Controllers.Character
 
 
             var movementStateValue = posRotState.MovementState;
-            player.CharacterEntity.MovementState = (Entities.Character.CharMovement)movementStateValue;
+            player.CharacterEntity.MovementStateContainer.MovementState = (CharMovementState)movementStateValue;
 
-            if (!Enum.IsDefined(typeof(Entities.Character.CharMovement), movementStateValue))
+            if (player.CharacterEntity.MovementStateContainer.InvalidFlags != CharMovementState.None)
             {
-                Log.Error($"{nameof(posRotState.MovementState)} has a value of {movementStateValue}, which is not present in {typeof(Entities.Character.CharMovement).FullName}");
+                Log.Error($"Unmapped {nameof(CharMovementState)} encountered! \n{player.CharacterEntity.MovementStateContainer}");
             }
 
 
@@ -92,7 +93,7 @@ namespace GameServer.Controllers.Character
                     {
                         Pos = player.CharacterEntity.Position,
                         Rot = player.CharacterEntity.Rotation,
-                        MovementState = (short)player.CharacterEntity.MovementState // ToDo: This was ushort previously!
+                        MovementState = (short)player.CharacterEntity.MovementStateContainer.MovementState // ToDo: This was ushort previously!
                     },
                     Velocity = player.CharacterEntity.Velocity,
                     JetpackEnergy = poseData.JetpackEnergy,
@@ -128,6 +129,10 @@ namespace GameServer.Controllers.Character
         {
             // ToDo: Implement BaseController.BagInventorySettings
             LogMissingImplementation<BaseController>(nameof(BagInventorySettings), entityId, packet);
+
+            var bagInventorySettings = packet.Unpack<BagInventorySettings>();
+            
+
         }
 
         [MessageID((byte)Commands.SetSteamUserId)]
