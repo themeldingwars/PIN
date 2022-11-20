@@ -4,7 +4,7 @@
 
 ### Added
 
-- Basic GitHub Action to ensure continues integration
+- Basic GitHub Action to ensure continuous integration
 - Added individual .bat files for each game service pointing directly to the respective `bin\debug` folder.
 - Added configuration for the game server. You can edit the `App.config` file in the `GameServer` project root for local settings and add working defaults in `App.Default.config`.
   `App.config` will be generated from `App.Default.config` if not present before build.
