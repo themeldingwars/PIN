@@ -26,9 +26,9 @@ namespace GameServer.Entities.Character
         public Quaternion Rotation { get; set; }
         public Vector3 Velocity { get; set; }
         public Vector3 AimDirection { get; set; }
-        internal MovementStateContainer MovementStateContainer { get; set; } = new();
         public bool Alive { get; set; }
         public ushort? TimeSinceLastJump { get; set; }
+        internal MovementStateContainer MovementStateContainer { get; set; } = new();
 
         public void Load(ulong charID)
         {
