@@ -125,7 +125,7 @@ public abstract class PacketServer : IPacketSender
                     // Should probably change to ArrayPool<byte>, but can't return a Memory<byte> :(
                     // TODO: Move Endpoint and Memory<byte> management to Packet (constructor + destructor)
                     var buf = new byte[numberOfBytesReceived];
-                    buffer.AsSpan().Slice(0, numberOfBytesReceived).ToArray().CopyTo(buf, 0);
+                    buffer.AsSpan()[..numberOfBytesReceived].ToArray().CopyTo(buf, 0);
                     _ = await incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEndPoint, new ReadOnlyMemory<byte>(buf, 0, numberOfBytesReceived), DateTime.Now), ct);
 
                     // Not 100% sure this needs to be cleared?

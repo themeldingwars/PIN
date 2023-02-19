@@ -101,6 +101,6 @@ internal class GameServer : PacketServer
             client = ClientMap[socketId];
         }
 
-        client.HandlePacket(packet.PacketData.Slice(4), packet);
+        client.HandlePacket(packet.PacketData[4..], packet);
     }
 }

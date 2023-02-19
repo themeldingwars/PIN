@@ -42,7 +42,7 @@ public struct GamePacket
 
     public T Read<T>()
     {
-        var buf = PacketData.Slice(CurrentPosition);
+        var buf = PacketData[CurrentPosition..];
         var ret = Deserializer.Read<T>(ref buf);
 
         CurrentPosition = TotalBytes - buf.Length;
@@ -61,7 +61,7 @@ public struct GamePacket
     public T Peek<T>()
         where T : struct
     {
-        var buf = PacketData.Slice(CurrentPosition);
+        var buf = PacketData[CurrentPosition..];
         return Deserializer.Read<T>(ref buf);
     }
 

@@ -31,7 +31,7 @@ public static class Deserializer
             return default;
         }
 
-        return MemoryMarshal.Read<T>(data.Span.Slice(0, size));
+        return MemoryMarshal.Read<T>(data.Span[..size]);
     }
 
     public static T ReadPrimitive<T>(ref ReadOnlyMemory<byte> data)
@@ -69,7 +69,7 @@ public static class Deserializer
 
         if (padding != null)
         {
-            data = data.Slice(padding.Size);
+            data = data[padding.Size..];
         }
 
         if (exists != null)
@@ -79,7 +79,7 @@ public static class Deserializer
                 return null;
             }
 
-            data = data.Slice(Marshal.SizeOf(exists.ExistsType));
+            data = data[Marshal.SizeOf(exists.ExistsType)..];
         }
 
         if (typeof(IEnumerable).IsAssignableFrom(type) && type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0)
@@ -88,7 +88,7 @@ public static class Deserializer
             if (prefixLength != null)
             {
                 l = (int)Convert.ChangeType(Read(ref data, prefixLength.LengthType), typeof(int));
-                data = data.Slice(Marshal.SizeOf(prefixLength.LengthType));
+                data = data[Marshal.SizeOf(prefixLength.LengthType)..];
             }
             else if (length != null)
             {
@@ -118,8 +118,8 @@ public static class Deserializer
 
             l++; // null terminator
 
-            ret = Encoding.ASCII.GetString(data.Slice(0, l - 1).Span.ToArray());
-            data = data.Slice(l);
+            ret = Encoding.ASCII.GetString(data[..(l - 1)].Span.ToArray());
+            data = data[l..];
         }
         else if (type.IsClass)
         {
@@ -136,10 +136,10 @@ public static class Deserializer
         else if (type.IsValueType)
         {
             var size = Marshal.SizeOf(type);
-            var memoryHandle = data.Slice(0, size).Pin();
+            var memoryHandle = data[..size].Pin();
 
             ret = Marshal.PtrToStructure(new IntPtr(memoryHandle.Pointer), type);
-            data = data.Slice(size);
+            data = data[size..];
 
             memoryHandle.Dispose();
         }
@@ -153,78 +153,78 @@ public static class Deserializer
 
         if (typeof(byte) == type)
         {
-            span = data.Slice(0, 1).Span;
-            data = data.Slice(1);
+            span = data[..1].Span;
+            data = data[1..];
             return span[0];
         }
 
         if (typeof(char) == type)
         {
-            span = data.Slice(0, 1).Span;
-            data = data.Slice(1);
+            span = data[..1].Span;
+            data = data[1..];
             return Encoding.ASCII.GetChars(span.ToArray())[0];
         }
 
         if (typeof(short) == type)
         {
-            span = data.Slice(0, 2).Span;
-            data = data.Slice(2);
+            span = data[..2].Span;
+            data = data[2..];
             return BinaryPrimitives.ReadInt16LittleEndian(span);
         }
 
         if (typeof(ushort) == type)
         {
-            span = data.Slice(0, 2).Span;
-            data = data.Slice(2);
+            span = data[..2].Span;
+            data = data[2..];
             return BinaryPrimitives.ReadUInt16LittleEndian(span);
         }
 
         if (typeof(int) == type)
         {
-            span = data.Slice(0, 4).Span;
-            data = data.Slice(4);
+            span = data[..4].Span;
+            data = data[4..];
             return BinaryPrimitives.ReadInt32LittleEndian(span);
         }
 
         if (typeof(uint) == type)
         {
-            span = data.Slice(0, 4).Span;
-            data = data.Slice(4);
+            span = data[..4].Span;
+            data = data[4..];
             return BinaryPrimitives.ReadUInt32LittleEndian(span);
         }
 
         if (typeof(long) == type)
         {
-            span = data.Slice(0, 8).Span;
-            data = data.Slice(8);
+            span = data[..8].Span;
+            data = data[8..];
             return BinaryPrimitives.ReadInt64LittleEndian(span);
         }
 
         if (typeof(ulong) == type)
         {
-            span = data.Slice(0, 8).Span;
-            data = data.Slice(8);
+            span = data[..8].Span;
+            data = data[8..];
             return BinaryPrimitives.ReadUInt64LittleEndian(span);
         }
 
         if (typeof(Half) == type)
         {
-            span = data.Slice(0, 2).Span;
-            data = data.Slice(2);
+            span = data[..2].Span;
+            data = data[2..];
             return BinaryPrimitives.ReadUInt16LittleEndian(span);
         }
 
         if (typeof(float) == type)
         {
-            span = data.Slice(0, 4).Span;
-            data = data.Slice(4);
+            span = data[..4].Span;
+            data = data[4..];
             return MemoryMarshal.Cast<byte, float>(span)[0];
         }
 
         if (typeof(double) == type)
         {
-            span = data.Slice(0, 8).Span;
-            data = data.Slice(8);
+            span = data[..8].Span;
+            data = data[8..];
             return MemoryMarshal.Cast<byte, double>(span)[0];
         }
 

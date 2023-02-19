@@ -31,7 +31,7 @@ public struct Packet
     public T Read<T>()
     {
         var p = CurrentPosition;
-        var data = PacketData.Slice(CurrentPosition);
+        var data = PacketData[CurrentPosition..];
 
         var ret = Deserializer.Read<T>(ref data);
         CurrentPosition = PacketData.Length - data.Length;
@@ -49,7 +49,7 @@ public struct Packet
 
     public T Peek<T>()
     {
-        var dis = PacketData.Slice(CurrentPosition);
+        var dis = PacketData[CurrentPosition..];
         return Deserializer.Read<T>(ref dis);
     }
 

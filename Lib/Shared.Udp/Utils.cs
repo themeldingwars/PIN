@@ -50,7 +50,7 @@ public static class Utils
         var index = 0;
         foreach (var memory in memoryList)
         {
-            memory.CopyTo(combinedMemory.Slice(index));
+            memory.CopyTo(combinedMemory[index..]);
             index += memory.Length;
         }
 
