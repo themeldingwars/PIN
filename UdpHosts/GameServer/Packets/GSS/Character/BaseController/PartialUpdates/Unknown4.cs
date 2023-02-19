@@ -6,5 +6,5 @@ namespace GameServer.Packets.GSS.Character.BaseController.PartialUpdates;
 public class Unknown4
 {
     [Field]
-    public uint Unk1;
+    public uint Unknown1;
 }

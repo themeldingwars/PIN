@@ -11,73 +11,72 @@ public class Generic2 : Base
     }
 
     [MessageID((byte)Commands.UIToEncounterMessage)]
-    public void UiToEncounter(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void UiToEncounter(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.ServerProfiler_RequestNames)]
-    public void ServerProfiler_RequestNames(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void ServerProfiler_RequestNames(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.LocalProximityAbilitySuccess)]
-    public void LocalProximityAbilitySuccess(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void LocalProximityAbilitySuccess(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.RemoteProximityAbilitySuccess)]
-    public void RemoteProximityAbilitySuccess(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void RemoteProximityAbilitySuccess(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.TrailRequest)]
-    public void TrailRequest(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void TrailRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.RequestLeaveZone)]
-    public void RequestLeaveZone(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void RequestLeaveZone(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.RequestLogout)]
-    public void RequestLogout(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void RequestLogout(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.RequestEncounterInfo)]
-    public void RequestEncounterInfo(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void RequestEncounterInfo(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.RequestActiveEncounters)]
-    public void RequestActiveEncounters(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void RequestActiveEncounters(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
-
     [MessageID((byte)Commands.VotekickRequest)]
-    public void VotekickRequest(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void VotekickRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.VotekickResponse)]
-    public void VotekickResponse(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void VotekickResponse(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.GlobalCounterRequest)]
-    public void GlobalCounterRequest(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void GlobalCounterRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.CurrentLoadoutRequest)]
-    public void CurrentLoadoutRequest(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void CurrentLoadoutRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 
     [MessageID((byte)Commands.VendorProductRequest)]
-    public void VendorProductRequest(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void VendorProductRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
     }
 }

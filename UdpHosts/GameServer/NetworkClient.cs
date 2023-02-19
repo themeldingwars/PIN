@@ -16,9 +16,9 @@ namespace GameServer;
 
 public class NetworkClient : INetworkClient
 {
-    public NetworkClient(IPEndPoint ep, uint socketID)
+    public NetworkClient(IPEndPoint ep, uint socketId)
     {
-        SocketID = socketID;
+        SocketId = socketId;
         RemoteEndpoint = ep;
         NetClientStatus = Status.Unknown;
         NetLastActive = DateTime.Now;
@@ -27,10 +27,10 @@ public class NetworkClient : INetworkClient
     protected IPacketSender Sender { get; set; }
     protected IPlayer Player { get; private set; }
     public Status NetClientStatus { get; protected set; }
-    public uint SocketID { get; protected set; }
+    public uint SocketId { get; protected set; }
     public IPEndPoint RemoteEndpoint { get; protected set; }
     public DateTime NetLastActive { get; protected set; }
-    public ImmutableDictionary<ChannelType, Channel> NetChans { get; protected set; }
+    public ImmutableDictionary<ChannelType, Channel> NetChannels { get; protected set; }
     public IShard AssignedShard { get; protected set; }
 
     public void Init(IPlayer player, IShard shard, IPacketSender sender)
@@ -40,11 +40,11 @@ public class NetworkClient : INetworkClient
         NetClientStatus = Status.Connecting;
         AssignedShard = shard;
 
-        NetChans = Channel.GetChannels(this).ToImmutableDictionary();
-        NetChans[ChannelType.Control].PacketAvailable += Control_PacketAvailable;
-        NetChans[ChannelType.Matrix].PacketAvailable += Matrix_PacketAvailable;
-        NetChans[ChannelType.ReliableGss].PacketAvailable += GSS_PacketAvailable;
-        NetChans[ChannelType.UnreliableGss].PacketAvailable += GSS_PacketAvailable;
+        NetChannels = Channel.GetChannels(this).ToImmutableDictionary();
+        NetChannels[ChannelType.Control].PacketAvailable += Control_PacketAvailable;
+        NetChannels[ChannelType.Matrix].PacketAvailable += Matrix_PacketAvailable;
+        NetChannels[ChannelType.ReliableGss].PacketAvailable += GSS_PacketAvailable;
+        NetChannels[ChannelType.UnreliableGss].PacketAvailable += GSS_PacketAvailable;
     }
 
     public void HandlePacket(ReadOnlyMemory<byte> data, Packet packet)
@@ -70,11 +70,11 @@ public class NetworkClient : INetworkClient
                 break;
             }
 
-            var p = new GamePacket(hdr, data.Slice(idx + hdrSize, hdr.Length - hdrSize), packet.Recieved);
+            var p = new GamePacket(hdr, data.Slice(idx + hdrSize, hdr.Length - hdrSize), packet.Received);
 
             //Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
 
-            NetChans[hdr.Channel].HandlePacket(p);
+            NetChannels[hdr.Channel].HandlePacket(p);
 
             idx += hdr.Length;
         }
@@ -84,7 +84,7 @@ public class NetworkClient : INetworkClient
 
     public virtual void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct)
     {
-        foreach (var c in NetChans.Values)
+        foreach (var c in NetChannels.Values)
         {
             c.Process(ct);
         }
@@ -96,17 +96,17 @@ public class NetworkClient : INetworkClient
 
         var t = new Memory<byte>(new byte[4 + p.Length]);
         p.CopyTo(t.Slice(4));
-        Serializer.WriteStruct(Utils.SimpleFixEndianness(SocketID)).CopyTo(t);
+        Serializer.WriteStruct(Utils.SimpleFixEndianness(SocketId)).CopyTo(t);
 
         Sender.Send(t, RemoteEndpoint);
     }
 
 
-    public void SendAck(ChannelType forChannel, ushort forSeqNum, DateTime? recvd = null)
+    public void SendAck(ChannelType forChannel, ushort forSeqNum, DateTime? received = null)
     {
-        if (recvd != null)
+        if (received != null)
         {
-            Program.Logger.Verbose("<-- {0} Ack for {1} on {2} after {3}ms.", ChannelType.Control, forSeqNum, forChannel, (DateTime.Now - recvd.Value).TotalMilliseconds);
+            Program.Logger.Verbose("<-- {0} Ack for {1} on {2} after {3}ms.", ChannelType.Control, forSeqNum, forChannel, (DateTime.Now - received.Value).TotalMilliseconds);
         }
         else
         {
@@ -118,11 +118,11 @@ public class NetworkClient : INetworkClient
 
         if (forChannel == ChannelType.Matrix)
         {
-            NetChans[ChannelType.Control].SendClass(new MatrixAck { AckFor = forNum, NextSeqNum = nextNum });
+            NetChannels[ChannelType.Control].SendClass(new MatrixAck { AckFor = forNum, NextSeqNum = nextNum });
         }
         else if (forChannel == ChannelType.ReliableGss)
         {
-            NetChans[ChannelType.Control].SendClass(new ReliableGSSAck { AckFor = forNum, NextSeqNum = nextNum });
+            NetChannels[ChannelType.Control].SendClass(new ReliableGSSAck { AckFor = forNum, NextSeqNum = nextNum });
         }
     }
 
@@ -149,15 +149,15 @@ public class NetworkClient : INetworkClient
 
     private void Matrix_PacketAvailable(GamePacket packet)
     {
-        var msgID = packet.Read<MatrixPacketType>();
-        Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Matrix, msgID, (byte)msgID);
+        var messageId = packet.Read<MatrixPacketType>();
+        Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Matrix, messageId, (byte)messageId);
 
-        switch (msgID)
+        switch (messageId)
         {
             case MatrixPacketType.Login:
                 // Login
-                var loginpkt = packet.Read<Login>();
-                Player.Login(loginpkt.CharacterGUID);
+                var loginPacket = packet.Read<Login>();
+                Player.Login(loginPacket.CharacterGUID);
 
                 break;
             case MatrixPacketType.EnterZoneAck:
@@ -166,18 +166,18 @@ public class NetworkClient : INetworkClient
                 break;
             case MatrixPacketType.KeyframeRequest:
                 // TODO; See onKeyframeRequest in server_gamesocket.js
-                var kfrpkt = packet.Read<KeyFrameRequest>();
+                var keyFrameRequestPackage = packet.Read<KeyFrameRequest>();
 
                 break;
             case MatrixPacketType.ClientStatus:
-                NetChans[ChannelType.Matrix].SendClass(new MatrixStatus());
+                NetChannels[ChannelType.Matrix].SendClass(new MatrixStatus());
                 break;
             case MatrixPacketType.LogInstrumentation:
                 // Ignore
 
                 break;
             default:
-                Program.Logger.Error("---> Unrecognized Matrix Packet {0}[{1}]!!!", msgID, (byte)msgID);
+                Program.Logger.Error("---> Unrecognized Matrix Packet {0}[{1}]!!!", messageId, (byte)messageId);
                 Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 break;
         }
@@ -185,10 +185,10 @@ public class NetworkClient : INetworkClient
 
     private void Control_PacketAvailable(GamePacket packet)
     {
-        var msgID = packet.Read<ControlPacketType>();
-        Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Control, msgID, (byte)msgID);
+        var messageId = packet.Read<ControlPacketType>();
+        Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Control, messageId, (byte)messageId);
 
-        switch (msgID)
+        switch (messageId)
         {
             case ControlPacketType.CloseConnection:
                 var ccPkt = packet.Read<CloseConnection>();
@@ -207,14 +207,14 @@ public class NetworkClient : INetworkClient
             case ControlPacketType.TimeSyncRequest:
                 var req = packet.Read<TimeSyncRequest>();
 
-                NetChans[ChannelType.Control].Send(new TimeSyncResponse(req.ClientTime, unchecked(AssignedShard.CurrentTimeLong * 1000)));
+                NetChannels[ChannelType.Control].Send(new TimeSyncResponse(req.ClientTime, unchecked(AssignedShard.CurrentTimeLong * 1000)));
                 break;
             case ControlPacketType.MTUProbe:
                 var mtuPkt = packet.Read<MTUProbe>();
                 // TODO: ???
                 break;
             default:
-                Program.Logger.Error("---> Unrecognized Control Packet {0} ({1:X2})!!!", msgID, (byte)msgID);
+                Program.Logger.Error("---> Unrecognized Control Packet {0} ({1:X2})!!!", messageId, (byte)messageId);
                 Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 break;
         }

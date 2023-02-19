@@ -6,7 +6,7 @@ public static class DateTimeExtensions
 {
     private static DateTime? _epoch;
 
-    private static DateTime CheckedEpochUTC
+    private static DateTime CheckedEpochUtc
     {
         get
         {
@@ -19,17 +19,17 @@ public static class DateTimeExtensions
         }
     }
 
-    public static DateTime Epoch => CheckedEpochUTC.ToLocalTime();
+    public static DateTime Epoch => CheckedEpochUtc.ToLocalTime();
 
-    public static DateTime EpochUTC => CheckedEpochUTC;
+    public static DateTime EpochUtc => CheckedEpochUtc;
 
-    public static double UnixTimestamp(this DateTime dt)
+    public static double UnixTimestamp(this DateTime dateTime)
     {
-        return (dt - CheckedEpochUTC.ToLocalTime()).TotalSeconds;
+        return (dateTime - CheckedEpochUtc.ToLocalTime()).TotalSeconds;
     }
 
-    public static double UnixTimestampUTC(this DateTime dt)
+    public static double UnixTimestampUtc(this DateTime dateTime)
     {
-        return (dt - CheckedEpochUTC).TotalSeconds;
+        return (dateTime - CheckedEpochUtc).TotalSeconds;
     }
 }

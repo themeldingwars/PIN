@@ -18,9 +18,9 @@ public class CommonVisuals
         OrnamentGroups = new List<uint>();
 
         // Below are likely Morph Weights, Overlays and Pattern Gradients?
-        ItemsUnk1 = new List<uint>();
-        ItemsUnk2 = new List<uint>();
-        ItemsUnk3 = new List<uint>();
+        ItemsUnknown1 = new List<uint>();
+        ItemsUnknown2 = new List<uint>();
+        ItemsUnknown3 = new List<uint>();
     }
 
     public IList<Decal> Decals { get; protected set; }
@@ -31,9 +31,9 @@ public class CommonVisuals
     public IList<uint> OrnamentGroups { get; protected set; }
 
     // Below are likely Morph Weights, Overlays and Pattern Gradients?
-    public IList<uint> ItemsUnk1 { get; protected set; }
-    public IList<uint> ItemsUnk2 { get; protected set; }
-    public IList<uint> ItemsUnk3 { get; protected set; }
+    public IList<uint> ItemsUnknown1 { get; protected set; }
+    public IList<uint> ItemsUnknown2 { get; protected set; }
+    public IList<uint> ItemsUnknown3 { get; protected set; }
 
     public static implicit operator KeyFrame.Visuals(CommonVisuals p)
     {
@@ -45,9 +45,9 @@ public class CommonVisuals
                    Palettes = p.Palettes.Select(x => (KeyFrame.Palette)x).ToList(),
                    Patterns = p.Patterns.Select(x => (KeyFrame.Pattern)x).ToList(),
                    OrnamentGroups = p.OrnamentGroups,
-                   ItemsUnk1 = p.ItemsUnk1,
-                   ItemsUnk2 = p.ItemsUnk2,
-                   ItemsUnk3 = p.ItemsUnk3
+                   ItemsUnknown1 = p.ItemsUnknown1,
+                   ItemsUnknown2 = p.ItemsUnknown2,
+                   ItemsUnknown3 = p.ItemsUnknown3
                };
     }
 
@@ -90,11 +90,11 @@ public class CommonVisuals
 
     public class DecalGradient
     {
-        public byte Unk;
+        public byte Unknown;
 
         public static implicit operator KeyFrame.DecalGradient(DecalGradient p)
         {
-            return new KeyFrame.DecalGradient { Unk = p.Unk };
+            return new KeyFrame.DecalGradient { Unk = p.Unknown };
         }
     }
 }

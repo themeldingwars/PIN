@@ -12,13 +12,13 @@ public class CombatController : Base
     }
 
     [MessageID((byte)Commands.FireInputIgnored)]
-    public void FireInputIgnored(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void FireInputIgnored(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // TODO: Implement
     }
 
     [MessageID((byte)Commands.UseScope)]
-    public void UseScope(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void UseScope(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // TODO: Implement
     }

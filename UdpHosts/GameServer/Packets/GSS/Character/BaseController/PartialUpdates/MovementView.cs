@@ -25,7 +25,7 @@ public class MovementView
     public ushort State;
 
     [Field]
-    public ushort Unk1;
+    public ushort Unknown1;
 
     [Field]
     public ushort Jets;
@@ -37,5 +37,5 @@ public class MovementView
     public ushort JumpTimer;
 
     [Field]
-    public byte Unk2;
+    public byte Unknown2;
 }

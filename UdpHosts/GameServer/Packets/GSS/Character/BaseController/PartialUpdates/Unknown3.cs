@@ -6,7 +6,7 @@ namespace GameServer.Packets.GSS.Character.BaseController.PartialUpdates;
 public class Unknown3
 {
     [Field]
-    public uint Unk1;
+    public uint Unknown1;
 
     [Field]
     public uint LastUpdateTime;

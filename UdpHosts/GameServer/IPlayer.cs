@@ -39,7 +39,7 @@ public interface IPlayer
 
     void Init(IShard shard);
 
-    void Login(ulong charID);
+    void Login(ulong characterId);
     void Ready();
     void Respawn();
     void Jump();

@@ -10,8 +10,8 @@ public class WelcomeToTheMatrix
     public ulong InstanceID;
 
     [Field]
-    public ushort Unk1;
+    public ushort Unknown1;
 
     [Field]
-    public ushort Unk2;
+    public ushort Unknown2;
 }

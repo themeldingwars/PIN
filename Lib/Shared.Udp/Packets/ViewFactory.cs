@@ -21,7 +21,7 @@ public static class ViewFactory
 
     private static void AddPacketView(Type t)
     {
-        // TODO: Runtime generation of BasePacketView subclasses that implement user defined Intefaces
+        // TODO: Runtime generation of BasePacketView subclasses that implement user defined Interfaces
     }
 
     public static T Get<T>()

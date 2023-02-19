@@ -8,11 +8,11 @@ public class BaseEntity : IEntity
     public BaseEntity(IShard owner, ulong id)
     {
         Owner = owner;
-        EntityID = id;
+        EntityId = id;
         ControllerRefMap = new ConcurrentDictionary<Enums.GSS.Controllers, ushort>();
     }
 
-    public ulong EntityID { get; }
+    public ulong EntityId { get; }
     public IShard Owner { get; }
     public IDictionary<Enums.GSS.Controllers, ushort> ControllerRefMap { get; }
 

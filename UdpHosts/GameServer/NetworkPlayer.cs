@@ -37,18 +37,18 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         Init(this, shard, shard);
     }
 
-    public void Login(ulong charId)
+    public void Login(ulong characterId)
     {
-        CharacterId = charId;
-        CharacterEntity = new Character(AssignedShard, charId & 0xffffffffffffff00);
-        CharacterEntity.Load(charId);
+        CharacterId = characterId;
+        CharacterEntity = new Character(AssignedShard, characterId & 0xffffffffffffff00);
+        CharacterEntity.Load(characterId);
         Status = IPlayer.PlayerStatus.LoggedIn;
 
         // WelcomeToTheMatrix
-        var wel = new WelcomeToTheMatrix { InstanceID = AssignedShard.InstanceID };
-        NetChans[ChannelType.Matrix].SendClass(wel);
+        var wel = new WelcomeToTheMatrix { InstanceID = AssignedShard.InstanceId };
+        NetChannels[ChannelType.Matrix].SendClass(wel);
 
-        var zone = (uint)(charId & 0x000000000000ffff);
+        var zone = (uint)(characterId & 0x000000000000ffff);
 
         Program.Logger.Verbose("Zone {0}", zone);
 
@@ -63,7 +63,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         var forcedMove = new ForcedMovement
                          {
                              Type = 1,
-                             Unk1 = 0,
+                             Unknown1 = 0,
                              Position = p,
                              AimDirection = CharacterEntity.AimDirection,
                              Velocity = Vector3.Zero,
@@ -71,11 +71,11 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                              KeyFrame = AssignedShard.CurrentShortTime
                          };
 
-        NetChans[ChannelType.ReliableGss].SendGSSClass(forcedMove, CharacterEntity.EntityID);
+        NetChannels[ChannelType.ReliableGss].SendGSSClass(forcedMove, CharacterEntity.EntityId);
 
-        var respawnMsg = new Respawned { LastUpdateTime = AssignedShard.CurrentTime - 2, Unk1 = 0x0100 };
+        var respawnMsg = new Respawned { LastUpdateTime = AssignedShard.CurrentTime - 2, Unknown1 = 0x0100 };
 
-        NetChans[ChannelType.ReliableGss].SendGSSClass(respawnMsg, CharacterEntity.EntityID);
+        NetChannels[ChannelType.ReliableGss].SendGSSClass(respawnMsg, CharacterEntity.EntityId);
 
         var upd = new PartialUpdate();
 
@@ -87,42 +87,42 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                     AimDirection = CharacterEntity.AimDirection,
                     Velocity = CharacterEntity.Velocity,
                     State = (ushort)CharacterEntity.MovementStateContainer.MovementState,
-                    Unk1 = 0,
+                    Unknown1 = 0,
                     Jets = (ushort)CharacterEntity.CharData.JumpJetEnergy,
                     AirGroundTimer = 0x3a7f,
                     JumpTimer = 0x3cdb,
-                    Unk2 = 0
+                    Unknown2 = 0
                 });
 
         upd.Add(new CharacterState { State = 3, LastUpdateTime = AssignedShard.CurrentTime - 1 });
 
         upd.Add(new Unknown1());
 
-        upd.Add(new Unknown2 { Unk1 = 0x0100, Unk2 = 0x0100, LastUpdateTime = AssignedShard.CurrentTime });
+        upd.Add(new UnknownUpdate2 { Unknown1 = 0x0100, Unknown2 = 0x0100, LastUpdateTime = AssignedShard.CurrentTime });
 
-        NetChans[ChannelType.ReliableGss].SendGSSClass(upd, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController);
+        NetChannels[ChannelType.ReliableGss].SendGSSClass(upd, CharacterEntity.EntityId, Enums.GSS.Controllers.Character_BaseController);
 
         upd = new PartialUpdate();
 
-        upd.Add(new Unknown3 { Unk1 = 0, LastUpdateTime = AssignedShard.CurrentTime });
+        upd.Add(new Unknown3 { Unknown1 = 0, LastUpdateTime = AssignedShard.CurrentTime });
 
         upd.Add(new CharacterState { State = 6, LastUpdateTime = AssignedShard.CurrentTime });
 
         upd.Add(new CurrentHealth { Value = CharacterEntity.CharData.MaxHealth });
 
-        upd.Add(new Unknown4 { Unk1 = 0 });
+        upd.Add(new Unknown4 { Unknown1 = 0 });
 
         upd.Add(new Unknown1());
 
         upd.Add(new RegionUnlocks { Bitfield = 0xFFFFFFFFFFFFFFFFUL });
 
-        NetChans[ChannelType.ReliableGss].SendGSSClass(upd, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController);
+        NetChannels[ChannelType.ReliableGss].SendGSSClass(upd, CharacterEntity.EntityId, Enums.GSS.Controllers.Character_BaseController);
 
         upd = new PartialUpdate();
 
         upd.Add(new Unknown5 { LastUpdateTime = AssignedShard.CurrentTime });
 
-        NetChans[ChannelType.ReliableGss].SendGSSClass(upd, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController);
+        NetChannels[ChannelType.ReliableGss].SendGSSClass(upd, CharacterEntity.EntityId, Enums.GSS.Controllers.Character_BaseController);
     }
 
     public void Ready()
@@ -133,7 +133,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
     public void Jump()
     {
-        //NetChans[ChannelType.UnreliableGss].SendGSSClass( new JumpActioned { JumpTime = AssignedShard.CurrentShortTime }, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
+        //NetChannels[ChannelType.UnreliableGss].SendGSSClass( new JumpActioned { JumpTime = AssignedShard.CurrentShortTime }, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
         CharacterEntity.TimeSinceLastJump = AssignedShard.CurrentShortTime;
     }
 
@@ -151,7 +151,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         {
             if (AssignedShard.CurrentTime - lastKeyFrame > 0.5)
             {
-                //NetChans[ChannelType.ReliableGss].SendGSSClass(Test.GSS.Character.BaseController.KeyFrame.Test(this, this), this.InstanceID, msgEnumType: typeof(Enums.GSS.Character.Events));
+                //NetChannels[ChannelType.ReliableGss].SendGSSClass(Test.GSS.Character.BaseController.KeyFrame.Test(this, this), this.InstanceID, msgEnumType: typeof(Enums.GSS.Character.Events));
             }
         }
     }
@@ -163,27 +163,27 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         // EnterZone
         var enterZone = new EnterZone();
-        enterZone.InstanceId = AssignedShard.InstanceID;
+        enterZone.InstanceId = AssignedShard.InstanceId;
         enterZone.ZoneId = CurrentZone.ID;
         enterZone.ZoneTimestamp = CurrentZone.Timestamp;
         enterZone.PreviewModeFlag = 0;
         enterZone.ZoneOwner = "r5_exec";
-        enterZone.Unk1 = new byte[] { 0x5F, 0x4C, 0xF5, 0xC9, 0x01, 0x00 };
+        enterZone.Unknown1 = new byte[] { 0x5F, 0x4C, 0xF5, 0xC9, 0x01, 0x00 };
         enterZone.HotfixLevel = 0;
         enterZone.MatchId = 0;
-        enterZone.Unk2 = new byte[] { 0x00, 0x5e, 0xdb, 0xe2, 0x63 };
+        enterZone.Unknown2 = new byte[] { 0x00, 0x5e, 0xdb, 0xe2, 0x63 };
         enterZone.ZoneName = CurrentZone.Name;
-        enterZone.Unk3 = 0;
+        enterZone.Unknown3 = 0;
         enterZone.Unk_ZoneTime = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x41, 0x7A, 0x7D, 0x65, 0x3F };
-        enterZone.Unk4 = 0x0005411D95E79428u;
-        enterZone.Unk5 = 0x000540F013D65BEAu;
-        enterZone.Unk6 = 0x3FF0000000000000u;
-        enterZone.Unk7 = 0x0000000000000000u;
-        enterZone.Unk8 = 0x0000000000000000u;
-        enterZone.Unk9 = 0;
+        enterZone.Unknown4 = 0x0005411D95E79428u;
+        enterZone.Unknown5 = 0x000540F013D65BEAu;
+        enterZone.Unknown6 = 0x3FF0000000000000u;
+        enterZone.Unknown7 = 0x0000000000000000u;
+        enterZone.Unknown8 = 0x0000000000000000u;
+        enterZone.Unknown9 = 0;
         enterZone.SpectatorModeFlag = 0;
 
-        NetChans[ChannelType.Matrix].SendClass(enterZone);
+        NetChannels[ChannelType.Matrix].SendClass(enterZone);
         Status = IPlayer.PlayerStatus.Loading;
 
         lastKeyFrame = AssignedShard.CurrentTime;

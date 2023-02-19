@@ -21,16 +21,16 @@ internal class GameServer : PacketServer
     protected ConcurrentDictionary<uint, INetworkPlayer> ClientMap;
     protected ConcurrentDictionary<ulong, IShard> Shards;
 
-    protected byte nextShardID;
-    protected ulong ServerID;
+    protected byte nextShardId;
+    protected ulong ServerId;
 
-    public GameServer(ushort port, ulong serverID) : base(port)
+    public GameServer(ushort port, ulong serverId) : base(port)
     {
         ClientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
         Shards = new ConcurrentDictionary<ulong, IShard>();
 
-        nextShardID = 1;
-        ServerID = serverID;
+        nextShardId = 1;
+        ServerId = serverId;
     }
 
     protected override void Startup(CancellationToken ct)
@@ -39,7 +39,7 @@ internal class GameServer : PacketServer
         Factory.Init();
     }
 
-    protected override async void ServerRunThread(CancellationToken ct)
+    protected override async void ServerRunThreadAsync(CancellationToken ct)
     {
         Packet? p;
         while ((p = await incomingPackets.ReceiveAsync(ct)) != null)
@@ -63,7 +63,7 @@ internal class GameServer : PacketServer
 
     protected IShard NewShard(CancellationToken ct)
     {
-        var id = ServerID | (ulong)(nextShardID++ << 8);
+        var id = ServerId | (ulong)(nextShardId++ << 8);
         var s = Shards.AddOrUpdate(id, new Shard(GameTickRate, id, this), (id, old) => old);
 
         s.Run(ct);
@@ -86,19 +86,19 @@ internal class GameServer : PacketServer
         //Program.Logger.Information("[GAME] {0} sent {1} bytes.", packet.RemoteEndpoint, packet.PacketData.Length);
         //Program.Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 
-        var socketID = Utils.SimpleFixEndianness(packet.Read<uint>());
+        var socketId = Utils.SimpleFixEndianness(packet.Read<uint>());
         INetworkClient client;
 
-        if (!ClientMap.ContainsKey(socketID))
+        if (!ClientMap.ContainsKey(socketId))
         {
-            var c = new NetworkPlayer(packet.RemoteEndpoint, socketID);
+            var c = new NetworkPlayer(packet.RemoteEndpoint, socketId);
 
-            client = ClientMap.AddOrUpdate(socketID, c, (id, nc) => { return nc; });
+            client = ClientMap.AddOrUpdate(socketId, c, (id, nc) => { return nc; });
             _ = GetNextShard(ct).MigrateIn((INetworkPlayer)client);
         }
         else
         {
-            client = ClientMap[socketID];
+            client = ClientMap[socketId];
         }
 
         client.HandlePacket(packet.PacketData.Slice(4), packet);

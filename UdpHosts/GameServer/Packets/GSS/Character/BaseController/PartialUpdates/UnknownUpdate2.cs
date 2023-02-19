@@ -3,13 +3,13 @@
 namespace GameServer.Packets.GSS.Character.BaseController.PartialUpdates;
 
 [PartialUpdate.PartialShadowFieldAttribute(0x4f)]
-public class Unknown2
+public class UnknownUpdate2
 {
     [Field]
-    public ushort Unk1;
+    public ushort Unknown1;
 
     [Field]
-    public ushort Unk2;
+    public ushort Unknown2;
 
     [Field]
     public uint LastUpdateTime;

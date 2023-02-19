@@ -29,8 +29,8 @@ public class Character : BaseEntity
     public ushort? TimeSinceLastJump { get; set; }
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
 
-    public void Load(ulong charID)
+    public void Load(ulong characterId)
     {
-        CharData = Data.Character.Load(charID);
+        CharData = Data.Character.Load(characterId);
     }
 }

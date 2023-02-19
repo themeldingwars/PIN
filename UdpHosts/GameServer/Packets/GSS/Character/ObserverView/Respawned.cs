@@ -10,5 +10,5 @@ public class Respawned
     public uint LastUpdateTime;
 
     [Field]
-    public ushort Unk1;
+    public ushort Unknown1;
 }

@@ -10,14 +10,14 @@ public struct Packet
     public int CurrentPosition { get; private set; }
     public int TotalBytes => PacketData.Length;
     public int BytesRemaining => TotalBytes - CurrentPosition;
-    public DateTime Recieved { get; set; }
+    public DateTime Received { get; set; }
 
-    public Packet(IPEndPoint ep, ReadOnlyMemory<byte> data, DateTime? recvd = null)
+    public Packet(IPEndPoint ep, ReadOnlyMemory<byte> data, DateTime? received = null)
     {
         RemoteEndpoint = ep;
         PacketData = data;
         CurrentPosition = 0;
-        Recieved = recvd == null ? DateTime.Now : recvd.Value;
+        this.Received = received == null ? DateTime.Now : received.Value;
     }
 
     /*public T ReadBE<T>() where T : struct {

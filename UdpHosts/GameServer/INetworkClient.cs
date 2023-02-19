@@ -19,15 +19,15 @@ public enum Status
 public interface INetworkClient
 {
     Status NetClientStatus { get; }
-    uint SocketID { get; }
+    uint SocketId { get; }
     IPEndPoint RemoteEndpoint { get; }
     DateTime NetLastActive { get; }
-    ImmutableDictionary<ChannelType, Channel> NetChans { get; }
+    ImmutableDictionary<ChannelType, Channel> NetChannels { get; }
     IShard AssignedShard { get; }
 
     void Init(IPlayer player, IShard shard, IPacketSender sender);
     void HandlePacket(ReadOnlyMemory<byte> data, Packet packet);
     void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct);
     void Send(Memory<byte> p);
-    void SendAck(ChannelType forChannel, ushort forSeqNumber, DateTime? recvd = null);
+    void SendAck(ChannelType forChannel, ushort forSeqNumber, DateTime? received = null);
 }

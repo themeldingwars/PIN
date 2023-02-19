@@ -65,7 +65,7 @@ public class KeyFrame
     public ushort TitleID;
 
     [Field]
-    public uint NameLocaliztionID;
+    public uint NameLocalizationID;
 
     [Field]
     [LengthPrefixed(typeof(byte))]
@@ -344,15 +344,15 @@ public class KeyFrame
 
         [Field]
         [LengthPrefixed(typeof(byte))]
-        public IList<uint> ItemsUnk1 = new List<uint>();
+        public IList<uint> ItemsUnknown1 = new List<uint>();
 
         [Field]
         [LengthPrefixed(typeof(byte))]
-        public IList<uint> ItemsUnk2 = new List<uint>();
+        public IList<uint> ItemsUnknown2 = new List<uint>();
 
         [Field]
         [LengthPrefixed(typeof(byte))]
-        public IList<uint> ItemsUnk3 = new List<uint>();
+        public IList<uint> ItemsUnknown3 = new List<uint>();
     }
 
     public class GearItem

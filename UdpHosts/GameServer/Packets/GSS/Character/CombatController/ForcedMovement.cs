@@ -11,7 +11,7 @@ public class ForcedMovement
     public ushort Type;
 
     [Field]
-    public uint Unk1;
+    public uint Unknown1;
 
     [Field]
     public Vector Position;
