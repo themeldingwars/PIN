@@ -1,6 +1,5 @@
-﻿namespace GameServer
+﻿namespace GameServer;
+
+public interface INetworkPlayer : INetworkClient, IPlayer
 {
-    public interface INetworkPlayer : INetworkClient, IPlayer
-    {
-    }
 }

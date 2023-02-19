@@ -1,6 +1,5 @@
-﻿namespace Shared.Udp.Packets
+﻿namespace Shared.Udp.Packets;
+
+public interface IPacketView
 {
-    public interface IPacketView
-    {
-    }
 }

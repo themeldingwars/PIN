@@ -1,10 +1,9 @@
 ﻿using GameServer.Enums;
 
-namespace GameServer.Packets.Control
+namespace GameServer.Packets.Control;
+
+[ControlMessage(ControlPacketType.CloseConnection)]
+public class CloseConnection
 {
-    [ControlMessage(ControlPacketType.CloseConnection)]
-    public class CloseConnection
-    {
-        public uint Unk1;
-    }
+    public uint Unk1;
 }

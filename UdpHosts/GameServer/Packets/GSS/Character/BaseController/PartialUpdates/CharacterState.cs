@@ -1,14 +1,13 @@
 ﻿using Shared.Udp;
 
-namespace GameServer.Packets.GSS.Character.BaseController.PartialUpdates
-{
-    [PartialUpdate.PartialShadowFieldAttribute(0x10)]
-    public class CharacterState
-    {
-        [Field]
-        public byte State;
+namespace GameServer.Packets.GSS.Character.BaseController.PartialUpdates;
 
-        [Field]
-        public uint LastUpdateTime;
-    }
+[PartialUpdate.PartialShadowFieldAttribute(0x10)]
+public class CharacterState
+{
+    [Field]
+    public byte State;
+
+    [Field]
+    public uint LastUpdateTime;
 }

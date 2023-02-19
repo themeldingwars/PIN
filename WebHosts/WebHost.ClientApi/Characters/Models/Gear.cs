@@ -1,9 +1,8 @@
-﻿namespace WebHost.ClientApi.Characters.Models
+﻿namespace WebHost.ClientApi.Characters.Models;
+
+public class Gear
 {
-    public class Gear
-    {
-        public int SlotTypeId { get; set; }
-        public int SdbId { get; set; }
-        public long ItemGuid { get; set; }
-    }
+    public int SlotTypeId { get; set; }
+    public int SdbId { get; set; }
+    public long ItemGuid { get; set; }
 }

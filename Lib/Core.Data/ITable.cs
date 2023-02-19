@@ -1,6 +1,5 @@
-﻿namespace Core.Data
+﻿namespace Core.Data;
+
+public interface ITable
 {
-    public interface ITable
-    {
-    }
 }

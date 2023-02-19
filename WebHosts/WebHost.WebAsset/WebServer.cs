@@ -6,17 +6,16 @@ using Microsoft.Extensions.FileProviders;
 using Shared.Web;
 using System.IO;
 
-namespace WebHost.WebAsset
+namespace WebHost.WebAsset;
+
+public class WebServer : BaseWebServer
 {
-    public class WebServer : BaseWebServer
+    public WebServer(IConfiguration configuration) : base(configuration) { }
+
+    protected override void ConfigureChildServices(IServiceCollection services) { }
+
+    protected override void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        public WebServer(IConfiguration configuration) : base(configuration) { }
-
-        protected override void ConfigureChildServices(IServiceCollection services) { }
-
-        protected override void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath, "Assets")), RequestPath = string.Empty });
-        }
+        app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath, "Assets")), RequestPath = string.Empty });
     }
 }

@@ -1,7 +1,6 @@
-﻿namespace WebHost.ClientApi.Models.Base
+﻿namespace WebHost.ClientApi.Models.Base;
+
+public class Item
 {
-    public class Item
-    {
-        public int Id { get; set; }
-    }
+    public int Id { get; set; }
 }

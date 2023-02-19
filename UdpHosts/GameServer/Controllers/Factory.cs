@@ -3,59 +3,58 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 
-namespace GameServer.Controllers
+namespace GameServer.Controllers;
+
+public static class Factory
 {
-    public static class Factory
+    private static ConcurrentDictionary<Enums.GSS.Controllers, Base> _controllers;
+
+    public static void Init()
     {
-        private static ConcurrentDictionary<Enums.GSS.Controllers, Base> _controllers;
+        _controllers = new ConcurrentDictionary<Enums.GSS.Controllers, Base>();
+    }
 
-        public static void Init()
+    public static T Get<T>()
+        where T : Base, new()
+    {
+        var attr = typeof(T).GetAttribute<ControllerIDAttribute>();
+
+        if (attr == null)
         {
-            _controllers = new ConcurrentDictionary<Enums.GSS.Controllers, Base>();
+            throw new ArgumentNullException("T", "Type [" + typeof(T).FullName + "] does not have a ControllerID Attribute.");
         }
 
-        public static T Get<T>()
-            where T : Base, new()
+        var k = attr.ControllerID;
+
+        if (!_controllers.ContainsKey(k))
         {
-            var attr = typeof(T).GetAttribute<ControllerIDAttribute>();
-
-            if (attr == null)
-            {
-                throw new ArgumentNullException("T", "Type [" + typeof(T).FullName + "] does not have a ControllerID Attribute.");
-            }
-
-            var k = attr.ControllerID;
-
-            if (!_controllers.ContainsKey(k))
-            {
-                return _controllers.AddOrUpdate(k, new T(), (k, nc) => nc) as T;
-            }
-
-            return _controllers[k] as T;
+            return _controllers.AddOrUpdate(k, new T(), (k, nc) => nc) as T;
         }
 
-        public static Base Get(Enums.GSS.Controllers controllerID)
+        return _controllers[k] as T;
+    }
+
+    public static Base Get(Enums.GSS.Controllers controllerID)
+    {
+        if (_controllers.ContainsKey(controllerID))
         {
-            if (_controllers.ContainsKey(controllerID))
-            {
-                return _controllers[controllerID];
-            }
-
-            var t = ForControllerID(controllerID);
-
-            if (t != null)
-            {
-                return _controllers.AddOrUpdate(controllerID, Activator.CreateInstance(t) as Base, (k, nc) => nc);
-            }
-
-            return null;
+            return _controllers[controllerID];
         }
 
-        public static Type ForControllerID(Enums.GSS.Controllers cID)
-        {
-            var ts = ReflectionUtils.FindTypesByAttribute<ControllerIDAttribute>();
+        var t = ForControllerID(controllerID);
 
-            return ts.Where(t => t.GetAttribute<ControllerIDAttribute>().ControllerID == cID).FirstOrDefault();
+        if (t != null)
+        {
+            return _controllers.AddOrUpdate(controllerID, Activator.CreateInstance(t) as Base, (k, nc) => nc);
         }
+
+        return null;
+    }
+
+    public static Type ForControllerID(Enums.GSS.Controllers cID)
+    {
+        var ts = ReflectionUtils.FindTypesByAttribute<ControllerIDAttribute>();
+
+        return ts.Where(t => t.GetAttribute<ControllerIDAttribute>().ControllerID == cID).FirstOrDefault();
     }
 }

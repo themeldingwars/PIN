@@ -1,20 +1,19 @@
 ﻿using GameServer.Packets.GSS.Character.BaseController;
 
-namespace GameServer.Data
+namespace GameServer.Data;
+
+public class AbilityModule
 {
-    public class AbilityModule
+    public uint SdbID { get; set; }
+    public byte SlotIDX { get; set; }
+
+    public static AbilityModule Load(uint id, byte slot)
     {
-        public uint SdbID { get; set; }
-        public byte SlotIDX { get; set; }
+        return new AbilityModule { SdbID = id, SlotIDX = slot };
+    }
 
-        public static AbilityModule Load(uint id, byte slot)
-        {
-            return new AbilityModule { SdbID = id, SlotIDX = slot };
-        }
-
-        public static implicit operator KeyFrame.Ability(AbilityModule o)
-        {
-            return new KeyFrame.Ability { Slot = o.SlotIDX, ID = o.SdbID, UnkByte1 = 0 };
-        }
+    public static implicit operator KeyFrame.Ability(AbilityModule o)
+    {
+        return new KeyFrame.Ability { Slot = o.SlotIDX, ID = o.SdbID, UnkByte1 = 0 };
     }
 }

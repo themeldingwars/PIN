@@ -1,7 +1,6 @@
-﻿namespace WebHost.ClientApi.Models.Base
+﻿namespace WebHost.ClientApi.Models.Base;
+
+public class SdbItem
 {
-    public class SdbItem
-    {
-        public int SdbId { get; set; }
-    }
+    public int SdbId { get; set; }
 }

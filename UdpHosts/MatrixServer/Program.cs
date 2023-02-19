@@ -2,24 +2,23 @@
 using Shared.Common;
 using Shared.Udp;
 
-namespace MatrixServer
+namespace MatrixServer;
+
+internal class Program
 {
-    internal class Program
+    public static ILogger Logger { get; protected set; }
+
+    private static void Main(string[] args)
     {
-        public static ILogger Logger { get; protected set; }
+        Logger = new LoggerConfiguration()
+                 .MinimumLevel.Verbose()
+                 .WriteTo.Console(theme: SerilogTheme.Custom)
+                 .CreateLogger();
 
-        private static void Main(string[] args)
-        {
-            Logger = new LoggerConfiguration()
-                     .MinimumLevel.Verbose()
-                     .WriteTo.Console(theme: SerilogTheme.Custom)
-                     .CreateLogger();
+        PacketServer.Logger = Logger;
 
-            PacketServer.Logger = Logger;
-
-            // TODO: Handle/allow args and configuration
-            var server = new MatrixServer(25000);
-            server.Run();
-        }
+        // TODO: Handle/allow args and configuration
+        var server = new MatrixServer(25000);
+        server.Run();
     }
 }

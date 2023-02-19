@@ -2,16 +2,16 @@
 using System.Net.Http;
 using System.Text;
 
-namespace WebHost.ClientApi.Controllers
+namespace WebHost.ClientApi.Controllers;
+
+[ApiController]
+public class MiscController : ControllerBase
 {
-    [ApiController]
-    public class MiscController : ControllerBase
+    [Route("api/v1/login_alerts")]
+    [HttpGet]
+    public HttpResponseMessage GetLoginAlerts()
     {
-        [Route("api/v1/login_alerts")]
-        [HttpGet]
-        public HttpResponseMessage GetLoginAlerts()
-        {
-            const string Html = @"<html>
+        const string Html = @"<html>
 <head>
 <meta charset=""utf - 8"" />
 <title>InGame</title>
@@ -22,15 +22,14 @@ The Pirate Intelligence Network is here to serve you all the content you'd want
 </body>
 </html>";
 
-            return new HttpResponseMessage { Content = new StringContent(Html, Encoding.UTF8, "text/html") };
-        }
+        return new HttpResponseMessage { Content = new StringContent(Html, Encoding.UTF8, "text/html") };
+    }
 
 
-        [Route("api/v2/zone_settings")]
-        [HttpGet]
-        public object ZoneSettings()
-        {
-            return new object[] { };
-        }
+    [Route("api/v2/zone_settings")]
+    [HttpGet]
+    public object ZoneSettings()
+    {
+        return new object[] { };
     }
 }
