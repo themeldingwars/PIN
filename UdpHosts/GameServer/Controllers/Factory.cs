@@ -34,27 +34,22 @@ public static class Factory
         return _controllers[k] as T;
     }
 
-    public static Base Get(Enums.GSS.Controllers controllerID)
+    public static Base Get(Enums.GSS.Controllers controllerId)
     {
-        if (_controllers.ContainsKey(controllerID))
+        if (_controllers.ContainsKey(controllerId))
         {
-            return _controllers[controllerID];
+            return _controllers[controllerId];
         }
 
-        var t = ForControllerID(controllerID);
+        var t = ForControllerId(controllerId);
 
-        if (t != null)
-        {
-            return _controllers.AddOrUpdate(controllerID, Activator.CreateInstance(t) as Base, (k, nc) => nc);
-        }
-
-        return null;
+        return t != null ? _controllers.AddOrUpdate(controllerId, Activator.CreateInstance(t) as Base, (k, nc) => nc) : null;
     }
 
-    public static Type ForControllerID(Enums.GSS.Controllers cID)
+    public static Type ForControllerId(Enums.GSS.Controllers controllerId)
     {
         var ts = ReflectionUtils.FindTypesByAttribute<ControllerIDAttribute>();
 
-        return ts.Where(t => t.GetAttribute<ControllerIDAttribute>().ControllerID == cID).FirstOrDefault();
+        return ts.FirstOrDefault(t => t.GetAttribute<ControllerIDAttribute>().ControllerID == controllerId);
     }
 }

@@ -205,17 +205,15 @@ public class Channel
             p = Serializer.WriteClass(pkt);
         }
 
-        var controlMsgAttr = typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() as ControlMessageAttribute;
-        var matrixMsgAttr = typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault() as MatrixMessageAttribute;
-        byte msgID;
+        byte messageId;
 
-        if (controlMsgAttr != null)
+        if (typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() is ControlMessageAttribute controlMsgAttr)
         {
-            msgID = (byte)controlMsgAttr.MsgID;
+            messageId = (byte)controlMsgAttr.MsgID;
         }
-        else if (matrixMsgAttr != null)
+        else if (typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault() is MatrixMessageAttribute matrixMsgAttr)
         {
-            msgID = (byte)matrixMsgAttr.MsgID;
+            messageId = (byte)matrixMsgAttr.MsgID;
         }
         else
         {
@@ -225,23 +223,23 @@ public class Channel
         var t = new Memory<byte>(new byte[1 + p.Length]);
         p.CopyTo(t[1..]);
 
-        Serializer.WritePrimitive(msgID).CopyTo(t);
+        Serializer.WritePrimitive(messageId).CopyTo(t);
 
         p = t;
 
         if (msgEnumType == null)
         {
-            Program.Logger.Verbose("<-- {0}: MsgID = 0x{1:X2}", Type, msgID);
+            Program.Logger.Verbose("<-- {0}: MsgID = 0x{1:X2}", Type, messageId);
         }
         else
         {
-            Program.Logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
+            Program.Logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, messageId)), messageId);
         }
 
         return Send(p);
     }
 
-    public bool SendGSS<T>(T pkt, ulong entityID, Enums.GSS.Controllers? controllerID = null, Type msgEnumType = null)
+    public bool SendGSS<T>(T pkt, ulong entityId, Enums.GSS.Controllers? controllerId = null, Type msgEnumType = null)
         where T : struct
     {
         Memory<byte> p;
@@ -254,20 +252,18 @@ public class Channel
             p = Serializer.WriteStruct(pkt);
         }
 
-        var gssMsgAttr = typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() as GSSMessageAttribute;
-
-        if (gssMsgAttr != null)
+        if (typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() is GSSMessageAttribute gssMsgAttr)
         {
-            var msgID = gssMsgAttr.MsgID;
+            var messageId = gssMsgAttr.MsgID;
             var t = new Memory<byte>(new byte[9 + p.Length]);
             p.CopyTo(t[9..]);
 
-            Serializer.WritePrimitive(entityID).CopyTo(t);
+            Serializer.WritePrimitive(entityId).CopyTo(t);
 
             // Intentionally overwrite first byte of Entity ID
-            if (controllerID.HasValue)
+            if (controllerId.HasValue)
             {
-                Serializer.WritePrimitive((byte)controllerID.Value).CopyTo(t);
+                Serializer.WritePrimitive((byte)controllerId.Value).CopyTo(t);
             }
             else if (gssMsgAttr.ControllerID.HasValue)
             {
@@ -278,18 +274,18 @@ public class Channel
                 throw new Exception();
             }
 
-            Serializer.WritePrimitive(msgID).CopyTo(t[8..]);
+            Serializer.WritePrimitive(messageId).CopyTo(t[8..]);
 
             p = t;
 
             if (msgEnumType == null)
             {
-                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID, msgID);
+                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerId ?? gssMsgAttr.ControllerID.Value, entityId, messageId);
             }
             else
             {
-                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerID.HasValue ? controllerID.Value : gssMsgAttr.ControllerID.Value, entityID,
-                                       Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, msgID)), msgID);
+                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerId ?? gssMsgAttr.ControllerID.Value, entityId,
+                                       Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, messageId)), messageId);
             }
         }
         else

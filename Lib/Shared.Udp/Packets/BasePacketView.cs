@@ -20,7 +20,7 @@ public class BasePacketView : IPacketView
     {
         Endianness = e;
 
-        if (Endianness == BitEndianness.LittleBigEndian || Endianness == BitEndianness.BigLittleEndian)
+        if (Endianness is BitEndianness.LittleBigEndian or BitEndianness.BigLittleEndian)
         {
             throw new NotImplementedException("LittleBigEndian and BigLittleEndian NYI");
         }

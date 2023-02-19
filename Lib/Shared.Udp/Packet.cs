@@ -17,7 +17,7 @@ public struct Packet
         RemoteEndpoint = ep;
         PacketData = data;
         CurrentPosition = 0;
-        this.Received = received == null ? DateTime.Now : received.Value;
+        this.Received = received ?? DateTime.Now;
     }
 
     /*public T ReadBE<T>() where T : struct {
