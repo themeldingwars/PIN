@@ -1,12 +1,12 @@
 <Project>
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Version>1.2.0</Version>
-    <Company>The Melding Wars</Company>
-    <Copyright>Copyright © 2019-2022 by The Melding Wars</Copyright>
-    <Product>Pirate Intelligence Network</Product>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup>
+        <Version>1.2.0</Version>
+        <Company>The Melding Wars</Company>
+        <Copyright>Copyright © 2019-2022 by The Melding Wars</Copyright>
+        <Product>Pirate Intelligence Network</Product>
+    </PropertyGroup>
 </Project>

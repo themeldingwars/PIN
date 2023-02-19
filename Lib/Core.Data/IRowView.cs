@@ -1,9 +1,8 @@
 ﻿using System.Data;
 
-namespace Core.Data
+namespace Core.Data;
+
+public interface IRowView
 {
-    public interface IRowView
-    {
-        void Load(IDataRecord row);
-    }
+    void Load(IDataRecord row);
 }

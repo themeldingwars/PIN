@@ -1,6 +1,5 @@
-﻿namespace Core.Data
+﻿namespace Core.Data;
+
+public abstract class ActiveRecord : RowView
 {
-    public abstract class ActiveRecord : RowView
-    {
-    }
 }

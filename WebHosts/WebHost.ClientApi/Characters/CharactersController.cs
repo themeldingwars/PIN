@@ -1,23 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebHost.ClientApi.Characters.Models;
 
-namespace WebHost.ClientApi.Characters
+namespace WebHost.ClientApi.Characters;
+
+[ApiController]
+public class CharactersController : ControllerBase
 {
-    [ApiController]
-    public class CharactersController : ControllerBase
+    private readonly ICharactersRepository _charactersRepository;
+
+    public CharactersController(ICharactersRepository charactersRepository)
     {
-        private readonly ICharactersRepository _charactersRepository;
+        _charactersRepository = charactersRepository;
+    }
 
-        public CharactersController(ICharactersRepository charactersRepository)
-        {
-            _charactersRepository = charactersRepository;
-        }
-
-        [Route("api/v2/characters/list")]
-        [HttpGet]
-        public CharactersList GetCharactersList()
-        {
-            return _charactersRepository.GetCharacters();
-        }
+    [Route("api/v2/characters/list")]
+    [HttpGet]
+    public CharactersList GetCharactersList()
+    {
+        return _charactersRepository.GetCharacters();
     }
 }

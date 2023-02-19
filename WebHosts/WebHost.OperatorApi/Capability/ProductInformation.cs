@@ -1,13 +1,12 @@
-﻿namespace WebHost.OperatorApi.Capability
+﻿namespace WebHost.OperatorApi.Capability;
+
+public class ProductInformation
 {
-    public class ProductInformation
-    {
-        public string Build { get; set; }
+    public string Build { get; set; }
 
-        public string Environment { get; set; }
+    public string Environment { get; set; }
 
-        public string Region { get; set; }
+    public string Region { get; set; }
 
-        public int PatchLevel { get; set; }
-    }
+    public int PatchLevel { get; set; }
 }

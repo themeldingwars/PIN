@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Shared.Web;
 
-namespace WebHost.CatchAll
+namespace WebHost.CatchAll;
+
+public class WebServer : BaseWebServer
 {
-    public class WebServer : BaseWebServer
-    {
-        public WebServer(IConfiguration configuration) : base(configuration) { }
-    }
+    public WebServer(IConfiguration configuration) : base(configuration) { }
 }

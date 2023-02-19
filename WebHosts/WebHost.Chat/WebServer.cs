@@ -4,13 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Web;
 
-namespace WebHost.Chat
-{
-    public class WebServer : BaseWebServer
-    {
-        public WebServer(IConfiguration configuration) : base(configuration) { }
+namespace WebHost.Chat;
 
-        protected override void ConfigureChildServices(IServiceCollection services) { }
-        protected override void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env) { }
-    }
+public class WebServer : BaseWebServer
+{
+    public WebServer(IConfiguration configuration) : base(configuration) { }
+
+    protected override void ConfigureChildServices(IServiceCollection services) { }
+    protected override void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env) { }
 }

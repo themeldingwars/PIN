@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace Shared.Udp
+namespace Shared.Udp;
+
+public interface IWritable
 {
-    public interface IWritable
-    {
-        Memory<byte> Write();
-        Memory<byte> WriteBE();
-    }
+    Memory<byte> Write();
+    Memory<byte> WriteBE();
 }

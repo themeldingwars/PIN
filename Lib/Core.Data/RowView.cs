@@ -1,11 +1,10 @@
 ﻿using System.Data;
 
-namespace Core.Data
+namespace Core.Data;
+
+public abstract class RowView : IRowView
 {
-    public abstract class RowView : IRowView
+    public virtual void Load(IDataRecord row)
     {
-        public virtual void Load(IDataRecord row)
-        {
-        }
     }
 }

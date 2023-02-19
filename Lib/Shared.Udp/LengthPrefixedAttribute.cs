@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace Shared.Udp
-{
-    public sealed class LengthPrefixedAttribute : Attribute
-    {
-        public Type LengthType;
+namespace Shared.Udp;
 
-        public LengthPrefixedAttribute(Type t)
-        {
-            LengthType = t;
-        }
+public sealed class LengthPrefixedAttribute : Attribute
+{
+    public Type LengthType;
+
+    public LengthPrefixedAttribute(Type t)
+    {
+        LengthType = t;
     }
 }

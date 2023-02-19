@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\PIN.targets" />
+    <Import Project="..\..\PIN.targets"/>
 
 </Project>
