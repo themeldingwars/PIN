@@ -83,7 +83,7 @@ public class BaseController : Base
                    {
                        PoseData = new MovementPoseData
                                   {
-                                      MovementUnk1 = movementInput.ShortTime, //ShortTime
+                                      ShortTime = movementInput.ShortTime,
                                       MovementType = MovementDataType.PosRotState,
                                       MovementUnk3 = 0, // ToDo: Find out why this has to be 0; What does it control?
                                       PosRotState = new MovementPosRotState
@@ -96,10 +96,9 @@ public class BaseController : Base
                                       JetpackEnergy = poseData.JetpackEnergy,
                                       GroundTimePositiveAirTimeNegative = poseData.GroundTimePositiveAirTimeNegative, // Somehow affects gravity
                                       TimeSinceLastJump = poseData.TimeSinceLastJump,
-                                      HaveMoreData = 0 // this has to be 0 for now, according to AeroMessages: "Looks like 1 more byte should be read here and based on it a lot of more shit can happen"
-                                      // and we don't quite know yet what "a lot of more shit" looks like so we don't flip it to 1 for the time being
+                                      HaveDebugData = 0
                                   },
-                       Unk = unchecked((ushort)(movementInput.ShortTime + 90)) // NextShortTime
+                       NextShortTime = unchecked((ushort)(movementInput.ShortTime + 90))
                    };
 
         // ToDo: Set "Aim" property of response if the input had the respective flag
