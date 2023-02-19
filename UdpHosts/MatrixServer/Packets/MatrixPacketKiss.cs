@@ -23,7 +23,7 @@ internal unsafe struct MatrixPacketKiss
         {
             fixed (byte* t = type)
             {
-                Serializer.WriteFixed(t, Encoding.ASCII.GetBytes(value.Substring(0, 4)));
+                Serializer.WriteFixed(t, Encoding.ASCII.GetBytes(value[..4]));
             }
         }
     }

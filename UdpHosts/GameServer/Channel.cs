@@ -170,7 +170,7 @@ public class Channel
         {
             var msgID = conMsgAttr.MsgID;
             var t = new Memory<byte>(new byte[1 + p.Length]);
-            p.CopyTo(t.Slice(1));
+            p.CopyTo(t[1..]);
             Serializer.WritePrimitive((byte)msgID).CopyTo(t);
             p = t;
             Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
@@ -179,7 +179,7 @@ public class Channel
         {
             var msgID = matMsgAttr.MsgID;
             var t = new Memory<byte>(new byte[1 + p.Length]);
-            p.CopyTo(t.Slice(1));
+            p.CopyTo(t[1..]);
             Serializer.WritePrimitive((byte)msgID).CopyTo(t);
             p = t;
             Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
@@ -223,7 +223,7 @@ public class Channel
         }
 
         var t = new Memory<byte>(new byte[1 + p.Length]);
-        p.CopyTo(t.Slice(1));
+        p.CopyTo(t[1..]);
 
         Serializer.WritePrimitive(msgID).CopyTo(t);
 
@@ -260,7 +260,7 @@ public class Channel
         {
             var msgID = gssMsgAttr.MsgID;
             var t = new Memory<byte>(new byte[9 + p.Length]);
-            p.CopyTo(t.Slice(9));
+            p.CopyTo(t[9..]);
 
             Serializer.WritePrimitive(entityID).CopyTo(t);
 
@@ -278,7 +278,7 @@ public class Channel
                 throw new Exception();
             }
 
-            Serializer.WritePrimitive(msgID).CopyTo(t.Slice(8));
+            Serializer.WritePrimitive(msgID).CopyTo(t[8..]);
 
             p = t;
 

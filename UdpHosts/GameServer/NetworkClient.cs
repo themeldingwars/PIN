@@ -95,7 +95,7 @@ public class NetworkClient : INetworkClient
         NetLastActive = DateTime.Now;
 
         var t = new Memory<byte>(new byte[4 + p.Length]);
-        p.CopyTo(t.Slice(4));
+        p.CopyTo(t[4..]);
         Serializer.WriteStruct(Utils.SimpleFixEndianness(SocketId)).CopyTo(t);
 
         Sender.Send(t, RemoteEndpoint);
