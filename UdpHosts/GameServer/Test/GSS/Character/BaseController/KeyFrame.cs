@@ -9,20 +9,20 @@ public static class KeyFrame
 {
     public static Packet.KeyFrame Test(IPlayer p, IShard shard)
     {
-        //var gametime = (uint)Math.Round(shard.CurrentTick*1000);
-        var gametime = shard.CurrentTime;
+        //var gameTime = (uint)Math.Round(shard.CurrentTick*1000);
+        var gameTime = shard.CurrentTime;
         //Program.Logger.Error( "KF: Game Time: {0}", gametime );
         var ret = new Packet.KeyFrame();
         var cd = p.CharacterEntity.CharData;
 
-        ret.KeyFrameTime_0 = gametime;
-        ret.KeyFrameTime_1 = gametime;
-        ret.KeyFrameTime_2 = gametime;
-        ret.KeyFrameTime_3 = gametime;
-        ret.KeyFrameTime_4 = gametime;
-        ret.KeyFrameTime_5 = gametime;
+        ret.KeyFrameTime_0 = gameTime;
+        ret.KeyFrameTime_1 = gameTime;
+        ret.KeyFrameTime_2 = gameTime;
+        ret.KeyFrameTime_3 = gameTime;
+        ret.KeyFrameTime_4 = gameTime;
+        ret.KeyFrameTime_5 = gameTime;
 
-        ret.InstanceID = shard.InstanceID;
+        ret.InstanceID = shard.InstanceId;
         ret.UnkInt1 = 0xffffffffu;
         ret.UnkInt2 = 0x0000003fu;
 
@@ -43,7 +43,7 @@ public static class KeyFrame
         ret.CharTypeID = cd.CharVisuals.CharTypeID;
         ret.VoiceSet = cd.VoiceSet;
         ret.TitleID = cd.TitleID;
-        ret.NameLocaliztionID = cd.NameLocalizationID;
+        ret.NameLocalizationID = cd.NameLocalizationID;
 
         ret.HeadAccessories = cd.CharVisuals.HeadAccessories;
 

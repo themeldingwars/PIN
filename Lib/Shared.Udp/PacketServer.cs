@@ -48,7 +48,7 @@ public abstract class PacketServer : IPacketSender
     protected abstract void HandlePacket(Packet p, CancellationToken ct);
     protected virtual void Startup(CancellationToken ct) { }
 
-    protected virtual async void ServerRunThread(CancellationToken ct)
+    protected virtual async void ServerRunThreadAsync(CancellationToken ct)
     {
         Packet? p;
         while ((p = await incomingPackets.ReceiveAsync(ct)) != null)
@@ -60,7 +60,7 @@ public abstract class PacketServer : IPacketSender
     protected virtual void Shutdown(CancellationToken ct) { }
 
 
-    // TODO: Move to seperate thread? add console/rcon handling here?
+    // TODO: Move to separate thread? add console/rcon handling here?
     // FIXME: Move timing to GameServer
     public void Run()
     {
@@ -71,7 +71,7 @@ public abstract class PacketServer : IPacketSender
         outgoingPackets = new BufferBlock<Packet?>();
 
         var listenThread = Utils.RunThread(ListenThread, ct);
-        var runThread = Utils.RunThread(ServerRunThread, ct);
+        var runThread = Utils.RunThread(ServerRunThreadAsync, ct);
         var sendThread = Utils.RunThread(SendThread, ct);
 
         Startup(ct);
@@ -105,8 +105,8 @@ public abstract class PacketServer : IPacketSender
         Logger.Information("Listening on {0}", listenEndpoint);
 
         var buffer = new byte[MTU * 10];
-        EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-        int c;
+        EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        int numberOfBytesReceived;
 
         Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
@@ -120,16 +120,16 @@ public abstract class PacketServer : IPacketSender
             try
             {
                 // Sockets don't support async yet :( Blocking here bc the win api will yield and wait better on the native side than we can here
-                if ((c = serverSocket.ReceiveFrom(buffer, SocketFlags.None, ref remoteEP)) > 0)
+                if ((numberOfBytesReceived = serverSocket.ReceiveFrom(buffer, SocketFlags.None, ref remoteEndPoint)) > 0)
                 {
-                    // Should prolly change to ArrayPool<byte>, but can't return a Memory<byte> :(
+                    // Should probably change to ArrayPool<byte>, but can't return a Memory<byte> :(
                     // TODO: Move Endpoint and Memory<byte> management to Packet (constructor + destructor)
-                    var buf = new byte[c];
-                    buffer.AsSpan().Slice(0, c).ToArray().CopyTo(buf, 0);
-                    _ = await incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEP, new ReadOnlyMemory<byte>(buf, 0, c), DateTime.Now), ct);
+                    var buf = new byte[numberOfBytesReceived];
+                    buffer.AsSpan().Slice(0, numberOfBytesReceived).ToArray().CopyTo(buf, 0);
+                    _ = await incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEndPoint, new ReadOnlyMemory<byte>(buf, 0, numberOfBytesReceived), DateTime.Now), ct);
 
                     // Not 100% sure this needs to be cleared?
-                    remoteEP = new IPEndPoint(IPAddress.Any, 0);
+                    remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
                 }
             }
             catch (Exception ex)

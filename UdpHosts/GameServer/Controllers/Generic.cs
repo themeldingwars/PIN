@@ -16,7 +16,7 @@ public class Generic : Base
     }
 
     [MessageID((byte)Commands.ScheduleUpdateRequest)]
-    public void ScheduleUpdateRequest(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void ScheduleUpdateRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var updateRequest = packet.Unpack<ScheduleUpdateRequest>();
 
@@ -33,9 +33,9 @@ public class Generic : Base
     }
 
     [MessageID((byte)Commands.RequestLogout)]
-    public void RequestLogout(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void RequestLogout(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-        var resp = new CloseConnection { Unk1 = 0 };
-        client.NetChans[ChannelType.Control].SendClass(resp, typeof(ControlPacketType));
+        var resp = new CloseConnection { Unknown1 = 0 };
+        client.NetChannels[ChannelType.Control].SendClass(resp, typeof(ControlPacketType));
     }
 }

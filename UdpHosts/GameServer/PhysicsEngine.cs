@@ -4,26 +4,26 @@ namespace GameServer;
 
 public class PhysicsEngine
 {
-    public PhysicsEngine(double dt)
+    public PhysicsEngine(double deltaTime)
     {
         Accumulator = 0.0;
         SimulatedTime = 0.0;
-        DT = dt;
+        DeltaTime = deltaTime;
     }
 
     public double Accumulator { get; protected set; }
     public double SimulatedTime { get; protected set; }
-    public double DT { get; }
+    public double DeltaTime { get; }
 
     public void Tick(double deltaTime, ulong currTime, CancellationToken ct)
     {
         Accumulator += deltaTime;
 
-        while (!ct.IsCancellationRequested && Accumulator >= DT)
+        while (!ct.IsCancellationRequested && Accumulator >= DeltaTime)
         {
-            Integrate( /*state*/null, SimulatedTime, DT);
-            Accumulator -= DT;
-            SimulatedTime += DT;
+            Integrate( /*state*/null, SimulatedTime, DeltaTime);
+            Accumulator -= DeltaTime;
+            SimulatedTime += DeltaTime;
         }
     }
 

@@ -11,13 +11,13 @@ public class MissionAndMarkerController : Base
     }
 
     [MessageID((byte)Commands.RequestAllAchievements)]
-    public void RequestAllAchievements(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void RequestAllAchievements(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // TODO: Implement
     }
 
     [MessageID((byte)Commands.TryResumeTutorialChain)]
-    public void TryResumeTutorialChain(INetworkClient client, IPlayer player, ulong EntityID, GamePacket packet)
+    public void TryResumeTutorialChain(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // TODO: Implement
     }

@@ -4,7 +4,7 @@ namespace GameServer.Entities;
 
 public interface IEntity
 {
-    ulong EntityID { get; }
+    ulong EntityId { get; }
     IShard Owner { get; }
     IDictionary<Enums.GSS.Controllers, ushort> ControllerRefMap { get; }
 

@@ -24,7 +24,7 @@ public class EnterZone
 
     [Field]
     [Length(6)]
-    public IList<byte> Unk1;
+    public IList<byte> Unknown1;
 
     [Field]
     public byte HotfixLevel;
@@ -34,35 +34,35 @@ public class EnterZone
 
     [Field]
     [Length(5)]
-    public IList<byte> Unk2;
+    public IList<byte> Unknown2;
 
     [Field]
     public string ZoneName;
 
     [Field]
-    public byte Unk3;
+    public byte Unknown3;
 
     [Field]
     [Length(16)]
     public IList<byte> Unk_ZoneTime;
 
     [Field]
-    public ulong Unk4;
+    public ulong Unknown4;
 
     [Field]
-    public ulong Unk5;
+    public ulong Unknown5;
 
     [Field]
-    public ulong Unk6;
+    public ulong Unknown6;
 
     [Field]
-    public ulong Unk7;
+    public ulong Unknown7;
 
     [Field]
-    public ulong Unk8;
+    public ulong Unknown8;
 
     [Field]
-    public byte Unk9;
+    public byte Unknown9;
 
     [Field]
     public byte SpectatorModeFlag;

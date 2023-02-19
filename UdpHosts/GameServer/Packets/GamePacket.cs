@@ -32,12 +32,12 @@ public struct GamePacket
     /// </summary>
     public DateTime Received { get; set; }
 
-    public GamePacket(GamePacketHeader hdr, ReadOnlyMemory<byte> data, DateTime? recvd = null)
+    public GamePacket(GamePacketHeader hdr, ReadOnlyMemory<byte> data, DateTime? received = null)
     {
         Header = hdr;
         PacketData = data;
         CurrentPosition = 0;
-        Received = recvd ?? DateTime.Now;
+        Received = received ?? DateTime.Now;
     }
 
     public T Read<T>()

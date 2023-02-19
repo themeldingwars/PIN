@@ -16,8 +16,8 @@ internal class MatrixServer : PacketServer
     protected override void HandlePacket(Packet packet, CancellationToken ct)
     {
         var mem = packet.PacketData;
-        var SocketID = Deserializer.ReadStruct<uint>(mem);
-        if (SocketID != 0)
+        var socketId = Deserializer.ReadStruct<uint>(mem);
+        if (socketId != 0)
         {
             return;
         }
@@ -31,9 +31,9 @@ internal class MatrixServer : PacketServer
             case "POKE": // POKE
                 var poke = Deserializer.ReadStruct<MatrixPacketPoke>(mem);
                 Program.Logger.Verbose("[POKE]");
-                var socketID = GenerateSocketID();
-                Program.Logger.Information("Assigning SocketID [" + socketID + "] to [" + packet.RemoteEndpoint + "]");
-                _ = Send(Serializer.WriteStruct(new MatrixPacketHehe(socketID)), packet.RemoteEndpoint);
+                var nextSocketId = GenerateSocketId();
+                Program.Logger.Information("Assigning SocketID [" + nextSocketId + "] to [" + packet.RemoteEndpoint + "]");
+                _ = Send(Serializer.WriteStruct(new MatrixPacketHehe(nextSocketId)), packet.RemoteEndpoint);
                 break;
             case "KISS": // KISS
                 var kiss = Deserializer.ReadStruct<MatrixPacketKiss>(mem);
@@ -50,7 +50,7 @@ internal class MatrixServer : PacketServer
         }
     }
 
-    protected uint GenerateSocketID()
+    protected uint GenerateSocketId()
     {
         return unchecked((uint)((0xff00ff << 8) | random.Next(0, 256)));
     }

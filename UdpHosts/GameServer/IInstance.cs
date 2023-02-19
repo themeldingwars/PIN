@@ -2,5 +2,5 @@
 
 public interface IInstance
 {
-    ulong InstanceID { get; }
+    ulong InstanceId { get; }
 }

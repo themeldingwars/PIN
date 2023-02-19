@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace Shared.Udp.Packets;
 
-public enum BitEndianess
+public enum BitEndianness
 {
     Unknown = 0,
     LittleEndian,
@@ -16,17 +16,17 @@ public class BasePacketView : IPacketView
 {
     protected ConcurrentDictionary<string, object> fields;
 
-    public BasePacketView(BitEndianess e)
+    public BasePacketView(BitEndianness e)
     {
-        Endianess = e;
+        Endianness = e;
 
-        if (Endianess == BitEndianess.LittleBigEndian || Endianess == BitEndianess.BigLittleEndian)
+        if (Endianness == BitEndianness.LittleBigEndian || Endianness == BitEndianness.BigLittleEndian)
         {
             throw new NotImplementedException("LittleBigEndian and BigLittleEndian NYI");
         }
     }
 
-    public BitEndianess Endianess { get; protected set; }
+    public BitEndianness Endianness { get; protected set; }
 
     protected void SetupFields()
     {

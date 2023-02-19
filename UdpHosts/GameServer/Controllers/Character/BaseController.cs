@@ -16,11 +16,11 @@ public class BaseController : Base
 {
     public override void Init(INetworkClient client, IPlayer player, IShard shard)
     {
-        client.NetChans[ChannelType.ReliableGss].SendGSSClass(KeyFrame.Test(player, shard), player.EntityId, msgEnumType: typeof(Events));
-        client.NetChans[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.CombatController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
-        client.NetChans[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.LocalEffectsController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
-        client.NetChans[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.MissionAndMarkerController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
-        client.NetChans[ChannelType.ReliableGss].SendGSSClass(new CharacterLoaded(), player.EntityId, msgEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(KeyFrame.Test(player, shard), player.EntityId, msgEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.CombatController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.LocalEffectsController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.MissionAndMarkerController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new CharacterLoaded(), player.EntityId, msgEnumType: typeof(Events));
     }
 
     [MessageID((byte)Commands.FetchQueueInfo)]
@@ -77,7 +77,7 @@ public class BaseController : Base
         player.CharacterEntity.TimeSinceLastJump ??=
             timeSinceLastJumpValue >= 0 ? Convert.ToUInt16(timeSinceLastJumpValue) : throw new ArgumentOutOfRangeException($"{nameof(poseData.TimeSinceLastJump)} is <0, but we're only allowing >=0. This is bad!");
 
-        //Program.Logger.Warning( "Movement Unk1: {0:X4} {1:X4} {2:X4} {3:X4} {4:X4}", pkt.UnkUShort1, pkt.UnkUShort2, pkt.UnkUShort3, pkt.UnkUShort4, pkt.LastJumpTimer );
+        //Program.Logger.Warning( "Movement Unknown1: {0:X4} {1:X4} {2:X4} {3:X4} {4:X4}", pkt.UnkUShort1, pkt.UnkUShort2, pkt.UnkUShort3, pkt.UnkUShort4, pkt.LastJumpTimer );
 
         var resp = new ConfirmedPoseUpdate
                    {
@@ -105,7 +105,7 @@ public class BaseController : Base
         // ToDo: Set "Aim" property of response if the input had the respective flag
         // ToDo: Handle JetPackEnergy changes / add to CharacterEntity class
 
-        client.NetChans[ChannelType.UnreliableGss].SendIAero(resp, entityId, typeof(Events));
+        client.NetChannels[ChannelType.UnreliableGss].SendIAero(resp, entityId, typeof(Events));
 
         if (player.CharacterEntity.TimeSinceLastJump.HasValue && poseData.TimeSinceLastJump > player.CharacterEntity.TimeSinceLastJump.Value)
         {

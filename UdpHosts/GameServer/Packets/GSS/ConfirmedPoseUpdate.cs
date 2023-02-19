@@ -13,9 +13,9 @@ public struct ConfirmedPoseUpdate
     private float vel_x;
     private float vel_y;
     private float vel_z;
-    public ushort Unk1;
-    public uint Unk2;
-    public byte Unk3;
+    public ushort Unknown1;
+    public uint Unknown2;
+    public byte Unknown3;
     public ushort KeyTime;
 
     public Vector3 Velocity

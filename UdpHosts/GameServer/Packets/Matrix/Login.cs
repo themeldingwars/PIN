@@ -8,53 +8,53 @@ namespace GameServer.Packets.Matrix;
 public class Login
 {
     [Field]
-    public byte Unk1;
+    public byte Unknown1;
 
     [Field]
     public uint ClientVersion;
 
     [Field]
-    public string Unk2;
+    public string Unknown2;
 
     [Field]
     public ulong CharacterGUID;
 
     [Field]
-    public uint Unk3;
+    public uint Unknown3;
 
     [Field]
-    public uint Unk4;
+    public uint Unknown4;
 
     [Field]
-    public ushort Unk5;
+    public ushort Unknown5;
 
     [Field]
-    public byte Unk6;
+    public byte Unknown6;
 
     [Field]
-    public byte Unk7;
+    public byte Unknown7;
 
     [Field]
-    public byte Unk8;
+    public byte Unknown8;
 
     [Field]
     public string Red5Sig2; // From Web Requests to ClientAPI
 
     [Field]
     [ExistsPrefix(typeof(byte), 1)]
-    public UnkStructure1 Unk9;
+    public UnknownStructure1 Unknown9;
 
     // TODO: This should read to the end of the packet, it is not necessarily a predefined length
     [Field]
     [Length(370)]
     public IList<byte> OracleTicket;
 
-    public class UnkStructure1
+    public class UnknownStructure1
     {
         [Field]
-        public ulong Unk1;
+        public ulong Unknown1;
 
         [Field]
-        public string Unk2;
+        public string Unknown2;
     }
 }

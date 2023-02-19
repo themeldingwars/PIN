@@ -30,7 +30,7 @@ public class KeyFrameRequest
         public ushort RefID;
 
         [Field]
-        public byte Unk2;
+        public byte Unknown2;
 
         [Field]
         public uint Checksum;

@@ -7,8 +7,8 @@ namespace GameServer.Packets.GSS;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct InteractableStatusChanged
 {
-    public uint Unk1;
-    public uint Unk2;
-    public uint Unk3;
-    public ushort Unk4;
+    public uint Unknown1;
+    public uint Unknown2;
+    public uint Unknown3;
+    public ushort Unknown4;
 }

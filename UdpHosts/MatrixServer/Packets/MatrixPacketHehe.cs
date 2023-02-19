@@ -30,10 +30,10 @@ internal unsafe struct MatrixPacketHehe
 
     public readonly uint ClientSocketID;
 
-    public MatrixPacketHehe(uint clientID)
+    public MatrixPacketHehe(uint clientId)
     {
         SocketID = 0;
-        ClientSocketID = Utils.SimpleFixEndianness(clientID);
+        ClientSocketID = Utils.SimpleFixEndianness(clientId);
         Type = "HEHE";
     }
 }

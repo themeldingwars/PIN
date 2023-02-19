@@ -4,9 +4,9 @@ namespace GameServer.Controllers;
 
 public class MessageIDAttribute : Attribute
 {
-    public MessageIDAttribute(byte msgID)
+    public MessageIDAttribute(byte msgId)
     {
-        MsgID = msgID;
+        MsgID = msgId;
     }
 
     public byte MsgID { get; protected set; }

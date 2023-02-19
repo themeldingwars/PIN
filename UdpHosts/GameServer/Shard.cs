@@ -19,13 +19,13 @@ public class Shard : IShard, IPacketSender
     private ushort LastEntityRefId;
     protected Thread runThread;
 
-    public Shard(double gameTickRate, ulong instID, IPacketSender sender)
+    public Shard(double gameTickRate, ulong instanceId, IPacketSender sender)
     {
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
         Entities = new ConcurrentDictionary<ulong, IEntity>();
         Physics = new PhysicsEngine(gameTickRate);
         AI = new AIEngine();
-        InstanceID = instID;
+        InstanceId = instanceId;
         Sender = sender;
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
         LastEntityRefId = 0;
@@ -38,7 +38,7 @@ public class Shard : IShard, IPacketSender
     public IDictionary<uint, INetworkPlayer> Clients { get; protected set; }
     public PhysicsEngine Physics { get; protected set; }
     public AIEngine AI { get; protected set; }
-    public ulong InstanceID { get; }
+    public ulong InstanceId { get; }
     public ulong CurrentTimeLong { get; protected set; }
     public IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 
@@ -68,7 +68,7 @@ public class Shard : IShard, IPacketSender
 
     public void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct)
     {
-        // Handle timeoutd, reliable retransmission, normal rx/tx
+        // Handle timeout, reliable retransmission, normal rx/tx
         foreach (var c in Clients.Values)
         {
             c.NetworkTick(deltaTime, currTime, ct);
@@ -79,14 +79,14 @@ public class Shard : IShard, IPacketSender
 
     public bool MigrateIn(INetworkPlayer player)
     {
-        if (Clients.ContainsKey(player.SocketID))
+        if (Clients.ContainsKey(player.SocketId))
         {
             return true;
         }
 
         player.Init(this);
 
-        Clients.Add(player.SocketID, player);
+        Clients.Add(player.SocketId, player);
         //Entities.Add(player.CharacterEntity.EntityID, player.CharacterEntity);
 
         return true;
@@ -114,38 +114,38 @@ public class Shard : IShard, IPacketSender
         startTime = (long)DateTime.Now.UnixTimestamp();
         lastNetTick = 0;
 
-        var sw = new Stopwatch();
+        var stopwatch = new Stopwatch();
         var lastTime = 0.0;
-        ulong currTime;
+        ulong currentTime;
         double delta;
 
-        sw.Start();
+        stopwatch.Start();
 
         while (!ct.IsCancellationRequested)
         {
-            var currt = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
-            currTime = unchecked((ulong)sw.Elapsed.TotalMilliseconds);
-            delta = currTime - lastTime;
+            var currentUnixTimestamp = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
+            currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
+            delta = currentTime - lastTime;
 
-            if (ShouldNetworkTick(currTime - lastNetTick, currt))
+            if (ShouldNetworkTick(currentTime - lastNetTick, currentUnixTimestamp))
             {
-                NetworkTick(currTime - lastNetTick, currt, ct);
-                lastNetTick = currTime;
+                NetworkTick(currentTime - lastNetTick, currentUnixTimestamp, ct);
+                lastNetTick = currentTime;
             }
 
-            if (!Tick(delta, currt, ct))
+            if (!Tick(delta, currentUnixTimestamp, ct))
             {
                 break;
             }
 
-            lastTime = currTime;
+            lastTime = currentTime;
             _ = Thread.Yield();
         }
 
-        sw.Stop();
+        stopwatch.Stop();
     }
 
-    protected virtual bool ShouldNetworkTick(double deltaTime, ulong currTime)
+    protected virtual bool ShouldNetworkTick(double deltaTime, ulong currentTime)
     {
         return deltaTime >= NetworkTickRate;
     }

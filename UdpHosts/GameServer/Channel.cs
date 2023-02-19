@@ -463,7 +463,7 @@ public class Channel
             var hdrBytes = Serializer.WritePrimitive(Utils.SimpleFixEndianness(hdr.PacketHeader));
             hdrBytes.CopyTo(t);
 
-            //Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianess(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));
+            //Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianness(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));
             //Console.WriteLine( " "+string.Concat( t.Slice(2).ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) )
 
             outgoingPackets.Enqueue(t);
