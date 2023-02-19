@@ -53,12 +53,7 @@ public static class Deserializer
 
     private static unsafe object Read(ref ReadOnlyMemory<byte> data, Type type, IEnumerable<Attribute> attributes = null)
     {
-        attributes = attributes?.ToList();
-
-        if (attributes == null)
-        {
-            attributes = type.GetCustomAttributes();
-        }
+        attributes = attributes?.ToList() ?? type.GetCustomAttributes();
 
         var prefixLength = attributes.FirstOrDefault(a => a is LengthPrefixedAttribute) as LengthPrefixedAttribute;
         var length = attributes.FirstOrDefault(a => a is LengthAttribute) as LengthAttribute;
@@ -82,7 +77,7 @@ public static class Deserializer
             data = data[Marshal.SizeOf(exists.ExistsType)..];
         }
 
-        if (typeof(IEnumerable).IsAssignableFrom(type) && type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0)
+        if (typeof(IEnumerable).IsAssignableFrom(type) && type.GenericTypeArguments is { Length: > 0 })
         {
             var l = 0;
             if (prefixLength != null)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -81,14 +82,8 @@ public abstract class Database : IDatabase, IDisposable
         where T : IRowView
     {
         var records = await ExecuteQuery(sql, parameters);
-        var ret = new List<T>();
 
-        foreach (var r in records)
-        {
-            ret.Add(MagicManager.GetActiveRecord<T>(r));
-        }
-
-        return ret;
+        return records.Select(MagicManager.GetActiveRecord<T>).ToList();
     }
 
     public async Task<IEnumerable<IDataRecord>> ExecuteQuery(string sql, IEnumerable<IDataParameter> parameters = null)
@@ -167,29 +162,31 @@ public abstract class Database : IDatabase, IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposedValue)
+        if (disposedValue)
         {
-            if (disposing)
+            return;
+        }
+
+        if (disposing)
+        {
+            if (CurrentTransaction != null)
             {
-                if (CurrentTransaction != null)
-                {
-                    CurrentTransaction.Dispose();
-                    CurrentTransaction = null;
-                }
-
-                if (Connection != null)
-                {
-                    if (Connection.State != ConnectionState.Closed)
-                    {
-                        Connection.Close();
-                    }
-
-                    Connection.Dispose();
-                    Connection = null;
-                }
+                CurrentTransaction.Dispose();
+                CurrentTransaction = null;
             }
 
-            disposedValue = true;
+            if (Connection != null)
+            {
+                if (Connection.State != ConnectionState.Closed)
+                {
+                    Connection.Close();
+                }
+
+                Connection.Dispose();
+                Connection = null;
+            }
         }
+
+        disposedValue = true;
     }
 }

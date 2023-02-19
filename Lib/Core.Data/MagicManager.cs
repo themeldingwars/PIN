@@ -11,21 +11,10 @@ public static class MagicManager
     public static T GetActiveRecord<T>(IDataRecord rec)
         where T : IRowView
     {
-        if (_converters == null)
-        {
-            _converters = new ConcurrentDictionary<Type, Func<IDataRecord, IRowView>>();
-        }
+        _converters ??= new ConcurrentDictionary<Type, Func<IDataRecord, IRowView>>();
 
         var t = typeof(T);
-        Func<IDataRecord, IRowView> c;
-        if (!_converters.ContainsKey(t))
-        {
-            c = _converters.AddOrUpdate(t, BuildConverter<T>(), (t2, nc) => nc);
-        }
-        else
-        {
-            c = _converters[t];
-        }
+        var c = !_converters.ContainsKey(t) ? _converters.AddOrUpdate(t, BuildConverter<T>(), (t2, nc) => nc) : _converters[t];
 
         return (T)c(rec);
     }

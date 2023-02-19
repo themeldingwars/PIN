@@ -27,7 +27,7 @@ public class PartialUpdate
     public object Get(Type t)
     {
         var i = getIndex(t);
-        return Fields.Where(pv => pv.ShadowFieldIndex == i).FirstOrDefault()?.Data;
+        return Fields.FirstOrDefault(pv => pv.ShadowFieldIndex == i)?.Data;
     }
 
     private byte getIndex<T>()
@@ -37,9 +37,7 @@ public class PartialUpdate
 
     private byte getIndex(Type t)
     {
-        var attr = t.GetCustomAttributes(typeof(PartialShadowFieldAttribute), false).FirstOrDefault() as PartialShadowFieldAttribute;
-
-        if (attr == null)
+        if (t.GetCustomAttributes(typeof(PartialShadowFieldAttribute), false).FirstOrDefault() is not PartialShadowFieldAttribute attr)
         {
             throw new Exception("Type " + t.FullName + " must have a PartialShadowField attribute.");
         }

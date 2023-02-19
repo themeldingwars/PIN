@@ -99,9 +99,8 @@ public class Shard : IShard, IPacketSender
 
     public ushort AssignNewRefId(IEntity entity, Enums.GSS.Controllers controller)
     {
-        while (EntityRefMap.ContainsKey(unchecked(++LastEntityRefId)) || LastEntityRefId == 0 || LastEntityRefId == 0xffff)
+        while (EntityRefMap.ContainsKey(unchecked(++LastEntityRefId)) || LastEntityRefId is 0 or 0xffff)
         {
-            ;
         }
 
         EntityRefMap.Add(LastEntityRefId, new Tuple<IEntity, Enums.GSS.Controllers>(entity, controller));
@@ -116,16 +115,14 @@ public class Shard : IShard, IPacketSender
 
         var stopwatch = new Stopwatch();
         var lastTime = 0.0;
-        ulong currentTime;
-        double delta;
 
         stopwatch.Start();
 
         while (!ct.IsCancellationRequested)
         {
             var currentUnixTimestamp = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
-            currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
-            delta = currentTime - lastTime;
+            var currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
+            var delta = currentTime - lastTime;
 
             if (ShouldNetworkTick(currentTime - lastNetTick, currentUnixTimestamp))
             {

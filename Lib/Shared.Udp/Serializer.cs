@@ -85,54 +85,61 @@ public static class Serializer
             }
         }
 
-        if (obj == null)
+        switch (obj)
         {
-            if (prefixLength != null)
-            {
-                memoryList.Add(Write(Convert.ChangeType(0, prefixLength.LengthType), prefixLength.LengthType));
-            }
+            case null:
+                {
+                    if (prefixLength != null)
+                    {
+                        memoryList.Add(Write(Convert.ChangeType(0, prefixLength.LengthType), prefixLength.LengthType));
+                    }
 
-            if (length != null)
-            {
-                if (typeof(IEnumerable).IsAssignableFrom(type) && type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0)
-                {
-                    var st = type.GenericTypeArguments[0];
-                    memoryList.Add(new byte[Marshal.SizeOf(st) * length.Length]);
-                }
-                else
-                {
-                    throw new Exception();
-                }
-            }
-        }
-        else
-        {
-            if (obj is IList list)
-            {
-                if (prefixLength != null)
-                {
-                    memoryList.Add(Write(Convert.ChangeType(list.Count, prefixLength.LengthType), prefixLength.LengthType));
-                }
+                    if (length != null)
+                    {
+                        if (typeof(IEnumerable).IsAssignableFrom(type) && type.GenericTypeArguments is { Length: > 0 })
+                        {
+                            var st = type.GenericTypeArguments[0];
+                            memoryList.Add(new byte[Marshal.SizeOf(st) * length.Length]);
+                        }
+                        else
+                        {
+                            throw new Exception();
+                        }
+                    }
 
-                memoryList.Add(WriteList(list, length));
-            }
-            else if (obj is string str)
-            {
+                    break;
+                }
+            case IList list:
+                {
+                    if (prefixLength != null)
+                    {
+                        memoryList.Add(Write(Convert.ChangeType(list.Count, prefixLength.LengthType), prefixLength.LengthType));
+                    }
+
+                    memoryList.Add(WriteList(list, length));
+                    break;
+                }
+            case string str:
                 memoryList.Add(Encoding.ASCII.GetBytes(str));
                 memoryList.Add(new byte[1].AsMemory());
-            }
-            else if (type.IsClass)
-            {
-                memoryList.Add(WriteClass(obj, type));
-            }
-            else if (type.IsPrimitive || obj is Half)
-            {
-                memoryList.Add(WritePrimitive(obj, type));
-            }
-            else if (type.IsValueType)
-            {
-                throw new Exception();
-            }
+                break;
+            default:
+                {
+                    if (type.IsClass)
+                    {
+                        memoryList.Add(WriteClass(obj, type));
+                    }
+                    else if (type.IsPrimitive || obj is Half)
+                    {
+                        memoryList.Add(WritePrimitive(obj, type));
+                    }
+                    else if (type.IsValueType)
+                    {
+                        throw new Exception();
+                    }
+
+                    break;
+                }
         }
 
         return Utils.Combine(memoryList);
@@ -142,62 +149,52 @@ public static class Serializer
     {
         byte[] span;
 
-        if (value is byte b)
+        switch (value)
         {
-            span = new byte[1];
-            span[0] = b;
-        }
-        else if (value is char c)
-        {
-            span = new byte[1];
-            span[0] = (byte)c;
-        }
-        else if (value is short s)
-        {
-            span = new byte[2];
-            BinaryPrimitives.WriteInt16LittleEndian(span, s);
-        }
-        else if (value is ushort us)
-        {
-            span = new byte[2];
-            BinaryPrimitives.WriteUInt16LittleEndian(span, us);
-        }
-        else if (value is int i)
-        {
-            span = new byte[4];
-            BinaryPrimitives.WriteInt32LittleEndian(span, i);
-        }
-        else if (value is uint ui)
-        {
-            span = new byte[4];
-            BinaryPrimitives.WriteUInt32LittleEndian(span, ui);
-        }
-        else if (value is long l)
-        {
-            span = new byte[8];
-            BinaryPrimitives.WriteInt64LittleEndian(span, l);
-        }
-        else if (value is ulong ul)
-        {
-            span = new byte[8];
-            BinaryPrimitives.WriteUInt64LittleEndian(span, ul);
-        }
-        else if (value is Half h)
-        {
-            span = new byte[2];
-            BinaryPrimitives.WriteUInt16LittleEndian(span, (ushort)h);
-        }
-        else if (value is float f)
-        {
-            span = MemoryMarshal.Cast<float, byte>(new[] { f }).ToArray();
-        }
-        else if (value is double d)
-        {
-            span = MemoryMarshal.Cast<double, byte>(new[] { d }).ToArray();
-        }
-        else
-        {
-            throw new Exception();
+            case byte b:
+                span = new byte[1];
+                span[0] = b;
+                break;
+            case char c:
+                span = new byte[1];
+                span[0] = (byte)c;
+                break;
+            case short s:
+                span = new byte[2];
+                BinaryPrimitives.WriteInt16LittleEndian(span, s);
+                break;
+            case ushort us:
+                span = new byte[2];
+                BinaryPrimitives.WriteUInt16LittleEndian(span, us);
+                break;
+            case int i:
+                span = new byte[4];
+                BinaryPrimitives.WriteInt32LittleEndian(span, i);
+                break;
+            case uint ui:
+                span = new byte[4];
+                BinaryPrimitives.WriteUInt32LittleEndian(span, ui);
+                break;
+            case long l:
+                span = new byte[8];
+                BinaryPrimitives.WriteInt64LittleEndian(span, l);
+                break;
+            case ulong ul:
+                span = new byte[8];
+                BinaryPrimitives.WriteUInt64LittleEndian(span, ul);
+                break;
+            case Half h:
+                span = new byte[2];
+                BinaryPrimitives.WriteUInt16LittleEndian(span, (ushort)h);
+                break;
+            case float f:
+                span = MemoryMarshal.Cast<float, byte>(new[] { f }).ToArray();
+                break;
+            case double d:
+                span = MemoryMarshal.Cast<double, byte>(new[] { d }).ToArray();
+                break;
+            default:
+                throw new Exception();
         }
 
         return span.AsMemory();
