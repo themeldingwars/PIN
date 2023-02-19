@@ -56,12 +56,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 		PIN.targets = PIN.targets
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AeroMessages", "AeroMessages", "{7326BC59-0249-4904-A6A3-10449BC5E177}"
-	ProjectSection(SolutionItems) = preProject
-		Lib\AeroMessages\AeroMessages.deps.json = Lib\AeroMessages\AeroMessages.deps.json
-		Lib\AeroMessages\AeroMessages.dll = Lib\AeroMessages\AeroMessages.dll
-		Lib\AeroMessages\AeroMessages.pdb = Lib\AeroMessages\AeroMessages.pdb
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AeroMessages", "Lib\AeroMessages\AeroMessages\AeroMessages.csproj", "{A2AF6A0E-BF9C-4CE1-A433-236BDD4043FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -141,6 +136,10 @@ Global
 		{DB635FA7-60AA-45C1-815C-DEC7B34949E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB635FA7-60AA-45C1-815C-DEC7B34949E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB635FA7-60AA-45C1-815C-DEC7B34949E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2AF6A0E-BF9C-4CE1-A433-236BDD4043FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2AF6A0E-BF9C-4CE1-A433-236BDD4043FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2AF6A0E-BF9C-4CE1-A433-236BDD4043FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2AF6A0E-BF9C-4CE1-A433-236BDD4043FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -164,7 +163,7 @@ Global
 		{845AFF09-D9E6-418C-94DC-096DAEFB49B3} = {95240733-4E61-4B10-B175-65EEBD026D7E}
 		{5BCD2370-4CB3-4630-9CEF-F56CA3C53397} = {95240733-4E61-4B10-B175-65EEBD026D7E}
 		{DB635FA7-60AA-45C1-815C-DEC7B34949E0} = {95240733-4E61-4B10-B175-65EEBD026D7E}
-		{7326BC59-0249-4904-A6A3-10449BC5E177} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
+		{A2AF6A0E-BF9C-4CE1-A433-236BDD4043FE} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7BF1BD43-A851-45C0-86F8-490A8E4FA305}

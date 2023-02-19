@@ -4,6 +4,9 @@
 
 ### Added
 
+- Use AeroMessages as submodule instead of a binary reference
+- Use range indexer
+- Modernize code base with support from Rider auto format and clean up
 - Handling of the Steam user id. Currently, it is only held internally and not persisted.
 - Basic GitHub Action to ensure continuous integration
 - Individual .bat files for each game service pointing directly to the respective `bin\debug` folder.

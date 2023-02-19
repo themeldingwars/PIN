@@ -1,3 +1,6 @@
 [submodule "Lib/Bitter"]
 	path = Lib/Bitter
 	url = https://github.com/freakbyte/Bitter.git
+[submodule "Lib/AeroMessages"]
+	path = Lib/AeroMessages
+	url = https://github.com/themeldingwars/AeroMessages
