@@ -1,14 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\PIN.targets"/>
+    <Import Project="..\..\PIN.targets" />
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj"/>
-        <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj"/>
+        <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />
+        <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj" />
     </ItemGroup>
 
     <ItemGroup>

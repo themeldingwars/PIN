@@ -6,7 +6,7 @@
     <PropertyGroup>
         <Version>1.2.0</Version>
         <Company>The Melding Wars</Company>
-        <Copyright>Copyright © 2019-2022 by The Melding Wars</Copyright>
+        <Copyright>Copyright © 2019-2023 by The Melding Wars</Copyright>
         <Product>Pirate Intelligence Network</Product>
     </PropertyGroup>
 </Project>
