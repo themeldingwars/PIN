@@ -36,10 +36,10 @@ public class Loadout
         ChassisModules.Add(140713);
 
         BackpackModules = new List<AbilityModule>();
-        BackpackModules.Add(AbilityModule.Load(113931, 3));
         BackpackModules.Add(AbilityModule.Load(143330, 0));
         BackpackModules.Add(AbilityModule.Load(136056, 1));
         BackpackModules.Add(AbilityModule.Load(113552, 2));
+        BackpackModules.Add(AbilityModule.Load(113931, 3));
         BackpackModules.Add(AbilityModule.Load(129458, 5));
         BackpackModules.Add(AbilityModule.Load(129056, 6));
 
@@ -47,7 +47,6 @@ public class Loadout
         PrimaryWeaponModules.Add(new WeaponModule(118581));
 
         PrimaryWeaponVisuals = new CommonVisuals();
-
         PrimaryWeaponVisuals.Colors.Add(0x21040000u);
         PrimaryWeaponVisuals.Colors.Add(0x4a4910a2u);
         PrimaryWeaponVisuals.Colors.Add(0x916510a2u);

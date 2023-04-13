@@ -4,6 +4,16 @@
 
 ### Added
 
+- Add or extend the API endpoints
+  - api/v2/accounts/current/status
+  - api/v2/accounts/character_slots
+  - api/v3/characters/{character_id}/garage_slots
+  - api/v3/ui_actions
+  - api/v1/characters/{character_id}/data
+  - api/v3/characters/{character_id}/inventories/bag
+  - api/v3/characters/{character_id}/inventories/gear/items
+  - api/v1/zones/queue_ids
+  - api/v2/zone_settings
 - Use AeroMessages as submodule instead of a binary reference
 - Use range indexer
 - Modernize code base with support from Rider auto format and clean up
