@@ -16,7 +16,7 @@ internal static class Program
 {
     private static readonly IEnumerable<Type> HostTypes = new[]
                                                           {
-                                                              typeof(WebServer), typeof(WebHost.ClientApi.WebServer), typeof(WebHost.OperatorApi.WebServer), typeof(WebHost.InGameApi.WebServer), typeof(WebHost.Store.WebServer),
+                                                              typeof(WebServer), typeof(WebHost.CatchAll.WebServer), typeof(WebHost.ClientApi.WebServer), typeof(WebHost.OperatorApi.WebServer), typeof(WebHost.InGameApi.WebServer), typeof(WebHost.Store.WebServer),
                                                               typeof(WebHost.Replay.WebServer), typeof(WebHost.Market.WebServer), typeof(WebHost.WebAsset.WebServer)
                                                           };
 

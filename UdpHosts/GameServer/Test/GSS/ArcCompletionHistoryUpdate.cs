@@ -1,4 +1,6 @@
-﻿namespace GameServer.Test.GSS;
+﻿using System;
+
+namespace GameServer.Test.GSS;
 
 public static class ArcCompletionHistoryUpdate
 {
@@ -83,7 +85,7 @@ public static class ArcCompletionHistoryUpdate
     {
         var ret = new Packets.GSS.ArcCompletionHistoryUpdate();
 
-        ret.Entries = new Packets.GSS.ArcCompletionHistoryUpdate.Entry[0];
+        ret.Entries = Array.Empty<Packets.GSS.ArcCompletionHistoryUpdate.Entry>();
 
         return ret;
     }
