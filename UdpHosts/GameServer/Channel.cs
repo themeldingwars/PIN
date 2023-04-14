@@ -192,7 +192,7 @@ public class Channel
         return Send(p);
     }
 
-    public bool SendClass<T>(T pkt, Type msgEnumType = null)
+    public bool SendClass<T>(T pkt, Type? msgEnumType = null)
         where T : class
     {
         Memory<byte> p;
@@ -239,7 +239,7 @@ public class Channel
         return Send(p);
     }
 
-    public bool SendGSS<T>(T pkt, ulong entityId, Enums.GSS.Controllers? controllerId = null, Type msgEnumType = null)
+    public bool SendGSS<T>(T pkt, ulong entityId, Enums.GSS.Controllers? controllerId = null, Type? msgEnumType = null)
         where T : struct
     {
         Memory<byte> p;
@@ -330,9 +330,7 @@ public class Channel
         var controllerId =
             controllerIdParameter ??
             gssMsgAttr.ControllerID ??
-            throw new ArgumentException(
-                                        $"No controller Id was provided, neither from the {nameof(GSSMessageAttribute)} present on {typeof(TPacket).FullName} nor via parameter"
-                                       );
+            throw new ArgumentException($"No controller Id was provided, neither from the {nameof(GSSMessageAttribute)} present on {typeof(TPacket).FullName} nor via parameter");
 
         Memory<byte> packetMemory;
         if (packet is IWritable write)
@@ -413,8 +411,7 @@ public class Channel
                                    entityId,
                                    Enum.Parse(msgEnumType,
                                               Enum.GetName(msgEnumType, messageId) ??
-                                              throw new
-                                                  InvalidOperationException($"Message enum type {msgEnumType.FullName} has no element with a value of {messageId}")),
+                                              throw new InvalidOperationException($"Message enum type {msgEnumType.FullName} has no element with a value of {messageId}")),
                                    messageId);
         }
 
