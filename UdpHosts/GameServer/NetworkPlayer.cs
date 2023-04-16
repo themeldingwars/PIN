@@ -9,6 +9,7 @@ using System.Net;
 using System.Numerics;
 using System.Threading;
 using Character = GameServer.Entities.Character.Character;
+using EnterZone = AeroMessages.Matrix.V25.EnterZone;
 
 namespace GameServer;
 
@@ -160,34 +161,41 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     {
         CurrentZone = z;
         CharacterEntity.Position = CurrentZone.POIs["spawn"];
+        
+        var msg = new EnterZone
+           {
+               InstanceId = AssignedShard.InstanceId,
+               ZoneId = CurrentZone.ID,
+               ZoneTimestamp = CurrentZone.Timestamp,
+               PreviewModeFlag = 0,
+               ZoneOwner = "r5_exec",
+               Unk1_1 = 0x4c5f,
+               Unk1_2 = 0x0c9f5,
+               HotfixLevel = 0,
+               MatchId = 0,
+               Unk2 = 0,
+               Unk3_Millis = 0x63e2db5e,
+               ZoneName = CurrentZone.Name,
+               HaveDevZoneInfo = 0,
+               ZoneTimeSyncInfo = new AeroMessages.Matrix.V25.ZoneTimeSyncData {
+                    FictionDateTimeOffsetMicros = 0,
+                    DayLengthFactor = 12.0F,
+                    DayPhaseOffset = 0.896445870399F,
+               },
+               GameClockInfo = new AeroMessages.Matrix.V25.GameClockInfoData {
+                    MicroUnix_1 = 1478970208392232,
+                    MicroUnix_2 = 1478774752697322,
+                    Timescale = 1.0,
+                    Unk3 = 0,
+                    Unk4 = 0,
+                    Paused = 0,
+               },
+               SpectatorModeFlag = 0,
+           };
 
-        // EnterZone
-        var enterZone = new EnterZone
-                        {
-                            InstanceId = AssignedShard.InstanceId,
-                            ZoneId = CurrentZone.ID,
-                            ZoneTimestamp = CurrentZone.Timestamp,
-                            PreviewModeFlag = 0,
-                            ZoneOwner = "r5_exec",
-                            Unknown1 = new byte[] { 0x5F, 0x4C, 0xF5, 0xC9, 0x01, 0x00 },
-                            HotfixLevel = 0,
-                            MatchId = 0,
-                            Unknown2 = new byte[] { 0x00, 0x5e, 0xdb, 0xe2, 0x63 },
-                            ZoneName = CurrentZone.Name,
-                            Unknown3 = 0,
-                            Unk_ZoneTime = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x41, 0x7A, 0x7D, 0x65, 0x3F },
-                            Unknown4 = 0x0005411D95E79428u,
-                            Unknown5 = 0x000540F013D65BEAu,
-                            Unknown6 = 0x3FF0000000000000u,
-                            Unknown7 = 0x0000000000000000u,
-                            Unknown8 = 0x0000000000000000u,
-                            Unknown9 = 0,
-                            SpectatorModeFlag = 0
-                        };
-
-        NetChannels[ChannelType.Matrix].SendClass(enterZone);
+        NetChannels[ChannelType.Matrix].SendIAero(msg);
+        
         Status = IPlayer.PlayerStatus.Loading;
-
         lastKeyFrame = AssignedShard.CurrentTime;
     }
 }
