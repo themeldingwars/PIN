@@ -356,24 +356,32 @@ public class Channel
     /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     /// <exception cref="ArgumentException"></exception>
-    public bool SendIAero<TPacket>(TPacket packet, ulong entityId, Type? messageEnumType = null) where TPacket : class, IAero
+    public bool SendIAero<TPacket>(TPacket packet, ulong entityId = 0, Type? msgEnumType = null) where TPacket : class, IAero
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMessageIdAttribute)
         {
             throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
         }
 
-        var controllerId = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
+        var type = aeroMessageIdAttribute.Typ;
         var messageId = (byte)aeroMessageIdAttribute.MessageId;
+        packet.SerializeToMemory(out var packetMemory);
 
-        packet.SerializeToMemory(out var packetToSend);
-
-        return SendPacketMemory(entityId, messageId, controllerId, ref packetToSend, messageEnumType);
+        if (type == AeroMessageIdAttribute.MsgType.Matrix) {
+            return SendPacketMemoryMatrix(messageId, ref packetMemory, msgEnumType);
+        }
+        else if (type == AeroMessageIdAttribute.MsgType.GSS) {
+            var controllerId = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
+            return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
+        }
+        else {
+            throw new ArgumentException("Message type not implemented");
+        }
     }
 
 
     /// <summary>
-    ///     Send serialized data of a packet to the client
+    ///     Send serialized data of a gss channel packet to the client
     /// </summary>
     /// <param name="entityId"></param>
     /// <param name="messageId"></param>
@@ -421,6 +429,22 @@ public class Channel
 
         //Program.Logger.Verbose( "<--- Sending {0} bytes", packetData.Length );
 
+        return Send(serializedData);
+    }
+
+
+    /// <summary>
+    ///     Send serialized data of a matrix channel packet to the client
+    /// </summary>
+    /// <param name="messageId"></param>
+    /// <param name="packetMemory"></param>
+    /// <param name="msgEnumType">TODO: Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
+    /// <returns>true if the operation succeeded, false in all other cases</returns>
+    private bool SendPacketMemoryMatrix(byte messageId, ref Memory<byte> packetMemory, Type? msgEnumType = null) {
+        const int HeaderByteSize = 1;
+        var serializedData = new Memory<byte>(new byte[HeaderByteSize + packetMemory.Length]);
+        packetMemory.CopyTo(serializedData[HeaderByteSize..]);
+        Serializer.WritePrimitive(messageId).CopyTo(serializedData);
         return Send(serializedData);
     }
 
