@@ -27,6 +27,8 @@ public class CharactersController : ControllerBase
     [Produces("application/json")]
     public object CharacterData(string characterId)
     {
+        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+
         CharacterData data = new CharacterData
         {
             Key = "76336_0", // ToDo: Game is pushing this through QueryStrings, why?
@@ -42,6 +44,8 @@ public class CharactersController : ControllerBase
     [Produces("application/json")]
     public object InventoriesBag(string characterId)
     {
+        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+
         InventoriesBag bag = new InventoriesBag
         {
             Items = new object[] {
@@ -119,6 +123,8 @@ public class CharactersController : ControllerBase
     [Produces("application/json")]
     public object InventoriesGearItems(string characterId)
     {
+        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+
         var temp = new object[] {
             new Items {
                 ItemId = 815797474160817405,
@@ -130,7 +136,7 @@ public class CharactersController : ControllerBase
                 BoundToOwner = false,
                 CreatedAt = "2013-09-07T05:10:11+00:00",
                 UpdatedAt = "2013-09-07T05:10:11+00:00",
-                Durability = {
+                Durability = new Durability {
                     Current = 1000,
                     Pool = 0
                 },
@@ -151,7 +157,7 @@ public class CharactersController : ControllerBase
                 BoundToOwner = false,
                 CreatedAt = "2013-09-07T05:10:11+00:00",
                 UpdatedAt = "2013-09-07T05:10:11+00:00",
-                Durability = {
+                Durability = new Durability {
                     Current = 1000,
                     Pool = 0
                 },
