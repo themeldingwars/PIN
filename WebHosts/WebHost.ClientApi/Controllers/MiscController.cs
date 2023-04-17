@@ -12,24 +12,6 @@ public class MiscController : ControllerBase
 {
     private static ConcurrentDictionary<uint, ZoneSettings> _zones;
 
-    [Route("api/v1/login_alerts")]
-    [HttpGet]
-    public HttpResponseMessage GetLoginAlerts()
-    {
-        const string Html = @"<html>
-<head>
-<meta charset=""utf-8"" />
-<title>InGame</title>
-</head>
-<body>
-<strong>Welcome to PIN</strong><br>
-The Pirate Intelligence Network is here to serve you all the content you'd want
-</body>
-</html>";
-
-        return new HttpResponseMessage { Content = new StringContent(Html, Encoding.UTF8, "text/html") };
-    }
-
     [Route("api/v1/zones/queue_ids")]
     [HttpGet]
     public object ZoneQueue()
