@@ -75,6 +75,8 @@ public class AccountsController : ControllerBase
     [Produces("application/json")]
     public object GarageSlots(string characterId)
     {
+        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+
         _garageSlots = new ConcurrentDictionary<uint, GarageSlots>();
 
         var CraftingStation = new GarageSlots
