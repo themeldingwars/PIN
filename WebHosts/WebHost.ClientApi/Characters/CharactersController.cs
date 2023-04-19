@@ -163,6 +163,6 @@ public class CharactersController : ControllerBase
     [Produces("application/json")]
     public object CreateCharacter([FromBody] CharacterCreate characterCreateData)
     {
-        return new { valid = true };
+        return new { };
     }
 }
