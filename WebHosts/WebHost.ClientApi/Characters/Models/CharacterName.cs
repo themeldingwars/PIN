@@ -2,6 +2,6 @@
 
 public class CharacterName
 {
-    public string name { get; set; }
-    public string lang { get; set; }
+    public string Name { get; set; }
+    public string Lang { get; set; }
 }

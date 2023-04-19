@@ -2,15 +2,15 @@
 
 public class CharacterCreate
 {
-    public string environment { get; set; }
-    public int startClassId { get; set; }
-    public int voiceSet { get; set; }
-    public int eyeColorId { get; set; }
-    public int skinColorId { get; set; }
-    public int headAccessoryA { get; set; }
-    public int hairColorId { get; set; }
-    public int head { get; set; }
-    public string gender { get; set; }
-    public bool isDev { get; set; }
-    public string name { get; set; }
+    public string Environment { get; set; }
+    public int StartClassId { get; set; }
+    public int VoiceSet { get; set; }
+    public int EyeColorId { get; set; }
+    public int SkinColorId { get; set; }
+    public int HeadAccessoryA { get; set; }
+    public int HairColorId { get; set; }
+    public int Head { get; set; }
+    public string Gender { get; set; }
+    public bool IsDev { get; set; }
+    public string Name { get; set; }
 }
