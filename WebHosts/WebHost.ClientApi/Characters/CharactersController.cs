@@ -148,4 +148,21 @@ public class CharactersController : ControllerBase
                    };
         return temp;
     }
+
+    [Route("api/v1/characters/validate_name")]
+    [HttpPost]
+    [Produces("application/json")]
+    public object ValidateCharacterName([FromBody] CharacterName characterName)
+    {
+        if (string.IsNullOrEmpty(characterName.name) || characterName.name.Length < 4) return new { valid = false };
+        return new { valid = true };
+    }
+
+    [Route("api/v1/characters")]
+    [HttpPost]
+    [Produces("application/json")]
+    public object CreateCharacter([FromBody] CharacterCreate characterCreateData)
+    {
+        return new { valid = true };
+    }
 }
