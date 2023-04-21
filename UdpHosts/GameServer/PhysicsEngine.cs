@@ -15,7 +15,7 @@ public class PhysicsEngine
     public double SimulatedTime { get; protected set; }
     public double DeltaTime { get; }
 
-    public void Tick(double deltaTime, ulong currTime, CancellationToken ct)
+    public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
         Accumulator += deltaTime;
 

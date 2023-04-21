@@ -40,8 +40,7 @@ internal static class Program
             loggerConfig = loggerConfig.MinimumLevel.Is(GameServerSettings.LogLevel.Value);
         }
 
-        Logger = loggerConfig
-            .CreateLogger();
+        Logger = loggerConfig.CreateLogger();
 
         PacketServer.Logger = Logger;
     }

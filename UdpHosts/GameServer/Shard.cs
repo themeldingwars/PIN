@@ -52,62 +52,6 @@ public class Shard : IShard, IPacketSender
         runThread.Abort();
     }
 
-    public bool Tick(double deltaTime, ulong currTime, CancellationToken ct)
-    {
-        CurrentTimeLong = currTime;
-        foreach (var c in Clients.Values)
-        {
-            c.Tick(deltaTime, currTime, ct);
-        }
-
-        AI.Tick(deltaTime, currTime, ct);
-        Physics.Tick(deltaTime, currTime, ct);
-
-        return true;
-    }
-
-    public void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct)
-    {
-        // Handle timeout, reliable retransmission, normal rx/tx
-        foreach (var c in Clients.Values)
-        {
-            c.NetworkTick(deltaTime, currTime, ct);
-        }
-    }
-
-    public bool MigrateOut(INetworkPlayer player) { return false; }
-
-    public bool MigrateIn(INetworkPlayer player)
-    {
-        if (Clients.ContainsKey(player.SocketId))
-        {
-            return true;
-        }
-
-        player.Init(this);
-
-        Clients.Add(player.SocketId, player);
-        //Entities.Add(player.CharacterEntity.EntityID, player.CharacterEntity);
-
-        return true;
-    }
-
-    public async Task<bool> Send(Memory<byte> p, IPEndPoint ep)
-    {
-        return await Sender.Send(p, ep);
-    }
-
-    public ushort AssignNewRefId(IEntity entity, Enums.GSS.Controllers controller)
-    {
-        while (EntityRefMap.ContainsKey(unchecked(++LastEntityRefId)) || LastEntityRefId is 0 or 0xffff)
-        {
-        }
-
-        EntityRefMap.Add(LastEntityRefId, new Tuple<IEntity, Enums.GSS.Controllers>(entity, controller));
-
-        return unchecked(LastEntityRefId++);
-    }
-
     public void RunThread(CancellationToken ct)
     {
         startTime = (long)DateTime.Now.UnixTimestamp();
@@ -145,5 +89,57 @@ public class Shard : IShard, IPacketSender
     protected virtual bool ShouldNetworkTick(double deltaTime, ulong currentTime)
     {
         return deltaTime >= NetworkTickRate;
+    }
+
+    public void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct)
+    {
+        // Handle timeout, reliable retransmission, normal rx/tx
+        foreach (var client in Clients.Values)
+        {
+            client.NetworkTick(deltaTime, currentTime, ct);
+        }
+    }
+
+    public bool Tick(double deltaTime, ulong currentTime, CancellationToken ct)
+    {
+        CurrentTimeLong = currentTime;
+
+        AI.Tick(deltaTime, currentTime, ct);
+        Physics.Tick(deltaTime, currentTime, ct);
+
+        return true;
+    }
+
+    public bool MigrateOut(INetworkPlayer player) { return false; }
+
+    public bool MigrateIn(INetworkPlayer player)
+    {
+        if (Clients.ContainsKey(player.SocketId))
+        {
+            return true;
+        }
+
+        player.Init(this);
+
+        Clients.Add(player.SocketId, player);
+        //Entities.Add(player.CharacterEntity.EntityID, player.CharacterEntity);
+
+        return true;
+    }
+
+    public async Task<bool> SendAsync(Memory<byte> packet, IPEndPoint endPoint)
+    {
+        return await Sender.SendAsync(packet, endPoint);
+    }
+
+    public ushort AssignNewRefId(IEntity entity, Enums.GSS.Controllers controller)
+    {
+        while (EntityRefMap.ContainsKey(unchecked(++LastEntityRefId)) || LastEntityRefId is 0 or 0xffff)
+        {
+        }
+
+        EntityRefMap.Add(LastEntityRefId, new Tuple<IEntity, Enums.GSS.Controllers>(entity, controller));
+
+        return unchecked(LastEntityRefId++);
     }
 }

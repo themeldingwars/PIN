@@ -36,12 +36,12 @@ public class Channel
     protected ConcurrentQueue<GamePacket> incomingPackets;
     protected ConcurrentQueue<Memory<byte>> outgoingPackets;
 
-    protected Channel(ChannelType ct, bool isSequenced, bool isReliable, INetworkClient c)
+    protected Channel(ChannelType channelType, bool isSequenced, bool isReliable, INetworkClient networkClient)
     {
-        Type = ct;
+        Type = channelType;
         IsSequenced = isSequenced;
         IsReliable = isReliable;
-        client = c;
+        client = networkClient;
         CurrentSequenceNumber = 1;
         LastAck = 0;
 
@@ -86,10 +86,10 @@ public class Channel
         {
             //Console.Write("> " + string.Concat(BitConverter.GetBytes(packet.Header.PacketHeader).ToArray().Select(b => b.ToString("X2")).ToArray()));
             //Console.WriteLine(" "+string.Concat(packet.PacketData.ToArray().Select(b => b.ToString("X2")).ToArray()));
-            ushort seqNum = 0;
+            ushort sequenceNumber = 0;
             if (IsSequenced)
             {
-                seqNum = Utils.SimpleFixEndianness(packet.Read<ushort>());
+                sequenceNumber = Utils.SimpleFixEndianness(packet.Read<ushort>());
             }
             // TODO: Implement SequencedPacketQueue
 
@@ -98,7 +98,7 @@ public class Channel
                 // de-xor data
                 var x = packet.PacketData.Length >> 3;
                 var data = packet.PacketData.ToArray();
-                var dataTmp = Array.Empty<byte>();
+                var dataTemp = Array.Empty<byte>();
 
                 if (x > 0)
                 {
@@ -109,12 +109,12 @@ public class Channel
                         uSpan[i] ^= xorULong[packet.Header.ResendCount];
                     }
 
-                    dataTmp = MemoryMarshal.Cast<ulong, byte>(uSpan).ToArray(); // override old size
+                    dataTemp = MemoryMarshal.Cast<ulong, byte>(uSpan).ToArray(); // override old size
                 }
 
-                for (var i = 0; i < dataTmp.Length; i++) // copy back
+                for (var i = 0; i < dataTemp.Length; i++) // copy back
                 {
-                    data[i] = dataTmp[i];
+                    data[i] = dataTemp[i];
                 }
 
                 for (var i = x * 8; i < packet.PacketData.Length; i++)
@@ -134,10 +134,10 @@ public class Channel
                 Program.Logger.Fatal("---> Split packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
             }
 
-            if (IsReliable && (seqNum > LastAck || (seqNum < 0xff && LastAck > 0xff00)))
+            if (IsReliable && (sequenceNumber > LastAck || (sequenceNumber < 0xff && LastAck > 0xff00)))
             {
-                client.SendAck(Type, seqNum, packet.Received);
-                LastAck = seqNum;
+                client.SendAck(Type, sequenceNumber, packet.Received);
+                LastAck = sequenceNumber;
             }
 
             PacketAvailable?.Invoke(packet);
@@ -150,113 +150,113 @@ public class Channel
         }
     }
 
-    public bool Send<T>(T pkt)
+    public bool Send<T>(T packet)
         where T : struct
     {
-        Memory<byte> p;
-        if (pkt is IWritable write)
+        Memory<byte> packetToSend;
+        if (packet is IWritable write)
         {
-            p = write.Write();
+            packetToSend = write.Write();
         }
         else
         {
-            p = Serializer.WriteStruct(pkt);
+            packetToSend = Serializer.WriteStruct(packet);
         }
 
-        var conMsgAttr = typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() as ControlMessageAttribute;
-        var matMsgAttr = typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault() as MatrixMessageAttribute;
+        var controlMessageAttribute = typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() as ControlMessageAttribute;
+        var matrixMessageAttribute = typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault() as MatrixMessageAttribute;
 
-        if (conMsgAttr != null)
+        if (controlMessageAttribute != null)
         {
-            var msgID = conMsgAttr.MsgID;
-            var t = new Memory<byte>(new byte[1 + p.Length]);
-            p.CopyTo(t[1..]);
-            Serializer.WritePrimitive((byte)msgID).CopyTo(t);
-            p = t;
-            Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
+            var messageId = controlMessageAttribute.MsgID;
+            var t = new Memory<byte>(new byte[1 + packetToSend.Length]);
+            packetToSend.CopyTo(t[1..]);
+            Serializer.WritePrimitive((byte)messageId).CopyTo(t);
+            packetToSend = t;
+            Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, messageId, (byte)messageId);
         }
-        else if (matMsgAttr != null)
+        else if (matrixMessageAttribute != null)
         {
-            var msgID = matMsgAttr.MsgID;
-            var t = new Memory<byte>(new byte[1 + p.Length]);
-            p.CopyTo(t[1..]);
-            Serializer.WritePrimitive((byte)msgID).CopyTo(t);
-            p = t;
-            Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, msgID, (byte)msgID);
+            var messageId = matrixMessageAttribute.MsgID;
+            var t = new Memory<byte>(new byte[1 + packetToSend.Length]);
+            packetToSend.CopyTo(t[1..]);
+            Serializer.WritePrimitive((byte)messageId).CopyTo(t);
+            packetToSend = t;
+            Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, messageId, (byte)messageId);
         }
         else
         {
             throw new Exception();
         }
 
-        return Send(p);
+        return Send(packetToSend);
     }
 
-    public bool SendClass<T>(T pkt, Type? msgEnumType = null)
+    public bool SendClass<T>(T packet, Type? messageEnumType = null)
         where T : class
     {
-        Memory<byte> p;
-        if (pkt is IWritable write)
+        Memory<byte> packetToSend;
+        if (packet is IWritable write)
         {
-            p = write.Write();
+            packetToSend = write.Write();
         }
         else
         {
-            p = Serializer.WriteClass(pkt);
+            packetToSend = Serializer.WriteClass(packet);
         }
 
         byte messageId;
 
-        if (typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() is ControlMessageAttribute controlMsgAttr)
+        if (typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() is ControlMessageAttribute controlMessageAttribute)
         {
-            messageId = (byte)controlMsgAttr.MsgID;
+            messageId = (byte)controlMessageAttribute.MsgID;
         }
-        else if (typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault() is MatrixMessageAttribute matrixMsgAttr)
+        else if (typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault() is MatrixMessageAttribute matrixMessageAttribute)
         {
-            messageId = (byte)matrixMsgAttr.MsgID;
+            messageId = (byte)matrixMessageAttribute.MsgID;
         }
         else
         {
             throw new Exception();
         }
 
-        var t = new Memory<byte>(new byte[1 + p.Length]);
-        p.CopyTo(t[1..]);
+        var t = new Memory<byte>(new byte[1 + packetToSend.Length]);
+        packetToSend.CopyTo(t[1..]);
 
         Serializer.WritePrimitive(messageId).CopyTo(t);
 
-        p = t;
+        packetToSend = t;
 
-        if (msgEnumType == null)
+        if (messageEnumType == null)
         {
             Program.Logger.Verbose("<-- {0}: MsgID = 0x{1:X2}", Type, messageId);
         }
         else
         {
-            Program.Logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, messageId)), messageId);
+            Program.Logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId)), messageId);
         }
 
-        return Send(p);
+        return Send(packetToSend);
     }
 
-    public bool SendGSS<T>(T pkt, ulong entityId, Enums.GSS.Controllers? controllerId = null, Type? msgEnumType = null)
+    public bool SendGSS<T>(T packet, ulong entityId, Enums.GSS.Controllers? controllerId = null, Type? messageEnumType = null)
         where T : struct
     {
-        Memory<byte> p;
-        if (pkt is IWritable write)
+        Memory<byte> packetToSend;
+        if (packet is IWritable write)
         {
-            p = write.Write();
+            packetToSend = write.Write();
         }
         else
         {
-            p = Serializer.WriteStruct(pkt);
+            packetToSend = Serializer.WriteStruct(packet);
         }
 
-        if (typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() is GSSMessageAttribute gssMsgAttr)
+        if (typeof(T).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() is GSSMessageAttribute gssMessageAttribute)
         {
-            var messageId = gssMsgAttr.MsgID;
-            var t = new Memory<byte>(new byte[9 + p.Length]);
-            p.CopyTo(t[9..]);
+            var messageId = gssMessageAttribute.MsgID;
+            var t = new Memory<byte>(new byte[9 + packetToSend.Length]);
+            packetToSend.CopyTo(t[9..]);
 
             Serializer.WritePrimitive(entityId).CopyTo(t);
 
@@ -265,9 +265,9 @@ public class Channel
             {
                 Serializer.WritePrimitive((byte)controllerId.Value).CopyTo(t);
             }
-            else if (gssMsgAttr.ControllerID.HasValue)
+            else if (gssMessageAttribute.ControllerID.HasValue)
             {
-                Serializer.WritePrimitive((byte)gssMsgAttr.ControllerID.Value).CopyTo(t);
+                Serializer.WritePrimitive((byte)gssMessageAttribute.ControllerID.Value).CopyTo(t);
             }
             else
             {
@@ -276,16 +276,16 @@ public class Channel
 
             Serializer.WritePrimitive(messageId).CopyTo(t[8..]);
 
-            p = t;
+            packetToSend = t;
 
-            if (msgEnumType == null)
+            if (messageEnumType == null)
             {
-                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerId ?? gssMsgAttr.ControllerID.Value, entityId, messageId);
+                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerId ?? gssMessageAttribute.ControllerID.Value, entityId, messageId);
             }
             else
             {
-                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerId ?? gssMsgAttr.ControllerID.Value, entityId,
-                                       Enum.Parse(msgEnumType, Enum.GetName(msgEnumType, messageId)), messageId);
+                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerId ?? gssMessageAttribute.ControllerID.Value, entityId,
+                                       Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId)), messageId);
             }
         }
         else
@@ -293,7 +293,7 @@ public class Channel
             throw new Exception();
         }
 
-        return Send(p);
+        return Send(packetToSend);
     }
 
     /// <summary>
@@ -303,7 +303,7 @@ public class Channel
     /// <param name="packet"></param>
     /// <param name="entityId"></param>
     /// <param name="controllerIdParameter">If not provided on the <see cref="GSSMessageAttribute" /> on the packet, the controller Id may be specified here</param>
-    /// <param name="msgEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
+    /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     /// <exception cref="ArgumentException">
     ///     Thrown if either of the following applies:
@@ -316,35 +316,35 @@ public class Channel
     ///         </item>
     ///     </list>
     /// </exception>
-    public bool SendGSSClass<TPacket>(TPacket packet, ulong entityId, Enums.GSS.Controllers? controllerIdParameter = null, Type? msgEnumType = null)
+    public bool SendGSSClass<TPacket>(TPacket packet, ulong entityId, Enums.GSS.Controllers? controllerIdParameter = null, Type? messageEnumType = null)
         where TPacket : class
     {
-        if (typeof(TPacket).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() is not GSSMessageAttribute gssMsgAttr)
+        if (typeof(TPacket).GetCustomAttributes(typeof(GSSMessageAttribute), false).FirstOrDefault() is not GSSMessageAttribute gssMessageAttribute)
         {
             throw new ArgumentException($"The passed package is required to be annotated with {nameof(GSSMessageAttribute)} (Type: {typeof(TPacket).FullName})");
         }
 
-        var messageId = gssMsgAttr.MsgID;
+        var messageId = gssMessageAttribute.MsgID;
 
 
         var controllerId =
             controllerIdParameter ??
-            gssMsgAttr.ControllerID ??
+            gssMessageAttribute.ControllerID ??
             throw new ArgumentException($"No controller Id was provided, neither from the {nameof(GSSMessageAttribute)} present on {typeof(TPacket).FullName} nor via parameter");
 
-        Memory<byte> packetMemory;
+        Memory<byte> packetToSend;
         if (packet is IWritable write)
         {
-            packetMemory = write.Write();
+            packetToSend = write.Write();
         }
         else
         {
-            packetMemory = Serializer.WriteClass(packet);
+            packetToSend = Serializer.WriteClass(packet);
         }
 
         //Console.WriteLine( string.Concat( packetData.ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) );
 
-        return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
+        return SendPacketMemory(entityId, messageId, controllerId, ref packetToSend, messageEnumType);
     }
 
     /// <summary>
@@ -353,22 +353,22 @@ public class Channel
     /// <typeparam name="TPacket">The type of the packet</typeparam>
     /// <param name="packet"></param>
     /// <param name="entityId"></param>
-    /// <param name="msgEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
+    /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     /// <exception cref="ArgumentException"></exception>
-    public bool SendIAero<TPacket>(TPacket packet, ulong entityId, Type? msgEnumType = null) where TPacket : class, IAero
+    public bool SendIAero<TPacket>(TPacket packet, ulong entityId, Type? messageEnumType = null) where TPacket : class, IAero
     {
-        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMessageIdAttribute)
         {
             throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
         }
 
-        var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
-        var messageId = (byte)aeroMsgAttr.MessageId;
+        var controllerId = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
+        var messageId = (byte)aeroMessageIdAttribute.MessageId;
 
-        packet.SerializeToMemory(out var packetMemory);
+        packet.SerializeToMemory(out var packetToSend);
 
-        return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
+        return SendPacketMemory(entityId, messageId, controllerId, ref packetToSend, messageEnumType);
     }
 
 
@@ -378,18 +378,19 @@ public class Channel
     /// <param name="entityId"></param>
     /// <param name="messageId"></param>
     /// <param name="controllerId"></param>
-    /// <param name="packetMemory"></param>
+    /// <param name="packetToSend"></param>
     /// <param name="msgEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     /// <exception cref="InvalidOperationException">If <see cref="msgEnumType" /> is not null and does not contain an element with a value equal to <see cref="messageId" /> </exception>
     private bool SendPacketMemory(ulong entityId,
                                   byte messageId, Enums.GSS.Controllers controllerId,
-                                  ref Memory<byte> packetMemory, Type? msgEnumType = null)
+                                  ref Memory<byte> packetToSend,
+                                  Type? msgEnumType = null)
     {
         const int HeaderByteSize = 9;
 
-        var serializedData = new Memory<byte>(new byte[HeaderByteSize + packetMemory.Length]);
-        packetMemory.CopyTo(serializedData[HeaderByteSize..]);
+        var serializedData = new Memory<byte>(new byte[HeaderByteSize + packetToSend.Length]);
+        packetToSend.CopyTo(serializedData[HeaderByteSize..]);
 
         Serializer.WritePrimitive(entityId).CopyTo(serializedData);
 
@@ -400,13 +401,16 @@ public class Channel
 
         if (msgEnumType == null)
         {
-            Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type,
+            Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}",
+                                   Type,
                                    controllerId,
-                                   entityId, messageId);
+                                   entityId,
+                                   messageId);
         }
         else
         {
-            Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type,
+            Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})",
+                                   Type,
                                    controllerId,
                                    entityId,
                                    Enum.Parse(msgEnumType,
@@ -427,19 +431,19 @@ public class Channel
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     public bool Send(Memory<byte> packetData)
     {
-        var hdrLen = 2;
+        var headerLength = 2;
         if (IsSequenced)
         {
-            hdrLen += 2;
+            headerLength += 2;
         }
 
         // TODO: Send UGSS messages that are split over RGSS
         while (packetData.Length > 0)
         {
-            var len = Math.Min(packetData.Length + hdrLen, MaxPacketSize);
+            var length = Math.Min(packetData.Length + headerLength, MaxPacketSize);
 
-            var t = new Memory<byte>(new byte[len]);
-            packetData[..(len - hdrLen)].CopyTo(t[hdrLen..]);
+            var t = new Memory<byte>(new byte[length]);
+            packetData[..(length - headerLength)].CopyTo(t[headerLength..]);
 
             if (IsSequenced)
             {
@@ -452,16 +456,16 @@ public class Channel
                 unchecked { CurrentSequenceNumber++; }
             }
 
-            var hdr = new GamePacketHeader(Type, 0, packetData.Length + hdrLen > MaxPacketSize, (ushort)t.Length);
-            var hdrBytes = Serializer.WritePrimitive(Utils.SimpleFixEndianness(hdr.PacketHeader));
-            hdrBytes.CopyTo(t);
+            var header = new GamePacketHeader(Type, 0, packetData.Length + headerLength > MaxPacketSize, (ushort)t.Length);
+            var headerData = Serializer.WritePrimitive(Utils.SimpleFixEndianness(header.PacketHeader));
+            headerData.CopyTo(t);
 
             //Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianness(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));
             //Console.WriteLine( " "+string.Concat( t.Slice(2).ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) )
 
             outgoingPackets.Enqueue(t);
 
-            packetData = packetData[(len - hdrLen)..];
+            packetData = packetData[(length - headerLength)..];
         }
 
         return true;

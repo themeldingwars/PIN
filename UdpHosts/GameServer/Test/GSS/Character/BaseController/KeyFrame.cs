@@ -13,7 +13,7 @@ public static class KeyFrame
         var gameTime = shard.CurrentTime;
         //Program.Logger.Error( "KF: Game Time: {0}", gametime );
         var ret = new Packet.KeyFrame();
-        var cd = p.CharacterEntity.CharData;
+        var characterData = p.CharacterEntity.CharData;
 
         ret.KeyFrameTime_0 = gameTime;
         ret.KeyFrameTime_1 = gameTime;
@@ -27,55 +27,55 @@ public static class KeyFrame
         ret.UnkInt2 = 0x0000003fu;
 
         ret.UsedInvSlots = 0;
-        ret.MaxInvSlots = cd.MaxInventorySlots;
+        ret.MaxInvSlots = characterData.MaxInventorySlots;
 
-        ret.DisplayName = cd.Name;
-        ret.UniqueName = cd.Name;
-        ret.Gender = (byte)cd.Gender;
-        ret.Race = (byte)cd.Race;
-        ret.CharInfoID = cd.CharInfoID;
-        ret.HeadMain = cd.CharVisuals.HeadMain;
-        ret.Eyes = cd.CharVisuals.Eyes;
+        ret.DisplayName = characterData.Name;
+        ret.UniqueName = characterData.Name;
+        ret.Gender = (byte)characterData.Gender;
+        ret.Race = (byte)characterData.Race;
+        ret.CharInfoID = characterData.CharInfoID;
+        ret.HeadMain = characterData.CharVisuals.HeadMain;
+        ret.Eyes = characterData.CharVisuals.Eyes;
         ret.UnkByte1 = 0xff;
         ret.IsNPC = 0;
         ret.IsStaff = 0x3;
 
-        ret.CharTypeID = cd.CharVisuals.CharTypeID;
-        ret.VoiceSet = cd.VoiceSet;
-        ret.TitleID = cd.TitleID;
-        ret.NameLocalizationID = cd.NameLocalizationID;
+        ret.CharTypeID = characterData.CharVisuals.CharTypeID;
+        ret.VoiceSet = characterData.VoiceSet;
+        ret.TitleID = characterData.TitleID;
+        ret.NameLocalizationID = characterData.NameLocalizationID;
 
-        ret.HeadAccessories = cd.CharVisuals.HeadAccessories;
+        ret.HeadAccessories = characterData.CharVisuals.HeadAccessories;
 
-        ret.VehicleLoadout = cd.Loadout.VehicleID;
-        ret.GliderLoadout = cd.Loadout.GliderID;
+        ret.VehicleLoadout = characterData.Loadout.VehicleID;
+        ret.GliderLoadout = characterData.Loadout.GliderID;
 
-        ret.CharacterVisuals = cd.CharVisuals;
+        ret.CharacterVisuals = characterData.CharVisuals;
 
-        ret.ArmyName = cd.Army.Name;
+        ret.ArmyName = characterData.Army.Name;
 
-        ret.ChassisLoadout = cd.Loadout.ChassisID;
+        ret.ChassisLoadout = characterData.Loadout.ChassisID;
 
         ret.UnkBytes = new byte[] { 0xff, 0x00, 0x00 };
 
-        ret.Gear.AddAll(cd.Loadout.ChassisModules.Select(x => new Packet.KeyFrame.GearItem { ID = x, Unk = new byte[] { 0xff, 0x00, 0x00 } }));
+        ret.Gear.AddAll(characterData.Loadout.ChassisModules.Select(x => new Packet.KeyFrame.GearItem { ID = x, Unk = new byte[] { 0xff, 0x00, 0x00 } }));
 
-        ret.ChassisVisuals = cd.ChassisVisuals;
-        ret.BackpackLoadout = cd.Loadout.BackpackID;
+        ret.ChassisVisuals = characterData.ChassisVisuals;
+        ret.BackpackLoadout = characterData.Loadout.BackpackID;
         ret.UnkBytes2 = new byte[] { 0xff, 0x00, 0x00 };
 
-        ret.Abilities.AddAll(cd.Loadout.BackpackModules.Select(x => (Packet.KeyFrame.Ability)x));
+        ret.Abilities.AddAll(characterData.Loadout.BackpackModules.Select(x => (Packet.KeyFrame.Ability)x));
 
-        ret.PrimaryWeaponID = cd.Loadout.PrimaryWeaponID;
-        ret.PrimaryWeaponModules.AddAll(cd.Loadout.PrimaryWeaponModules.Select(x => (Packet.KeyFrame.WeaponModule)x));
-        ret.PrimaryWeaponVisuals = cd.Loadout.PrimaryWeaponVisuals;
+        ret.PrimaryWeaponID = characterData.Loadout.PrimaryWeaponID;
+        ret.PrimaryWeaponModules.AddAll(characterData.Loadout.PrimaryWeaponModules.Select(x => (Packet.KeyFrame.WeaponModule)x));
+        ret.PrimaryWeaponVisuals = characterData.Loadout.PrimaryWeaponVisuals;
 
-        ret.SecondaryWeaponID = cd.Loadout.SecondaryWeaponID;
+        ret.SecondaryWeaponID = characterData.Loadout.SecondaryWeaponID;
         ret.UnkBytes5 = new byte[] { 0x01, 0x00, 0x00 }.ToList();
-        ret.SecondaryWeaponModules.AddAll(cd.Loadout.SecondaryWeaponModules.Select(x => (Packet.KeyFrame.WeaponModule)x));
-        ret.SecondaryWeaponVisuals = cd.Loadout.SecondaryWeaponVisuals;
+        ret.SecondaryWeaponModules.AddAll(characterData.Loadout.SecondaryWeaponModules.Select(x => (Packet.KeyFrame.WeaponModule)x));
+        ret.SecondaryWeaponVisuals = characterData.Loadout.SecondaryWeaponVisuals;
 
-        ret.LoadoutID = cd.Loadout.GUID;
+        ret.LoadoutID = characterData.Loadout.GUID;
 
         ret.PosX = p.CharacterEntity.Position.X;
         ret.PosY = p.CharacterEntity.Position.Y;
@@ -103,15 +103,15 @@ public static class KeyFrame
 
         ret.CharacterState = 0;
 
-        ret.FactionMode = cd.Faction.Mode;
-        ret.FactionID = cd.Faction.ID;
+        ret.FactionMode = characterData.Faction.Mode;
+        ret.FactionID = characterData.Faction.ID;
 
         ret.CurrentHealth = 25000;
         ret.MaxHealth = 25000;
         ret.EffectsFlag = 0;
-        ret.JumpJetEnergy = cd.JumpJetEnergy;
-        ret.MaxJumpJetEnergy = cd.MaxJumpJetEnergy;
-        ret.JumpJetRecharge = cd.JumpJetRecharge;
+        ret.JumpJetEnergy = characterData.JumpJetEnergy;
+        ret.MaxJumpJetEnergy = characterData.MaxJumpJetEnergy;
+        ret.JumpJetRecharge = characterData.JumpJetRecharge;
 
         ret.ItemStatValues.AddAll(new[]
                                   {
@@ -158,7 +158,7 @@ public static class KeyFrame
                                    new Packet.KeyFrame.StatValue { StatID = 10045, Value = 0.093200f }, new Packet.KeyFrame.StatValue { StatID = 10052, Value = 0.171000f }
                                });
 
-        ret.ArmyID = cd.Army.GUID;
+        ret.ArmyID = characterData.Army.GUID;
 
         // TODO: finish
         ret.Unk = new List<byte>

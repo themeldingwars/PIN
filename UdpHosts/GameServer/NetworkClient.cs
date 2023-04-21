@@ -16,10 +16,10 @@ namespace GameServer;
 
 public class NetworkClient : INetworkClient
 {
-    public NetworkClient(IPEndPoint ep, uint socketId)
+    public NetworkClient(IPEndPoint endPoint, uint socketId)
     {
         SocketId = socketId;
-        RemoteEndpoint = ep;
+        RemoteEndpoint = endPoint;
         NetClientStatus = Status.Unknown;
         NetLastActive = DateTime.Now;
     }
@@ -59,62 +59,62 @@ public class NetworkClient : INetworkClient
             return; // can't do anything if we're not ready yet!
         }
 
-        var idx = 0;
-        var hdrSize = Unsafe.SizeOf<GamePacketHeader>();
-        while (idx + 2 < data.Length)
+        var index = 0;
+        var headerSize = Unsafe.SizeOf<GamePacketHeader>();
+        while (index + 2 < data.Length)
         {
-            var hdr = Deserializer.ReadStruct<GamePacketHeader>(data.Slice(idx, 2).ToArray().Reverse().ToArray().AsMemory());
+            var header = Deserializer.ReadStruct<GamePacketHeader>(data.Slice(index, 2).ToArray().Reverse().ToArray().AsMemory());
 
-            if (hdr.Length == 0 || data.Length < hdr.Length + idx)
+            if (header.Length == 0 || data.Length < header.Length + index)
             {
                 break;
             }
 
-            var p = new GamePacket(hdr, data.Slice(idx + hdrSize, hdr.Length - hdrSize), packet.Received);
+            var gamePacket = new GamePacket(header, data.Slice(index + headerSize, header.Length - headerSize), packet.Received);
 
             //Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
 
-            NetChannels[hdr.Channel].HandlePacket(p);
+            NetChannels[header.Channel].HandlePacket(gamePacket);
 
-            idx += hdr.Length;
+            index += header.Length;
         }
 
         NetLastActive = DateTime.Now;
     }
 
-    public virtual void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct)
+    public virtual void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
-        foreach (var c in NetChannels.Values)
+        foreach (var channel in NetChannels.Values)
         {
-            c.Process(ct);
+            channel.Process(ct);
         }
     }
 
-    public void Send(Memory<byte> p)
+    public void Send(Memory<byte> packet)
     {
         NetLastActive = DateTime.Now;
 
-        var t = new Memory<byte>(new byte[4 + p.Length]);
-        p.CopyTo(t[4..]);
+        var t = new Memory<byte>(new byte[4 + packet.Length]);
+        packet.CopyTo(t[4..]);
         Serializer.WriteStruct(Utils.SimpleFixEndianness(SocketId)).CopyTo(t);
 
-        Sender.Send(t, RemoteEndpoint);
+        Sender.SendAsync(t, RemoteEndpoint);
     }
 
 
-    public void SendAck(ChannelType forChannel, ushort forSeqNum, DateTime? received = null)
+    public void SendAck(ChannelType forChannel, ushort forSequenceNumber, DateTime? received = null)
     {
         if (received != null)
         {
-            Program.Logger.Verbose("<-- {0} Ack for {1} on {2} after {3}ms.", ChannelType.Control, forSeqNum, forChannel, (DateTime.Now - received.Value).TotalMilliseconds);
+            Program.Logger.Verbose("<-- {0} Ack for {1} on {2} after {3}ms.", ChannelType.Control, forSequenceNumber, forChannel, (DateTime.Now - received.Value).TotalMilliseconds);
         }
         else
         {
-            Program.Logger.Verbose("<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSeqNum, forChannel);
+            Program.Logger.Verbose("<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSequenceNumber, forChannel);
         }
 
-        var forNum = Utils.SimpleFixEndianness(forSeqNum);
-        var nextNum = Utils.SimpleFixEndianness(unchecked((ushort)(forSeqNum + 1)));
+        var forNum = Utils.SimpleFixEndianness(forSequenceNumber);
+        var nextNum = Utils.SimpleFixEndianness(unchecked((ushort)(forSequenceNumber + 1)));
 
         if (forChannel == ChannelType.Matrix)
         {
@@ -132,19 +132,19 @@ public class NetworkClient : INetworkClient
         Span<byte> entity = stackalloc byte[8];
         packet.Read(7).ToArray().CopyTo(entity);
         var entityId = BitConverter.ToUInt64(entity) << 8;
-        var msgId = packet.Read<byte>();
+        var messageId = packet.Read<byte>();
 
-        var conn = Factory.Get(controllerId);
+        var connection = Factory.Get(controllerId);
 
-        if (conn == null)
+        if (connection == null)
         {
-            Program.Logger.Verbose("---> Unrecognized ControllerId for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", controllerId, entityId, msgId);
+            Program.Logger.Verbose("---> Unrecognized ControllerId for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", controllerId, entityId, messageId);
             Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
             return;
         }
 
-        Program.Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", packet.Header.Channel, controllerId, entityId, msgId);
-        conn.HandlePacket(this, Player, entityId, msgId, packet);
+        Program.Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", packet.Header.Channel, controllerId, entityId, messageId);
+        connection.HandlePacket(this, Player, entityId, messageId, packet);
     }
 
     private void Matrix_PacketAvailable(GamePacket packet)
@@ -191,26 +191,26 @@ public class NetworkClient : INetworkClient
         switch (messageId)
         {
             case ControlPacketType.CloseConnection:
-                var ccPkt = packet.Read<CloseConnection>();
+                var closeConnectionPacket = packet.Read<CloseConnection>();
                 // TODO: Cleanly dispose of client
                 break;
             case ControlPacketType.MatrixAck:
-                var mAckPkt = packet.Read<MatrixAck>();
-                Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(mAckPkt.AckFor), ChannelType.Matrix);
+                var matrixAckPackage = packet.Read<MatrixAck>();
+                Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckFor), ChannelType.Matrix);
                 // TODO: Track reliable packets
                 break;
             case ControlPacketType.ReliableGSSAck:
-                var gssAckPkt = packet.Read<ReliableGSSAck>();
-                Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(gssAckPkt.AckFor), ChannelType.ReliableGss);
+                var reliableGssAckPackage = packet.Read<ReliableGSSAck>();
+                Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckFor), ChannelType.ReliableGss);
                 // TODO: Track reliable packets
                 break;
             case ControlPacketType.TimeSyncRequest:
-                var req = packet.Read<TimeSyncRequest>();
+                var timeSyncRequestPackage = packet.Read<TimeSyncRequest>();
 
-                NetChannels[ChannelType.Control].Send(new TimeSyncResponse(req.ClientTime, unchecked(AssignedShard.CurrentTimeLong * 1000)));
+                NetChannels[ChannelType.Control].Send(new TimeSyncResponse(timeSyncRequestPackage.ClientTime, unchecked(AssignedShard.CurrentTimeLong * 1000)));
                 break;
             case ControlPacketType.MTUProbe:
-                var mtuPkt = packet.Read<MTUProbe>();
+                var mtuProbePackage = packet.Read<MTUProbe>();
                 // TODO: ???
                 break;
             default:

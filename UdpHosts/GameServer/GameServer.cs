@@ -41,20 +41,20 @@ internal class GameServer : PacketServer
 
     protected override async void ServerRunThreadAsync(CancellationToken ct)
     {
-        Packet? p;
-        while ((p = await incomingPackets.ReceiveAsync(ct)) != null)
+        Packet? packet;
+        while ((packet = await incomingPackets.ReceiveAsync(ct)) != null)
         {
-            HandlePacket(p.Value, ct);
+            HandlePacket(packet.Value, ct);
         }
     }
 
     protected IShard GetNextShard(CancellationToken ct)
     {
-        foreach (var s in Shards.Values.OrderBy(s => s.CurrentPlayers))
+        foreach (var shard in Shards.Values.OrderBy(s => s.CurrentPlayers))
         {
-            if (s.CurrentPlayers < MaxPlayersPerShard)
+            if (shard.CurrentPlayers < MaxPlayersPerShard)
             {
-                return s;
+                return shard;
             }
         }
 
@@ -64,11 +64,11 @@ internal class GameServer : PacketServer
     protected IShard NewShard(CancellationToken ct)
     {
         var id = ServerId | (ulong)(nextShardId++ << 8);
-        var s = Shards.AddOrUpdate(id, new Shard(GameTickRate, id, this), (id, old) => old);
+        var shard = Shards.AddOrUpdate(id, new Shard(GameTickRate, id, this), (id, old) => old);
 
-        s.Run(ct);
+        shard.Run(ct);
 
-        return s;
+        return shard;
     }
 
     //protected bool Tick( double deltaTime, ulong currTime, CancellationToken ct ) {
@@ -91,9 +91,9 @@ internal class GameServer : PacketServer
 
         if (!ClientMap.ContainsKey(socketId))
         {
-            var c = new NetworkPlayer(packet.RemoteEndpoint, socketId);
+            var newClient = new NetworkPlayer(packet.RemoteEndpoint, socketId);
 
-            client = ClientMap.AddOrUpdate(socketId, c, (id, nc) => { return nc; });
+            client = ClientMap.AddOrUpdate(socketId, newClient, (id, nc) => { return nc; });
             _ = GetNextShard(ct).MigrateIn((INetworkPlayer)client);
         }
         else

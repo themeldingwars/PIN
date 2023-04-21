@@ -16,11 +16,11 @@ public class BaseController : Base
 {
     public override void Init(INetworkClient client, IPlayer player, IShard shard)
     {
-        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(KeyFrame.Test(player, shard), player.EntityId, msgEnumType: typeof(Events));
-        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.CombatController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
-        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.LocalEffectsController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
-        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.MissionAndMarkerController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, msgEnumType: typeof(Events));
-        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new CharacterLoaded(), player.EntityId, msgEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(KeyFrame.Test(player, shard), player.EntityId, messageEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.CombatController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, messageEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.LocalEffectsController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, messageEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new Packets.GSS.Character.MissionAndMarkerController.KeyFrame(shard) { PlayerID = player.CharacterId }, player.EntityId, messageEnumType: typeof(Events));
+        client.NetChannels[ChannelType.ReliableGss].SendGSSClass(new CharacterLoaded(), player.EntityId, messageEnumType: typeof(Events));
     }
 
     [MessageID((byte)Commands.FetchQueueInfo)]

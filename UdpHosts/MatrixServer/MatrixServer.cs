@@ -33,12 +33,12 @@ internal class MatrixServer : PacketServer
                 Program.Logger.Verbose("[POKE]");
                 var nextSocketId = GenerateSocketId();
                 Program.Logger.Information("Assigning SocketID [" + nextSocketId + "] to [" + packet.RemoteEndpoint + "]");
-                _ = Send(Serializer.WriteStruct(new MatrixPacketHehe(nextSocketId)), packet.RemoteEndpoint);
+                _ = SendAsync(Serializer.WriteStruct(new MatrixPacketHehe(nextSocketId)), packet.RemoteEndpoint);
                 break;
             case "KISS": // KISS
                 var kiss = Deserializer.ReadStruct<MatrixPacketKiss>(mem);
                 Program.Logger.Verbose("[KISS]");
-                _ = Send(Serializer.WriteStruct(new MatrixPacketHugg(1, 25001)), packet.RemoteEndpoint);
+                _ = SendAsync(Serializer.WriteStruct(new MatrixPacketHugg(1, 25001)), packet.RemoteEndpoint);
                 break;
             case "ABRT": // ABRT
                 var abrt = Deserializer.ReadStruct<MatrixPacketAbrt>(mem);

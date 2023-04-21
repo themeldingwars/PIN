@@ -30,9 +30,9 @@ public abstract class PacketServer : IPacketSender
 
     public bool IsRunning { get; protected set; }
 
-    public async Task<bool> Send(Memory<byte> p, IPEndPoint ep)
+    public async Task<bool> SendAsync(Memory<byte> packet, IPEndPoint endPoint)
     {
-        return await outgoingPackets.SendAsync(new Packet(ep, p));
+        return await outgoingPackets.SendAsync(new Packet(endPoint, packet));
     }
 
 
@@ -70,9 +70,9 @@ public abstract class PacketServer : IPacketSender
         incomingPackets = new BufferBlock<Packet?>();
         outgoingPackets = new BufferBlock<Packet?>();
 
-        var listenThread = Utils.RunThread(ListenThread, ct);
+        var listenThread = Utils.RunThread(ListenThreadAsync, ct);
         var runThread = Utils.RunThread(ServerRunThreadAsync, ct);
-        var sendThread = Utils.RunThread(SendThread, ct);
+        var sendThread = Utils.RunThread(SendThreadAsync, ct);
 
         Startup(ct);
 
@@ -93,7 +93,7 @@ public abstract class PacketServer : IPacketSender
         Shutdown(ct);
     }
 
-    private async void ListenThread(CancellationToken ct)
+    private async void ListenThreadAsync(CancellationToken ct)
     {
         serverSocket.Blocking = true;
         serverSocket.DontFragment = true;
@@ -141,7 +141,7 @@ public abstract class PacketServer : IPacketSender
         }
     }
 
-    private async void SendThread(CancellationToken ct)
+    private async void SendThreadAsync(CancellationToken ct)
     {
         while (outgoingPackets == null)
         {

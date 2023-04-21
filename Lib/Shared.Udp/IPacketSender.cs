@@ -6,5 +6,5 @@ namespace Shared.Udp;
 
 public interface IPacketSender
 {
-    Task<bool> Send(Memory<byte> p, IPEndPoint ep);
+    Task<bool> SendAsync(Memory<byte> packet, IPEndPoint endPoint);
 }

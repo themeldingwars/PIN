@@ -27,7 +27,7 @@ public interface INetworkClient
 
     void Init(IPlayer player, IShard shard, IPacketSender sender);
     void HandlePacket(ReadOnlyMemory<byte> data, Packet packet);
-    void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct);
-    void Send(Memory<byte> p);
-    void SendAck(ChannelType forChannel, ushort forSeqNumber, DateTime? received = null);
+    void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct);
+    void Send(Memory<byte> packet);
+    void SendAck(ChannelType forChannel, ushort forSequenceNumber, DateTime? received = null);
 }

@@ -21,8 +21,8 @@ public interface IShard : IInstance, IPacketSender
 
     void Run(CancellationToken ct);
     void Stop();
-    bool Tick(double deltaTime, ulong currTime, CancellationToken ct);
-    void NetworkTick(double deltaTime, ulong currTime, CancellationToken ct);
+    bool Tick(double deltaTime, ulong currentTime, CancellationToken ct);
+    void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct);
     bool MigrateOut(INetworkPlayer player);
     bool MigrateIn(INetworkPlayer player);
     ushort AssignNewRefId(IEntity entity, Enums.GSS.Controllers controller);
