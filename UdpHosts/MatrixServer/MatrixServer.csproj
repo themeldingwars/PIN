@@ -5,16 +5,18 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <Import Project="..\..\PIN.targets"/>
+    <Import Project="..\..\PIN.targets" />
 
     <ItemGroup>
-        <PackageReference Include="Serilog.Settings.AppSettings" Version="2.2.2"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0"/>
+        <PackageReference Include="Autofac" Version="6.5.0" />
+        <PackageReference Include="CommandLineParser" Version="2.9.1" />
+        <PackageReference Include="Serilog.Settings.AppSettings" Version="2.2.2" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj"/>
-        <ProjectReference Include="..\..\Lib\Shared.Udp\Shared.Udp.csproj"/>
+        <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />
+        <ProjectReference Include="..\..\Lib\Shared.Udp\Shared.Udp.csproj" />
     </ItemGroup>
 
 </Project>

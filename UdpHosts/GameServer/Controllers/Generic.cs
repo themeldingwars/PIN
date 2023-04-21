@@ -4,6 +4,7 @@ using GameServer.Enums.GSS.Generic;
 using GameServer.Extensions;
 using GameServer.Packets;
 using GameServer.Packets.Control;
+using Serilog;
 using System;
 
 namespace GameServer.Controllers;
@@ -11,7 +12,7 @@ namespace GameServer.Controllers;
 [ControllerID(Enums.GSS.Controllers.Generic)]
 public class Generic : Base
 {
-    public override void Init(INetworkClient client, IPlayer player, IShard shard)
+    public override void Init(INetworkClient client, IPlayer player, IShard shard, ILogger logger)
     {
     }
 

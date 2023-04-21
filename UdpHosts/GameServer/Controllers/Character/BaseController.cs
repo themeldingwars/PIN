@@ -4,6 +4,7 @@ using GameServer.Entities.Character;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
+using Serilog;
 using System;
 using ConfirmedPoseUpdate = AeroMessages.GSS.V66.Character.Event.ConfirmedPoseUpdate;
 using AeroMessages.GSS.V66;
@@ -16,9 +17,12 @@ namespace GameServer.Controllers.Character;
 [ControllerID(Enums.GSS.Controllers.Character_BaseController)]
 public class BaseController : Base
 {
-    public override void Init(INetworkClient client, IPlayer player, IShard shard)
+    private ILogger _logger;
+    
+    public override void Init(INetworkClient client, IPlayer player, IShard shard, ILogger logger)
     {
-
+        _logger = logger;
+        
         var cd = player.CharacterEntity.CharData;
 
         var staticInfo = new AeroMessages.GSS.V66.Character.StaticInfoData
@@ -641,7 +645,7 @@ public class BaseController : Base
     public void FetchQueueInfo(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // ToDo: Implement BaseController.FetchQueueInfo
-        LogMissingImplementation<BaseController>(nameof(FetchQueueInfo), entityId, packet);
+        LogMissingImplementation<BaseController>(nameof(FetchQueueInfo), entityId, packet, _logger);
     }
 
     [MessageID((byte)Commands.PlayerReady)]
@@ -683,7 +687,7 @@ public class BaseController : Base
 
         if (player.CharacterEntity.MovementStateContainer.InvalidFlags != CharMovementState.None)
         {
-            Log.Error($"Unmapped {nameof(CharMovementState)} encountered! \n{player.CharacterEntity.MovementStateContainer}");
+            _logger.Error($"Unmapped {nameof(CharMovementState)} encountered! \n{player.CharacterEntity.MovementStateContainer}");
         }
 
 
@@ -691,7 +695,7 @@ public class BaseController : Base
         player.CharacterEntity.TimeSinceLastJump ??=
             timeSinceLastJumpValue >= 0 ? Convert.ToUInt16(timeSinceLastJumpValue) : throw new ArgumentOutOfRangeException($"{nameof(poseData.TimeSinceLastJump)} is <0, but we're only allowing >=0. This is bad!");
 
-        //Program.Logger.Warning( "Movement Unknown1: {0:X4} {1:X4} {2:X4} {3:X4} {4:X4}", pkt.UnkUShort1, pkt.UnkUShort2, pkt.UnkUShort3, pkt.UnkUShort4, pkt.LastJumpTimer );
+        //_logger.Warning( "Movement Unknown1: {0:X4} {1:X4} {2:X4} {3:X4} {4:X4}", pkt.UnkUShort1, pkt.UnkUShort2, pkt.UnkUShort3, pkt.UnkUShort4, pkt.LastJumpTimer );
 
         var resp = new ConfirmedPoseUpdate
         {
@@ -730,14 +734,14 @@ public class BaseController : Base
     public void SetMovementSimulation(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // ToDo: Implement BaseController.SetMovementSimulation
-        LogMissingImplementation<BaseController>(nameof(SetMovementSimulation), entityId, packet);
+        LogMissingImplementation<BaseController>(nameof(SetMovementSimulation), entityId, packet, _logger);
     }
 
     [MessageID((byte)Commands.BagInventorySettings)]
     public void BagInventorySettings(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // ToDo: Implement BaseController.BagInventorySettings
-        LogMissingImplementation<BaseController>(nameof(BagInventorySettings), entityId, packet);
+        LogMissingImplementation<BaseController>(nameof(BagInventorySettings), entityId, packet, _logger);
 
         var bagInventorySettings = packet.Unpack<BagInventorySettings>();
     }
@@ -747,9 +751,9 @@ public class BaseController : Base
     {
         var setSteamIdPacket = packet.Unpack<SetSteamUserId>();
         player.SteamUserId = setSteamIdPacket.SteamUserId;
-        Log.Verbose("Entity {0:x8} Steam user id (Aero): {1}", entityId, player.SteamUserId);
+        _logger.Verbose("Entity {0:x8} Steam user id (Aero): {1}", entityId, player.SteamUserId);
         //var conventional = packet.Read<SetSteamIdRequest>();
-        //Log.Verbose("Packet Data: {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
-        //Log.Verbose("Entity {0:x8} Steam user id (conventional): {1}", entityId, conventional.SteamId);
+        //_logger.Verbose("Packet Data: {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+        //_logger.Verbose("Entity {0:x8} Steam user id (conventional): {1}", entityId, conventional.SteamId);
     }
 }

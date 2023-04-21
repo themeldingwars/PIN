@@ -1,5 +1,6 @@
 ﻿using GameServer.Data;
 using GameServer.Test;
+using Serilog;
 using System.Net;
 using System.Numerics;
 using System.Threading;
@@ -18,8 +19,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 {
     private double lastKeyFrame;
 
-    public NetworkPlayer(IPEndPoint endPoint, uint socketId)
-        : base(endPoint, socketId)
+    public NetworkPlayer(IPEndPoint endPoint, uint socketId, ILogger logger)
+        : base(endPoint, socketId, logger)
     {
         CharacterEntity = null;
         Status = IPlayer.PlayerStatus.Connecting;
@@ -59,7 +60,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         var zone = (uint)(characterId & 0x000000000000ffff);
 
-        Program.Logger.Verbose("Zone {0}", zone);
+        Logger.Verbose("Zone {0}", zone);
 
         EnterZone(DataUtils.GetZone(zone));
     }
@@ -78,7 +79,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                 HaveUnk2 = 0,
                 Params1 = new ForcedMovementType1Params
                 {
-                    Position = p,
+                    Position = pointOfInterestPosition,
                     Direction = CharacterEntity.AimDirection,
                     Velocity = Vector3.Zero,
                     Time = AssignedShard.CurrentTime,

@@ -1,24 +1,78 @@
-﻿using Serilog;
-using Shared.Common;
-using Shared.Udp;
+﻿using Autofac;
+using CommandLine;
+using CommandLine.Text;
+using System;
+using System.Collections.Generic;
 
 namespace MatrixServer;
 
-internal class Program
+internal static class Program
 {
-    public static ILogger Logger { get; protected set; }
-
-    private static void Main(string[] args)
+    private static void Main(string[] arguments)
     {
-        Logger = new LoggerConfiguration()
-                 .MinimumLevel.Verbose()
-                 .WriteTo.Console(theme: SerilogTheme.Custom)
-                 .CreateLogger();
+        using var container = CreateContainer();
 
-        PacketServer.Logger = Logger;
+        var settings = container.Resolve<MatrixServerSettings>();
 
-        // TODO: Handle/allow args and configuration
-        var server = new MatrixServer(25000);
+        var options = ParseCliOptions(arguments);
+        if (options is not null)
+        {
+            ApplyCliOptions(options, settings);
+        }
+
+        var server = container.Resolve<MatrixServer>();
         server.Run();
+    }
+
+    /// <summary>
+    ///     Create Autofac container for dependency injection
+    /// </summary>
+    private static IContainer CreateContainer()
+    {
+        var containerBuilder = new ContainerBuilder();
+        containerBuilder.RegisterModule<MatrixServerModule>();
+        return containerBuilder.Build();
+    }
+
+    /// <summary>
+    ///     Parse the options passed via the command line and overwrite settings from the config
+    /// </summary>
+    /// <param name="arguments">CLI Arguments</param>
+    private static CliOptions ParseCliOptions(IEnumerable<string> arguments)
+    {
+        var parser = new Parser();
+        var parserResult = parser.ParseArguments<CliOptions>(arguments);
+        CliOptions options = null;
+        parserResult.WithParsed(o => options = o)
+                    .WithNotParsed(_ => DisplayHelpText(parserResult));
+
+        return options;
+    }
+
+    /// <summary>
+    ///     Handle the parsed options, essentially overwriting already present settings loaded from App.config
+    /// </summary>
+    /// <param name="options">CLI Options</param>
+    /// <param name="settings">Game Server Settings</param>
+    private static void ApplyCliOptions(CliOptions options, MatrixServerSettings settings)
+    {
+        if (options.LogLevel != null)
+        {
+            settings.LogLevel = options.LogLevel;
+        }
+    }
+
+    /// <summary>
+    ///     If errors occur during the parsing of CLI options, they should be handled here
+    /// </summary>
+    /// <param name="result">Parser result</param>
+    private static void DisplayHelpText<T>(ParserResult<T> result)
+    {
+        var helpText = HelpText.AutoBuild(result, h =>
+                                                  {
+                                                      h.AdditionalNewLineAfterOption = false;
+                                                      return HelpText.DefaultParsingErrorsHandler(result, h);
+                                                  }, e => e);
+        Console.WriteLine(helpText);
     }
 }
