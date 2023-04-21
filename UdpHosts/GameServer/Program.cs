@@ -1,104 +1,78 @@
-﻿using CommandLine;
-using Serilog;
-using Shared.Common;
-using Shared.Udp;
+﻿using Autofac;
+using CommandLine;
+using CommandLine.Text;
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 
 namespace GameServer;
 
 internal static class Program
 {
-    public static ILogger Logger { get; private set; }
-    public static GameServerSettings GameServerSettings { get; private set; }
-
-    private static void Main(string[] arguments)
+    public static void Main(string[] arguments)
     {
-        // TODO: add DI?
-        LoadAppSettings();
-        ParseAndApplyCliOptions(arguments);
-        SetupLogger();
+        using var container = CreateContainer();
 
+        var settings = container.Resolve<GameServerSettings>();
 
-        var serverId = GenerateServerId();
-        var server = new GameServer(25001, serverId);
+        var options = ParseCliOptions(arguments);
+        if (options is not null)
+        {
+            ApplyCliOptions(options, settings);
+        }
+
+        var server = container.Resolve<GameServer>();
         server.Run();
     }
 
     /// <summary>
-    ///     Set the logger up
+    ///     Create Autofac container for dependency injection
     /// </summary>
-    private static void SetupLogger()
+    private static IContainer CreateContainer()
     {
-        var loggerConfig = new LoggerConfiguration()
-                           .ReadFrom.AppSettings()
-                           .WriteTo.Console(theme: SerilogTheme.Custom);
-
-        if (GameServerSettings.LogLevel.HasValue)
-        {
-            loggerConfig = loggerConfig.MinimumLevel.Is(GameServerSettings.LogLevel.Value);
-        }
-
-        Logger = loggerConfig.CreateLogger();
-
-        PacketServer.Logger = Logger;
-    }
-
-    /// <summary>
-    ///     Load the settings from App.config
-    /// </summary>
-    private static void LoadAppSettings()
-    {
-        GameServerSettings = new GameServerSettings();
-        // no settings as of yet, expand this function should the need arise
-    }
-
-    /// <summary>
-    ///     Generate the Server Id
-    ///     ToDo: Incorporate the Sql Node Number as per https://gist.github.com/SilentCLD/881839a9f45578f1618db012fc789a71
-    /// </summary>
-    /// <returns></returns>
-    private static ulong GenerateServerId()
-    {
-        Span<byte> ranSpan = stackalloc byte[8];
-        new Random().NextBytes(ranSpan.Slice(2, 6));
-        var ret = BinaryPrimitives.ReadUInt64LittleEndian(ranSpan);
-        return ret;
+        var containerBuilder = new ContainerBuilder();
+        containerBuilder.RegisterModule<GameServerModule>();
+        return containerBuilder.Build();
     }
 
     /// <summary>
     ///     Parse the options passed via the command line and overwrite settings from the config
     /// </summary>
-    /// <param name="arguments"></param>
-    private static void ParseAndApplyCliOptions(IEnumerable<string> arguments)
+    /// <param name="arguments">CLI Arguments</param>
+    private static CliOptions ParseCliOptions(IEnumerable<string> arguments)
     {
-        Parser.Default.ParseArguments<CliOptions>(arguments)
-              .WithParsed(RunOptions)
-              .WithNotParsed(HandleParseError);
+        var parser = new Parser();
+        var parserResult = parser.ParseArguments<CliOptions>(arguments);
+        CliOptions options = null;
+        parserResult.WithParsed(o => options = o)
+                    .WithNotParsed(_ => DisplayHelpText(parserResult));
+
+        return options;
     }
 
     /// <summary>
     ///     Handle the parsed options, essentially overwriting already present settings loaded from App.config
     /// </summary>
-    /// <param name="options"></param>
-    private static void RunOptions(CliOptions options)
+    /// <param name="options">CLI Options</param>
+    /// <param name="settings">Game Server Settings</param>
+    private static void ApplyCliOptions(CliOptions options, GameServerSettings settings)
     {
         if (options.LogLevel != null)
         {
-            GameServerSettings.LogLevel = options.LogLevel;
+            settings.LogLevel = options.LogLevel;
         }
     }
 
     /// <summary>
     ///     If errors occur during the parsing of CLI options, they should be handled here
     /// </summary>
-    /// <param name="errors"></param>
-    private static void HandleParseError(IEnumerable<Error> errors)
+    /// <param name="result">Parser result</param>
+    private static void DisplayHelpText<T>(ParserResult<T> result)
     {
-        foreach (var error in errors)
-        {
-            Console.Error.WriteLine("Error when parsing options: " + error);
-        }
+        var helpText = HelpText.AutoBuild(result, h =>
+                                                  {
+                                                      h.AdditionalNewLineAfterOption = false;
+                                                      return HelpText.DefaultParsingErrorsHandler(result, h);
+                                                  }, e => e);
+        Console.WriteLine(helpText);
     }
 }

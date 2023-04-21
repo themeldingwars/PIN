@@ -1,12 +1,13 @@
 ﻿using GameServer.Enums.GSS.Generic;
 using GameServer.Packets;
+using Serilog;
 
 namespace GameServer.Controllers;
 
 [ControllerID(Enums.GSS.Controllers.Generic2)]
 public class Generic2 : Base
 {
-    public override void Init(INetworkClient client, IPlayer player, IShard shard)
+    public override void Init(INetworkClient client, IPlayer player, IShard shard, ILogger logger)
     {
     }
 

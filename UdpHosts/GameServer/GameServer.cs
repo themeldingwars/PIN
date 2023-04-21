@@ -1,6 +1,9 @@
 ﻿using GameServer.Controllers;
 using GameServer.Test;
+using Serilog;
 using Shared.Udp;
+using System;
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
@@ -24,13 +27,15 @@ internal class GameServer : PacketServer
     protected byte nextShardId;
     protected ulong ServerId;
 
-    public GameServer(ushort port, ulong serverId) : base(port)
+    public GameServer(GameServerSettings serverSettings,
+                      ILogger logger)
+        : base (serverSettings.Port, logger)
     {
         ClientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
         Shards = new ConcurrentDictionary<ulong, IShard>();
 
         nextShardId = 1;
-        ServerId = serverId;
+        ServerId = GenerateServerId();
     }
 
     protected override void Startup(CancellationToken ct)
@@ -91,7 +96,7 @@ internal class GameServer : PacketServer
 
         if (!ClientMap.ContainsKey(socketId))
         {
-            var newClient = new NetworkPlayer(packet.RemoteEndpoint, socketId);
+            var newClient = new NetworkPlayer(packet.RemoteEndpoint, socketId, Logger);
 
             client = ClientMap.AddOrUpdate(socketId, newClient, (id, nc) => { return nc; });
             _ = GetNextShard(ct).MigrateIn((INetworkPlayer)client);
@@ -102,5 +107,18 @@ internal class GameServer : PacketServer
         }
 
         client.HandlePacket(packet.PacketData[4..], packet);
+    }
+
+    /// <summary>
+    ///     Generate the Server Id
+    ///     ToDo: Incorporate the Sql Node Number as per https://gist.github.com/SilentCLD/881839a9f45578f1618db012fc789a71
+    /// </summary>
+    /// <returns></returns>
+    private static ulong GenerateServerId()
+    {
+        Span<byte> ranSpan = stackalloc byte[8];
+        new Random().NextBytes(ranSpan.Slice(2, 6));
+        var ret = BinaryPrimitives.ReadUInt64LittleEndian(ranSpan);
+        return ret;
     }
 }

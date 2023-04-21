@@ -1,12 +1,13 @@
 ﻿using GameServer.Enums.GSS.Character;
 using GameServer.Packets;
+using Serilog;
 
 namespace GameServer.Controllers.Character;
 
 [ControllerID(Enums.GSS.Controllers.Character_MissionAndMarkerController)]
 public class MissionAndMarkerController : Base
 {
-    public override void Init(INetworkClient client, IPlayer player, IShard shard)
+    public override void Init(INetworkClient client, IPlayer player, IShard shard, ILogger logger)
     {
     }
 

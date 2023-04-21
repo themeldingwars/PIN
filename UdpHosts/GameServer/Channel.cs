@@ -3,6 +3,7 @@ using Aero.Gen;
 using Aero.Gen.Attributes;
 using GameServer.Extensions;
 using GameServer.Packets;
+using Serilog;
 using Shared.Udp;
 using System;
 using System.Collections.Concurrent;
@@ -31,17 +32,20 @@ public class Channel
     private const int MaxPacketSize = PacketServer.MTU - TotalHeaderSize;
     private static readonly byte[] xorByte = { 0x00, 0xFF, 0xCC, 0xAA };
     private static readonly ulong[] xorULong = { 0x00, 0xFFFFFFFFFFFFFFFF, 0xCCCCCCCCCCCCCCCC, 0xAAAAAAAAAAAAAAAA };
+    
+    private readonly ILogger _logger;
 
     protected INetworkClient client;
     protected ConcurrentQueue<GamePacket> incomingPackets;
     protected ConcurrentQueue<Memory<byte>> outgoingPackets;
 
-    protected Channel(ChannelType channelType, bool isSequenced, bool isReliable, INetworkClient networkClient)
+    protected Channel(ChannelType channelType, bool isSequenced, bool isReliable, INetworkClient networkClient, ILogger logger)
     {
         Type = channelType;
         IsSequenced = isSequenced;
         IsReliable = isReliable;
         client = networkClient;
+        _logger = logger;
         CurrentSequenceNumber = 1;
         LastAck = 0;
 
@@ -56,14 +60,14 @@ public class Channel
     public DateTime LastActivity { get; protected set; }
     public ushort LastAck { get; protected set; }
 
-    public static Dictionary<ChannelType, Channel> GetChannels(INetworkClient client)
+    public static Dictionary<ChannelType, Channel> GetChannels(INetworkClient client, ILogger logger)
     {
         return new Dictionary<ChannelType, Channel>
                {
-                   { ChannelType.Control, new Channel(ChannelType.Control, false, false, client) },
-                   { ChannelType.Matrix, new Channel(ChannelType.Matrix, true, true, client) },
-                   { ChannelType.ReliableGss, new Channel(ChannelType.ReliableGss, true, true, client) },
-                   { ChannelType.UnreliableGss, new Channel(ChannelType.UnreliableGss, true, false, client) }
+                   { ChannelType.Control, new Channel(ChannelType.Control, false, false, client, logger) },
+                   { ChannelType.Matrix, new Channel(ChannelType.Matrix, true, true, client, logger) },
+                   { ChannelType.ReliableGss, new Channel(ChannelType.ReliableGss, true, true, client, logger) },
+                   { ChannelType.UnreliableGss, new Channel(ChannelType.UnreliableGss, true, false, client, logger) }
                };
     }
 
@@ -126,12 +130,12 @@ public class Channel
                 //	data[i] ^= xorByte[packet.Header.ResendCount];
 
                 packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(data));
-                Program.Logger.Fatal("---> Resent packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
+                _logger.Fatal("---> Resent packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
             }
 
             if (packet.Header.IsSplit)
             {
-                Program.Logger.Fatal("---> Split packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
+                _logger.Fatal("---> Split packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
             }
 
             if (IsReliable && (sequenceNumber > LastAck || (sequenceNumber < 0xff && LastAck > 0xff00)))
@@ -173,7 +177,7 @@ public class Channel
             packetToSend.CopyTo(t[1..]);
             Serializer.WritePrimitive((byte)messageId).CopyTo(t);
             packetToSend = t;
-            Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, messageId, (byte)messageId);
+            _logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, messageId, (byte)messageId);
         }
         else if (matrixMessageAttribute != null)
         {
@@ -182,7 +186,7 @@ public class Channel
             packetToSend.CopyTo(t[1..]);
             Serializer.WritePrimitive((byte)messageId).CopyTo(t);
             packetToSend = t;
-            Program.Logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, messageId, (byte)messageId);
+            _logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, messageId, (byte)messageId);
         }
         else
         {
@@ -229,11 +233,11 @@ public class Channel
 
         if (messageEnumType == null)
         {
-            Program.Logger.Verbose("<-- {0}: MsgID = 0x{1:X2}", Type, messageId);
+            _logger.Verbose("<-- {0}: MsgID = 0x{1:X2}", Type, messageId);
         }
         else
         {
-            Program.Logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId)), messageId);
+            _logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId)), messageId);
         }
 
         return Send(packetToSend);
@@ -280,12 +284,12 @@ public class Channel
 
             if (messageEnumType == null)
             {
-                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerId ?? gssMessageAttribute.ControllerID.Value, entityId, messageId);
+                _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerId ?? gssMessageAttribute.ControllerID.Value, entityId, messageId);
             }
             else
             {
-                Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerId ?? gssMessageAttribute.ControllerID.Value, entityId,
-                                       Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId)), messageId);
+                _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerId ?? gssMessageAttribute.ControllerID.Value, entityId,
+                                Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId)), messageId);
             }
         }
         else
@@ -446,22 +450,22 @@ public class Channel
 
         if (msgEnumType == null)
         {
-            Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}",
-                                   Type,
-                                   controllerId,
-                                   entityId,
-                                   messageId);
+            _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}",
+                            Type,
+                            controllerId,
+                            entityId,
+                            messageId);
         }
         else
         {
-            Program.Logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})",
-                                   Type,
-                                   controllerId,
-                                   entityId,
-                                   Enum.Parse(msgEnumType,
-                                              Enum.GetName(msgEnumType, messageId) ??
-                                              throw new InvalidOperationException($"Message enum type {msgEnumType.FullName} has no element with a value of {messageId}")),
-                                   messageId);
+            _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})",
+                            Type,
+                            controllerId,
+                            entityId,
+                            Enum.Parse(msgEnumType,
+                                       Enum.GetName(msgEnumType, messageId) ??
+                                       throw new InvalidOperationException($"Message enum type {msgEnumType.FullName} has no element with a value of {messageId}")),
+                            messageId);
         }
 
         //Program.Logger.Verbose( "<--- Sending {0} bytes", packetData.Length );
@@ -511,7 +515,7 @@ public class Channel
             {
                 if (IsReliable)
                 {
-                    Program.Logger.Verbose("<- {0} SeqNum =  {1}", Type, CurrentSequenceNumber);
+                    _logger.Verbose("<- {0} SeqNum =  {1}", Type, CurrentSequenceNumber);
                 }
 
                 Serializer.WritePrimitive(Utils.SimpleFixEndianness(CurrentSequenceNumber)).CopyTo(t.Slice(2, 2));

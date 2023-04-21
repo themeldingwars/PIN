@@ -1,4 +1,5 @@
 ﻿using MatrixServer.Packets;
+using Serilog;
 using Shared.Udp;
 using System;
 using System.Threading;
@@ -7,9 +8,9 @@ namespace MatrixServer;
 
 internal class MatrixServer : PacketServer
 {
-    protected Random random = new();
-
-    public MatrixServer(ushort port) : base(port)
+    public MatrixServer(MatrixServerSettings matrixServerSettings,
+                        ILogger logger)
+        : base(matrixServerSettings.Port, logger)
     {
     }
 
@@ -22,7 +23,7 @@ internal class MatrixServer : PacketServer
             return;
         }
 
-        Program.Logger.Verbose("[MATRIX] " + packet.RemoteEndpoint + " sent " + packet.PacketData.Length + " bytes.");
+        Logger.Verbose("[MATRIX] " + packet.RemoteEndpoint + " sent " + packet.PacketData.Length + " bytes.");
 
         var matrixPkt = Deserializer.ReadStruct<MatrixPacketBase>(mem);
 
@@ -30,28 +31,28 @@ internal class MatrixServer : PacketServer
         {
             case "POKE": // POKE
                 var poke = Deserializer.ReadStruct<MatrixPacketPoke>(mem);
-                Program.Logger.Verbose("[POKE]");
+                Logger.Verbose("[POKE]");
                 var nextSocketId = GenerateSocketId();
-                Program.Logger.Information("Assigning SocketID [" + nextSocketId + "] to [" + packet.RemoteEndpoint + "]");
+                Logger.Information("Assigning SocketID [" + nextSocketId + "] to [" + packet.RemoteEndpoint + "]");
                 _ = SendAsync(Serializer.WriteStruct(new MatrixPacketHehe(nextSocketId)), packet.RemoteEndpoint);
                 break;
             case "KISS": // KISS
                 var kiss = Deserializer.ReadStruct<MatrixPacketKiss>(mem);
-                Program.Logger.Verbose("[KISS]");
+                Logger.Verbose("[KISS]");
                 _ = SendAsync(Serializer.WriteStruct(new MatrixPacketHugg(1, 25001)), packet.RemoteEndpoint);
                 break;
             case "ABRT": // ABRT
                 var abrt = Deserializer.ReadStruct<MatrixPacketAbrt>(mem);
-                Program.Logger.Verbose("[ABRT]");
+                Logger.Verbose("[ABRT]");
                 break;
             default:
-                Program.Logger.Error("Unknown Matrix Packet Type: " + matrixPkt.Type);
+                Logger.Error("Unknown Matrix Packet Type: " + matrixPkt.Type);
                 return;
         }
     }
 
-    protected uint GenerateSocketId()
+    private static uint GenerateSocketId()
     {
-        return unchecked((uint)((0xff00ff << 8) | random.Next(0, 256)));
+        return unchecked((uint)((0xff00ff << 8) | new Random().Next(0, 256)));
     }
 }

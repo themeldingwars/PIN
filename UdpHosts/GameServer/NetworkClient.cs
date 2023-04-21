@@ -3,6 +3,7 @@ using GameServer.Controllers.Character;
 using GameServer.Enums;
 using GameServer.Packets;
 using GameServer.Packets.Control;
+using Serilog;
 using Shared.Udp;
 using System;
 using System.Collections.Immutable;
@@ -18,8 +19,11 @@ namespace GameServer;
 
 public class NetworkClient : INetworkClient
 {
-    public NetworkClient(IPEndPoint endPoint, uint socketId)
+    protected readonly ILogger Logger;
+
+    public NetworkClient(IPEndPoint endPoint, uint socketId, ILogger logger)
     {
+        Logger = logger;
         SocketId = socketId;
         RemoteEndpoint = endPoint;
         NetClientStatus = Status.Unknown;
@@ -42,7 +46,7 @@ public class NetworkClient : INetworkClient
         NetClientStatus = Status.Connecting;
         AssignedShard = shard;
 
-        NetChannels = Channel.GetChannels(this).ToImmutableDictionary();
+        NetChannels = Channel.GetChannels(this, Logger).ToImmutableDictionary();
         NetChannels[ChannelType.Control].PacketAvailable += Control_PacketAvailable;
         NetChannels[ChannelType.Matrix].PacketAvailable += Matrix_PacketAvailable;
         NetChannels[ChannelType.ReliableGss].PacketAvailable += GSS_PacketAvailable;
@@ -108,11 +112,11 @@ public class NetworkClient : INetworkClient
     {
         if (received != null)
         {
-            Program.Logger.Verbose("<-- {0} Ack for {1} on {2} after {3}ms.", ChannelType.Control, forSequenceNumber, forChannel, (DateTime.Now - received.Value).TotalMilliseconds);
+            Logger.Verbose("<-- {0} Ack for {1} on {2} after {3}ms.", ChannelType.Control, forSequenceNumber, forChannel, (DateTime.Now - received.Value).TotalMilliseconds);
         }
         else
         {
-            Program.Logger.Verbose("<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSequenceNumber, forChannel);
+            Logger.Verbose("<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSequenceNumber, forChannel);
         }
 
         var forNum = Utils.SimpleFixEndianness(forSequenceNumber);
@@ -140,19 +144,19 @@ public class NetworkClient : INetworkClient
 
         if (connection == null)
         {
-            Program.Logger.Verbose("---> Unrecognized ControllerId for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", controllerId, entityId, messageId);
-            Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+            Logger.Verbose("---> Unrecognized ControllerId for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", controllerId, entityId, messageId);
+            Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
             return;
         }
 
-        Program.Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", packet.Header.Channel, controllerId, entityId, messageId);
-        connection.HandlePacket(this, Player, entityId, messageId, packet);
+        Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", packet.Header.Channel, controllerId, entityId, messageId);
+        connection.HandlePacket(this, Player, entityId, messageId, packet, Logger);
     }
 
     private void Matrix_PacketAvailable(GamePacket packet)
     {
         var messageId = packet.Read<MatrixPacketType>();
-        Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Matrix, messageId, (byte)messageId);
+        Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Matrix, messageId, (byte)messageId);
 
         switch (messageId)
         {
@@ -161,7 +165,7 @@ public class NetworkClient : INetworkClient
                 Player.Login(aeroLogin.CharacterGuid);
                 break;
             case MatrixPacketType.EnterZoneAck:
-                Factory.Get<BaseController>().Init(this, Player, AssignedShard);
+                Factory.Get<BaseController>().Init(this, Player, AssignedShard, Logger);
                 break;
             case MatrixPacketType.KeyframeRequest:
                 var aeroKeyframeRequest = packet.Unpack<KeyframeRequest>();
@@ -184,8 +188,8 @@ public class NetworkClient : INetworkClient
                 // Ignore
                 break;
             default:
-                Program.Logger.Error("---> Unrecognized Matrix Packet {0}[{1}]!!!", messageId, (byte)messageId);
-                Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+                Logger.Error("---> Unrecognized Matrix Packet {0}[{1}]!!!", messageId, (byte)messageId);
+                Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 break;
         }
     }
@@ -193,7 +197,7 @@ public class NetworkClient : INetworkClient
     private void Control_PacketAvailable(GamePacket packet)
     {
         var messageId = packet.Read<ControlPacketType>();
-        Program.Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Control, messageId, (byte)messageId);
+        Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Control, messageId, (byte)messageId);
 
         switch (messageId)
         {
@@ -203,12 +207,12 @@ public class NetworkClient : INetworkClient
                 break;
             case ControlPacketType.MatrixAck:
                 var matrixAckPackage = packet.Read<MatrixAck>();
-                Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckFor), ChannelType.Matrix);
+                Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckFor), ChannelType.Matrix);
                 // TODO: Track reliable packets
                 break;
             case ControlPacketType.ReliableGSSAck:
                 var reliableGssAckPackage = packet.Read<ReliableGSSAck>();
-                Program.Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckFor), ChannelType.ReliableGss);
+                Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckFor), ChannelType.ReliableGss);
                 // TODO: Track reliable packets
                 break;
             case ControlPacketType.TimeSyncRequest:
@@ -221,8 +225,8 @@ public class NetworkClient : INetworkClient
                 // TODO: ???
                 break;
             default:
-                Program.Logger.Error("---> Unrecognized Control Packet {0} ({1:X2})!!!", messageId, (byte)messageId);
-                Program.Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+                Logger.Error("---> Unrecognized Control Packet {0} ({1:X2})!!!", messageId, (byte)messageId);
+                Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 break;
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using Serilog.Core;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -12,7 +13,7 @@ public abstract class PacketServer : IPacketSender
 {
     public const int MTU = 1400;
 
-    public static ILogger Logger;
+    protected ILogger Logger;
 
 
     protected readonly Socket serverSocket;
@@ -22,8 +23,10 @@ public abstract class PacketServer : IPacketSender
     protected CancellationTokenSource source;
 
 
-    public PacketServer(ushort port)
+    public PacketServer(ushort port,
+                        ILogger logger)
     {
+        Logger = logger;
         listenEndpoint = new IPEndPoint(IPAddress.Any, port);
         serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     }
