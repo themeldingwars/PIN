@@ -1,0 +1,1426 @@
+﻿{
+  "energy": {
+    "internal_name": "energy",
+    "name": "Energy",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "energy_recharge_delay": {
+    "internal_name": "energy_recharge_delay",
+    "name": "Energy Recharge Delay",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "jump_height": {
+    "internal_name": "jump_height",
+    "name": "Jump Height",
+    "format": "%.2f m",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "damage": {
+    "internal_name": "damage",
+    "name": "Damage",
+    "format": "%d base damage",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "strength": {
+    "internal_name": "strength",
+    "name": "Strength",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "duration": {
+    "internal_name": "duration",
+    "name": "Duration",
+    "format": "%.2f s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "recharge": {
+    "internal_name": "recharge",
+    "name": "Recharge",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "effect_radius_mod1": {
+    "internal_name": "effect_radius_mod1",
+    "name": "Effect Radius",
+    "format": "%.2f multiplier",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "revive_bonus": {
+    "internal_name": "revive_bonus",
+    "name": "Revive Bonus",
+    "format": "%.2fx hp",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "healing": {
+    "internal_name": "healing",
+    "name": "Healing",
+    "format": "%d health",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "healing_wave_knockback": {
+    "internal_name": "healing_wave_knockback",
+    "name": "Healing Wave Knockback",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "healing_ball_projectile_speed": {
+    "internal_name": "healing_ball_projectile_speed",
+    "name": "Healing Ball Projectile Speed",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "effect_radius": {
+    "internal_name": "effect_radius",
+    "name": "Effect Radius",
+    "format": "%.2f m",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "resonating_bolts_damage": {
+    "internal_name": "resonating_bolts_damage",
+    "name": "Resonating Bolts Damage",
+    "format": "%.2f weapon damage",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "root_duration": {
+    "internal_name": "root_duration",
+    "name": "Root Duration",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "turret_mode_accuracy_bonus_mod1": {
+    "internal_name": "turret_mode_accuracy_bonus_mod1",
+    "name": "Turret Mode Accuracy Bonus",
+    "format": "%.2f accuracy modifier",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "turret_mode_rateof_fire_bonus": {
+    "internal_name": "turret_mode_rateof_fire_bonus",
+    "name": "Turret Mode Rate of Fire Bonus",
+    "format": "%.2f rate of fire multiplier",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "deployable_health": {
+    "internal_name": "deployable_health",
+    "name": "Deployable Health",
+    "format": "%d hp",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "repulsor_blast_knockback": {
+    "internal_name": "repulsor_blast_knockback",
+    "name": "Repulsor Blast Knockback",
+    "format": "%.2f N",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "replaceme": {
+    "internal_name": "replaceme",
+    "name": "REPLACE ME",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "turret_damage": {
+    "internal_name": "turret_damage",
+    "name": "Turret Damage",
+    "format": "%d damage",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "quick_deploy_healing_station_strength": {
+    "internal_name": "quick_deploy_healing_station_strength",
+    "name": "",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "emp_grenade_strength": {
+    "internal_name": "emp_grenade_strength",
+    "name": "EMP Grenade Strength",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "blast_damage_reduction": {
+    "internal_name": "blast_damage_reduction",
+    "name": "Blast Damage Reduction",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "fire_damage_reduction": {
+    "internal_name": "fire_damage_reduction",
+    "name": "Fire Damage Reduction",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "electrical_damage_reduction": {
+    "internal_name": "electrical_damage_reduction",
+    "name": "Electrical Damage Reduction",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "poison_damage_reduction": {
+    "internal_name": "poison_damage_reduction",
+    "name": "Poison Damage Reduction",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "plasma_damage_reduction": {
+    "internal_name": "plasma_damage_reduction",
+    "name": "Plasma Damage Reduction",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "bullet_damage_reduction": {
+    "internal_name": "bullet_damage_reduction",
+    "name": "Bullet Damage Reduction",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "duration_mod2": {
+    "internal_name": "duration_mod2",
+    "name": "Duration",
+    "format": "%.2f sec",
+    "type": 2,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "jet_thrust_tier": {
+    "internal_name": "jet_thrust_tier",
+    "name": "Jet Thrust - Tier 1",
+    "format": "%.2f Newtons",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "damage_multiplier": {
+    "internal_name": "damage_multiplier",
+    "name": "Damage Multiplier",
+    "format": "%.2f multiplier",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "turret_mode_rateof_fire_bonus_mod1": {
+    "internal_name": "turret_mode_rateof_fire_bonus_mod1",
+    "name": "Turret Mode Rate of Fire Bonus",
+    "format": "%.2f rate of fire multiplier",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "movement_reduction": {
+    "internal_name": "movement_reduction",
+    "name": "Movement Reduction",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "healing_leash_distance": {
+    "internal_name": "healing_leash_distance",
+    "name": "Healing Leash Distance",
+    "format": "%.2f m",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "cannonball_velocity": {
+    "internal_name": "cannonball_velocity",
+    "name": "Cannonball Velocity",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "dps": {
+    "internal_name": "dps",
+    "name": "DPS",
+    "format": "%.1f DPS",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "boomerang_shot_velocity": {
+    "internal_name": "boomerang_shot_velocity",
+    "name": "Boomerang Shot Velocity",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "charge_decay": {
+    "internal_name": "charge_decay",
+    "name": "Charge Decay",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "charge_decay_mod1": {
+    "internal_name": "charge_decay_mod1",
+    "name": "Charge Decay",
+    "format": "",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "lifetime": {
+    "internal_name": "lifetime",
+    "name": "Lifetime",
+    "format": "%.2f s",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "cluster_bomb_secondaries": {
+    "internal_name": "cluster_bomb_secondaries",
+    "name": "Cluster Bomb Secondaries",
+    "format": "%.2f bombs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "teleport_shot_velocity": {
+    "internal_name": "teleport_shot_velocity",
+    "name": "Teleport Shot Velocity",
+    "format": "%.1f m/sec",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "poison_ball_strength": {
+    "internal_name": "poison_ball_strength",
+    "name": "Poison Ball Strength",
+    "format": "%d damage",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "durability": {
+    "internal_name": "durability",
+    "name": "Durability",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "mass": {
+    "internal_name": "mass",
+    "name": "Mass",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "power": {
+    "internal_name": "power",
+    "name": "Power",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "cpu": {
+    "internal_name": "cpu",
+    "name": "CPU",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "damage_per_round": {
+    "internal_name": "damage_per_round",
+    "name": "Damage Per Round",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "weapon_spread": {
+    "internal_name": "weapon_spread",
+    "name": "Weapon Spread",
+    "format": "%.2f spread",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "charge_speed": {
+    "internal_name": "charge_speed",
+    "name": "Charge Speed",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "range": {
+    "internal_name": "range",
+    "name": "Range",
+    "format": "%.2fm",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "item_heal": {
+    "internal_name": "item_heal",
+    "name": "Item Heal",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "damage_duration": {
+    "internal_name": "damage_duration",
+    "name": "Damage Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "debuff_duration": {
+    "internal_name": "debuff_duration",
+    "name": "Debuff Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "snare_duration": {
+    "internal_name": "snare_duration",
+    "name": "Snare Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "unused": {
+    "internal_name": "unused",
+    "name": "UNUSED",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "buff_duration": {
+    "internal_name": "buff_duration",
+    "name": "Buff Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "turret_duration": {
+    "internal_name": "turret_duration",
+    "name": "Turret Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "deployable_health_threshold": {
+    "internal_name": "deployable_health_threshold",
+    "name": "Deployable Health Threshold",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "bulwark_shield": {
+    "internal_name": "bulwark_shield",
+    "name": "Bulwark Shield",
+    "format": "%d damage",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "max_targets": {
+    "internal_name": "max_targets",
+    "name": "Max Targets",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "deployable_duration": {
+    "internal_name": "deployable_duration",
+    "name": "Deployable Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "regen_duration": {
+    "internal_name": "regen_duration",
+    "name": "Regen Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "weapon_charge": {
+    "internal_name": "weapon_charge",
+    "name": "Weapon Charge",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 1
+  },
+  "max_turrets": {
+    "internal_name": "max_turrets",
+    "name": "Max Turrets",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "wall_health": {
+    "internal_name": "wall_health",
+    "name": "Wall Health",
+    "format": "%d hp",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "repair_amount": {
+    "internal_name": "repair_amount",
+    "name": "Repair Amount",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "damage_boost": {
+    "internal_name": "damage_boost",
+    "name": "Damage Boost",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "damage_reduction": {
+    "internal_name": "damage_reduction",
+    "name": "Damage Reduction",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "spin_up": {
+    "internal_name": "spin_up",
+    "name": "Spin Up",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 1
+  },
+  "bonus_damage": {
+    "internal_name": "bonus_damage",
+    "name": "Bonus Damage",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "health_threshold": {
+    "internal_name": "health_threshold",
+    "name": "Health Threshold",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "knockback": {
+    "internal_name": "knockback",
+    "name": "Knockback",
+    "format": "%.2f",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "speed_bonus": {
+    "internal_name": "speed_bonus",
+    "name": "Speed Bonus",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "energy_drain": {
+    "internal_name": "energy_drain",
+    "name": "Energy Drain",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "damage_bonus": {
+    "internal_name": "damage_bonus",
+    "name": "Damage Bonus",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "damage_absorption": {
+    "internal_name": "damage_absorption",
+    "name": "Damage Absorption",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "ability_duration": {
+    "internal_name": "ability_duration",
+    "name": "Ability Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "damage_amp": {
+    "internal_name": "damage_amp",
+    "name": "Damage Amp",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "impact_delay": {
+    "internal_name": "impact_delay",
+    "name": "Impact Delay",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "splash_damage": {
+    "internal_name": "splash_damage",
+    "name": "Splash Damage",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "speed_boost": {
+    "internal_name": "speed_boost",
+    "name": "Speed Boost",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "lifesteal": {
+    "internal_name": "lifesteal",
+    "name": "Lifesteal",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "impulse_strength": {
+    "internal_name": "impulse_strength",
+    "name": "Impulse Strength",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "cloud_duration": {
+    "internal_name": "cloud_duration",
+    "name": "Cloud Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "debuff_amount": {
+    "internal_name": "debuff_amount",
+    "name": "Debuff Amount",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "heal_duration": {
+    "internal_name": "heal_duration",
+    "name": "Heal Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "unusedzzzz": {
+    "internal_name": "unusedzzzz",
+    "name": "unusedzzzz",
+    "format": "%.2f seconds",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "health_bonus": {
+    "internal_name": "health_bonus",
+    "name": "Health Bonus",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "air_sprint": {
+    "internal_name": "air_sprint",
+    "name": "Air Sprint",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 1
+  },
+  "reload_speed": {
+    "internal_name": "reload_speed",
+    "name": "Reload Speed",
+    "format": "%.1fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "creature_hp_modifier_mod1": {
+    "internal_name": "creature_hp_modifier_mod1",
+    "name": "Creature HP Modifier",
+    "format": "",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "defense": {
+    "internal_name": "defense",
+    "name": "Defense",
+    "format": "%.2f %% damage reduction",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "jet_energy_cost": {
+    "internal_name": "jet_energy_cost",
+    "name": "Jet Energy Cost",
+    "format": "%.2f /s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "jet_air_control": {
+    "internal_name": "jet_air_control",
+    "name": "Jet Air Control",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "jet_thrust": {
+    "internal_name": "jet_thrust",
+    "name": "Jet Thrust",
+    "format": "%.2f N",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "jet_energy_recharge": {
+    "internal_name": "jet_energy_recharge",
+    "name": "Jet Energy Recharge",
+    "format": "%.2f /s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "health": {
+    "internal_name": "health",
+    "name": "Health",
+    "format": "%d HP",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "health_regen": {
+    "internal_name": "health_regen",
+    "name": "Health Regen",
+    "format": "%.2f HP/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "splash_damage_defense": {
+    "internal_name": "splash_damage_defense",
+    "name": "Splash Damage Defense",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "headshot_damage_defense": {
+    "internal_name": "headshot_damage_defense",
+    "name": "Headshot Damage Defense",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "ability_damage_defense": {
+    "internal_name": "ability_damage_defense",
+    "name": "Ability Damage Defense",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "debuff_duration_reduction": {
+    "internal_name": "debuff_duration_reduction",
+    "name": "Debuff Duration Reduction",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "run_speed": {
+    "internal_name": "run_speed",
+    "name": "Run Speed",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "sprint_energy_cost": {
+    "internal_name": "sprint_energy_cost",
+    "name": "Sprint Energy Cost",
+    "format": "%.2fx",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "on_hit_speed": {
+    "internal_name": "on_hit_speed",
+    "name": "On-hit Speed",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "on_hit_recharge": {
+    "internal_name": "on_hit_recharge",
+    "name": "On-hit Recharge",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "rateof_fire": {
+    "internal_name": "rateof_fire",
+    "name": "Rate of Fire",
+    "format": "%.2f r/m",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "rateof_fire_mod1": {
+    "internal_name": "rateof_fire_mod1",
+    "name": "Rate of Fire",
+    "format": "%.2f r/m",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "reload_speed_mod1": {
+    "internal_name": "reload_speed_mod1",
+    "name": "Reload Speed",
+    "format": "%.2f multiplier",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "accuracy_mod1": {
+    "internal_name": "accuracy_mod1",
+    "name": "Accuracy",
+    "format": "%.2f multiplier",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "headshot_damage": {
+    "internal_name": "headshot_damage",
+    "name": "Headshot Damage",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "headshot_damage_mod1": {
+    "internal_name": "headshot_damage_mod1",
+    "name": "Headshot Damage",
+    "format": "",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "rounds_per_burst": {
+    "internal_name": "rounds_per_burst",
+    "name": "Rounds Per Burst",
+    "format": "%d rounds per burst",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "charge_up_duration": {
+    "internal_name": "charge_up_duration",
+    "name": "Charge-up Duration",
+    "format": "%.2f seconds",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "stability": {
+    "internal_name": "stability",
+    "name": "Stability",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "projectile_velocity": {
+    "internal_name": "projectile_velocity",
+    "name": "Projectile Velocity",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "max_ammo_mod1": {
+    "internal_name": "max_ammo_mod1",
+    "name": "Max Ammo",
+    "format": "%.2fx max ammo",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "clip_size_mod1": {
+    "internal_name": "clip_size_mod1",
+    "name": "Clip Size",
+    "format": "%.2fx clip size",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "unused_mod1": {
+    "internal_name": "unused_mod1",
+    "name": "unused",
+    "format": "",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "weapon_splash_radius": {
+    "internal_name": "weapon_splash_radius",
+    "name": "Weapon Splash Radius",
+    "format": "%.2fm",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "lifesteal_bio_needler": {
+    "internal_name": "lifesteal_bio_needler",
+    "name": "Lifesteal - Bio Needler",
+    "format": "%.2f %% lifesteal",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "poison_damage": {
+    "internal_name": "poison_damage",
+    "name": "Poison Damage",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "piercing_damage": {
+    "internal_name": "piercing_damage",
+    "name": "Piercing Damage",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "ice_damage": {
+    "internal_name": "ice_damage",
+    "name": "Ice Damage",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "missile_shot_knockback": {
+    "internal_name": "missile_shot_knockback",
+    "name": "Missile Shot Knockback",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "shockwave_velocity": {
+    "internal_name": "shockwave_velocity",
+    "name": "Shockwave Velocity",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "kinetic_shot_velocity": {
+    "internal_name": "kinetic_shot_velocity",
+    "name": "Kinetic Shot Velocity",
+    "format": "%.1f m/sec",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "damage_per_round_display": {
+    "internal_name": "damage_per_round_display",
+    "name": "Damage Per Round DISPLAY",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "reload_speed_display": {
+    "internal_name": "reload_speed_display",
+    "name": "Reload Speed DISPLAY",
+    "format": "%.1fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "rateof_fire_display": {
+    "internal_name": "rateof_fire_display",
+    "name": "Rate of Fire DISPLAY",
+    "format": "%d r/m",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "clip_size_display": {
+    "internal_name": "clip_size_display",
+    "name": "Clip Size DISPLAY",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "max_ammo": {
+    "internal_name": "max_ammo",
+    "name": "Max Ammo",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "rounds_per_burst_display": {
+    "internal_name": "rounds_per_burst_display",
+    "name": "Rounds Per Burst DISPLAY",
+    "format": "",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "jump_pad_strength": {
+    "internal_name": "jump_pad_strength",
+    "name": "Jump Pad Strength",
+    "format": "%.2f N",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "supercharge_strength": {
+    "internal_name": "supercharge_strength",
+    "name": "Supercharge Strength",
+    "format": "%d percent increase",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "salvo_proxy_velocity": {
+    "internal_name": "salvo_proxy_velocity",
+    "name": "Salvo Proxy Velocity",
+    "format": "%.1f m/sec",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "revive_shot_use_time": {
+    "internal_name": "revive_shot_use_time",
+    "name": "Revive Shot Use Time",
+    "format": "%.2f sec",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "rocket_jump_strength": {
+    "internal_name": "rocket_jump_strength",
+    "name": "Rocket Jump Strength",
+    "format": "%.2f N",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "evacuate_impulse_strength": {
+    "internal_name": "evacuate_impulse_strength",
+    "name": "Evacuate Impulse Strength",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "damage_multiplier_mod1": {
+    "internal_name": "damage_multiplier_mod1",
+    "name": "Damage Multiplier",
+    "format": "%.2f multiplier",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "healstrength": {
+    "internal_name": "healstrength",
+    "name": "Heal strength",
+    "format": "%d hp",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "repair_pool": {
+    "internal_name": "repair_pool",
+    "name": "Repair Pool",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "clip_size": {
+    "internal_name": "clip_size",
+    "name": "Clip Size",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "deletemeplx": {
+    "internal_name": "deletemeplx",
+    "name": "DELETEMEPLX",
+    "format": "%.2f meters",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "pulse_damage": {
+    "internal_name": "pulse_damage",
+    "name": "Pulse Damage",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "charge_time": {
+    "internal_name": "charge_time",
+    "name": "Charge Time",
+    "format": "%.2f seconds",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "max_allowed": {
+    "internal_name": "max_allowed",
+    "name": "Max Allowed",
+    "format": "%d number of mines",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "creature_damage_modifier_mod1": {
+    "internal_name": "creature_damage_modifier_mod1",
+    "name": "Creature Damage Modifier",
+    "format": "",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "creature_weapon_damage_modifier_mod1": {
+    "internal_name": "creature_weapon_damage_modifier_mod1",
+    "name": "Creature Weapon Damage Modifier",
+    "format": "",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "power_mod1": {
+    "internal_name": "power_mod1",
+    "name": "Power",
+    "format": "%.02f%% lower cost",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "mass_mod1": {
+    "internal_name": "mass_mod1",
+    "name": "Mass",
+    "format": "%.02f%% lower cost",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "recharge_mod1": {
+    "internal_name": "recharge_mod1",
+    "name": "Recharge",
+    "format": "%.2f%%",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "repair_pool_mod1": {
+    "internal_name": "repair_pool_mod1",
+    "name": "Repair Pool",
+    "format": "%+.0f%%",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "fire_patch_duration": {
+    "internal_name": "fire_patch_duration",
+    "name": "Fire Patch Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "rateof_fire_duration": {
+    "internal_name": "rateof_fire_duration",
+    "name": "Rate of Fire Duration",
+    "format": "%.2f s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "pillar_duration_notamodifiable": {
+    "internal_name": "pillar_duration_notamodifiable",
+    "name": "Pillar Duration - NOT A MODIFIABLE",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "turret_mode_damage_bonus_mod1": {
+    "internal_name": "turret_mode_damage_bonus_mod1",
+    "name": "Turret Mode Damage Bonus",
+    "format": "%.2f%%",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "turret_mode_shield_recharge": {
+    "internal_name": "turret_mode_shield_recharge",
+    "name": "Turret Mode Shield Recharge",
+    "format": "%d seconds",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "turret_mode_shield": {
+    "internal_name": "turret_mode_shield",
+    "name": "Turret Mode Shield",
+    "format": "%d damage",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "aoe": {
+    "internal_name": "aoe",
+    "name": "AOE",
+    "format": "%.2f meters",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "max_resonating_bolts": {
+    "internal_name": "max_resonating_bolts",
+    "name": "Max Resonating Bolts",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "knockback_strength": {
+    "internal_name": "knockback_strength",
+    "name": "Knockback Strength",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "emp_duration": {
+    "internal_name": "emp_duration",
+    "name": "EMP Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "energy_injection": {
+    "internal_name": "energy_injection",
+    "name": "Energy Injection",
+    "format": "%d energy injection",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "activation_duration": {
+    "internal_name": "activation_duration",
+    "name": "Activation Duration",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "overload_weapon_chargeup": {
+    "internal_name": "overload_weapon_chargeup",
+    "name": "Overload Weapon Chargeup",
+    "format": "%.2f seconds",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "evasive_maneuver_impulse_strength": {
+    "internal_name": "evasive_maneuver_impulse_strength",
+    "name": "Evasive Maneuver Impulse Strength",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "evasive_maneuver_rateof_fire_bonus_mod1": {
+    "internal_name": "evasive_maneuver_rateof_fire_bonus_mod1",
+    "name": "Evasive Maneuver Rate of Fire Bonus",
+    "format": "%.2f rate of fire multiplier",
+    "type": 1,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "particle_beam_recharge": {
+    "internal_name": "particle_beam_recharge",
+    "name": "Particle Beam Recharge",
+    "format": "%.2fs",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 1
+  },
+  "rocket_jump_impulse_strength": {
+    "internal_name": "rocket_jump_impulse_strength",
+    "name": "Rocket Jump Impulse Strength",
+    "format": "%.2f m/s",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "air_control": {
+    "internal_name": "air_control",
+    "name": "Air Control",
+    "format": "",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "shoulder_rocket_damage": {
+    "internal_name": "shoulder_rocket_damage",
+    "name": "Shoulder Rocket Damage",
+    "format": "%d base damage",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "shoulder_rockets_radius": {
+    "internal_name": "shoulder_rockets_radius",
+    "name": "Shoulder Rockets Radius",
+    "format": "%.2f meters",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  },
+  "fire_patch_damage": {
+    "internal_name": "fire_patch_damage",
+    "name": "Fire Patch Damage",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "dot_damage": {
+    "internal_name": "dot_damage",
+    "name": "DOT Damage",
+    "format": "%d",
+    "type": 0,
+    "data_type": 0,
+    "inverted": 0
+  },
+  "energy_siphoned": {
+    "internal_name": "energy_siphoned",
+    "name": "Energy Siphoned",
+    "format": "%.2f%%",
+    "type": 0,
+    "data_type": 1,
+    "inverted": 0
+  }
+}

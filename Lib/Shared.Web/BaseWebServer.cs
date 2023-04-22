@@ -18,7 +18,7 @@ namespace Shared.Web;
 
 public abstract class BaseWebServer
 {
-    public BaseWebServer(IConfiguration configuration)
+    protected BaseWebServer(IConfiguration configuration)
     {
         Configuration = configuration;
     }
@@ -39,47 +39,39 @@ public abstract class BaseWebServer
                 Host.CreateDefaultBuilder()
                     .ConfigureWebHostDefaults(webBuilder =>
                                               {
-                                                  webBuilder.UseKestrel((builder, serverOpts) =>
+                                                  webBuilder.UseKestrel((_, serverOpts) =>
                                                                         {
-                                                                            serverOpts
-                                                                                .ConfigureHttpsDefaults(opts =>
-                                                                                                        {
-                                                                                                            opts
-                                                                                                                    .SslProtocols =
-                                                                                                                SslProtocols.Tls | // Required by FF itself *sigh*, completely insecure
-                                                                                                                SslProtocols.Tls12 |
-                                                                                                                SslProtocols.Tls13;
-                                                                                                        });
+                                                                            serverOpts.ConfigureHttpsDefaults(opts =>
+                                                                                                              {
+                                                                                                                  opts.SslProtocols = SslProtocols.Tls | // Required by FF itself *sigh*, completely insecure
+                                                                                                                                      SslProtocols.Tls12 |
+                                                                                                                                      SslProtocols.Tls13;
+                                                                                                              });
                                                                         })
                                                             .UseStartup(serverType)
-                                                            .UseUrls(configuration
-                                                                     .GetSection("Firefall")
-                                                                     .Get<Firefall>()
-                                                                     .WebHosts[serverType.FullName.Replace(".WebServer", "")]
-                                                                     .Urls.Split(";"));
+                                                            .UseUrls(configuration.GetSection("Firefall")
+                                                                                  .Get<Firefall>()
+                                                                                  .WebHosts[serverType.FullName.Replace(".WebServer", "")]
+                                                                                  .Urls.Split(";"));
                                               })
                     .ConfigureHostConfiguration(hostConfigurationBuilder =>
                                                 {
-                                                    hostConfigurationBuilder
-                                                        .AddConfiguration(configuration);
+                                                    hostConfigurationBuilder.AddConfiguration(configuration);
                                                 })
-                    .ConfigureAppConfiguration(appConfigurationBuilder =>
-                                               {
-                                               })
                     .ConfigureServices(serviceConfigurationBuilder =>
                                        {
-                                           serviceConfigurationBuilder
-                                               .AddSingleton(configuration.GetSection("Firefall")
-                                                                          .Get<Firefall>())
-                                               .AddSwaggerGen()
-                                               .AddControllers()
-                                               .AddJsonOptions(options =>
-                                                               {
-                                                                   options.JsonSerializerOptions
-                                                                          .PropertyNamingPolicy = new SnakeCasePropertyNamingPolicy();
-                                                               });
+                                           serviceConfigurationBuilder.AddSingleton(configuration.GetSection("Firefall")
+                                                                                                 .Get<Firefall>())
+                                                                      .AddSwaggerGen()
+                                                                      .AddControllers()
+                                                                      .AddJsonOptions(options =>
+                                                                                      {
+                                                                                          options.JsonSerializerOptions
+                                                                                                 .PropertyNamingPolicy = new SnakeCasePropertyNamingPolicy();
+                                                                                      });
                                        })
                     .UseSerilog();
+            
             return hostBuilder.Build();
         }
         catch (Exception ex)
@@ -88,12 +80,6 @@ public abstract class BaseWebServer
 
             return null;
         }
-    }
-
-    public static IHost Build<T>(IConfiguration configuration)
-        where T : BaseWebServer
-    {
-        return Build(typeof(T), configuration);
     }
 
     public void ConfigureServices(IServiceCollection services)

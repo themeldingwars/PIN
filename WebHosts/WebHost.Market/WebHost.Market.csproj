@@ -7,4 +7,13 @@
         <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Data\ItemDisplayAttributes.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Data\MarketCategories.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

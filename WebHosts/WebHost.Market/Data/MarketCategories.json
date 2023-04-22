@@ -1,0 +1,57 @@
+﻿[
+  {
+    "id": 15,
+    "name": "Resource",
+    "parent_id": 0
+  },
+  {
+    "id": 16,
+    "name": "Jumpjets",
+    "parent_id": 0
+  },
+  {
+    "id": 17,
+    "name": "Plating",
+    "parent_id": 0
+  },
+  {
+    "id": 18,
+    "name": "Servos",
+    "parent_id": 0
+  },
+  {
+    "id": 58,
+    "name": "Weapon",
+    "parent_id": 0
+  },
+  {
+    "id": 61,
+    "name": "Ability Module",
+    "parent_id": 0
+  },
+  {
+    "id": 80,
+    "name": "Thumper Beacon",
+    "parent_id": 79
+  },
+  {
+    "id": 82,
+    "name": "Consumable",
+    "parent_id": 79
+  },
+  {
+    "id": 207,
+    "name": "Currency",
+    "parent_id": 0
+  },
+  {
+    "id": 1595,
+    "name": "Basic Purple Crystite Hybrid Module",
+    "parent_id": 1627
+  },
+  {
+    "id": 3321,
+    "name": "Crafting Components",
+    "parent_id": 1516
+  }
+]
