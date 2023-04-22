@@ -10,7 +10,7 @@ public class RootController : ControllerBase
     [Produces("application/json")]
     public object Products()
     {
-        return new { test = true };
+        return new Products() { Test = new Array[] { } };
     }
 
     [Route("{*url}", Order = 999)]
@@ -18,4 +18,9 @@ public class RootController : ControllerBase
     {
         return Ok();
     }
+}
+
+public class Products
+{
+    public Array Test { get; set; }
 }
