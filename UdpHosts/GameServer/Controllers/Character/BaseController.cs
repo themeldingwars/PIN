@@ -9,6 +9,7 @@ using ConfirmedPoseUpdate = AeroMessages.GSS.V66.Character.Event.ConfirmedPoseUp
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character.Controller;
 using System.Numerics;
+using System.Collections.Generic;
 
 namespace GameServer.Controllers.Character;
 
@@ -36,17 +37,17 @@ public class BaseController : Base
             VoiceSet = cd.VoiceSet,
             TitleId = cd.TitleID,
             NameLocalizationId = cd.NameLocalizationID,
-            HeadAccessories = new uint[2] { 10089, 10106 }, // cd.CharVisuals.HeadAccessories
+            HeadAccessories = ((List<uint>)cd.CharVisuals.HeadAccessories).ToArray(),
             LoadoutVehicle = cd.Loadout.VehicleID,
             LoadoutGlider = cd.Loadout.GliderID,
-            Visuals = new VisualsBlock // cd.CharVisuals;
+            Visuals = new VisualsBlock
             {
                 Decals = new VisualsDecalsBlock[0],
                 Gradients = new uint[0],
-                Colors = new uint[5] { 1382547456, 1780760800, 4294901760, 839712801, 839712801 },
+                Colors = ((List<uint>)cd.CharVisuals.Colors).ToArray(),
                 Palettes = new VisualsPaletteBlock[0],
                 Patterns = new VisualsPatternBlock[0],
-                OrnamentGroupIds = new uint[3] { 10224, 10270, 10061 },
+                OrnamentGroupIds = ((List<uint>)cd.CharVisuals.OrnamentGroups).ToArray(),
                 CziMapAssetIds = new uint[0],
                 MorphWeights = new AeroMessages.Common.HalfFloat[0],
                 Overlays = new VisualsOverlayBlock[0],
@@ -111,11 +112,52 @@ public class BaseController : Base
                 Modules = new SlottedModule[0],
                 Visuals = new VisualsBlock
                 {
-                    Decals = new VisualsDecalsBlock[0],
+                    Decals = new VisualsDecalsBlock[] {
+                        new VisualsDecalsBlock {
+                            DecalId = 10000,
+                            Color = 4294967295,
+                            Usage = 255,
+                            Transform = new AeroMessages.Common.HalfVector4[3] {
+                                new AeroMessages.Common.HalfVector4 {
+                                    X = new AeroMessages.Common.HalfFloat { Value = 10935 },
+                                    Y = new AeroMessages.Common.HalfFloat { Value = 9478 },
+                                    Z = new AeroMessages.Common.HalfFloat { Value = 0 },
+                                    W = new AeroMessages.Common.HalfFloat { Value = 8106 },
+                                },
+                                new AeroMessages.Common.HalfVector4 {
+                                    X = new AeroMessages.Common.HalfFloat { Value = 42272 },
+                                    Y = new AeroMessages.Common.HalfFloat { Value = 43680 },
+                                    Z = new AeroMessages.Common.HalfFloat { Value = 9380 },
+                                    W = new AeroMessages.Common.HalfFloat { Value = 43573 },
+                                },
+                                new AeroMessages.Common.HalfVector4 {
+                                    X = new AeroMessages.Common.HalfFloat { Value = 9592 },
+                                    Y = new AeroMessages.Common.HalfFloat { Value = 12012 },
+                                    Z = new AeroMessages.Common.HalfFloat { Value = 44736 },
+                                    W = new AeroMessages.Common.HalfFloat { Value = 15867 },
+                                }
+                            }
+                        }
+                    },
                     Gradients = new uint[0],
-                    Colors = new uint[7] { 1764950016, 1396375552, 0, 0, 2228225, 1344013277, 339542016 },
-                    Palettes = new VisualsPaletteBlock[0],
-                    Patterns = new VisualsPatternBlock[0],
+                    Colors = ((List<uint>)cd.ChassisVisuals.Colors).ToArray(),
+                    Palettes = new VisualsPaletteBlock[] {
+                        new VisualsPaletteBlock {
+                            PaletteId = 85163,
+                            PaletteType = 0
+                        }
+                    },
+                    Patterns = new VisualsPatternBlock[] {
+                        new VisualsPatternBlock {
+                            PatternId = 10022,
+                            TransformValues = new AeroMessages.Common.HalfVector4 {
+                                X = new AeroMessages.Common.HalfFloat { Value = 0 },
+                                Y = new AeroMessages.Common.HalfFloat { Value = 16384 },
+                                Z = new AeroMessages.Common.HalfFloat { Value = 0 },
+                                W = new AeroMessages.Common.HalfFloat { Value = 0 },
+                            }
+                        }
+                    },
                     OrnamentGroupIds = new uint[0],
                     CziMapAssetIds = new uint[0],
                     MorphWeights = new AeroMessages.Common.HalfFloat[0],
