@@ -1,5 +1,4 @@
 ﻿using GameServer.Enums.Visuals;
-using GameServer.Packets.GSS.Character.BaseController;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +34,7 @@ public class CommonVisuals
     public IList<uint> ItemsUnknown2 { get; protected set; }
     public IList<uint> ItemsUnknown3 { get; protected set; }
 
+    /*
     public static implicit operator KeyFrame.Visuals(CommonVisuals p)
     {
         return new KeyFrame.Visuals
@@ -50,6 +50,7 @@ public class CommonVisuals
                    ItemsUnknown3 = p.ItemsUnknown3
                };
     }
+    */
 
 
     public class Palette
@@ -57,10 +58,12 @@ public class CommonVisuals
         public PaletteType Type;
         public uint ID;
 
+        /*
         public static implicit operator KeyFrame.Palette(Palette p)
         {
             return new KeyFrame.Palette { Type = (byte)p.Type, ID = p.ID };
         }
+        */
     }
 
     public class Pattern
@@ -68,11 +71,13 @@ public class CommonVisuals
         public uint ID;
         public IList<Half> Transform = new List<Half>();
         public byte Usage;
-
+        
+        /*
         public static implicit operator KeyFrame.Pattern(Pattern p)
         {
             return new KeyFrame.Pattern { ID = p.ID, Transform = p.Transform, Usage = p.Usage };
         }
+        */
     }
 
     public class Decal
@@ -82,19 +87,23 @@ public class CommonVisuals
         public IList<Half> Transform = new List<Half>();
         public byte Usage;
 
+        /*
         public static implicit operator KeyFrame.Decal(Decal p)
         {
             return new KeyFrame.Decal { ID = p.ID, Color = p.Color, Transform = p.Transform, Usage = p.Usage };
         }
+        */
     }
 
     public class DecalGradient
     {
         public byte Unknown;
 
+        /*
         public static implicit operator KeyFrame.DecalGradient(DecalGradient p)
         {
             return new KeyFrame.DecalGradient { Unk = p.Unknown };
         }
+        */
     }
 }

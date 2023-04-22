@@ -16,4 +16,16 @@ internal static class IAeroExtensions
         serializedData = new Memory<byte>(new byte[aero.GetPackedSize()]);
         aero.Pack(serializedData.Span);
     }
+
+    /// <summary>
+    ///     Serialize the changes to a region in memory
+    /// </summary>
+    /// <param name="aero"></param>
+    /// <param name="serializedData"></param>
+    internal static void SerializeChangesToMemory(this IAeroViewInterface aero, out Memory<byte> serializedData)
+    {
+        serializedData = new Memory<byte>(new byte[aero.GetPackedChangesSize()]);
+        aero.PackChanges(serializedData.Span);
+    }
+
 }

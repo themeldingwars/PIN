@@ -43,8 +43,8 @@ public class Loadout
         BackpackModules.Add(AbilityModule.Load(129458, 5));
         BackpackModules.Add(AbilityModule.Load(129056, 6));
 
-        PrimaryWeaponModules = new List<WeaponModule>();
-        PrimaryWeaponModules.Add(new WeaponModule(118581));
+        //PrimaryWeaponModules = new List<WeaponModule>();
+        //PrimaryWeaponModules.Add(new WeaponModule(118581));
 
         PrimaryWeaponVisuals = new CommonVisuals();
         PrimaryWeaponVisuals.Colors.Add(0x21040000u);
@@ -58,7 +58,7 @@ public class Loadout
         PrimaryWeaponVisuals.OrnamentGroups.Add(10283);
         PrimaryWeaponVisuals.OrnamentGroups.Add(10339);
 
-        SecondaryWeaponModules = new List<WeaponModule>();
+        //SecondaryWeaponModules = new List<WeaponModule>();
         SecondaryWeaponVisuals = new CommonVisuals();
 
         SecondaryWeaponVisuals.Colors.Add(0x96070000u);
@@ -81,9 +81,9 @@ public class Loadout
 
     public IList<uint> ChassisModules { get; protected set; }
     public IList<AbilityModule> BackpackModules { get; protected set; }
-    public IList<WeaponModule> PrimaryWeaponModules { get; protected set; }
+    //public IList<WeaponModule> PrimaryWeaponModules { get; protected set; }
     public CommonVisuals PrimaryWeaponVisuals { get; protected set; }
-    public IList<WeaponModule> SecondaryWeaponModules { get; protected set; }
+    //public IList<WeaponModule> SecondaryWeaponModules { get; protected set; }
     public CommonVisuals SecondaryWeaponVisuals { get; protected set; }
 
     public static Loadout Load(uint guid)

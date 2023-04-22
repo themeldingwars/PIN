@@ -1,6 +1,6 @@
 ﻿using Shared.Udp;
 using System;
-
+using AeroMessages;
 namespace GameServer.Packets;
 
 public struct GamePacket

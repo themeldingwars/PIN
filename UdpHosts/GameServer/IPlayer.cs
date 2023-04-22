@@ -19,6 +19,7 @@ public interface IPlayer
         Playing = 999
     }
 
+    ulong PlayerId { get; }
     ulong CharacterId { get; }
     ulong EntityId => CharacterId & 0xffffffffffffff00; // Ignore last byte
     Character CharacterEntity { get; }

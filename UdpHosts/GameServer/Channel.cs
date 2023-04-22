@@ -356,7 +356,7 @@ public class Channel
     /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     /// <exception cref="ArgumentException"></exception>
-    public bool SendIAero<TPacket>(TPacket packet, ulong entityId = 0, Type? msgEnumType = null) where TPacket : class, IAero
+    public bool SendIAero<TPacket>(TPacket packet, ulong entityId = 0, byte messageIdOverride = 0, Type? msgEnumType = null) where TPacket : class, IAero
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMessageIdAttribute)
         {
@@ -365,18 +365,55 @@ public class Channel
 
         var type = aeroMessageIdAttribute.Typ;
         var messageId = (byte)aeroMessageIdAttribute.MessageId;
+        if (messageIdOverride != 0)
+        {
+            messageId = messageIdOverride;
+        }
         packet.SerializeToMemory(out var packetMemory);
 
-        if (type == AeroMessageIdAttribute.MsgType.Matrix) {
+        if (type == AeroMessageIdAttribute.MsgType.Matrix)
+        {
             return SendPacketMemoryMatrix(messageId, ref packetMemory, msgEnumType);
         }
-        else if (type == AeroMessageIdAttribute.MsgType.GSS) {
+        else if (type == AeroMessageIdAttribute.MsgType.GSS)
+        {
             var controllerId = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
+            //Program.Logger.Information($"SendIAero type {type}, controller {controllerId} and msgid {messageId}");
             return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
         }
-        else {
+        else
+        {
             throw new ArgumentException("Message type not implemented");
         }
+    }
+
+    public bool SendIAeroControllerKeyframe<TPacket>(TPacket packet, ulong entityId, ulong playerId) where TPacket : class, IAero
+    {
+        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
+        }
+
+        var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+        packet.SerializeToMemory(out var packetMemory);
+        var messageData = new Memory<byte>(new byte[8 + packetMemory.Length]);
+        packetMemory.CopyTo(messageData[8..]);
+        Serializer.WritePrimitive(playerId).CopyTo(messageData);
+        return SendPacketMemory(entityId, 4, controllerId, ref messageData);
+    }
+
+    public bool SendIAeroChanges<TPacket>(TPacket packet, ulong entityId) where TPacket : class, IAeroViewInterface
+    {
+        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
+        }
+
+        var typeCode = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+
+        packet.SerializeChangesToMemory(out var packetMemory);
+
+        return SendPacketMemory(entityId, 1, typeCode, ref packetMemory);
     }
 
 
@@ -440,7 +477,8 @@ public class Channel
     /// <param name="packetMemory"></param>
     /// <param name="msgEnumType">TODO: Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
-    private bool SendPacketMemoryMatrix(byte messageId, ref Memory<byte> packetMemory, Type? msgEnumType = null) {
+    private bool SendPacketMemoryMatrix(byte messageId, ref Memory<byte> packetMemory, Type? msgEnumType = null)
+    {
         const int HeaderByteSize = 1;
         var serializedData = new Memory<byte>(new byte[HeaderByteSize + packetMemory.Length]);
         packetMemory.CopyTo(serializedData[HeaderByteSize..]);
