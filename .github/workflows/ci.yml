@@ -14,8 +14,9 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Linux, os: ubuntu-latest }
+        - { name: Linux, os: ubuntu-22.04 }
         - { name: Windows VS2022, os: windows-2022 }
+        - { name: macOS, os: macos-12 }
         dotnet:
         - { name: .NET 6, version: '6.0.x' }
         - { name: .NET 7, version: '7.0.x' }
