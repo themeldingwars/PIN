@@ -3,7 +3,6 @@ using GameServer.Controllers.Character;
 using GameServer.Enums;
 using GameServer.Packets;
 using GameServer.Packets.Control;
-using GameServer.Packets.Matrix;
 using Shared.Udp;
 using System;
 using System.Collections.Immutable;
@@ -11,6 +10,9 @@ using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using AeroMessages.GSS.V66;
+using AeroMessages.Matrix.V25;
+using GameServer.Extensions;
 
 namespace GameServer;
 
@@ -155,26 +157,31 @@ public class NetworkClient : INetworkClient
         switch (messageId)
         {
             case MatrixPacketType.Login:
-                // Login
-                var loginPacket = packet.Read<Login>();
-                Player.Login(loginPacket.CharacterGUID);
-
+                var aeroLogin = packet.Unpack<Login>();
+                Player.Login(aeroLogin.CharacterGuid);
                 break;
             case MatrixPacketType.EnterZoneAck:
                 Factory.Get<BaseController>().Init(this, Player, AssignedShard);
-
                 break;
             case MatrixPacketType.KeyframeRequest:
-                // TODO; See onKeyframeRequest in server_gamesocket.js
-                var keyFrameRequestPackage = packet.Read<KeyFrameRequest>();
-
+                var aeroKeyframeRequest = packet.Unpack<KeyframeRequest>();
+                // TODO: Send checksums/keyframes in return.
                 break;
             case MatrixPacketType.ClientStatus:
-                NetChannels[ChannelType.Matrix].SendClass(new MatrixStatus());
+                NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
+                {
+                    Unk1 = 0,
+                    Unk2 = 0,
+                    Unk3 = 0,
+                    Unk4 = 0,
+                    Unk5 = 0,
+                    Unk6 = 0,
+                    HaveUnk7 = 0,
+                    Unk8 = new byte[0]
+                });
                 break;
             case MatrixPacketType.LogInstrumentation:
                 // Ignore
-
                 break;
             default:
                 Program.Logger.Error("---> Unrecognized Matrix Packet {0}[{1}]!!!", messageId, (byte)messageId);
