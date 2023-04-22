@@ -302,7 +302,7 @@ public class BaseController : Base
             SpawnTimeProp = shard.CurrentTime,
             VisualOverridesProp = visualOverrides,
             CurrentEquipmentProp = currentEquipment,
-            SelectedLoadoutProp = cd.Loadout.ChassisID,
+            SelectedLoadoutProp = 184538131, // cd.Loadout.ChassisID,
             SelectedLoadoutIsPvPProp = 0,
             GibVisualsIdProp = gibVisuals,
             SpawnPoseProp = spawnPose,
@@ -368,13 +368,13 @@ public class BaseController : Base
             WalletProp = new WalletData
             {
                 Beans = 999,
-                Epoch = 0, // fixme unix timestmap
+                Epoch = 1462889864
             },
             LoyaltyProp = new LoyaltyData
             {
                 Current = 0,
                 Lifetime = 0,
-                Tier = 0,
+                Tier = 0
             },
             LevelProp = 0,
             EffectiveLevelProp = 0,
