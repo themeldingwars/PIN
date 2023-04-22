@@ -4,6 +4,9 @@
 
 ### Added
 
+- Add documentation to explain the architecture
+- Use Autofac for dependency injection in UdpHosts
+- Add basic endpoint for character creation handling
 - Add or extend the API endpoints
   - api/v2/accounts/current/status
   - api/v2/accounts/character_slots
@@ -29,6 +32,8 @@
 
 ### Changed
 
+- Clean up some of the code flow, for easier understanding
+- Use long speaking names for variables
 - Started transition to AeroMessages, this is an incremental process
 - Replace SharedAssemblyInfo with a targets file
 - Update to .NET 6

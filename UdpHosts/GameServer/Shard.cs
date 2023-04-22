@@ -13,11 +13,11 @@ namespace GameServer;
 
 public class Shard : IShard, IPacketSender
 {
-    public const double NetworkTickRate = 1.0 / 20.0;
-    protected long startTime;
-    protected double lastNetTick;
-    private ushort LastEntityRefId;
-    protected Thread runThread;
+    private const double NetworkTickRate = 1.0 / 20.0;
+
+    private long _startTime;
+    private double _lastNetTick;
+    private ushort _lastEntityRefId;
 
     public Shard(double gameTickRate, ulong instanceId, IPacketSender sender)
     {
@@ -28,67 +28,23 @@ public class Shard : IShard, IPacketSender
         InstanceId = instanceId;
         Sender = sender;
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
-        LastEntityRefId = 0;
+        _lastEntityRefId = 0;
     }
 
-    public DateTime StartTime => DateTimeExtensions.Epoch.AddSeconds(startTime);
+    public DateTime StartTime => DateTimeExtensions.Epoch.AddSeconds(_startTime);
     public IDictionary<ulong, IEntity> Entities { get; protected set; }
-    protected IPacketSender Sender { get; }
+    private IPacketSender Sender { get; }
 
-    public IDictionary<uint, INetworkPlayer> Clients { get; protected set; }
-    public PhysicsEngine Physics { get; protected set; }
-    public AIEngine AI { get; protected set; }
+    public IDictionary<uint, INetworkPlayer> Clients { get; }
+    public PhysicsEngine Physics { get; }
+    public AIEngine AI { get; }
     public ulong InstanceId { get; }
-    public ulong CurrentTimeLong { get; protected set; }
+    public ulong CurrentTimeLong { get; private set; }
     public IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 
     public void Run(CancellationToken ct)
     {
-        runThread = Utils.RunThread(RunThread, ct);
-    }
-
-    public void Stop()
-    {
-        runThread.Abort();
-    }
-
-    public void RunThread(CancellationToken ct)
-    {
-        startTime = (long)DateTime.Now.UnixTimestamp();
-        lastNetTick = 0;
-
-        var stopwatch = new Stopwatch();
-        var lastTime = 0.0;
-
-        stopwatch.Start();
-
-        while (!ct.IsCancellationRequested)
-        {
-            var currentUnixTimestamp = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
-            var currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
-            var delta = currentTime - lastTime;
-
-            if (ShouldNetworkTick(currentTime - lastNetTick, currentUnixTimestamp))
-            {
-                NetworkTick(currentTime - lastNetTick, currentUnixTimestamp, ct);
-                lastNetTick = currentTime;
-            }
-
-            if (!Tick(delta, currentUnixTimestamp, ct))
-            {
-                break;
-            }
-
-            lastTime = currentTime;
-            _ = Thread.Yield();
-        }
-
-        stopwatch.Stop();
-    }
-
-    protected virtual bool ShouldNetworkTick(double deltaTime, ulong currentTime)
-    {
-        return deltaTime >= NetworkTickRate;
+        Utils.RunThread(RunThread, ct);
     }
 
     public void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -134,12 +90,51 @@ public class Shard : IShard, IPacketSender
 
     public ushort AssignNewRefId(IEntity entity, Enums.GSS.Controllers controller)
     {
-        while (EntityRefMap.ContainsKey(unchecked(++LastEntityRefId)) || LastEntityRefId is 0 or 0xffff)
+        while (EntityRefMap.ContainsKey(unchecked(++_lastEntityRefId)) || _lastEntityRefId is 0 or 0xffff)
         {
         }
 
-        EntityRefMap.Add(LastEntityRefId, new Tuple<IEntity, Enums.GSS.Controllers>(entity, controller));
+        EntityRefMap.Add(_lastEntityRefId, new Tuple<IEntity, Enums.GSS.Controllers>(entity, controller));
 
-        return unchecked(LastEntityRefId++);
+        return unchecked(_lastEntityRefId++);
+    }
+
+    protected virtual bool ShouldNetworkTick(double deltaTime, ulong currentTime)
+    {
+        return deltaTime >= NetworkTickRate;
+    }
+
+    private void RunThread(CancellationToken ct)
+    {
+        _startTime = (long)DateTime.Now.UnixTimestamp();
+        _lastNetTick = 0;
+
+        var stopwatch = new Stopwatch();
+        var lastTime = 0.0;
+
+        stopwatch.Start();
+
+        while (!ct.IsCancellationRequested)
+        {
+            var currentUnixTimestamp = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
+            var currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
+            var delta = currentTime - lastTime;
+
+            if (ShouldNetworkTick(currentTime - _lastNetTick, currentUnixTimestamp))
+            {
+                NetworkTick(currentTime - _lastNetTick, currentUnixTimestamp, ct);
+                _lastNetTick = currentTime;
+            }
+
+            if (!Tick(delta, currentUnixTimestamp, ct))
+            {
+                break;
+            }
+
+            lastTime = currentTime;
+            _ = Thread.Yield();
+        }
+
+        stopwatch.Stop();
     }
 }

@@ -13,38 +13,35 @@ public abstract class PacketServer : IPacketSender
 {
     public const int MTU = 1400;
 
-    protected ILogger Logger;
+    protected readonly ILogger Logger;
 
+    protected readonly Socket ServerSocket;
+    protected readonly IPEndPoint ListenEndpoint;
+    protected BufferBlock<Packet?> IncomingPackets;
+    protected BufferBlock<Packet?> OutgoingPackets;
+    protected CancellationTokenSource Source;
 
-    protected readonly Socket serverSocket;
-    protected readonly IPEndPoint listenEndpoint;
-    protected BufferBlock<Packet?> incomingPackets;
-    protected BufferBlock<Packet?> outgoingPackets;
-    protected CancellationTokenSource source;
-
-
-    public PacketServer(ushort port,
-                        ILogger logger)
+    protected PacketServer(ushort port,
+                           ILogger logger)
     {
         Logger = logger;
-        listenEndpoint = new IPEndPoint(IPAddress.Any, port);
-        serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        ListenEndpoint = new IPEndPoint(IPAddress.Any, port);
+        ServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     }
 
     public bool IsRunning { get; protected set; }
 
     public async Task<bool> SendAsync(Memory<byte> packet, IPEndPoint endPoint)
     {
-        return await outgoingPackets.SendAsync(new Packet(endPoint, packet));
+        return await OutgoingPackets.SendAsync(new Packet(endPoint, packet));
     }
-
 
     protected virtual void HandleCommand(string line)
     {
         if (line.Trim().StartsWith("exit"))
         {
             IsRunning = false;
-            source.Cancel();
+            Source.Cancel();
         }
     }
 
@@ -54,7 +51,7 @@ public abstract class PacketServer : IPacketSender
     protected virtual async void ServerRunThreadAsync(CancellationToken ct)
     {
         Packet? p;
-        while ((p = await incomingPackets.ReceiveAsync(ct)) != null)
+        while ((p = await IncomingPackets.ReceiveAsync(ct)) != null)
         {
             HandlePacket(p.Value, ct);
         }
@@ -62,16 +59,15 @@ public abstract class PacketServer : IPacketSender
 
     protected virtual void Shutdown(CancellationToken ct) { }
 
-
     // TODO: Move to separate thread? add console/rcon handling here?
     // FIXME: Move timing to GameServer
     public void Run()
     {
-        source = new CancellationTokenSource();
-        var ct = source.Token;
+        Source = new CancellationTokenSource();
+        var ct = Source.Token;
 
-        incomingPackets = new BufferBlock<Packet?>();
-        outgoingPackets = new BufferBlock<Packet?>();
+        IncomingPackets = new BufferBlock<Packet?>();
+        OutgoingPackets = new BufferBlock<Packet?>();
 
         var listenThread = Utils.RunThread(ListenThreadAsync, ct);
         var runThread = Utils.RunThread(ServerRunThreadAsync, ct);
@@ -88,9 +84,9 @@ public abstract class PacketServer : IPacketSender
             HandleCommand(line);
         }
 
-        if (!source.IsCancellationRequested)
+        if (!Source.IsCancellationRequested)
         {
-            source.Cancel();
+            Source.Cancel();
         }
 
         Shutdown(ct);
@@ -98,18 +94,17 @@ public abstract class PacketServer : IPacketSender
 
     private async void ListenThreadAsync(CancellationToken ct)
     {
-        serverSocket.Blocking = true;
-        serverSocket.DontFragment = true;
-        serverSocket.ReceiveBufferSize = MTU * 100;
-        serverSocket.SendBufferSize = MTU * 100;
-        serverSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
-        serverSocket.Bind(listenEndpoint);
+        ServerSocket.Blocking = true;
+        ServerSocket.DontFragment = true;
+        ServerSocket.ReceiveBufferSize = MTU * 100;
+        ServerSocket.SendBufferSize = MTU * 100;
+        ServerSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
+        ServerSocket.Bind(ListenEndpoint);
 
-        Logger.Information("Listening on {0}", listenEndpoint);
+        Logger.Information("Listening on {0}", ListenEndpoint);
 
         var buffer = new byte[MTU * 10];
         EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        int numberOfBytesReceived;
 
         Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
@@ -123,13 +118,14 @@ public abstract class PacketServer : IPacketSender
             try
             {
                 // Sockets don't support async yet :( Blocking here bc the win api will yield and wait better on the native side than we can here
-                if ((numberOfBytesReceived = serverSocket.ReceiveFrom(buffer, SocketFlags.None, ref remoteEndPoint)) > 0)
+                int numberOfBytesReceived;
+                if ((numberOfBytesReceived = ServerSocket.ReceiveFrom(buffer, SocketFlags.None, ref remoteEndPoint)) > 0)
                 {
                     // Should probably change to ArrayPool<byte>, but can't return a Memory<byte> :(
                     // TODO: Move Endpoint and Memory<byte> management to Packet (constructor + destructor)
                     var buf = new byte[numberOfBytesReceived];
                     buffer.AsSpan()[..numberOfBytesReceived].ToArray().CopyTo(buf, 0);
-                    _ = await incomingPackets.SendAsync(new Packet((IPEndPoint)remoteEndPoint, new ReadOnlyMemory<byte>(buf, 0, numberOfBytesReceived), DateTime.Now), ct);
+                    _ = await IncomingPackets.SendAsync(new Packet((IPEndPoint)remoteEndPoint, new ReadOnlyMemory<byte>(buf, 0, numberOfBytesReceived), DateTime.Now), ct);
 
                     // Not 100% sure this needs to be cleared?
                     remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
@@ -146,13 +142,12 @@ public abstract class PacketServer : IPacketSender
 
     private async void SendThreadAsync(CancellationToken ct)
     {
-        while (outgoingPackets == null)
+        while (OutgoingPackets == null)
         {
             Thread.Sleep(10);
         }
 
         Thread.CurrentThread.Priority = ThreadPriority.Highest;
-        Packet? p;
 
         while (true)
         {
@@ -161,9 +156,10 @@ public abstract class PacketServer : IPacketSender
                 break;
             }
 
-            while ((p = await outgoingPackets.ReceiveAsync(ct)) != null)
+            Packet? packet;
+            while ((packet = await OutgoingPackets.ReceiveAsync(ct)) != null)
             {
-                _ = serverSocket.SendTo(p.Value.PacketData.ToArray(), p.Value.PacketData.Length, SocketFlags.None, p.Value.RemoteEndpoint);
+                _ = ServerSocket.SendTo(packet.Value.PacketData.ToArray(), packet.Value.PacketData.Length, SocketFlags.None, packet.Value.RemoteEndpoint);
             }
 
             _ = Thread.Yield();
