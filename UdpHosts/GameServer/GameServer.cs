@@ -13,20 +13,20 @@ namespace GameServer;
 
 internal class GameServer : PacketServer
 {
-    private readonly ConcurrentDictionary<uint, INetworkPlayer> _clientMap;
-    private readonly ConcurrentDictionary<ulong, IShard> _shards;
-    
-    private readonly ulong _serverId;
-    
-    private byte _nextShardId;
-    
     private const double GameTickRate = 1.0 / 60.0;
     private const int MinPlayersPerShard = 16;
     private const int MaxPlayersPerShard = 64;
 
+    private readonly ConcurrentDictionary<uint, INetworkPlayer> _clientMap;
+    private readonly ConcurrentDictionary<ulong, IShard> _shards;
+
+    private readonly ulong _serverId;
+
+    private byte _nextShardId;
+
     public GameServer(GameServerSettings serverSettings,
                       ILogger logger)
-        : base (serverSettings.Port, logger)
+        : base(serverSettings.Port, logger)
     {
         _clientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
         _shards = new ConcurrentDictionary<ulong, IShard>();
@@ -52,7 +52,7 @@ internal class GameServer : PacketServer
 
     protected override void HandlePacket(Packet packet, CancellationToken ct)
     {
-        Logger.Information("[GAME] {0} sent {1} bytes.", packet.RemoteEndpoint, packet.PacketData.Length);
+        Logger.Verbose("[GAME] {0} sent {1} bytes.", packet.RemoteEndpoint, packet.PacketData.Length);
         Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 
         var client = RetrieveClient(packet, ct);

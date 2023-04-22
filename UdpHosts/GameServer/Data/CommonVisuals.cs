@@ -1,7 +1,6 @@
 ﻿using GameServer.Enums.Visuals;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace GameServer.Data;
 
@@ -71,7 +70,7 @@ public class CommonVisuals
         public uint ID;
         public IList<Half> Transform = new List<Half>();
         public byte Usage;
-        
+
         /*
         public static implicit operator KeyFrame.Pattern(Pattern p)
         {

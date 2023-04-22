@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GameServer;
 
-public class Shard : IShard, IPacketSender
+public class Shard : IShard
 {
     private const double NetworkTickRate = 1.0 / 20.0;
 

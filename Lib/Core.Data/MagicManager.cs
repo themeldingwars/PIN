@@ -14,7 +14,7 @@ public static class MagicManager
         _converters ??= new ConcurrentDictionary<Type, Func<IDataRecord, IRowView>>();
 
         var t = typeof(T);
-        var c = !_converters.ContainsKey(t) ? _converters.AddOrUpdate(t, BuildConverter<T>(), (t2, nc) => nc) : _converters[t];
+        var c = !_converters.ContainsKey(t) ? _converters.AddOrUpdate(t, BuildConverter<T>(), (_, nc) => nc) : _converters[t];
 
         return (T)c(rec);
     }

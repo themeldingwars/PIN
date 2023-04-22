@@ -30,35 +30,36 @@ public class Channel
     private const int GameSocketHeaderSize = 4;
     private const int TotalHeaderSize = ProtocolHeaderSize + GameSocketHeaderSize;
     private const int MaxPacketSize = PacketServer.MTU - TotalHeaderSize;
-    private static readonly byte[] xorByte = { 0x00, 0xFF, 0xCC, 0xAA };
-    private static readonly ulong[] xorULong = { 0x00, 0xFFFFFFFFFFFFFFFF, 0xCCCCCCCCCCCCCCCC, 0xAAAAAAAAAAAAAAAA };
     
+    private static readonly byte[] XorByte = { 0x00, 0xFF, 0xCC, 0xAA };
+    private static readonly ulong[] XorULong = { 0x00, 0xFFFFFFFFFFFFFFFF, 0xCCCCCCCCCCCCCCCC, 0xAAAAAAAAAAAAAAAA };
+
     private readonly ILogger _logger;
 
-    protected INetworkClient client;
-    protected ConcurrentQueue<GamePacket> incomingPackets;
-    protected ConcurrentQueue<Memory<byte>> outgoingPackets;
+    private readonly INetworkClient _client;
+    private readonly ConcurrentQueue<GamePacket> _incomingPackets;
+    private readonly ConcurrentQueue<Memory<byte>> _outgoingPackets;
 
-    protected Channel(ChannelType channelType, bool isSequenced, bool isReliable, INetworkClient networkClient, ILogger logger)
+    private Channel(ChannelType channelType, bool isSequenced, bool isReliable, INetworkClient networkClient, ILogger logger)
     {
         Type = channelType;
         IsSequenced = isSequenced;
         IsReliable = isReliable;
-        client = networkClient;
+        _client = networkClient;
         _logger = logger;
         CurrentSequenceNumber = 1;
         LastAck = 0;
 
-        incomingPackets = new ConcurrentQueue<GamePacket>();
-        outgoingPackets = new ConcurrentQueue<Memory<byte>>();
+        _incomingPackets = new ConcurrentQueue<GamePacket>();
+        _outgoingPackets = new ConcurrentQueue<Memory<byte>>();
     }
 
-    public ChannelType Type { get; protected set; }
-    public bool IsSequenced { get; protected set; }
-    public bool IsReliable { get; protected set; }
-    public ushort CurrentSequenceNumber { get; protected set; }
-    public DateTime LastActivity { get; protected set; }
-    public ushort LastAck { get; protected set; }
+    private ChannelType Type { get; }
+    private bool IsSequenced { get; }
+    private bool IsReliable { get; }
+    private ushort CurrentSequenceNumber { get; set; }
+    private DateTime LastActivity { get; set; }
+    private ushort LastAck { get; set; }
 
     public static Dictionary<ChannelType, Channel> GetChannels(INetworkClient client, ILogger logger)
     {
@@ -75,18 +76,18 @@ public class Channel
 
     public void HandlePacket(GamePacket packet)
     {
-        incomingPackets.Enqueue(packet);
+        _incomingPackets.Enqueue(packet);
     }
 
     public void Process(CancellationToken ct)
     {
-        while (outgoingPackets.TryDequeue(out var qi))
+        while (_outgoingPackets.TryDequeue(out var qi))
         {
-            client.Send(qi);
+            _client.Send(qi);
             LastActivity = DateTime.Now;
         }
 
-        while (incomingPackets.TryDequeue(out var packet))
+        while (_incomingPackets.TryDequeue(out var packet))
         {
             //Console.Write("> " + string.Concat(BitConverter.GetBytes(packet.Header.PacketHeader).ToArray().Select(b => b.ToString("X2")).ToArray()));
             //Console.WriteLine(" "+string.Concat(packet.PacketData.ToArray().Select(b => b.ToString("X2")).ToArray()));
@@ -110,7 +111,7 @@ public class Channel
 
                     for (var i = 0; i < x; i++)
                     {
-                        uSpan[i] ^= xorULong[packet.Header.ResendCount];
+                        uSpan[i] ^= XorULong[packet.Header.ResendCount];
                     }
 
                     dataTemp = MemoryMarshal.Cast<ulong, byte>(uSpan).ToArray(); // override old size
@@ -123,7 +124,7 @@ public class Channel
 
                 for (var i = x * 8; i < packet.PacketData.Length; i++)
                 {
-                    data[i] ^= xorByte[packet.Header.ResendCount];
+                    data[i] ^= XorByte[packet.Header.ResendCount];
                 }
 
                 //for( int i = 0; i < data.Length; i++ )
@@ -140,7 +141,7 @@ public class Channel
 
             if (IsReliable && (sequenceNumber > LastAck || (sequenceNumber < 0xff && LastAck > 0xff00)))
             {
-                client.SendAck(Type, sequenceNumber, packet.Received);
+                _client.SendAck(Type, sequenceNumber, packet.Received);
                 LastAck = sequenceNumber;
             }
 
@@ -167,10 +168,7 @@ public class Channel
             packetToSend = Serializer.WriteStruct(packet);
         }
 
-        var controlMessageAttribute = typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() as ControlMessageAttribute;
-        var matrixMessageAttribute = typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault() as MatrixMessageAttribute;
-
-        if (controlMessageAttribute != null)
+        if (typeof(T).GetCustomAttributes(typeof(ControlMessageAttribute), false).FirstOrDefault() is ControlMessageAttribute controlMessageAttribute)
         {
             var messageId = controlMessageAttribute.MsgID;
             var t = new Memory<byte>(new byte[1 + packetToSend.Length]);
@@ -179,7 +177,7 @@ public class Channel
             packetToSend = t;
             _logger.Verbose("<-- {0}: MsgID = {1} ({2})", Type, messageId, (byte)messageId);
         }
-        else if (matrixMessageAttribute != null)
+        else if (typeof(T).GetCustomAttributes(typeof(MatrixMessageAttribute), false).FirstOrDefault() is MatrixMessageAttribute matrixMessageAttribute)
         {
             var messageId = matrixMessageAttribute.MsgID;
             var t = new Memory<byte>(new byte[1 + packetToSend.Length]);
@@ -357,10 +355,11 @@ public class Channel
     /// <typeparam name="TPacket">The type of the packet</typeparam>
     /// <param name="packet"></param>
     /// <param name="entityId"></param>
+    /// <param name="messageIdOverride">Optional way to override the message ID</param>
     /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     /// <exception cref="ArgumentException"></exception>
-    public bool SendIAero<TPacket>(TPacket packet, ulong entityId = 0, byte messageIdOverride = 0, Type? msgEnumType = null) where TPacket : class, IAero
+    public bool SendIAero<TPacket>(TPacket packet, ulong entityId = 0, byte messageIdOverride = 0, Type? messageEnumType = null) where TPacket : class, IAero
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMessageIdAttribute)
         {
@@ -373,21 +372,22 @@ public class Channel
         {
             messageId = messageIdOverride;
         }
+
         packet.SerializeToMemory(out var packetMemory);
 
-        if (type == AeroMessageIdAttribute.MsgType.Matrix)
+        switch (type)
         {
-            return SendPacketMemoryMatrix(messageId, ref packetMemory, msgEnumType);
-        }
-        else if (type == AeroMessageIdAttribute.MsgType.GSS)
-        {
-            var controllerId = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
-            //Program.Logger.Information($"SendIAero type {type}, controller {controllerId} and msgid {messageId}");
-            return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, msgEnumType);
-        }
-        else
-        {
-            throw new ArgumentException("Message type not implemented");
+            case AeroMessageIdAttribute.MsgType.Matrix:
+                return SendPacketMemoryMatrix(messageId, ref packetMemory, messageEnumType);
+            case AeroMessageIdAttribute.MsgType.GSS:
+                {
+                    var controllerId = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
+                    //Program.Logger.Information($"SendIAero type {type}, controller {controllerId} and msgid {messageId}");
+                    return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, messageEnumType);
+                }
+            case AeroMessageIdAttribute.MsgType.Control:
+            default:
+                throw new ArgumentException("Message type not implemented");
         }
     }
 
@@ -495,7 +495,7 @@ public class Channel
     /// </summary>
     /// <param name="packetData"></param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
-    public bool Send(Memory<byte> packetData)
+    private bool Send(Memory<byte> packetData)
     {
         var headerLength = 2;
         if (IsSequenced)
@@ -529,7 +529,7 @@ public class Channel
             //Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianness(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));
             //Console.WriteLine( " "+string.Concat( t.Slice(2).ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) )
 
-            outgoingPackets.Enqueue(t);
+            _outgoingPackets.Enqueue(t);
 
             packetData = packetData[(length - headerLength)..];
         }

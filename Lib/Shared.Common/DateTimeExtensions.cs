@@ -10,10 +10,7 @@ public static class DateTimeExtensions
     {
         get
         {
-            if (_epoch is not { })
-            {
-                _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            }
+            _epoch ??= new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             return _epoch.Value;
         }

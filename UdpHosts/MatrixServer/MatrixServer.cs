@@ -30,19 +30,19 @@ internal class MatrixServer : PacketServer
         switch (matrixPkt.Type)
         {
             case "POKE": // POKE
-                var poke = Deserializer.ReadStruct<MatrixPacketPoke>(mem);
+                Deserializer.ReadStruct<MatrixPacketPoke>(mem);
                 Logger.Verbose("[POKE]");
                 var nextSocketId = GenerateSocketId();
                 Logger.Information("Assigning SocketID [" + nextSocketId + "] to [" + packet.RemoteEndpoint + "]");
                 _ = SendAsync(Serializer.WriteStruct(new MatrixPacketHehe(nextSocketId)), packet.RemoteEndpoint);
                 break;
             case "KISS": // KISS
-                var kiss = Deserializer.ReadStruct<MatrixPacketKiss>(mem);
+                Deserializer.ReadStruct<MatrixPacketKiss>(mem);
                 Logger.Verbose("[KISS]");
                 _ = SendAsync(Serializer.WriteStruct(new MatrixPacketHugg(1, 25001)), packet.RemoteEndpoint);
                 break;
             case "ABRT": // ABRT
-                var abrt = Deserializer.ReadStruct<MatrixPacketAbrt>(mem);
+                Deserializer.ReadStruct<MatrixPacketAbrt>(mem);
                 Logger.Verbose("[ABRT]");
                 break;
             default:

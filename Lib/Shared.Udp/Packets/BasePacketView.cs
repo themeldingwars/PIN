@@ -14,7 +14,7 @@ public enum BitEndianness
 
 public class BasePacketView : IPacketView
 {
-    protected ConcurrentDictionary<string, object> fields;
+    protected ConcurrentDictionary<string, object> Fields;
 
     public BasePacketView(BitEndianness e)
     {
@@ -26,11 +26,11 @@ public class BasePacketView : IPacketView
         }
     }
 
-    public BitEndianness Endianness { get; protected set; }
+    public BitEndianness Endianness { get; }
 
     protected void SetupFields()
     {
-        fields = new ConcurrentDictionary<string, object>();
+        Fields = new ConcurrentDictionary<string, object>();
     }
 
     public T Get<T>(Memory<byte> data, string name)

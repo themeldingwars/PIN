@@ -27,5 +27,4 @@ internal static class IAeroExtensions
         serializedData = new Memory<byte>(new byte[aero.GetPackedChangesSize()]);
         aero.PackChanges(serializedData.Span);
     }
-
 }

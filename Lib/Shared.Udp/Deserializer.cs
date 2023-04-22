@@ -26,12 +26,7 @@ public static class Deserializer
         where T : struct
     {
         var size = Unsafe.SizeOf<T>();
-        if (data.Length < size)
-        {
-            return default;
-        }
-
-        return MemoryMarshal.Read<T>(data.Span[..size]);
+        return data.Length < size ? default : MemoryMarshal.Read<T>(data.Span[..size]);
     }
 
     public static T ReadPrimitive<T>(ref ReadOnlyMemory<byte> data)

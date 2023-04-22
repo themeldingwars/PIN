@@ -56,12 +56,12 @@ public static class DataUtils
 
     public static Zone GetZone(uint id)
     {
-        return _zones.ContainsKey(id) ? _zones[id] : _zones[448];
+        return _zones.TryGetValue(id, out var zone) ? zone : _zones[448];
     }
 
     private static void AddZone(uint id, string name, ulong timestamp, Vector3 spawn)
     {
         var zone = new Zone { ID = id, Name = name, Timestamp = timestamp, POIs = { { "origin", new Vector3(0.0f, 0.0f, 0.0f) }, { "spawn", spawn } } };
-        _zones.AddOrUpdate(zone.ID, zone, (k, nc) => nc);
+        _zones.AddOrUpdate(zone.ID, zone, (_, nc) => nc);
     }
 }

@@ -12,7 +12,7 @@ public static class ViewFactory
         _instances = new ConcurrentDictionary<Type, IPacketView>();
 
         // TODO: Get appropriate interfaces
-        var types = new Type[0];
+        var types = Type.EmptyTypes;
         foreach (var t in types)
         {
             AddPacketView(t);

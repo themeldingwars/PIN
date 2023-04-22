@@ -15,7 +15,7 @@ public interface IShard : IInstance, IPacketSender
     int CurrentPlayers => Clients.Count;
 
     ulong CurrentTimeLong { get; }
-    uint CurrentTime => unchecked((uint)(CurrentTimeLong));
+    uint CurrentTime => unchecked((uint)CurrentTimeLong);
     ushort CurrentShortTime => unchecked((ushort)CurrentTime);
     IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 

@@ -1,5 +1,4 @@
 ﻿using GameServer.Extensions;
-using Serilog;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -22,14 +21,14 @@ public static class Factory
 
         if (attr == null)
         {
-            throw new ArgumentNullException("T", "Type [" + typeof(T).FullName + "] does not have a ControllerID Attribute.");
+            throw new ArgumentNullException(nameof(T), "Type [" + typeof(T).FullName + "] does not have a ControllerID Attribute.");
         }
 
         var k = attr.ControllerID;
 
         if (!_controllers.ContainsKey(k))
         {
-            return _controllers.AddOrUpdate(k, new T(), (k, nc) => nc) as T;
+            return _controllers.AddOrUpdate(k, new T(), (_, nc) => nc) as T;
         }
 
         return _controllers[k] as T;
@@ -37,17 +36,17 @@ public static class Factory
 
     public static Base Get(Enums.GSS.Controllers controllerId)
     {
-        if (_controllers.ContainsKey(controllerId))
+        if (_controllers.TryGetValue(controllerId, out var controller))
         {
-            return _controllers[controllerId];
+            return controller;
         }
 
         var t = ForControllerId(controllerId);
 
-        return t != null ? _controllers.AddOrUpdate(controllerId, Activator.CreateInstance(t) as Base, (k, nc) => nc) : null;
+        return t != null ? _controllers.AddOrUpdate(controllerId, Activator.CreateInstance(t) as Base, (_, nc) => nc) : null;
     }
 
-    public static Type ForControllerId(Enums.GSS.Controllers controllerId)
+    private static Type ForControllerId(Enums.GSS.Controllers controllerId)
     {
         var ts = ReflectionUtils.FindTypesByAttribute<ControllerIDAttribute>();
 

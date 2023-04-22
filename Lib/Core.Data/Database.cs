@@ -10,8 +10,7 @@ namespace Core.Data;
 
 public abstract class Database : IDatabase, IDisposable
 {
-    private bool disposedValue;
-
+    private bool _disposedValue;
 
     protected Database(string name, string dbName, string connString)
     {
@@ -19,7 +18,6 @@ public abstract class Database : IDatabase, IDisposable
         DbName = dbName;
         ConnectionString = connString;
     }
-
 
     protected DbTransaction CurrentTransaction { get; private set; }
     protected DbConnection Connection { get; private set; }
@@ -162,7 +160,7 @@ public abstract class Database : IDatabase, IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposedValue)
+        if (_disposedValue)
         {
             return;
         }
@@ -187,6 +185,6 @@ public abstract class Database : IDatabase, IDisposable
             }
         }
 
-        disposedValue = true;
+        _disposedValue = true;
     }
 }

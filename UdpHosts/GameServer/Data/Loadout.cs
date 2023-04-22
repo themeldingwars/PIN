@@ -80,9 +80,12 @@ public class Loadout
     public uint SecondaryWeaponID { get; set; }
 
     public IList<uint> ChassisModules { get; protected set; }
+
     public IList<AbilityModule> BackpackModules { get; protected set; }
+
     //public IList<WeaponModule> PrimaryWeaponModules { get; protected set; }
     public CommonVisuals PrimaryWeaponVisuals { get; protected set; }
+
     //public IList<WeaponModule> SecondaryWeaponModules { get; protected set; }
     public CommonVisuals SecondaryWeaponVisuals { get; protected set; }
 
