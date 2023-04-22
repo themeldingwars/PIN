@@ -71,7 +71,7 @@ public class Channel
                };
     }
 
-    public event PacketAvailableDelegate PacketAvailable;
+    public event PacketAvailableDelegate? PacketAvailable;
 
     public void HandlePacket(GamePacket packet)
     {
@@ -237,7 +237,7 @@ public class Channel
         }
         else
         {
-            _logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId)), messageId);
+            _logger.Verbose("<-- {0}: MsgID = {1} (0x{2:X2})", Type, Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId) ?? string.Empty), messageId);
         }
 
         return Send(packetToSend);
@@ -284,12 +284,12 @@ public class Channel
 
             if (messageEnumType == null)
             {
-                _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerId ?? gssMessageAttribute.ControllerID.Value, entityId, messageId);
+                _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}", Type, controllerId ?? gssMessageAttribute.ControllerID, entityId, messageId);
             }
             else
             {
-                _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerId ?? gssMessageAttribute.ControllerID.Value, entityId,
-                                Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId)), messageId);
+                _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})", Type, controllerId ?? gssMessageAttribute.ControllerID, entityId,
+                                Enum.Parse(messageEnumType, Enum.GetName(messageEnumType, messageId) ?? string.Empty), messageId);
             }
         }
         else
