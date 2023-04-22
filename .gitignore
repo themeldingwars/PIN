@@ -8,6 +8,9 @@
 Webhosts/WebHost.WebAsset/Assets/*
 !Webhosts/WebHost.WebAsset/Assets/.gitkeep
 UdpHosts/GameServer/App.config
+*.pfi
+*.bkp
+*.dtmp
 
 # User-specific files
 *.rsuser

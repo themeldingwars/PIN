@@ -20,7 +20,6 @@ public interface IShard : IInstance, IPacketSender
     IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 
     void Run(CancellationToken ct);
-    void Stop();
     bool Tick(double deltaTime, ulong currentTime, CancellationToken ct);
     void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct);
     bool MigrateOut(INetworkPlayer player);

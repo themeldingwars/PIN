@@ -21,7 +21,7 @@ public class NetworkClient : INetworkClient
 {
     protected readonly ILogger Logger;
 
-    public NetworkClient(IPEndPoint endPoint, uint socketId, ILogger logger)
+    protected NetworkClient(IPEndPoint endPoint, uint socketId, ILogger logger)
     {
         Logger = logger;
         SocketId = socketId;
@@ -31,13 +31,14 @@ public class NetworkClient : INetworkClient
     }
 
     protected IPacketSender Sender { get; set; }
-    protected IPlayer Player { get; private set; }
-    public Status NetClientStatus { get; protected set; }
-    public uint SocketId { get; protected set; }
-    public IPEndPoint RemoteEndpoint { get; protected set; }
-    public DateTime NetLastActive { get; protected set; }
-    public ImmutableDictionary<ChannelType, Channel> NetChannels { get; protected set; }
-    public IShard AssignedShard { get; protected set; }
+    protected IPlayer Player { get; set; }
+
+    public Status NetClientStatus { get; private set; }
+    public uint SocketId { get; }
+    public IPEndPoint RemoteEndpoint { get; }
+    public DateTime NetLastActive { get; private set; }
+    public ImmutableDictionary<ChannelType, Channel> NetChannels { get; private set; }
+    public IShard AssignedShard { get; private set; }
 
     public void Init(IPlayer player, IShard shard, IPacketSender sender)
     {
