@@ -135,7 +135,10 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                     Bitfield = new byte[8] { 0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00 }
                 }
             },
-            RespawnTimesProp = null
+            RespawnTimesProp = null,
+
+
+
         };
         NetChannels[ChannelType.ReliableGss].SendIAeroChanges(baseController, CharacterEntity.EntityId);
 
@@ -144,7 +147,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             CombatTimer_0Prop = AssignedShard.CurrentTime,
 
             StatusEffectsChangeTime_10Prop = AssignedShard.CurrentShortTime,
-            StatusEffects_10Prop = new StatusEffectData {
+            StatusEffects_10Prop = new StatusEffectData
+            {
                 Id = 986,
                 Time = AssignedShard.CurrentTime,
                 Initiator = new AeroMessages.Common.EntityId { Backing = Player.CharacterEntity.EntityId },
@@ -152,14 +156,164 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             },
 
             StatusEffectsChangeTime_11Prop = AssignedShard.CurrentShortTime,
-            StatusEffects_11Prop = new StatusEffectData {
+            StatusEffects_11Prop = new StatusEffectData
+            {
                 Id = 472,
                 Time = AssignedShard.CurrentTime,
                 Initiator = new AeroMessages.Common.EntityId { Backing = Player.CharacterEntity.EntityId },
                 MoreDataFlag = 0
-            } 
+            }
         };
         NetChannels[ChannelType.ReliableGss].SendIAeroChanges(combatController, CharacterEntity.EntityId);
+
+
+        // InventoryUpdate
+        var inventoryUpdate = new AeroMessages.GSS.V66.Character.Event.InventoryUpdate
+        {
+            ClearExistingData = 1,
+            ItemsPart1Length = 2,
+            ItemsPart1 = new AeroMessages.GSS.V66.Character.Event.Item[2] {
+                new AeroMessages.GSS.V66.Character.Event.Item {
+                    Unk1 = 0,
+                    SdbId = 76331,
+                    GUID = 744961712419132925ul,
+                    SubInventory = 4,
+                    Unk2 = 0x22BEA256,
+                    DynamicFlags = 0,
+                    Durability = 0,
+                    Unk3 = 0,
+                    Unk4 = 0,
+                    Unk5 = 1,
+                    Unk6 = new AeroMessages.GSS.V66.Character.Event.ItemUnkData[0] {},
+                    Unk7 = 0,
+                    Modules = new uint[0] {},
+                },
+                new AeroMessages.GSS.V66.Character.Event.Item {
+                    Unk1 = 0,
+                    SdbId = 76331,
+                    GUID = 9181641073530142461ul,
+                    SubInventory = 4,
+                    Unk2 = 0x964C1352,
+                    DynamicFlags = 0,
+                    Durability = 0,
+                    Unk3 = 0,
+                    Unk4 = 0,
+                    Unk5 = 1,
+                    Unk6 = new AeroMessages.GSS.V66.Character.Event.ItemUnkData[0] {},
+                    Unk7 = 0,
+                    Modules = new uint[0] {},
+                }
+            },
+            ItemsPart2Length = 0,
+            ItemsPart2 = new AeroMessages.GSS.V66.Character.Event.Item[0]{},
+            ItemsPart3Length = 0,
+            ItemsPart3 = new AeroMessages.GSS.V66.Character.Event.Item[0]{},
+            Resources = new AeroMessages.GSS.V66.Character.Event.Resource[0]{},
+            Loadouts = new AeroMessages.GSS.V66.Character.Event.Loadout[] {
+                new AeroMessages.GSS.V66.Character.Event.Loadout {
+                    FrameLoadoutId = 184538131,
+                    Unk = 1535539622,
+                    LoadoutName = "ODM \"Mammoth\"",
+                    LoadoutType = "battleframe",
+                    ChassisID = 76331,
+                    LoadoutConfigs = new AeroMessages.GSS.V66.Character.Event.LoadoutConfig[2] {
+                        new AeroMessages.GSS.V66.Character.Event.LoadoutConfig {
+                            ConfigID = 0,
+                            ConfigName = "pve",
+                            Items = new AeroMessages.GSS.V66.Character.Event.LoadoutConfig_Item[0] {},
+                            Visuals = new AeroMessages.GSS.V66.Character.LoadoutConfig_Visual[5] {
+                                new AeroMessages.GSS.V66.Character.LoadoutConfig_Visual {
+                                    ItemSdbId = 10000,
+                                    VisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType.Decal,
+                                    Data1 = 0,
+                                    Data2 = 4294967295,
+                                    Transform = new float[12] {
+                                        0.052F,
+                                        0.020F,
+                                        0.000F,
+                                        0.007F,
+                                        -0.020F,
+                                        -0.052F,
+                                        0.018F,
+                                        -0.048F,
+                                        0.021F,
+                                        0.108F,
+                                        -0.105F,
+                                        1.495F
+                                    }
+                                },
+                                new AeroMessages.GSS.V66.Character.LoadoutConfig_Visual {
+                                    ItemSdbId = 81423,
+                                    VisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType.Glider,
+                                    Data1 = 0,
+                                    Data2 = 0,
+                                    Transform = new float[0] {}
+                                },
+                                new AeroMessages.GSS.V66.Character.LoadoutConfig_Visual {
+                                    ItemSdbId = 77087,
+                                    VisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType.Vehicle,
+                                    Data1 = 0,
+                                    Data2 = 0,
+                                    Transform = new float[0] {}
+                                },
+                                new AeroMessages.GSS.V66.Character.LoadoutConfig_Visual {
+                                    ItemSdbId = 85163,
+                                    VisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType.Palette,
+                                    Data1 = 0,
+                                    Data2 = 0,
+                                    Transform = new float[0] {}
+                                },
+                                new AeroMessages.GSS.V66.Character.LoadoutConfig_Visual {
+                                    ItemSdbId = 10022,
+                                    VisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType.Pattern,
+                                    Data1 = 1,
+                                    Data2 = 0,
+                                    Transform = new float[4] {
+                                        0.000F,
+                                        13572.00F,
+                                        0.000F,
+                                        1963.000F
+                                    }
+                                }
+                            },
+                            Perks = new uint[10] {
+                                85817,
+                                85818,
+                                85956,
+                                85976,
+                                86067,
+                                86137,
+                                86139,
+                                118819,
+                                124247,
+                                140713
+                            },
+                            Unk1 = 1464475061, // Did I... mess up the bandwidth? :thinking:
+                            PerkBandwidth = 0,
+                            PerkRespecLockRemainingSeconds = 0,
+                            HaveExtraData = 0
+                        },
+                        new AeroMessages.GSS.V66.Character.Event.LoadoutConfig {
+                            ConfigID = 1,
+                            ConfigName = "pvp",
+                            Items = new AeroMessages.GSS.V66.Character.Event.LoadoutConfig_Item[0] {},
+                            Visuals = new AeroMessages.GSS.V66.Character.LoadoutConfig_Visual[0] {},
+                            Perks = new uint[0],
+                            Unk1 = 0,
+                            PerkBandwidth = 0,
+                            PerkRespecLockRemainingSeconds = 0,
+                            HaveExtraData = 0
+                        }
+                    },
+                    
+                }
+            },
+            Unk = 1,
+            SecondItems = new AeroMessages.GSS.V66.Character.Event.Item[0]{},
+            SecondResources = new AeroMessages.GSS.V66.Character.Event.Resource[0]{}
+        };
+        NetChannels[ChannelType.ReliableGss].SendIAero(inventoryUpdate, CharacterEntity.EntityId);
+
     }
 
     public void Ready()
