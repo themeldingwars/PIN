@@ -47,3 +47,10 @@ public class Warpaintpatterns
     public Array Transform { get; set; }
     public uint Usage { get; set; }
 }
+
+public class GarageSlotPerks
+{
+    public Array Perks { get; set; }
+    public uint Respecs { get; set; }
+    public uint MaxPoints { get; set; }
+}

@@ -70,6 +70,32 @@ public class AccountsController : ControllerBase
                };
     }
 
+    [Route("api/v3/characters/{characterId}/titles")]
+    [HttpGet]
+    public object CharacterTitles(string characterId)
+    {
+        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+
+        var characterTitles = new object[]
+        {
+            new Titles {Id = 117, Name = "Founder" },
+            new Titles {Id = 128, Name = "Beta Commando" },
+            new Titles {Id = 133, Name = "Beta Vanguard" },
+            new Titles {Id = 135, Name = "Commander" },
+            new Titles {Id = 136, Name = "Lieutenant" },
+            new Titles {Id = 137, Name = "Ensign" },
+            new Titles {Id = 144, Name = "Master Blaster" },
+            new Titles {Id = 149, Name = "The Gun Show" },
+            new Titles {Id = 150, Name = "Arc Runner" },
+            new Titles {Id = 152, Name = "Pyromaniac" },
+            new Titles {Id = 156, Name = "Barricade" },
+            new Titles {Id = 158, Name = "Herald of Decay" },
+            new Titles {Id = 171, Name = "Beta Trooper" }
+        };
+
+        return characterTitles;
+    }
+
     [Route("api/v3/characters/{characterId}/garage_slots")]
     [HttpGet]
     [Produces("application/json")]
@@ -121,6 +147,23 @@ public class AccountsController : ControllerBase
         _garageSlots.AddOrUpdate(Firecat.Id, Firecat, (k, nc) => nc);
 
         return _garageSlots.Values;
+    }
+
+    [Route("api/v3/characters/{characterId}/garage_slots/{frameId}/perks")]
+    [HttpGet]
+    [Produces("application/json")]
+    public object GarageSlotPerks(string characterId, string frameId)
+    {
+        if (string.IsNullOrEmpty(characterId) || string.IsNullOrEmpty(frameId)) { return new { }; }
+
+        var framePerks = new GarageSlotPerks()
+        {
+            Perks = Array.Empty<Array>(),
+            Respecs = 45,
+            MaxPoints = 5
+        };
+
+        return framePerks;
     }
 
     // Temporary location
