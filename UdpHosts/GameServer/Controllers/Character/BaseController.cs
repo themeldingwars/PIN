@@ -7,9 +7,10 @@ using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Character.View;
 using AeroMessages.GSS.V66.Turret.Controller;
 using AeroMessages.GSS.V66.Vehicle;
-using AeroMessages.GSS.V66.Vehicle.Command;
-using AeroMessages.GSS.V66.Vehicle.Controller;
+using VCommand = AeroMessages.GSS.V66.Vehicle.Controller;
+using VController = AeroMessages.GSS.V66.Vehicle.Controller;
 using GameServer.Entities.Character;
+using GameServer.Enums.GSS;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
@@ -667,8 +668,13 @@ public class BaseController : Base
     [MessageID((byte)Commands.VehicleCalldownRequest)]
     public void VehicleCalldownRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
+        Core.Data.EntityGuid vehicleEntityId = new(31, client.AssignedShard.CurrentTime, 3670903, 0x01);
+
         var vehicleCalldownRequest = packet.Unpack<VehicleCalldownRequest>();
-        var resp = new AeroMessages.GSS.V66.Vehicle.Controller.BaseController
+
+        if (vehicleCalldownRequest == null) { return; }
+
+        var vehicleBaseController = new VController.BaseController
         {
             VehicleIdProp = vehicleCalldownRequest.VehicleID,
             ConfigurationProp = new ConfigurationData
@@ -678,12 +684,7 @@ public class BaseController : Base
             FlagsProp = new byte[] { 0x41, 0x41, 0x51, 0x41, 0x41, 0x41, 0x3d, 0x3d },
             EngineStateProp = 0,
             PathStateProp = 1,
-            OwnerIdProp = new EntityId
-            {
-                Backing = player.CharacterEntity.EntityId,
-                ControllerId = (Controller)1,
-                Id = 35814084702844050
-            },
+            OwnerIdProp = new EntityId { Backing = player.CharacterEntity.EntityId, ControllerId = (Controller)1, Id = 35814084702844050 },
             OwnerNameProp = "",
             OwnerLocalStringProp = 0,
             OccupantIds_0Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
@@ -692,68 +693,18 @@ public class BaseController : Base
             OccupantIds_3Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
             OccupantIds_4Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
             OccupantIds_5Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-            DeployableIds_0Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_1Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_2Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_3Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_4Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_5Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_6Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_7Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_8Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
-            DeployableIds_9Prop = new DeployableIdsData
-            {
-                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
-                Unk1 = 0,
-                Unk2 = 255
-            },
+            DeployableIds_0Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_1Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_2Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_3Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_4Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_5Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_6Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_7Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_8Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
+            DeployableIds_9Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
             SnapMountProp = 0,
-            SpawnPoseProp = new AeroMessages.GSS.V66.Vehicle.Controller.SpawnPoseData
+            SpawnPoseProp = new VController.SpawnPoseData
             {
                 Position = vehicleCalldownRequest.Position,
                 Rotation = vehicleCalldownRequest.Rotation,
@@ -800,29 +751,6 @@ public class BaseController : Base
             SinFactionsAcquiredByProp = null,
             SinTeamsAcquiredByProp = null,
             SinCardTypeProp = 0,
-            SinCardFields_0Prop = null,
-            SinCardFields_1Prop = null,
-            SinCardFields_2Prop = null,
-            SinCardFields_3Prop = null,
-            SinCardFields_4Prop = null,
-            SinCardFields_5Prop = null,
-            SinCardFields_6Prop = null,
-            SinCardFields_7Prop = null,
-            SinCardFields_8Prop = null,
-            SinCardFields_9Prop = null,
-            SinCardFields_10Prop = null,
-            SinCardFields_11Prop = null,
-            SinCardFields_12Prop = null,
-            SinCardFields_13Prop = null,
-            SinCardFields_14Prop = null,
-            SinCardFields_15Prop = null,
-            SinCardFields_16Prop = null,
-            SinCardFields_17Prop = null,
-            SinCardFields_18Prop = null,
-            SinCardFields_19Prop = null,
-            SinCardFields_20Prop = null,
-            SinCardFields_21Prop = null,
-            SinCardFields_22Prop = null,
             ScopeBubbleInfoProp = new ScopeBubbleInfoData
             {
                 Unk1 = 0,
@@ -831,6 +759,98 @@ public class BaseController : Base
             ScalingLevelProp = 0
         };
 
-        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(resp, player.EntityId, player.PlayerId);
+        var vehicleCombatController = new VController.CombatController
+        {
+            SlottedAbility_0 = 0,
+            SlottedAbility_1 = 0,
+            SlottedAbility_2 = 0,
+            SlottedAbility_3 = 0,
+            SlottedAbility_4 = 0,
+            SlottedAbility_5 = 30770,
+            SlottedAbility_6 = 0,
+            SlottedAbility_7 = 0,
+            SlottedAbility_8 = 43,
+
+            SlottedAbility_0Prop = 0,
+            SlottedAbility_1Prop = 0,
+            SlottedAbility_2Prop = 0,
+            SlottedAbility_3Prop = 0,
+            SlottedAbility_4Prop = 0,
+            SlottedAbility_5Prop = 30770,
+            SlottedAbility_6Prop = 0,
+            SlottedAbility_7Prop = 0,
+            SlottedAbility_8Prop = 43,
+
+            StatusEffectsChangeTime_0Prop = 11465,
+            StatusEffectsChangeTime_1Prop = 3139,
+            StatusEffectsChangeTime_2Prop = 2132,
+            StatusEffectsChangeTime_3Prop = 5763,
+            StatusEffectsChangeTime_4Prop = 29801,
+            StatusEffectsChangeTime_5Prop = 28521,
+            StatusEffectsChangeTime_6Prop = 8302,
+            StatusEffectsChangeTime_7Prop = 25970,
+            StatusEffectsChangeTime_8Prop = 27760,
+            StatusEffectsChangeTime_9Prop = 25441,
+            StatusEffectsChangeTime_10Prop = 25701,
+            StatusEffectsChangeTime_11Prop = 24864,
+            StatusEffectsChangeTime_12Prop = 8308,
+            StatusEffectsChangeTime_13Prop = 27749,
+            StatusEffectsChangeTime_14Prop = 28005,
+            StatusEffectsChangeTime_15Prop = 28261,
+            StatusEffectsChangeTime_16Prop = 8308,
+            StatusEffectsChangeTime_17Prop = 2609,
+            StatusEffectsChangeTime_18Prop = 14641,
+            StatusEffectsChangeTime_19Prop = 12602,
+            StatusEffectsChangeTime_20Prop = 14902,
+            StatusEffectsChangeTime_21Prop = 14645,
+            StatusEffectsChangeTime_22Prop = 20000,
+            StatusEffectsChangeTime_23Prop = 30319,
+            StatusEffectsChangeTime_24Prop = 12576,
+            StatusEffectsChangeTime_25Prop = 8244,
+            StatusEffectsChangeTime_26Prop = 12338,
+            StatusEffectsChangeTime_27Prop = 13873,
+            StatusEffectsChangeTime_28Prop = 11552,
+            StatusEffectsChangeTime_29Prop = 28704,
+            StatusEffectsChangeTime_30Prop = 29551,
+            StatusEffectsChangeTime_31Prop = 29801,
+
+            /*StatusEffects_0Prop = null,
+            StatusEffects_1Prop = null,
+            StatusEffects_2Prop = null,
+            StatusEffects_3Prop = null,
+            StatusEffects_4Prop = null,
+            StatusEffects_5Prop = null,
+            StatusEffects_6Prop = null,
+            StatusEffects_7Prop = null,
+            StatusEffects_8Prop = null,
+            StatusEffects_9Prop = null,
+            StatusEffects_10Prop = null,
+            StatusEffects_11Prop = null,
+            StatusEffects_12Prop = null,
+            StatusEffects_13Prop = null,
+            StatusEffects_14Prop = null,
+            StatusEffects_15Prop = null,
+            StatusEffects_16Prop = null,
+            StatusEffects_17Prop = null,
+            StatusEffects_18Prop = null,
+            StatusEffects_19Prop = null,
+            StatusEffects_20Prop = null,
+            StatusEffects_21Prop = null,
+            StatusEffects_22Prop = null,
+            StatusEffects_23Prop = null,
+            StatusEffects_24Prop = null,
+            StatusEffects_25Prop = null,
+            StatusEffects_26Prop = null,
+            StatusEffects_27Prop = null,
+            StatusEffects_28Prop = null,
+            StatusEffects_29Prop = null,
+            StatusEffects_30Prop = null,
+            StatusEffects_31Prop = null*/
+        };
+
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicleBaseController, vehicleEntityId.Full, player.PlayerId);
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicleCombatController, vehicleEntityId.Full, player.PlayerId);
+        //client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(resp, player.EntityId);
+        //client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(vehicleCombatController, player.EntityId);
     }
 }
