@@ -160,7 +160,7 @@ public class ArmiesController : ControllerBase
                                                 IsOnline = true,
                                                 PublicNote = null,
                                                 OfficerNote = null,
-                                                Name = "TestUser1"
+                                                Name = "TestUser2"
                                             }
                                         }
                           };
