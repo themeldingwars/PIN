@@ -5,6 +5,10 @@ using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Character.View;
+using AeroMessages.GSS.V66.Turret.Controller;
+using AeroMessages.GSS.V66.Vehicle;
+using AeroMessages.GSS.V66.Vehicle.Command;
+using AeroMessages.GSS.V66.Vehicle.Controller;
 using GameServer.Entities.Character;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
@@ -13,6 +17,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Text;
 
 namespace GameServer.Controllers.Character;
 
@@ -331,8 +336,8 @@ public class BaseController : Base
                                  ReputationEventModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
                                  WalletProp = new WalletData { Beans = 999, Epoch = 1462889864 },
                                  LoyaltyProp = new LoyaltyData { Current = 0, Lifetime = 0, Tier = 0 },
-                                 LevelProp = 0,
-                                 EffectiveLevelProp = 0,
+                                 LevelProp = cd.Level,
+                                 EffectiveLevelProp = cd.Level,
                                  LevelResetCountProp = 0,
                                  OldestDeployablesProp = new OldestDeployablesField { Data = Array.Empty<OldestDeployablesData>() },
                                  PerkRespecsProp = 0,
@@ -570,7 +575,7 @@ public class BaseController : Base
             return;
         }
 
-        var movementInput = packet.Unpack<MovementInput>();
+        var movementInput = packet.Unpack<AeroMessages.GSS.V66.Character.Command.MovementInput>();
 
         if (!player.CharacterEntity.Alive)
         {
@@ -657,5 +662,175 @@ public class BaseController : Base
         //var conventional = packet.Read<SetSteamIdRequest>();
         //_logger.Verbose("Packet Data: {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
         //_logger.Verbose("Entity {0:x8} Steam user id (conventional): {1}", entityId, conventional.SteamId);
+    }
+
+    [MessageID((byte)Commands.VehicleCalldownRequest)]
+    public void VehicleCalldownRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var vehicleCalldownRequest = packet.Unpack<VehicleCalldownRequest>();
+        var resp = new AeroMessages.GSS.V66.Vehicle.Controller.BaseController
+        {
+            VehicleIdProp = vehicleCalldownRequest.VehicleID,
+            ConfigurationProp = new ConfigurationData
+            {
+                Data = new uint[] { 0, 0, 0, 0, 0, 0, 0, 0 }
+            },
+            FlagsProp = new byte[] { 0x41, 0x41, 0x51, 0x41, 0x41, 0x41, 0x3d, 0x3d },
+            EngineStateProp = 0,
+            PathStateProp = 1,
+            OwnerIdProp = new EntityId
+            {
+                Backing = player.CharacterEntity.EntityId,
+                ControllerId = (Controller)1,
+                Id = 35814084702844050
+            },
+            OwnerNameProp = "",
+            OwnerLocalStringProp = 0,
+            OccupantIds_0Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+            OccupantIds_1Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+            OccupantIds_2Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+            OccupantIds_3Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+            OccupantIds_4Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+            OccupantIds_5Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+            DeployableIds_0Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_1Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_2Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_3Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_4Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_5Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_6Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_7Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_8Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            DeployableIds_9Prop = new DeployableIdsData
+            {
+                Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
+                Unk1 = 0,
+                Unk2 = 255
+            },
+            SnapMountProp = 0,
+            SpawnPoseProp = new AeroMessages.GSS.V66.Vehicle.Controller.SpawnPoseData
+            {
+                Position = vehicleCalldownRequest.Position,
+                Rotation = vehicleCalldownRequest.Rotation,
+                Direction = player.CharacterEntity.AimDirection,
+                Time = client.AssignedShard.CurrentTime
+            },
+            SpawnVelocityProp = new Vector3 { X = 0, Y = 0, Z = 0 },
+            CurrentPoseProp = new CurrentPoseData
+            {
+                Position = vehicleCalldownRequest.Position,
+                Rotation = vehicleCalldownRequest.Rotation,
+                Direction = player.CharacterEntity.AimDirection,
+                State = 4096, // What state might this be?
+                Time = client.AssignedShard.CurrentTime
+            },
+            ProcessDelayProp = new ProcessDelayData
+            {
+                Unk1 = 15734,
+                Unk2 = 300,
+            },
+            HostilityInfoProp = new HostilityInfoData
+            {
+                Flags = (HostilityInfoData.HostilityFlags)1,
+                FactionId = 1,
+                TeamId = 0,
+                Unk2 = 0,
+                Unk3 = 0,
+                Unk4 = 0
+            },
+            PersonalFactionStanceProp = new PersonalFactionStanceData
+            {
+                Unk1 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x43, 0x51, 0x35, 0x64, 0x2f, 0x31, 0x38, 0x49, 0x41, 0x41, 0x41, 0x3d } },
+                Unk2 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x38, 0x67, 0x41, 0x67, 0x41, 0x41, 0x44, 0x79, 0x41, 0x41, 0x41, 0x3d } }
+            },
+            CurrentHealthProp = 60684,
+            MaxHealthProp = 60684,
+            CurrentShieldsProp = 0,
+            MaxShieldsProp = 0,
+            CurrentResourcesProp = 0,
+            MaxResourcesProp = 0,
+            WaterLevelAndDescProp = 0,
+            SinFlagsProp = 0,
+            SinFlagsPrivateProp = 0,
+            SinFactionsAcquiredByProp = null,
+            SinTeamsAcquiredByProp = null,
+            SinCardTypeProp = 0,
+            SinCardFields_0Prop = null,
+            SinCardFields_1Prop = null,
+            SinCardFields_2Prop = null,
+            SinCardFields_3Prop = null,
+            SinCardFields_4Prop = null,
+            SinCardFields_5Prop = null,
+            SinCardFields_6Prop = null,
+            SinCardFields_7Prop = null,
+            SinCardFields_8Prop = null,
+            SinCardFields_9Prop = null,
+            SinCardFields_10Prop = null,
+            SinCardFields_11Prop = null,
+            SinCardFields_12Prop = null,
+            SinCardFields_13Prop = null,
+            SinCardFields_14Prop = null,
+            SinCardFields_15Prop = null,
+            SinCardFields_16Prop = null,
+            SinCardFields_17Prop = null,
+            SinCardFields_18Prop = null,
+            SinCardFields_19Prop = null,
+            SinCardFields_20Prop = null,
+            SinCardFields_21Prop = null,
+            SinCardFields_22Prop = null,
+            ScopeBubbleInfoProp = new ScopeBubbleInfoData
+            {
+                Unk1 = 0,
+                Unk2 = 1,
+            },
+            ScalingLevelProp = 0
+        };
+
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(resp, player.EntityId, player.PlayerId);
     }
 }
