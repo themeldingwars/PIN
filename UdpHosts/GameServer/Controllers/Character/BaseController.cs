@@ -668,7 +668,7 @@ public class BaseController : Base
     [MessageID((byte)Commands.VehicleCalldownRequest)]
     public void VehicleCalldownRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-        Core.Data.EntityGuid vehicleEntityId = new(31, client.AssignedShard.CurrentTime, 3670903, 0x01);
+        Core.Data.EntityGuid vehicleEntityGuid = new(31, client.AssignedShard.CurrentTime, 3670903, 0x01);
 
         var vehicleCalldownRequest = packet.Unpack<VehicleCalldownRequest>();
 
@@ -677,14 +677,11 @@ public class BaseController : Base
         var vehicleBaseController = new VController.BaseController
         {
             VehicleIdProp = vehicleCalldownRequest.VehicleID,
-            ConfigurationProp = new ConfigurationData
-            {
-                Data = new uint[] { 0, 0, 0, 0, 0, 0, 0, 0 }
-            },
+            ConfigurationProp = new ConfigurationData { Data = new uint[] { 0, 0, 0, 0, 0, 0, 0, 0 } },
             FlagsProp = new byte[] { 0x41, 0x41, 0x51, 0x41, 0x41, 0x41, 0x3d, 0x3d },
             EngineStateProp = 0,
             PathStateProp = 1,
-            OwnerIdProp = new EntityId { Backing = player.CharacterEntity.EntityId, ControllerId = (Controller)1, Id = 35814084702844050 },
+            OwnerIdProp = new EntityId { Backing = vehicleEntityGuid.Full, ControllerId = Controller.Vehicle, Id = player.PlayerId },
             OwnerNameProp = "",
             OwnerLocalStringProp = 0,
             OccupantIds_0Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
@@ -705,40 +702,36 @@ public class BaseController : Base
             DeployableIds_9Prop = new DeployableIdsData { Target = new EntityId { Backing = 0, ControllerId = 0, Id = 0 }, Unk1 = 0, Unk2 = 255 },
             SnapMountProp = 0,
             SpawnPoseProp = new VController.SpawnPoseData
-            {
-                Position = vehicleCalldownRequest.Position,
-                Rotation = vehicleCalldownRequest.Rotation,
-                Direction = player.CharacterEntity.AimDirection,
-                Time = client.AssignedShard.CurrentTime
-            },
+                            {
+                                Position = vehicleCalldownRequest.Position,
+                                Rotation = vehicleCalldownRequest.Rotation,
+                                Direction = player.CharacterEntity.AimDirection,
+                                Time = client.AssignedShard.CurrentTime
+                            },
             SpawnVelocityProp = new Vector3 { X = 0, Y = 0, Z = 0 },
             CurrentPoseProp = new CurrentPoseData
-            {
-                Position = vehicleCalldownRequest.Position,
-                Rotation = vehicleCalldownRequest.Rotation,
-                Direction = player.CharacterEntity.AimDirection,
-                State = 4096, // What state might this be?
-                Time = client.AssignedShard.CurrentTime
-            },
-            ProcessDelayProp = new ProcessDelayData
-            {
-                Unk1 = 15734,
-                Unk2 = 300,
-            },
+                              {
+                                  Position = vehicleCalldownRequest.Position,
+                                  Rotation = vehicleCalldownRequest.Rotation,
+                                  Direction = player.CharacterEntity.AimDirection,
+                                  State = 4096, // What state might this be?
+                                  Time = client.AssignedShard.CurrentTime
+                              },
+            ProcessDelayProp = new ProcessDelayData { Unk1 = 15734, Unk2 = 300 },
             HostilityInfoProp = new HostilityInfoData
-            {
-                Flags = (HostilityInfoData.HostilityFlags)1,
-                FactionId = 1,
-                TeamId = 0,
-                Unk2 = 0,
-                Unk3 = 0,
-                Unk4 = 0
-            },
+                                {
+                                    Flags = HostilityInfoData.HostilityFlags.Faction,
+                                    FactionId = 1,
+                                    TeamId = 0,
+                                    Unk2 = 0,
+                                    Unk3 = 0,
+                                    Unk4 = 0
+                                },
             PersonalFactionStanceProp = new PersonalFactionStanceData
-            {
-                Unk1 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x43, 0x51, 0x35, 0x64, 0x2f, 0x31, 0x38, 0x49, 0x41, 0x41, 0x41, 0x3d } },
-                Unk2 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x38, 0x67, 0x41, 0x67, 0x41, 0x41, 0x44, 0x79, 0x41, 0x41, 0x41, 0x3d } }
-            },
+                                        {
+                                            Unk1 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x43, 0x51, 0x35, 0x64, 0x2f, 0x31, 0x38, 0x49, 0x41, 0x41, 0x41, 0x3d } },
+                                            Unk2 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x38, 0x67, 0x41, 0x67, 0x41, 0x41, 0x44, 0x79, 0x41, 0x41, 0x41, 0x3d } }
+                                        },
             CurrentHealthProp = 60684,
             MaxHealthProp = 60684,
             CurrentShieldsProp = 0,
@@ -751,11 +744,30 @@ public class BaseController : Base
             SinFactionsAcquiredByProp = null,
             SinTeamsAcquiredByProp = null,
             SinCardTypeProp = 0,
-            ScopeBubbleInfoProp = new ScopeBubbleInfoData
-            {
-                Unk1 = 0,
-                Unk2 = 1,
-            },
+            SinCardFields_0Prop = null,
+            SinCardFields_1Prop = null,
+            SinCardFields_2Prop = null,
+            SinCardFields_3Prop = null,
+            SinCardFields_4Prop = null,
+            SinCardFields_5Prop = null,
+            SinCardFields_6Prop = null,
+            SinCardFields_7Prop = null,
+            SinCardFields_8Prop = null,
+            SinCardFields_9Prop = null,
+            SinCardFields_10Prop = null,
+            SinCardFields_11Prop = null,
+            SinCardFields_12Prop = null,
+            SinCardFields_13Prop = null,
+            SinCardFields_14Prop = null,
+            SinCardFields_15Prop = null,
+            SinCardFields_16Prop = null,
+            SinCardFields_17Prop = null,
+            SinCardFields_18Prop = null,
+            SinCardFields_19Prop = null,
+            SinCardFields_20Prop = null,
+            SinCardFields_21Prop = null,
+            SinCardFields_22Prop = null,
+            ScopeBubbleInfoProp = new ScopeBubbleInfoData { Unk1 = 0, Unk2 = 1 },
             ScalingLevelProp = 0
         };
 
@@ -766,7 +778,7 @@ public class BaseController : Base
             SlottedAbility_2 = 0,
             SlottedAbility_3 = 0,
             SlottedAbility_4 = 0,
-            SlottedAbility_5 = 30770,
+            SlottedAbility_5 = 34920,
             SlottedAbility_6 = 0,
             SlottedAbility_7 = 0,
             SlottedAbility_8 = 43,
@@ -776,7 +788,7 @@ public class BaseController : Base
             SlottedAbility_2Prop = 0,
             SlottedAbility_3Prop = 0,
             SlottedAbility_4Prop = 0,
-            SlottedAbility_5Prop = 30770,
+            SlottedAbility_5Prop = 34920,
             SlottedAbility_6Prop = 0,
             SlottedAbility_7Prop = 0,
             SlottedAbility_8Prop = 43,
@@ -814,7 +826,7 @@ public class BaseController : Base
             StatusEffectsChangeTime_30Prop = 29551,
             StatusEffectsChangeTime_31Prop = 29801,
 
-            /*StatusEffects_0Prop = null,
+            StatusEffects_0Prop = null,
             StatusEffects_1Prop = null,
             StatusEffects_2Prop = null,
             StatusEffects_3Prop = null,
@@ -845,12 +857,12 @@ public class BaseController : Base
             StatusEffects_28Prop = null,
             StatusEffects_29Prop = null,
             StatusEffects_30Prop = null,
-            StatusEffects_31Prop = null*/
+            StatusEffects_31Prop = null
         };
 
-        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicleBaseController, vehicleEntityId.Full, player.PlayerId);
-        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicleCombatController, vehicleEntityId.Full, player.PlayerId);
-        //client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(resp, player.EntityId);
-        //client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(vehicleCombatController, player.EntityId);
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicleBaseController, vehicleEntityGuid.Full, player.PlayerId);
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicleCombatController, vehicleEntityGuid.Full, player.PlayerId);
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(vehicleBaseController, vehicleEntityGuid.Full);
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(vehicleCombatController, vehicleEntityGuid.Full);
     }
 }
