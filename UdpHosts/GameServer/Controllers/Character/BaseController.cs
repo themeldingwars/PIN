@@ -18,7 +18,6 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 
 namespace GameServer.Controllers.Character;
 
@@ -862,7 +861,5 @@ public class BaseController : Base
 
         client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicleBaseController, vehicleEntityGuid.Full, player.PlayerId);
         client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicleCombatController, vehicleEntityGuid.Full, player.PlayerId);
-        client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(vehicleBaseController, vehicleEntityGuid.Full);
-        client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(vehicleCombatController, vehicleEntityGuid.Full);
     }
 }
