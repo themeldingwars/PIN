@@ -1,11 +1,9 @@
 ﻿using AeroMessages.Common;
 using AeroMessages.GSS.V66;
-using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Vehicle;
 using AeroMessages.GSS.V66.Vehicle.Command;
 using AeroMessages.GSS.V66.Vehicle.Controller;
-using GameServer.Enums.GSS;
-using GameServer.Enums.GSS.Character;
+using GameServer.Enums.GSS.Vehicle;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
@@ -26,10 +24,10 @@ public class BaseController : Base
     [MessageID((byte)Commands.MovementInput)]
     public void MovementInput(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-        var movementInput = packet.Unpack<AeroMessages.GSS.V66.Vehicle.Command.MovementInput>();
+        var movementInput = packet.Unpack<MovementInput>();
         var movementUpdate = new AeroMessages.GSS.V66.Vehicle.Controller.BaseController
         {
-            VehicleIdProp = 0,
+            /*VehicleIdProp = 0,
             ConfigurationProp = new ConfigurationData { Data = null },
             FlagsProp = null,
             EngineStateProp = 0,
@@ -109,9 +107,23 @@ public class BaseController : Base
             SinCardFields_21Prop = null,
             SinCardFields_22Prop = null,
             ScopeBubbleInfoProp = new ScopeBubbleInfoData { Unk1 = 0, Unk2 = 0 },
-            ScalingLevelProp = 0
+            ScalingLevelProp = 0*/
+
+            CurrentHealthProp = 60673
         };
 
         client.NetChannels[ChannelType.ReliableGss].SendIAeroChanges(movementUpdate, entityId);
+    }
+
+    [MessageID((byte)Commands.SetWaterLevelAndDesc)]
+    public void SetWaterLevelAndDesc(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        // TODO: Implement
+    }
+
+    [MessageID((byte)Commands.SetEffectsFlag)]
+    public void SetEffectsFlag(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        // TODO: Implement
     }
 }
