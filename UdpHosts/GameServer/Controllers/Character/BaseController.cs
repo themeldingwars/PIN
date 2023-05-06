@@ -716,6 +716,8 @@ public class BaseController : Base
     public void SetMovementSimulation(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // ToDo: Implement BaseController.SetMovementSimulation
+        var setMovementSimulation = packet.Unpack<SetMovementSimulation>();
+
         LogMissingImplementation<BaseController>(nameof(SetMovementSimulation), entityId, packet, _logger);
     }
 
@@ -1005,7 +1007,13 @@ public class BaseController : Base
     [MessageID((byte)Commands.MapOpened)]
     public void MapOpened(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-        var mapOpened = new GeographicalReportResponse { };
+        var mapOpened = new GeographicalReportResponse
+        {
+            Unk1 = 0,
+            Unk2 = new Vector3 { X = 0, Y = 0, Z = 0},
+            Unk3 = 0x00,
+            Data = new GeoReportData[] { }
+        };
 
         client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(mapOpened, player.CharacterEntity.EntityId, player.PlayerId);
     }
