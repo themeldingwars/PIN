@@ -966,6 +966,8 @@ public class BaseController : Base
             Data = new ResourceLocationInfo[] { },
             Unk = 0x01
         };
+
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(resourceLocationInfosResponse, player.CharacterEntity.EntityId, player.PlayerId);
     }
 
     [MessageID((byte)Commands.FriendsListRequest)]
@@ -996,5 +998,15 @@ public class BaseController : Base
             },
             Unk2 = 0
         };
+
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(friendsListResponse, player.CharacterEntity.EntityId, player.PlayerId);
+    }
+
+    [MessageID((byte)Commands.MapOpened)]
+    public void MapOpened(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var mapOpened = new GeographicalReportResponse { };
+
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(mapOpened, player.CharacterEntity.EntityId, player.PlayerId);
     }
 }
