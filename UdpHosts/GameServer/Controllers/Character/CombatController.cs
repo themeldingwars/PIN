@@ -46,7 +46,7 @@ public class CombatController : Base
             MoreData = fireWeaponProjectile.UnkVector
         };
 
-        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(fireWeaponProjectile, player.CharacterEntity.EntityId, player.PlayerId);
+        client.NetChannels[ChannelType.ReliableGss].SendIAero(fireWeaponProjectile, player.CharacterEntity.EntityId);
     }
 
     [MessageID((byte)Commands.FireEnd)]
