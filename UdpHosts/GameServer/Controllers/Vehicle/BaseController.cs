@@ -1,13 +1,8 @@
-﻿using AeroMessages.Common;
-using AeroMessages.GSS.V66;
-using AeroMessages.GSS.V66.Vehicle;
-using AeroMessages.GSS.V66.Vehicle.Command;
-using AeroMessages.GSS.V66.Vehicle.Controller;
+﻿using AeroMessages.GSS.V66.Vehicle.Command;
 using GameServer.Enums.GSS.Vehicle;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
-using System.Numerics;
 
 namespace GameServer.Controllers.Vehicle;
 
@@ -124,6 +119,6 @@ public class BaseController : Base
     [MessageID((byte)Commands.SetEffectsFlag)]
     public void SetEffectsFlag(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-        // TODO: Implement
+        // ToDo: Implement
     }
 }
