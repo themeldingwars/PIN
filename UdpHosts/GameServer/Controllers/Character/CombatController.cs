@@ -25,8 +25,44 @@ public class CombatController : Base
         // TODO: Implement
     }
 
+    [MessageID((byte)Commands.FireBurst)]
+    public void FireBurst(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        // TODO: Implement
+    }
+
+    [MessageID((byte)Commands.FireWeaponProjectile)]
+    public void FireWeaponProjectile(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var fireWeaponProjectile = packet.Unpack<FireWeaponProjectile>();
+        /*
+         * 
+         */
+        var weaponProjectileFired = new WeaponProjectileFired
+        {
+            ShortTime = (ushort)fireWeaponProjectile.Time,
+            Aim = fireWeaponProjectile.AimDirection,
+            HaveMoreData = fireWeaponProjectile.HaveUnkVector,
+            MoreData = fireWeaponProjectile.UnkVector
+        };
+
+        client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(fireWeaponProjectile, player.CharacterEntity.EntityId, player.PlayerId);
+    }
+
+    [MessageID((byte)Commands.FireEnd)]
+    public void FireEnd(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        // TODO: Implement
+    }
+
     [MessageID((byte)Commands.UseScope)]
     public void UseScope(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        // TODO: Implement
+    }
+
+    [MessageID((byte)Commands.SelectWeapon)]
+    public void SelectWeapon(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // TODO: Implement
     }
@@ -36,7 +72,13 @@ public class CombatController : Base
     {
         // TODO: Implement
     }
-    
+
+    [MessageID((byte)Commands.ReloadWeapon)]
+    public void ReloadWeapon(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        // TODO: Implement
+    }
+
 
     [MessageID((byte)Commands.ActivateAbility)]
     public void ActivateAbility(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
