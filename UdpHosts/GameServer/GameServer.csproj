@@ -21,6 +21,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Lib\AeroMessages\AeroMessages\AeroMessages.csproj" />
+        <ProjectReference Include="..\..\Lib\Core.Data\Core.Data.csproj" />
         <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />
         <ProjectReference Include="..\..\Lib\Shared.Udp\Shared.Udp.csproj" />
     </ItemGroup>
