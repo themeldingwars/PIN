@@ -293,7 +293,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                       ZoneTimestamp = CurrentZone.Timestamp,
                       PreviewModeFlag = 0,
                       ZoneOwner = "r5_exec",
-                      Unk1_1 = 0x4c5f,
+                      StreamingProtocol = 0x4c5f,
                       Unk1_2 = 0x0c9f5,
                       HotfixLevel = 0,
                       MatchId = 0,

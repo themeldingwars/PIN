@@ -174,10 +174,10 @@ public class NetworkClient : INetworkClient
             case MatrixPacketType.ClientStatus:
                 NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
                                                           {
-                                                              Unk1 = 0,
-                                                              Unk2 = 0,
-                                                              Unk3 = 0,
-                                                              Unk4 = 0,
+                                                              MatrixBytesPerSecond = 0,
+                                                              MatrixBytesPerSecond2 = 0,
+                                                              PacketUploss = 0,
+                                                              PacketDownloss = 0,
                                                               Unk5 = 0,
                                                               Unk6 = 0,
                                                               HaveUnk7 = 0,
