@@ -1,6 +1,6 @@
 name: CI
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -9,17 +9,17 @@ jobs:
   build:
     name: ${{ matrix.platform.name }} ${{ matrix.dotnet.name }}
     runs-on: ${{ matrix.platform.os }}
-    
+
     strategy:
       fail-fast: false
       matrix:
         platform:
-        - { name: Linux, os: ubuntu-22.04 }
-        - { name: Windows VS2022, os: windows-2022 }
-        - { name: macOS, os: macos-12 }
+          - { name: Linux, os: ubuntu-22.04 }
+          - { name: Windows VS2022, os: windows-2022 }
+          - { name: macOS, os: macos-12 }
         dotnet:
-        - { name: .NET 6, version: '6.0.x' }
-        - { name: .NET 7, version: '7.0.x' }
+          - { name: .NET 6, version: "6.0.x" }
+          - { name: .NET 7, version: "7.0.x" }
 
     steps:
       - name: Checkout
@@ -39,3 +39,16 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore
+      - name: Publish
+        if: matrix.platform.name == 'Windows VS2022' && matrix.dotnet.name == '.NET 6'
+        run: |
+          dotnet publish --runtime win10-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -o Publish
+          cp ./Start.cmd ./Publish
+          cp ./README.md ./Publish
+          cp ./CHANGELOG.md ./Publish
+      - name: Upload Artifact
+        if: matrix.platform.name == 'Windows VS2022' && matrix.dotnet.name == '.NET 6'
+        uses: actions/upload-artifact@v3
+        with:
+          name: PIN-${{ github.sha }}
+          path: Publish
