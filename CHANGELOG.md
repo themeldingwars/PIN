@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [1.2.0] - 2023-06-02
 
 ### Added
 
+- Add support for calling down a LGV
 - Add documentation to explain the architecture
 - Use Autofac for dependency injection in UdpHosts
 - Add basic endpoint for character creation handling
@@ -17,6 +18,12 @@
   - api/v3/characters/{character_id}/inventories/gear/items
   - api/v1/zones/queue_ids
   - api/v2/zone_settings
+  - api/v1/item_display_attributes
+  - api/v1/market_categories
+  - api/v1/characters/validate_name
+  - api/v3/characters/{characterId}/titles
+  - api/v3/characters/{characterId}/garage_slots/{frameId}/perks
+  - ...and more
 - Use AeroMessages as submodule instead of a binary reference
 - Use range indexer
 - Modernize code base with support from Rider auto format and clean up
@@ -32,6 +39,8 @@
 
 ### Changed
 
+- Jets rendering correctly
+- Use AeroMessages for nearly all packets
 - Clean up some of the code flow, for easier understanding
 - Use long speaking names for variables
 - Started transition to AeroMessages, this is an incremental process
