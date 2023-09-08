@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <Import Project="..\..\PIN.targets" />
+
+    <ItemGroup>
+        <None Remove="cert.pfx" />
+        <None Remove="config\appsettings.Development.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="config\appsettings.Development.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="config\appsettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+        <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />
+        <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj" />
+        <ProjectReference Include="..\WebHost.CatchAll\WebHost.CatchAll.csproj" />
+        <ProjectReference Include="..\WebHost.Chat\WebHost.Chat.csproj" />
+        <ProjectReference Include="..\WebHost.ClientApi\WebHost.ClientApi.csproj" />
+        <ProjectReference Include="..\WebHost.InGameApi\WebHost.InGameApi.csproj" />
+        <ProjectReference Include="..\WebHost.Market\WebHost.Market.csproj" />
+        <ProjectReference Include="..\WebHost.OperatorApi\WebHost.OperatorApi.csproj" />
+        <ProjectReference Include="..\WebHost.Replay\WebHost.Replay.csproj" />
+        <ProjectReference Include="..\WebHost.Store\WebHost.Store.csproj" />
+        <ProjectReference Include="..\WebHost.WebAsset\WebHost.WebAsset.csproj" />
+    </ItemGroup>
+
+</Project>
