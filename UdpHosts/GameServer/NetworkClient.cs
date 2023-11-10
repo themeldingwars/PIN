@@ -1,4 +1,10 @@
-﻿using AeroMessages.Matrix.V25;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Net;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using AeroMessages.Matrix.V25;
 using GameServer.Controllers;
 using GameServer.Controllers.Character;
 using GameServer.Enums;
@@ -7,12 +13,6 @@ using GameServer.Packets;
 using GameServer.Packets.Control;
 using Serilog;
 using Shared.Udp;
-using System;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace GameServer;
 
@@ -29,15 +29,15 @@ public class NetworkClient : INetworkClient
         NetLastActive = DateTime.Now;
     }
 
-    protected IPacketSender Sender { get; private set; }
-    protected IPlayer Player { get; private set; }
-
     public Status NetClientStatus { get; private set; }
     public uint SocketId { get; }
     public IPEndPoint RemoteEndpoint { get; }
     public DateTime NetLastActive { get; private set; }
     public ImmutableDictionary<ChannelType, Channel> NetChannels { get; private set; }
     public IShard AssignedShard { get; private set; }
+
+    protected IPacketSender Sender { get; private set; }
+    protected IPlayer Player { get; private set; }
 
     public void Init(IPlayer player, IShard shard, IPacketSender sender)
     {
@@ -78,8 +78,7 @@ public class NetworkClient : INetworkClient
 
             var gamePacket = new GamePacket(header, data.Slice(index + headerSize, header.Length - headerSize), packet.Received);
 
-            //Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
-
+            // Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
             NetChannels[header.Channel].HandlePacket(gamePacket);
 
             index += header.Length;
@@ -106,7 +105,6 @@ public class NetworkClient : INetworkClient
 
         Sender.SendAsync(t, RemoteEndpoint);
     }
-
 
     public void SendAck(ChannelType forChannel, ushort forSequenceNumber, DateTime? received = null)
     {
@@ -169,6 +167,7 @@ public class NetworkClient : INetworkClient
                 break;
             case MatrixPacketType.KeyframeRequest:
                 packet.Unpack<KeyframeRequest>();
+                
                 // TODO: Send checksums/keyframes in return.
                 break;
             case MatrixPacketType.ClientStatus:
@@ -203,16 +202,19 @@ public class NetworkClient : INetworkClient
         {
             case ControlPacketType.CloseConnection:
                 packet.Read<CloseConnection>();
+                
                 // TODO: Cleanly dispose of client
                 break;
             case ControlPacketType.MatrixAck:
                 var matrixAckPackage = packet.Read<MatrixAck>();
                 Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckFor), ChannelType.Matrix);
+                
                 // TODO: Track reliable packets
                 break;
             case ControlPacketType.ReliableGSSAck:
                 var reliableGssAckPackage = packet.Read<ReliableGSSAck>();
                 Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckFor), ChannelType.ReliableGss);
+                
                 // TODO: Track reliable packets
                 break;
             case ControlPacketType.TimeSyncRequest:
@@ -222,6 +224,7 @@ public class NetworkClient : INetworkClient
                 break;
             case ControlPacketType.MTUProbe:
                 packet.Read<MTUProbe>();
+                
                 // TODO: ???
                 break;
             default:

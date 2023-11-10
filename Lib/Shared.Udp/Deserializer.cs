@@ -46,97 +46,6 @@ public static class Deserializer
         return (T)Read(ref data, typeof(T));
     }
 
-    private static unsafe object Read(ref ReadOnlyMemory<byte> data, Type type, IEnumerable<Attribute> attributes = null)
-    {
-        attributes = attributes?.ToList() ?? type.GetCustomAttributes();
-
-        var prefixLength = attributes.FirstOrDefault(a => a is LengthPrefixedAttribute) as LengthPrefixedAttribute;
-        var length = attributes.FirstOrDefault(a => a is LengthAttribute) as LengthAttribute;
-        var padding = attributes.FirstOrDefault(a => a is PaddingAttribute) as PaddingAttribute;
-        var exists = attributes.FirstOrDefault(a => a is ExistsPrefixAttribute) as ExistsPrefixAttribute;
-
-        object ret = null;
-
-        if (padding != null)
-        {
-            data = data[padding.Size..];
-        }
-
-        if (exists != null)
-        {
-            if (Read(ref data, exists.ExistsType) != exists.TrueValue)
-            {
-                return null;
-            }
-
-            data = data[Marshal.SizeOf(exists.ExistsType)..];
-        }
-
-        if (typeof(IEnumerable).IsAssignableFrom(type) && type.GenericTypeArguments is { Length: > 0 })
-        {
-            var l = 0;
-            if (prefixLength != null)
-            {
-                l = (int)Convert.ChangeType(Read(ref data, prefixLength.LengthType), typeof(int));
-                data = data[Marshal.SizeOf(prefixLength.LengthType)..];
-            }
-            else if (length != null)
-            {
-                l = length.Length;
-            }
-            else
-            {
-                throw new Exception();
-            }
-
-            var tempRet = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(type.GenericTypeArguments));
-            for (var i = 0; i < l; i++)
-            {
-                _ = tempRet.Add(Read(ref data, type.GenericTypeArguments[0]));
-            }
-
-            ret = tempRet;
-        }
-        else if (typeof(string) == type)
-        {
-            var l = 0;
-
-            while (l < data.Length && data.Span[l] != 0x00)
-            {
-                l++;
-            }
-
-            l++; // null terminator
-
-            ret = Encoding.ASCII.GetString(data[..(l - 1)].Span.ToArray());
-            data = data[l..];
-        }
-        else if (type.IsClass)
-        {
-            ret = ReadClass(ref data, type);
-        }
-        else if (type.IsPrimitive || typeof(Half) == type)
-        {
-            ret = ReadPrimitive(ref data, type);
-        }
-        else if (type.IsValueType && type.BaseType == typeof(Enum))
-        {
-            ret = Enum.ToObject(type, Read(ref data, Enum.GetUnderlyingType(type)));
-        }
-        else if (type.IsValueType)
-        {
-            var size = Marshal.SizeOf(type);
-            var memoryHandle = data[..size].Pin();
-
-            ret = Marshal.PtrToStructure(new IntPtr(memoryHandle.Pointer), type);
-            data = data[size..];
-
-            memoryHandle.Dispose();
-        }
-
-        return ret;
-    }
-
     public static object ReadPrimitive(ref ReadOnlyMemory<byte> data, Type type)
     {
         ReadOnlySpan<byte> span;
@@ -219,6 +128,97 @@ public static class Deserializer
         }
 
         throw new Exception();
+    }
+
+    private static unsafe object Read(ref ReadOnlyMemory<byte> data, Type type, IEnumerable<Attribute> attributes = null)
+    {
+        attributes = attributes?.ToList() ?? type.GetCustomAttributes();
+
+        var prefixLength = attributes.FirstOrDefault(a => a is LengthPrefixedAttribute) as LengthPrefixedAttribute;
+        var length = attributes.FirstOrDefault(a => a is LengthAttribute) as LengthAttribute;
+        var padding = attributes.FirstOrDefault(a => a is PaddingAttribute) as PaddingAttribute;
+        var exists = attributes.FirstOrDefault(a => a is ExistsPrefixAttribute) as ExistsPrefixAttribute;
+
+        object ret = null;
+
+        if (padding != null)
+        {
+            data = data[padding.Size..];
+        }
+
+        if (exists != null)
+        {
+            if (Read(ref data, exists.ExistsType) != exists.TrueValue)
+            {
+                return null;
+            }
+
+            data = data[Marshal.SizeOf(exists.ExistsType) ..];
+        }
+
+        if (typeof(IEnumerable).IsAssignableFrom(type) && type.GenericTypeArguments is { Length: > 0 })
+        {
+            var l = 0;
+            if (prefixLength != null)
+            {
+                l = (int)Convert.ChangeType(Read(ref data, prefixLength.LengthType), typeof(int));
+                data = data[Marshal.SizeOf(prefixLength.LengthType) ..];
+            }
+            else if (length != null)
+            {
+                l = length.Length;
+            }
+            else
+            {
+                throw new Exception();
+            }
+
+            var tempRet = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(type.GenericTypeArguments));
+            for (var i = 0; i < l; i++)
+            {
+                _ = tempRet.Add(Read(ref data, type.GenericTypeArguments[0]));
+            }
+
+            ret = tempRet;
+        }
+        else if (typeof(string) == type)
+        {
+            var l = 0;
+
+            while (l < data.Length && data.Span[l] != 0x00)
+            {
+                l++;
+            }
+
+            l++; // null terminator
+
+            ret = Encoding.ASCII.GetString(data[.. (l - 1)].Span.ToArray());
+            data = data[l..];
+        }
+        else if (type.IsClass)
+        {
+            ret = ReadClass(ref data, type);
+        }
+        else if (type.IsPrimitive || typeof(Half) == type)
+        {
+            ret = ReadPrimitive(ref data, type);
+        }
+        else if (type.IsValueType && type.BaseType == typeof(Enum))
+        {
+            ret = Enum.ToObject(type, Read(ref data, Enum.GetUnderlyingType(type)));
+        }
+        else if (type.IsValueType)
+        {
+            var size = Marshal.SizeOf(type);
+            var memoryHandle = data[..size].Pin();
+
+            ret = Marshal.PtrToStructure(new IntPtr(memoryHandle.Pointer), type);
+            data = data[size..];
+
+            memoryHandle.Dispose();
+        }
+
+        return ret;
     }
 
     private static object ReadClass(ref ReadOnlyMemory<byte> data, Type type)

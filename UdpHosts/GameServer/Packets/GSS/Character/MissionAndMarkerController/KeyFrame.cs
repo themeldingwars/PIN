@@ -1,6 +1,6 @@
-﻿using GameServer.Enums.GSS.Character;
+﻿using System.Collections.Generic;
+using GameServer.Enums.GSS.Character;
 using Shared.Udp;
-using System.Collections.Generic;
 
 namespace GameServer.Packets.GSS.Character.MissionAndMarkerController;
 

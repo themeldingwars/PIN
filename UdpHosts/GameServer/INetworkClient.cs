@@ -1,8 +1,8 @@
-﻿using Shared.Udp;
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
+using Shared.Udp;
 
 namespace GameServer;
 

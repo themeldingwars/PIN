@@ -19,7 +19,7 @@ public class Army
     public ulong? CommanderGuid { get; set; }
     public string TagPosition { get; set; }
     public uint? MinSize { get; set; }
-    public uint? MaxSize { get; set;}
+    public uint? MaxSize { get; set; }
     public bool? Disbanded { get; set; }
     public string Website { get; set; }
     public bool? MassEmail { get; set; }

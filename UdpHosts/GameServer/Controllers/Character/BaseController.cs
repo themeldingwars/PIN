@@ -1,4 +1,7 @@
-﻿using AeroMessages.Common;
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
+using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
@@ -6,15 +9,12 @@ using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Character.View;
 using AeroMessages.GSS.V66.Vehicle;
-using VController = AeroMessages.GSS.V66.Vehicle.Controller;
 using GameServer.Entities.Character;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
+using VController = AeroMessages.GSS.V66.Vehicle.Controller;
 
 namespace GameServer.Controllers.Character;
 
@@ -434,7 +434,8 @@ public class BaseController : Base
                                                                      | PermissionFlagsData.CharacterPermissionFlags.unk_25
                                                                      | PermissionFlagsData.CharacterPermissionFlags.unk_26
                                                                      | PermissionFlagsData.CharacterPermissionFlags.self_revive
-                                                                     //| PermissionFlagsData.CharacterPermissionFlags.respawn_input
+                                                                     
+                                                                     // | PermissionFlagsData.CharacterPermissionFlags.respawn_input
                                                                      | PermissionFlagsData.CharacterPermissionFlags.battleframe_abilities
                                                                      | PermissionFlagsData.CharacterPermissionFlags.unk_31
                                                          },
@@ -644,7 +645,6 @@ public class BaseController : Base
     public void MovementInput(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         // ToDo: This currently only handles PosRotState inputs, logic needs to be added for the other MovementDataTypes
-
         if (packet.BytesRemaining < 64)
         {
             return;
@@ -677,8 +677,7 @@ public class BaseController : Base
         player.CharacterEntity.TimeSinceLastJump ??=
             timeSinceLastJumpValue >= 0 ? Convert.ToUInt16(timeSinceLastJumpValue) : throw new ArgumentOutOfRangeException($"{nameof(poseData.TimeSinceLastJump)} is <0, but we're only allowing >=0. This is bad!");
 
-        //_logger.Warning( "Movement Unknown1: {0:X4} {1:X4} {2:X4} {3:X4} {4:X4}", pkt.UnkUShort1, pkt.UnkUShort2, pkt.UnkUShort3, pkt.UnkUShort4, pkt.LastJumpTimer );
-
+        // _logger.Warning( "Movement Unknown1: {0:X4} {1:X4} {2:X4} {3:X4} {4:X4}", pkt.UnkUShort1, pkt.UnkUShort2, pkt.UnkUShort3, pkt.UnkUShort4, pkt.LastJumpTimer );
         var resp = new ConfirmedPoseUpdate
                    {
                        PoseData = new MovementPoseData
@@ -703,7 +702,6 @@ public class BaseController : Base
 
         // ToDo: Set "Aim" property of response if the input had the respective flag
         // ToDo: Handle JetPackEnergy changes / add to CharacterEntity class
-
         client.NetChannels[ChannelType.UnreliableGss].SendIAero(resp, entityId, 0, typeof(Events));
 
         if (player.CharacterEntity.TimeSinceLastJump.HasValue && poseData.TimeSinceLastJump > player.CharacterEntity.TimeSinceLastJump.Value)
@@ -738,9 +736,10 @@ public class BaseController : Base
         var setSteamIdPacket = packet.Unpack<SetSteamUserId>();
         player.SteamUserId = setSteamIdPacket.SteamUserId;
         _logger.Verbose("Entity {0:x8} Steam user id (Aero): {1}", entityId, player.SteamUserId);
-        //var conventional = packet.Read<SetSteamIdRequest>();
-        //_logger.Verbose("Packet Data: {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
-        //_logger.Verbose("Entity {0:x8} Steam user id (conventional): {1}", entityId, conventional.SteamId);
+        
+        // var conventional = packet.Read<SetSteamIdRequest>();
+        // _logger.Verbose("Packet Data: {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+        // _logger.Verbose("Entity {0:x8} Steam user id (conventional): {1}", entityId, conventional.SteamId);
     }
 
     [MessageID((byte)Commands.VehicleCalldownRequest)]
@@ -750,7 +749,10 @@ public class BaseController : Base
 
         var vehicleCalldownRequest = packet.Unpack<VehicleCalldownRequest>();
 
-        if (vehicleCalldownRequest == null) { return; }
+        if (vehicleCalldownRequest == null)
+        {
+            return;
+        }
 
         var vehicleBaseController = new VController.BaseController
         {
@@ -760,7 +762,7 @@ public class BaseController : Base
             EngineStateProp = 0,
             PathStateProp = 1,
             OwnerIdProp = new EntityId { Backing = vehicleEntityGuid.Full, ControllerId = Controller.Vehicle, Id = player.PlayerId },
-            OwnerNameProp = "",
+            OwnerNameProp = string.Empty,
             OwnerLocalStringProp = 0,
             OccupantIds_0Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
             OccupantIds_1Prop = new EntityId { Backing = 0, ControllerId = 0, Id = 0 },
@@ -983,7 +985,7 @@ public class BaseController : Base
                 {
                     Unk1 = 9162788533740412926,
                     Unk2 = "TestUser1",
-                    Unk3 = "",
+                    Unk3 = string.Empty,
                     Unk4 = 1,
                     Unk5 = 1427570048,
                     Unk6 = 1
@@ -992,7 +994,7 @@ public class BaseController : Base
                 {
                     Unk1 = 9153042507174448638,
                     Unk2 = "TestUser2",
-                    Unk3 = "",
+                    Unk3 = string.Empty,
                     Unk4 = 1,
                     Unk5 = 1471686583,
                     Unk6 = 1
@@ -1010,7 +1012,7 @@ public class BaseController : Base
         var mapOpened = new GeographicalReportResponse
         {
             Unk1 = 0,
-            Unk2 = new Vector3 { X = 0, Y = 0, Z = 0},
+            Unk2 = new Vector3 { X = 0, Y = 0, Z = 0 },
             Unk3 = 0x00,
             Data = new GeoReportData[] { }
         };

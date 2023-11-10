@@ -1,13 +1,13 @@
-﻿using GameServer.Entities;
-using Shared.Common;
-using Shared.Udp;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using GameServer.Entities;
+using Shared.Common;
+using Shared.Udp;
 
 namespace GameServer;
 
@@ -33,14 +33,13 @@ public class Shard : IShard
 
     public DateTime StartTime => DateTimeExtensions.Epoch.AddSeconds(_startTime);
     public IDictionary<ulong, IEntity> Entities { get; protected set; }
-    private IPacketSender Sender { get; }
-
     public IDictionary<uint, INetworkPlayer> Clients { get; }
     public PhysicsEngine Physics { get; }
     public AIEngine AI { get; }
     public ulong InstanceId { get; }
     public ulong CurrentTimeLong { get; private set; }
     public IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
+    private IPacketSender Sender { get; }
 
     public void Run(CancellationToken ct)
     {
@@ -66,7 +65,10 @@ public class Shard : IShard
         return true;
     }
 
-    public bool MigrateOut(INetworkPlayer player) { return false; }
+    public bool MigrateOut(INetworkPlayer player)
+    {
+        return false;
+    }
 
     public bool MigrateIn(INetworkPlayer player)
     {
@@ -78,8 +80,8 @@ public class Shard : IShard
         player.Init(this);
 
         Clients.Add(player.SocketId, player);
-        //Entities.Add(player.CharacterEntity.EntityID, player.CharacterEntity);
-
+        
+        // Entities.Add(player.CharacterEntity.EntityID, player.CharacterEntity);
         return true;
     }
 

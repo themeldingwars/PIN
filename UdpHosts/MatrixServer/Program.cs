@@ -1,8 +1,8 @@
-﻿using Autofac;
+﻿using System;
+using System.Collections.Generic;
+using Autofac;
 using CommandLine;
 using CommandLine.Text;
-using System;
-using System.Collections.Generic;
 
 namespace MatrixServer;
 
@@ -68,11 +68,13 @@ internal static class Program
     /// <param name="result">Parser result</param>
     private static void DisplayHelpText<T>(ParserResult<T> result)
     {
-        var helpText = HelpText.AutoBuild(result, h =>
+        var helpText = HelpText.AutoBuild(result,
+                                          h =>
                                                   {
                                                       h.AdditionalNewLineAfterOption = false;
                                                       return HelpText.DefaultParsingErrorsHandler(result, h);
-                                                  }, e => e);
+                                                  }, 
+                                          e => e);
         Console.WriteLine(helpText);
     }
 }

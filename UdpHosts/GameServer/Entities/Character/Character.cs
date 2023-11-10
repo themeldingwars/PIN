@@ -4,7 +4,8 @@ namespace GameServer.Entities.Character;
 
 public class Character : BaseEntity
 {
-    public Character(IShard owner, ulong eid) : base(owner, eid)
+    public Character(IShard owner, ulong eid)
+        : base(owner, eid)
     {
         Position = new Vector3();
         Rotation = Quaternion.Identity;

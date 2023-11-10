@@ -21,7 +21,7 @@ public class PhysicsEngine
 
         while (!ct.IsCancellationRequested && Accumulator >= DeltaTime)
         {
-            Integrate( /*state*/null, SimulatedTime, DeltaTime);
+            Integrate(/*state*/null, SimulatedTime, DeltaTime);
             Accumulator -= DeltaTime;
             SimulatedTime += DeltaTime;
         }

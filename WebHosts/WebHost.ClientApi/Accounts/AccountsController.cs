@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using WebHost.ClientApi.Accounts.Models;
 using WebHost.ClientApi.Characters.Models;
 
@@ -74,23 +74,26 @@ public class AccountsController : ControllerBase
     [HttpGet]
     public object CharacterTitles(string characterId)
     {
-        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+        if (string.IsNullOrEmpty(characterId))
+        {
+            return new { };
+        }
 
         var characterTitles = new object[]
         {
-            new Titles {Id = 117, Name = "Founder" },
-            new Titles {Id = 128, Name = "Beta Commando" },
-            new Titles {Id = 133, Name = "Beta Vanguard" },
-            new Titles {Id = 135, Name = "Commander" },
-            new Titles {Id = 136, Name = "Lieutenant" },
-            new Titles {Id = 137, Name = "Ensign" },
-            new Titles {Id = 144, Name = "Master Blaster" },
-            new Titles {Id = 149, Name = "The Gun Show" },
-            new Titles {Id = 150, Name = "Arc Runner" },
-            new Titles {Id = 152, Name = "Pyromaniac" },
-            new Titles {Id = 156, Name = "Barricade" },
-            new Titles {Id = 158, Name = "Herald of Decay" },
-            new Titles {Id = 171, Name = "Beta Trooper" }
+            new Titles { Id = 117, Name = "Founder" },
+            new Titles { Id = 128, Name = "Beta Commando" },
+            new Titles { Id = 133, Name = "Beta Vanguard" },
+            new Titles { Id = 135, Name = "Commander" },
+            new Titles { Id = 136, Name = "Lieutenant" },
+            new Titles { Id = 137, Name = "Ensign" },
+            new Titles { Id = 144, Name = "Master Blaster" },
+            new Titles { Id = 149, Name = "The Gun Show" },
+            new Titles { Id = 150, Name = "Arc Runner" },
+            new Titles { Id = 152, Name = "Pyromaniac" },
+            new Titles { Id = 156, Name = "Barricade" },
+            new Titles { Id = 158, Name = "Herald of Decay" },
+            new Titles { Id = 171, Name = "Beta Trooper" }
         };
 
         return characterTitles;
@@ -101,11 +104,14 @@ public class AccountsController : ControllerBase
     [Produces("application/json")]
     public object GarageSlots(string characterId)
     {
-        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+        if (string.IsNullOrEmpty(characterId))
+        {
+            return new { };
+        }
 
         _garageSlots = new ConcurrentDictionary<uint, GarageSlots>();
 
-        var CraftingStation = new GarageSlots
+        var craftingStation = new GarageSlots
                               {
                                   Id = 123987212,
                                   Name = "Crafting Station",
@@ -122,9 +128,9 @@ public class AccountsController : ControllerBase
                                   Unlocked = true,
                                   ExpiresInSecs = 0
                               };
-        _garageSlots.AddOrUpdate(CraftingStation.Id, CraftingStation, (k, nc) => nc);
+        _garageSlots.AddOrUpdate(craftingStation.Id, craftingStation, (k, nc) => nc);
 
-        var Firecat = new GarageSlots
+        var firecat = new GarageSlots
                       {
                           Id = 184534131,
                           Name = "Astrek \"Firecat\"",
@@ -144,7 +150,7 @@ public class AccountsController : ControllerBase
                           Unlocked = true,
                           ExpiresInSecs = 0
                       };
-        _garageSlots.AddOrUpdate(Firecat.Id, Firecat, (k, nc) => nc);
+        _garageSlots.AddOrUpdate(firecat.Id, firecat, (k, nc) => nc);
 
         return _garageSlots.Values;
     }
@@ -154,7 +160,10 @@ public class AccountsController : ControllerBase
     [Produces("application/json")]
     public object GarageSlotPerks(string characterId, string frameId)
     {
-        if (string.IsNullOrEmpty(characterId) || string.IsNullOrEmpty(frameId)) { return new { }; }
+        if (string.IsNullOrEmpty(characterId) || string.IsNullOrEmpty(frameId))
+        {
+            return new { };
+        }
 
         var framePerks = new GarageSlotPerks()
         {

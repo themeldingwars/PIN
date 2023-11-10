@@ -1,5 +1,5 @@
-﻿using Shared.Udp;
-using System.Numerics;
+﻿using System.Numerics;
+using Shared.Udp;
 
 namespace GameServer.Packets.Common;
 

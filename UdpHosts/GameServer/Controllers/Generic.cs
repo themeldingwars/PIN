@@ -1,11 +1,11 @@
-﻿using AeroMessages.GSS.V66.Generic;
+﻿using System;
+using AeroMessages.GSS.V66.Generic;
 using GameServer.Enums;
 using GameServer.Enums.GSS.Generic;
 using GameServer.Extensions;
 using GameServer.Packets;
 using GameServer.Packets.Control;
 using Serilog;
-using System;
 
 namespace GameServer.Controllers;
 
@@ -30,7 +30,7 @@ public class Generic : Base
             player.Respawn();
         }
 
-        //Program.Logger.Error( "Update scheduled" );
+        // Program.Logger.Error( "Update scheduled" );
     }
 
     [MessageID((byte)Commands.RequestLogout)]

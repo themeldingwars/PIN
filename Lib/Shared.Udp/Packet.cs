@@ -7,11 +7,7 @@ public struct Packet
 {
     public readonly IPEndPoint RemoteEndpoint;
     public readonly ReadOnlyMemory<byte> PacketData;
-    public int CurrentPosition { get; private set; }
-    public int TotalBytes => PacketData.Length;
-    public int BytesRemaining => TotalBytes - CurrentPosition;
-    public DateTime Received { get; set; }
-
+    
     public Packet(IPEndPoint ep, ReadOnlyMemory<byte> data, DateTime? received = null)
     {
         RemoteEndpoint = ep;
@@ -19,6 +15,11 @@ public struct Packet
         CurrentPosition = 0;
         this.Received = received ?? DateTime.Now;
     }
+    
+    public int CurrentPosition { get; private set; }
+    public int TotalBytes => PacketData.Length;
+    public int BytesRemaining => TotalBytes - CurrentPosition;
+    public DateTime Received { get; set; }
 
     /*public T ReadBE<T>() where T : struct {
         var len = Unsafe.SizeOf<T>();

@@ -1,5 +1,5 @@
-﻿using GameServer.Enums;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using GameServer.Enums;
 
 namespace GameServer.Packets.Control;
 

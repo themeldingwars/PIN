@@ -1,13 +1,13 @@
-﻿using GameServer.Controllers;
-using GameServer.Test;
-using Serilog;
-using Shared.Udp;
-using System;
+﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
+using GameServer.Controllers;
+using GameServer.Test;
+using Serilog;
+using Shared.Udp;
 
 namespace GameServer;
 
@@ -59,6 +59,18 @@ internal class GameServer : PacketServer
         client.HandlePacket(packet.PacketData[4..], packet);
     }
 
+    /// <summary>
+    ///     Generate the Server Id
+    ///     TODO: Incorporate the Sql Node Number as per https://gist.github.com/SilentCLD/881839a9f45578f1618db012fc789a71
+    /// </summary>
+    /// <returns></returns>
+    private static ulong GenerateServerId()
+    {
+        Span<byte> ranSpan = stackalloc byte[8];
+        new Random().NextBytes(ranSpan.Slice(2, 6));
+        return BinaryPrimitives.ReadUInt64LittleEndian(ranSpan);
+    }
+
     private INetworkClient RetrieveClient(Packet packet, CancellationToken ct)
     {
         var socketId = Utils.SimpleFixEndianness(packet.Read<uint>());
@@ -100,17 +112,5 @@ internal class GameServer : PacketServer
         shard.Run(ct);
 
         return shard;
-    }
-
-    /// <summary>
-    ///     Generate the Server Id
-    ///     TODO: Incorporate the Sql Node Number as per https://gist.github.com/SilentCLD/881839a9f45578f1618db012fc789a71
-    /// </summary>
-    /// <returns></returns>
-    private static ulong GenerateServerId()
-    {
-        Span<byte> ranSpan = stackalloc byte[8];
-        new Random().NextBytes(ranSpan.Slice(2, 6));
-        return BinaryPrimitives.ReadUInt64LittleEndian(ranSpan);
     }
 }

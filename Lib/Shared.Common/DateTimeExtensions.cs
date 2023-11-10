@@ -6,6 +6,10 @@ public static class DateTimeExtensions
 {
     private static DateTime? _epoch;
 
+    public static DateTime Epoch => CheckedEpochUtc.ToLocalTime();
+
+    public static DateTime EpochUtc => CheckedEpochUtc;
+
     private static DateTime CheckedEpochUtc
     {
         get
@@ -15,10 +19,6 @@ public static class DateTimeExtensions
             return _epoch.Value;
         }
     }
-
-    public static DateTime Epoch => CheckedEpochUtc.ToLocalTime();
-
-    public static DateTime EpochUtc => CheckedEpochUtc;
 
     public static double UnixTimestamp(this DateTime dateTime)
     {

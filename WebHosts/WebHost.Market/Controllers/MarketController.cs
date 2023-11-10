@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Shared.Common;
 using Shared.Web;
-using System.Collections.Generic;
-using System.Text.Json;
 using WebHost.Market.Models;
 
 namespace WebHost.Market.Controllers;

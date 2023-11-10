@@ -1,6 +1,5 @@
-﻿using Shared.Udp;
-using System;
-using AeroMessages;
+﻿using System;
+using Shared.Udp;
 namespace GameServer.Packets;
 
 public struct GamePacket
@@ -11,6 +10,14 @@ public struct GamePacket
     ///     All of the data received from the client except the socket id
     /// </summary>
     public readonly ReadOnlyMemory<byte> PacketData;
+
+    public GamePacket(GamePacketHeader hdr, ReadOnlyMemory<byte> data, DateTime? received = null)
+    {
+        Header = hdr;
+        PacketData = data;
+        CurrentPosition = 0;
+        Received = received ?? DateTime.Now;
+    }
 
     /// <summary>
     ///     The position of the first unread byte within the packet data
@@ -31,14 +38,6 @@ public struct GamePacket
     ///     The time the packet was received by the server
     /// </summary>
     public DateTime Received { get; set; }
-
-    public GamePacket(GamePacketHeader hdr, ReadOnlyMemory<byte> data, DateTime? received = null)
-    {
-        Header = hdr;
-        PacketData = data;
-        CurrentPosition = 0;
-        Received = received ?? DateTime.Now;
-    }
 
     public T Read<T>()
     {

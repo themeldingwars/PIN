@@ -9,8 +9,6 @@ namespace GameServer.Controllers.Vehicle;
 [ControllerID(Enums.GSS.Controllers.Vehicle_BaseController)]
 public class BaseController : Base
 {
-    private ILogger _logger;
-
     public override void Init(INetworkClient client, IPlayer player, IShard shard, ILogger logger)
     {
         // TODO: Implement

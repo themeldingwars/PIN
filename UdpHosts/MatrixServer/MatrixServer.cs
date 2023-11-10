@@ -1,8 +1,8 @@
-﻿using MatrixServer.Packets;
+﻿using System;
+using System.Threading;
+using MatrixServer.Packets;
 using Serilog;
 using Shared.Udp;
-using System;
-using System.Threading;
 
 namespace MatrixServer;
 

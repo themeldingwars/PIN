@@ -19,11 +19,6 @@ public static class ViewFactory
         }
     }
 
-    private static void AddPacketView(Type t)
-    {
-        // TODO: Runtime generation of BasePacketView subclasses that implement user defined Interfaces
-    }
-
     public static T Get<T>()
         where T : IPacketView
     {
@@ -33,5 +28,10 @@ public static class ViewFactory
     public static IPacketView Get(Type t)
     {
         return _instances[t];
+    }
+
+    private static void AddPacketView(Type t)
+    {
+        // TODO: Runtime generation of BasePacketView subclasses that implement user defined Interfaces
     }
 }

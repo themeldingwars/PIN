@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WebHost.InGameApi.Controllers;
 
@@ -12,23 +12,28 @@ public class SocialDataController : ControllerBase
     [Produces("application/json")]
     public object StaticData()
     {
-        StaticData zones = new StaticData() { 
+        StaticData zones = new StaticData()
+        { 
             Zones = new object[]
             {
                 new Zone { ZoneId = 12, Title = "Nothing" },
                 new Zone { ZoneId = 162, Title = "Diamond Head" },
+                
                 // new Zone { ZoneId = 204, Title = "REMOVED: Sargasso Sea" },
                 new Zone { ZoneId = 448, Title = "New Eden" },
                 new Zone { ZoneId = 803, Title = "M15_Mission_15_Agrievan" },
                 new Zone { ZoneId = 805, Title = "Epicenter Melding Tornado Pocket" },
                 new Zone { ZoneId = 833, Title = "M20EMission_20_Razors_Edge" },
+                
                 // new Zone { ZoneId = 843, Title = "REMOVED: Antarctica" },
                 new Zone { ZoneId = 844, Title = "Omnidyne-M Prototype Stadium" },
+                
                 // new Zone { ZoneId = 861, Title = "REMOVED: Research Station" },
                 // new Zone { ZoneId = 863, Title = "REMOVED: Cliff's Edge" },
                 new Zone { ZoneId = 864, Title = "M16EMission_16_Unearthed" },
                 new Zone { ZoneId = 865, Title = "Abyss - Melding Tornado Pocket" },
                 new Zone { ZoneId = 868, Title = "Cinerarium" },
+                
                 // new Zone { ZoneId = 878, Title = "REMOVED: Copacabana" },
                 new Zone { ZoneId = 1003, Title = "M03EMission_03_Crash_Down" },
                 new Zone { ZoneId = 1007, Title = "M18EMission_18_Vagrant_Dawn" },

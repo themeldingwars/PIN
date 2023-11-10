@@ -210,3 +210,14 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 
 # ReSharper properties
 resharper_place_accessorholder_attribute_on_same_line = false
+
+[*Packet*.cs]
+dotnet_diagnostic.SA1201.severity = none
+
+[BinaryWriter.cs]
+dotnet_diagnostic.CS0675.severity = none
+dotnet_diagnostic.CS0414.severity = none
+
+[BinaryReader.cs]
+dotnet_diagnostic.CS0169.severity = none
+dotnet_diagnostic.CS0414.severity = none

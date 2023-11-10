@@ -12,7 +12,8 @@ internal static class GamePacketExtensions
     /// <param name="packet"></param>
     /// <returns></returns>
     /// <remarks>Do not call after other reading operations during endpoint execution! Relies heavily on <see cref="GamePacket.CurrentPosition" /> to work correctly</remarks>
-    internal static T Unpack<T>(this GamePacket packet) where T : class, IAero, new()
+    internal static T Unpack<T>(this GamePacket packet)
+        where T : class, IAero, new()
     {
         var ret = new T();
         ret.Unpack(packet.PacketData.Span[packet.CurrentPosition..]);

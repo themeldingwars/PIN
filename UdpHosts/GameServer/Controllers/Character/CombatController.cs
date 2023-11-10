@@ -1,19 +1,15 @@
-﻿using AeroMessages.Common;
-using AeroMessages.GSS.V66.Character;
-using AeroMessages.GSS.V66.Character.Command;
+﻿using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
-using System;
 
 namespace GameServer.Controllers.Character;
 
 [ControllerID(Enums.GSS.Controllers.Character_CombatController)]
 public class CombatController : Base
 {
-    ILogger _logger;
     public override void Init(INetworkClient client, IPlayer player, IShard shard, ILogger logger)
     {
         // TODO: Implement
@@ -35,9 +31,7 @@ public class CombatController : Base
     public void FireWeaponProjectile(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var fireWeaponProjectile = packet.Unpack<FireWeaponProjectile>();
-        /*
-         * 
-         */
+        
         var weaponProjectileFired = new WeaponProjectileFired
         {
             ShortTime = (ushort)fireWeaponProjectile.Time,
@@ -79,26 +73,67 @@ public class CombatController : Base
         // TODO: Implement
     }
 
-
     [MessageID((byte)Commands.ActivateAbility)]
     public void ActivateAbility(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var activateAbility = packet.Unpack<ActivateAbility>();
 
-        if (activateAbility == null) { return; }
+        if (activateAbility == null)
+        {
+            return;
+        }
 
         var abilitySlot = activateAbility.AbilitySlotIndex;
 
-        if (abilitySlot == 0) { }  // Ability1        - Default button 1
-        if (abilitySlot == 1) { }  // Ability2        - Default button 2
-        if (abilitySlot == 2) { }  // Ability3        - Default button 3
-        if (abilitySlot == 3) { }  // AbilityHKM      - Default button 4
-        if (abilitySlot == 4) { }  // AbilityInteract - Default button E
-        if (abilitySlot == 5) { }  // Auxiliary       - Default button G
-        if (abilitySlot == 6) { }  // AbilityMedical  - Default button Q
-        if (abilitySlot == 13) { } // AbilitySIN      - Default button F
-        if (abilitySlot == 16) { } // Vehicle         - Default button V
-        if (abilitySlot == 17) { } // Auxiliary       - Default button T
+        // Ability1 - Default button 1
+        if (abilitySlot == 0)
+        {
+        }
+        
+        // Ability2 - Default button 2
+        if (abilitySlot == 1)
+        {
+        }
+        
+        // Ability3 - Default button 3
+        if (abilitySlot == 2)
+        {
+        }
+        
+        // AbilityHKM - Default button 4
+        if (abilitySlot == 3)
+        {
+        }
+        
+        // AbilityInteract - Default button E
+        if (abilitySlot == 4)
+        {
+        }
+        
+        // Auxiliary - Default button G
+        if (abilitySlot == 5)
+        {
+        }
+        
+        // AbilityMedical - Default button Q
+        if (abilitySlot == 6)
+        {
+        }
+        
+        // AbilitySIN - Default button F
+        if (abilitySlot == 13)
+        {
+        }
+        
+        // Vehicle - Default button V
+        if (abilitySlot == 16)
+        {
+        }
+        
+        // Auxiliary - Default button T
+        if (abilitySlot == 17)
+        {
+        }
 
         /*var resp = new AbilityActivated
         {
