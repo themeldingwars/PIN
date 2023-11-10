@@ -1,7 +1,7 @@
-﻿using GameServer.Extensions;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using GameServer.Extensions;
 
 namespace GameServer.Controllers;
 

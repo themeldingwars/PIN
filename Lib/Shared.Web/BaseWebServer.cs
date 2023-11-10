@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.IO;
+using System.Net;
+using System.Security.Authentication;
+using System.Text;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -8,11 +13,6 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Shared.Common;
 using Shared.Web.Config;
-using System;
-using System.IO;
-using System.Net;
-using System.Security.Authentication;
-using System.Text;
 
 namespace Shared.Web;
 
@@ -51,7 +51,7 @@ public abstract class BaseWebServer
                                                             .UseStartup(serverType)
                                                             .UseUrls(configuration.GetSection("Firefall")
                                                                                   .Get<Firefall>()
-                                                                                  .WebHosts[serverType.FullName.Replace(".WebServer", "")]
+                                                                                  .WebHosts[serverType.FullName.Replace(".WebServer", string.Empty)]
                                                                                   .Urls.Split(";"));
                                               })
                     .ConfigureHostConfiguration(hostConfigurationBuilder =>
@@ -85,11 +85,6 @@ public abstract class BaseWebServer
     public void ConfigureServices(IServiceCollection services)
     {
         ConfigureChildServices(services);
-    }
-
-    protected virtual void ConfigureChildServices(IServiceCollection services)
-    {
-        services.AddSwaggerGen();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -129,5 +124,12 @@ public abstract class BaseWebServer
         ConfigureChild(app, env);
     }
 
-    protected virtual void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env) { }
+    protected virtual void ConfigureChildServices(IServiceCollection services)
+    {
+        services.AddSwaggerGen();
+    }
+
+    protected virtual void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+    }
 }

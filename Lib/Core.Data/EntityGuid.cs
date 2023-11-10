@@ -8,12 +8,6 @@ public readonly struct EntityGuid
 {
     public readonly ulong Full;
 
-    public byte ServerId { get; private init; }
-    public uint Timestamp { get; private init; }
-    public uint Counter { get; private init; }
-    public byte Type { get; private init; }
-
-
     public EntityGuid(byte serverId, uint timestamp, uint counter, byte type)
     {
         ServerId = serverId;
@@ -25,6 +19,11 @@ public readonly struct EntityGuid
                (Counter << 8) +
                Type;
     }
+
+    public byte ServerId { get; private init; }
+    public uint Timestamp { get; private init; }
+    public uint Counter { get; private init; }
+    public byte Type { get; private init; }
 
     public static EntityGuid Parse(ulong guid)
     {

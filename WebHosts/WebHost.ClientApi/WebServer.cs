@@ -9,12 +9,17 @@ namespace WebHost.ClientApi;
 
 public class WebServer : BaseWebServer
 {
-    public WebServer(IConfiguration configuration) : base(configuration) { }
+    public WebServer(IConfiguration configuration)
+        : base(configuration)
+    {
+    }
 
     protected override void ConfigureChildServices(IServiceCollection services)
     {
         services.AddScoped<ICharactersRepository, CharactersRepository>();
     }
 
-    protected override void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env) { }
+    protected override void ConfigureChild(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+    }
 }

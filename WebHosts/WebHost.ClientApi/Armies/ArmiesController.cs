@@ -48,7 +48,10 @@ public class ArmiesController : ControllerBase
     [HttpGet]
     public object GetArmy(string armyId)
     {
-        if (string.IsNullOrEmpty(armyId)) { return new { }; }
+        if (string.IsNullOrEmpty(armyId))
+        {
+            return new { };
+        }
 
         var army = new Army
                    {
@@ -94,9 +97,12 @@ public class ArmiesController : ControllerBase
     public object GetArmyMembers(string armyId)
     {
         // Querystring page=1&per_page=100 
-        if (string.IsNullOrEmpty(armyId)) { return new { }; }
+        if (string.IsNullOrEmpty(armyId))
+        {
+            return new { };
+        }
 
-        var PageResults = new PageResults
+        var pageResults = new PageResults
                           {
                               Page = 1,
                               TotalCount = 3,
@@ -165,14 +171,17 @@ public class ArmiesController : ControllerBase
                                         }
                           };
 
-        return PageResults;
+        return pageResults;
     }
 
     [Route("api/v3/armies/{armyId}/applications")]
     [HttpGet]
     public object GetArmyMemberApplications(string armyId)
     {
-        if (string.IsNullOrEmpty(armyId)) { return new { }; }
+        if (string.IsNullOrEmpty(armyId))
+        {
+            return new { };
+        }
 
         ArmyApplication[] armyApplications =
         {
@@ -181,7 +190,7 @@ public class ArmiesController : ControllerBase
                 Id = 15063821,
                 ArmyId = null,
                 CharacterGuid = 2329448601048208126,
-                Message = "",
+                Message = string.Empty,
                 Direction = "apply",
                 CreatedAt = null,
                 UpdatedAt = null,
@@ -215,7 +224,10 @@ public class ArmiesController : ControllerBase
     [HttpGet]
     public object GetArmyRanks(string armyId)
     {
-        if (string.IsNullOrEmpty(armyId)) { return new { }; }
+        if (string.IsNullOrEmpty(armyId))
+        {
+            return new { };
+        }
 
         ArmyRank[] armyRanks =
         {
@@ -285,7 +297,10 @@ public class ArmiesController : ControllerBase
     [HttpGet]
     public object GetArmyRankAccess(string armyId, string rankId)
     {
-        if (string.IsNullOrEmpty(armyId) || string.IsNullOrEmpty(rankId)) { return new { }; }
+        if (string.IsNullOrEmpty(armyId) || string.IsNullOrEmpty(rankId))
+        {
+            return new { };
+        }
 
         var armyRank = new ArmyRank
                        {

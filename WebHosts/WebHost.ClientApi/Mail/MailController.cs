@@ -13,7 +13,10 @@ public class MailController : ControllerBase
         /* Querystring page=1 is default
          * Collect only x email per page
          */
-        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+        if (string.IsNullOrEmpty(characterId))
+        {
+            return new { };
+        }
 
         var mail = new Models.Mail
                    {

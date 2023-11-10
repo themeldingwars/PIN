@@ -1,5 +1,5 @@
-﻿using GameServer.Enums.Visuals;
-using System;
+﻿using System;
+using GameServer.Enums.Visuals;
 
 namespace GameServer.Data;
 

@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WebHost.InGameApi.Controllers;
 
@@ -27,7 +27,8 @@ public class LoginAlertsController : ControllerBase
 <body>
 
 </body>
-</html>", Encoding.UTF8, "text/html")
+</html>", Encoding.UTF8, 
+                                               "text/html")
                };
     }
 }

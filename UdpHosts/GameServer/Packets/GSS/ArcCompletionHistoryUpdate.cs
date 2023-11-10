@@ -1,7 +1,7 @@
-﻿using GameServer.Enums.GSS.Generic;
-using Shared.Udp;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using GameServer.Enums.GSS.Generic;
+using Shared.Udp;
 
 namespace GameServer.Packets.GSS;
 

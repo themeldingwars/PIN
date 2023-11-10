@@ -2,20 +2,6 @@
 
 public class Character
 {
-    public enum CharacterGender : byte
-    {
-        Male = 0,
-        Female = 1
-    }
-
-    public enum CharacterRace : byte
-    {
-        Human = 0,
-        Unknown = 1,
-        DarkOne = 2
-    }
-
-
     // TODO: Stats and Visuals
     protected Character()
     {
@@ -62,20 +48,16 @@ public class Character
     public float JumpJetRecharge { get; set; }
     public uint MaxHealth { get; set; }
 
-
     // Looks / Voice
-
     public uint VoiceSet { get; set; }
     public ushort TitleID { get; set; }
     public CharacterVisuals CharVisuals { get; protected set; }
     public ChassisVisuals ChassisVisuals { get; protected set; }
 
-
     // Inventory
     public uint MaxInventorySlots { get; set; }
     public uint LoadoutGUID { get; set; }
     public Loadout Loadout { get; set; }
-
 
     // Extras / Other
     public byte FactionID { get; set; }

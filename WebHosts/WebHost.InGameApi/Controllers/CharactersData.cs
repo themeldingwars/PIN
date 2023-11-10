@@ -5,23 +5,22 @@ namespace WebHost.InGameApi.Controllers;
 [ApiController]
 public class CharactersData
 {
-    
     [Route("character/data")]
     [Route("api/v1/character/data")]
     [HttpGet]
     [Produces("application/json")]
     public static object Data()
     {
-        Data data = new Data()
-        {
-            CharacterGuid = 0x99aabbccddee0000 + 448,
-            Name = "Sleepwalker",
-            Redbux = 1094,
-            Crystite = 4104594,
-            Gender = 0,
-            UniqueName = "SLEEPWALKER",
-            Race = 0,
-        };
+        var data = new Data
+                   {
+                       CharacterGuid = 0x99aabbccddee0000 + 448,
+                       Name = "Sleepwalker",
+                       Redbux = 1094,
+                       Crystite = 4104594,
+                       Gender = 0,
+                       UniqueName = "SLEEPWALKER",
+                       Race = 0
+                   };
 
         return data;
     }
@@ -31,50 +30,55 @@ public class CharactersData
     [Produces("application/json")]
     public object CharacterSheet()
     {
-        CharacterSheet sheet = new CharacterSheet() {
-            Battleframe = new Battleframe()
-            {
-                ItemSdbId = 76332,
-                Name = "Astrek \"Rhino\"",
-                WebIcon = "Rhino",
-                Constraints = new Constraints() {
-                    Mass = new MassPowerCpu() {
-                        Level = new LevelValue() {
-                            Total = 10,
-                            Current = 4
-                        },
-                        Value = new LevelValue() {
-                            Total = 1160,
-                            Current = 0
-                        }
-                    },
-                    Power = new MassPowerCpu() {
-                        Level = new LevelValue() {
-                            Total = 10,
-                            Current = 4
-                        },
-                        Value = new LevelValue() {
-                            Total = 580,
-                            Current = 0
-                        }
-                    },
-                    Cpu = new MassPowerCpu() {
-                        Level = new LevelValue() {
-                            Total = 10,
-                            Current = 4
-                        },
-                        Value = new LevelValue() {
-                            Total = 12,
-                            Current = 0
-                        }
-                    }
-                },
-                Xp = new Xp() {
-                    CurrentXp = 477962,
-                    LifetimeXp = 731962
-                }
-            }
-        };
+        var sheet = new CharacterSheet
+                    {
+                        Battleframe = new Battleframe
+                                      {
+                                          ItemSdbId = 76332,
+                                          Name = "Astrek \"Rhino\"",
+                                          WebIcon = "Rhino",
+                                          Constraints = new Constraints
+                                                        {
+                                                            Mass = new MassPowerCpu
+                                                                   {
+                                                                       Level = new LevelValue
+                                                                               {
+                                                                                   Total = 10, Current = 4
+                                                                               },
+                                                                       Value = new LevelValue
+                                                                               {
+                                                                                   Total = 1160, Current = 0
+                                                                               }
+                                                                   },
+                                                            Power = new MassPowerCpu
+                                                                    {
+                                                                        Level = new LevelValue
+                                                                                {
+                                                                                    Total = 10, Current = 4
+                                                                                },
+                                                                        Value = new LevelValue
+                                                                                {
+                                                                                    Total = 580, Current = 0
+                                                                                }
+                                                                    },
+                                                            Cpu = new MassPowerCpu
+                                                                  {
+                                                                      Level = new LevelValue
+                                                                              {
+                                                                                  Total = 10, Current = 4
+                                                                              },
+                                                                      Value = new LevelValue
+                                                                              {
+                                                                                  Total = 12, Current = 0
+                                                                              }
+                                                                  }
+                                                        },
+                                          Xp = new Xp
+                                               {
+                                                   CurrentXp = 477962, LifetimeXp = 731962
+                                               }
+                                      }
+                    };
 
         return sheet;
     }
@@ -84,64 +88,53 @@ public class CharactersData
     [Produces("application/json")]
     public object EquippedItems()
     {
-        Equipped equipped = new Equipped()
-        {
-            Primary = new Item {
-                ItemId = "",
-                DefaultItemSdbId = 78324,
-                IsUnlocked = true
-            },
-            Secondary = new Item {
-                ItemId = "",
-                DefaultItemSdbId = 78043,
-                IsUnlocked = true
-            },
-            Ability1 = new Item {
-                ItemId = "",
-                DefaultItemSdbId = 78326,
-                IsUnlocked = true
-            },
-            Ability2 = new Item {
-                ItemId = "",
-                DefaultItemSdbId = 78328,
-                IsUnlocked = true
-            },
-            Ability3 = new Item {
-                ItemId = "",
-                DefaultItemSdbId = 78330,
-                IsUnlocked = true
-            },
-            Hkm = new Item {
-                ItemId = "9186949129711219709",
-                DefaultItemSdbId = 0,
-                IsUnlocked = true
-            },
-            Passive = new Item {
-                ItemId = "9190664271895347709",
-                DefaultItemSdbId = 78334,
-                IsUnlocked = true
-            },
-            Jumpjets = new Item {
-                 ItemId = "",
-                 DefaultItemSdbId = 78070,
-                 IsUnlocked = true
-            },
-            Servos = new Item {
-                ItemId = "",
-                DefaultItemSdbId = 78068,
-                IsUnlocked = true
-            },
-            Backpack = new Item {
-                ItemId = "",
-                DefaultItemSdbId = 76018,
-                IsUnlocked = true
-            },
-            Plating = new Item {
-                ItemId = "", 
-                DefaultItemSdbId = 85203, 
-                IsUnlocked = true
-            }
-        };
+        var equipped = new Equipped
+                       {
+                           Primary = new Item
+                                     {
+                                         ItemId = string.Empty, DefaultItemSdbId = 78324, IsUnlocked = true
+                                     },
+                           Secondary = new Item
+                                       {
+                                           ItemId = string.Empty, DefaultItemSdbId = 78043, IsUnlocked = true
+                                       },
+                           Ability1 = new Item
+                                      {
+                                          ItemId = string.Empty, DefaultItemSdbId = 78326, IsUnlocked = true
+                                      },
+                           Ability2 = new Item
+                                      {
+                                          ItemId = string.Empty, DefaultItemSdbId = 78328, IsUnlocked = true
+                                      },
+                           Ability3 = new Item
+                                      {
+                                          ItemId = string.Empty, DefaultItemSdbId = 78330, IsUnlocked = true
+                                      },
+                           Hkm = new Item
+                                 {
+                                     ItemId = "9186949129711219709", DefaultItemSdbId = 0, IsUnlocked = true
+                                 },
+                           Passive = new Item
+                                     {
+                                         ItemId = "9190664271895347709", DefaultItemSdbId = 78334, IsUnlocked = true
+                                     },
+                           Jumpjets = new Item
+                                      {
+                                          ItemId = string.Empty, DefaultItemSdbId = 78070, IsUnlocked = true
+                                      },
+                           Servos = new Item
+                                    {
+                                        ItemId = string.Empty, DefaultItemSdbId = 78068, IsUnlocked = true
+                                    },
+                           Backpack = new Item
+                                      {
+                                          ItemId = string.Empty, DefaultItemSdbId = 76018, IsUnlocked = true
+                                      },
+                           Plating = new Item
+                                     {
+                                         ItemId = string.Empty, DefaultItemSdbId = 85203, IsUnlocked = true
+                                     }
+                       };
 
         return equipped;
     }

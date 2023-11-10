@@ -1,6 +1,6 @@
-﻿using Serilog.Sinks.SystemConsole.Themes;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Shared.Common;
 

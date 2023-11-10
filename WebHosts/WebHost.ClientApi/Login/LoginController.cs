@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 using WebHost.ClientApi.Login.Models;
 
 namespace WebHost.ClientApi.Login;
@@ -31,7 +31,10 @@ The Pirate Intelligence Network is here to serve you all the content you'd want
     [HttpGet]
     public object GetLoginStreak(string characterId)
     {
-        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+        if (string.IsNullOrEmpty(characterId))
+        {
+            return new { };
+        }
 
         var loginStreak = new LoginStreak
                           {

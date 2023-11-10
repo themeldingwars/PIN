@@ -109,6 +109,7 @@ public static class Serializer
 
                     break;
                 }
+            
             case IList list:
                 {
                     if (prefixLength != null)
@@ -119,6 +120,7 @@ public static class Serializer
                     memoryList.Add(WriteList(list, length));
                     break;
                 }
+            
             case string str:
                 memoryList.Add(Encoding.ASCII.GetBytes(str));
                 memoryList.Add(new byte[1].AsMemory());

@@ -1,5 +1,5 @@
-﻿using GameServer.Data;
-using System.Threading;
+﻿using System.Threading;
+using GameServer.Data;
 using Character = GameServer.Entities.Character.Character;
 
 namespace GameServer;

@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Serilog;
-using Shared.Web;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Serilog;
+using Shared.Web;
 using WebHost.Chat;
 
 namespace WebHostManager;
@@ -36,7 +36,7 @@ internal static class Program
         try
         {
             Log.Information("Starting Web Hosts");
-            var ct = new CancellationToken();
+            var ct = CancellationToken.None;
 
             var hostsTasks = StartHosts(ct);
 

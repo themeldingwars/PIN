@@ -1,6 +1,6 @@
-﻿using GameServer.Data;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Numerics;
+using GameServer.Data;
 
 namespace GameServer.Test;
 

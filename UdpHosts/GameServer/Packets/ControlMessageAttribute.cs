@@ -1,5 +1,5 @@
-﻿using GameServer.Enums;
-using System;
+﻿using System;
+using GameServer.Enums;
 
 namespace GameServer.Packets;
 

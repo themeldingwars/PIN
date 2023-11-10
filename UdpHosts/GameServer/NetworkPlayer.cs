@@ -1,4 +1,8 @@
-﻿using AeroMessages.Common;
+﻿using System;
+using System.Net;
+using System.Numerics;
+using System.Threading;
+using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Controller;
@@ -7,11 +11,6 @@ using AeroMessages.Matrix.V25;
 using GameServer.Data;
 using GameServer.Test;
 using Serilog;
-using System;
-using System.Net;
-using System.Numerics;
-using System.Threading;
-
 using Character = GameServer.Entities.Character.Character;
 using Loadout = AeroMessages.GSS.V66.Character.Event.Loadout;
 
@@ -110,7 +109,6 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                                    StatusEffects_11Prop = new StatusEffectData { Id = 472, Time = AssignedShard.CurrentTime, Initiator = new EntityId { Backing = Player.CharacterEntity.EntityId }, MoreDataFlag = 0 }
                                };
         NetChannels[ChannelType.ReliableGss].SendIAeroChanges(combatController, CharacterEntity.EntityId);
-
 
         // InventoryUpdate
         var inventoryUpdate = new InventoryUpdate
@@ -255,7 +253,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
     public void Jump()
     {
-        //NetChannels[ChannelType.UnreliableGss].SendGSSClass( new JumpActioned { JumpTime = AssignedShard.CurrentShortTime }, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
+        // NetChannels[ChannelType.UnreliableGss].SendGSSClass( new JumpActioned { JumpTime = AssignedShard.CurrentShortTime }, CharacterEntity.EntityID, Enums.GSS.Controllers.Character_BaseController );
         CharacterEntity.TimeSinceLastJump = AssignedShard.CurrentShortTime;
     }
 
@@ -273,7 +271,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                 {
                     if (AssignedShard.CurrentTime - _lastKeyFrame > 0.5)
                     {
-                        //NetChannels[ChannelType.ReliableGss].SendGSSClass(Test.GSS.Character.BaseController.KeyFrame.Test(this, this), this.InstanceID, msgEnumType: typeof(Enums.GSS.Character.Events));
+                        // NetChannels[ChannelType.ReliableGss].SendGSSClass(Test.GSS.Character.BaseController.KeyFrame.Test(this, this), this.InstanceID, msgEnumType: typeof(Enums.GSS.Character.Events));
                     }
 
                     break;

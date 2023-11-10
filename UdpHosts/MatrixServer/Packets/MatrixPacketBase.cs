@@ -1,6 +1,6 @@
-﻿using Shared.Udp;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
+using Shared.Udp;
 
 namespace MatrixServer.Packets;
 

@@ -1,5 +1,5 @@
-﻿using Aero.Gen;
-using System;
+﻿using System;
+using Aero.Gen;
 
 namespace GameServer.Extensions;
 

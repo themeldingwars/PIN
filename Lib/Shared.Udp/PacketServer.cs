@@ -1,11 +1,10 @@
-﻿using Serilog;
-using Serilog.Core;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Serilog;
 
 namespace Shared.Udp;
 
@@ -21,8 +20,7 @@ public abstract class PacketServer : IPacketSender
     protected BufferBlock<Packet?> OutgoingPackets;
     protected CancellationTokenSource Source;
 
-    protected PacketServer(ushort port,
-                           ILogger logger)
+    protected PacketServer(ushort port, ILogger logger)
     {
         Logger = logger;
         ListenEndpoint = new IPEndPoint(IPAddress.Any, port);
@@ -30,34 +28,6 @@ public abstract class PacketServer : IPacketSender
     }
 
     public bool IsRunning { get; protected set; }
-
-    public async Task<bool> SendAsync(Memory<byte> packet, IPEndPoint endPoint)
-    {
-        return await OutgoingPackets.SendAsync(new Packet(endPoint, packet));
-    }
-
-    protected virtual void HandleCommand(string line)
-    {
-        if (line.Trim().StartsWith("exit"))
-        {
-            IsRunning = false;
-            Source.Cancel();
-        }
-    }
-
-    protected abstract void HandlePacket(Packet p, CancellationToken ct);
-    protected virtual void Startup(CancellationToken ct) { }
-
-    protected virtual async void ServerRunThreadAsync(CancellationToken ct)
-    {
-        Packet? p;
-        while ((p = await IncomingPackets.ReceiveAsync(ct)) != null)
-        {
-            HandlePacket(p.Value, ct);
-        }
-    }
-
-    protected virtual void Shutdown(CancellationToken ct) { }
 
     // TODO: Move to separate thread? add console/rcon handling here?
     // FIXME: Move timing to GameServer
@@ -90,6 +60,38 @@ public abstract class PacketServer : IPacketSender
         }
 
         Shutdown(ct);
+    }
+
+    public async Task<bool> SendAsync(Memory<byte> packet, IPEndPoint endPoint)
+    {
+        return await OutgoingPackets.SendAsync(new Packet(endPoint, packet));
+    }
+
+    protected virtual void HandleCommand(string line)
+    {
+        if (line.Trim().StartsWith("exit"))
+        {
+            IsRunning = false;
+            Source.Cancel();
+        }
+    }
+
+    protected abstract void HandlePacket(Packet p, CancellationToken ct);
+    protected virtual void Startup(CancellationToken ct)
+    {
+    }
+
+    protected virtual async void ServerRunThreadAsync(CancellationToken ct)
+    {
+        Packet? p;
+        while ((p = await IncomingPackets.ReceiveAsync(ct)) != null)
+        {
+            HandlePacket(p.Value, ct);
+        }
+    }
+
+    protected virtual void Shutdown(CancellationToken ct)
+    {
     }
 
     private async void ListenThreadAsync(CancellationToken ct)

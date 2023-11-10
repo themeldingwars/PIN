@@ -1,7 +1,7 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using Microsoft.Win32;
 
 namespace Shared.Common;
 
@@ -51,7 +51,7 @@ public static class LocationProvider
         }
 
         using var shellKey = Registry.ClassesRoot.OpenSubKey("firefall\\shell\\open\\command");
-        var firefallLaunchCommand = (string)shellKey?.GetValue("");
+        var firefallLaunchCommand = (string)shellKey?.GetValue(string.Empty);
         if (firefallLaunchCommand == null)
         {
             return null;

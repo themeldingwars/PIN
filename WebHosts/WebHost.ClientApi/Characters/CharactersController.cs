@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using WebHost.ClientApi.Characters.Models;
 
 namespace WebHost.ClientApi.Characters;
@@ -26,7 +26,10 @@ public class CharactersController : ControllerBase
     [Produces("application/json")]
     public object CharacterData(string characterId)
     {
-        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+        if (string.IsNullOrEmpty(characterId))
+        {
+            return new { };
+        }
 
         var data = new CharacterData
                    {
@@ -43,7 +46,10 @@ public class CharactersController : ControllerBase
     [Produces("application/json")]
     public object InventoriesBag(string characterId)
     {
-        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+        if (string.IsNullOrEmpty(characterId))
+        {
+            return new { };
+        }
 
         var bag = new InventoriesBag
                   {
@@ -105,7 +111,10 @@ public class CharactersController : ControllerBase
     [Produces("application/json")]
     public object InventoriesGearItems(string characterId)
     {
-        if (string.IsNullOrEmpty(characterId)) { return new { }; }
+        if (string.IsNullOrEmpty(characterId))
+        {
+            return new { };
+        }
 
         var temp = new object[]
                    {
@@ -154,7 +163,11 @@ public class CharactersController : ControllerBase
     [Produces("application/json")]
     public object ValidateCharacterName([FromBody] CharacterName characterName)
     {
-        if (string.IsNullOrEmpty(characterName.Name) || characterName.Name.Length < 4) return new { valid = false };
+        if (string.IsNullOrEmpty(characterName.Name) || characterName.Name.Length < 4)
+        {
+            return new { valid = false };
+        }
+        
         return new { valid = true };
     }
 

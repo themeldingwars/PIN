@@ -18,13 +18,13 @@ public abstract class Database : IDatabase, IDisposable
         DbName = dbName;
         ConnectionString = connString;
     }
+    
+    public string Name { get; }
+    public string DbName { get; }
 
     protected DbTransaction CurrentTransaction { get; private set; }
     protected DbConnection Connection { get; private set; }
     private string ConnectionString { get; }
-    public string Name { get; }
-    public string DbName { get; }
-
 
     public async Task OpenConnection()
     {
@@ -113,13 +113,12 @@ public abstract class Database : IDatabase, IDisposable
         return ret == DBNull.Value ? default : (T)ret;
     }
 
-
-    public string DelimDatabase(string val) { return Delim(val, DelimType.Database); }
-    public string DelimSchema(string val) { return Delim(val, DelimType.Schema); }
-    public string DelimTable(string val) { return Delim(val, DelimType.Table); }
-    public string DelimColumn(string val) { return Delim(val, DelimType.Column); }
-    public string DelimParameter(string val) { return Delim(val, DelimType.Parameter); }
-    public string DelimString(string val) { return Delim(val, DelimType.String); }
+    public string DelimDatabase(string val) => Delim(val, DelimType.Database);
+    public string DelimSchema(string val) => Delim(val, DelimType.Schema);
+    public string DelimTable(string val) => Delim(val, DelimType.Table);
+    public string DelimColumn(string val) => Delim(val, DelimType.Column);
+    public string DelimParameter(string val) => Delim(val, DelimType.Parameter);
+    public string DelimString(string val) => Delim(val, DelimType.String);
     public abstract string Delim(string val, DelimType dt);
 
     public void Dispose()

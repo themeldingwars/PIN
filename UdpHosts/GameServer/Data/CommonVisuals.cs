@@ -1,6 +1,6 @@
-﻿using GameServer.Enums.Visuals;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using GameServer.Enums.Visuals;
 
 namespace GameServer.Data;
 
@@ -50,7 +50,6 @@ public class CommonVisuals
                };
     }
     */
-
 
     public class Palette
     {

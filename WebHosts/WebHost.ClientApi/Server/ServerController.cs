@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using WebHost.ClientApi.Server.Models;
 
 namespace WebHost.ClientApi.Server;
@@ -12,8 +12,8 @@ public class ServerController : ControllerBase
     [Produces("application/json")]
     public ServerList GetServerList()
     {
-        var ServerList = new ServerList { ZoneList = Array.Empty<long>() };
+        var serverList = new ServerList { ZoneList = Array.Empty<long>() };
 
-        return ServerList;
+        return serverList;
     }
 }
