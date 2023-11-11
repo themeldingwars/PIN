@@ -1011,10 +1011,10 @@ public class BaseController : Base
     {
         var mapOpened = new GeographicalReportResponse
         {
-            Unk1 = 0,
-            Unk2 = new Vector3 { X = 0, Y = 0, Z = 0 },
-            Unk3 = 0x00,
-            Data = new GeoReportData[] { }
+            ScanId = 0,
+            Position = new Vector3 { X = 0, Y = 0, Z = 0 },
+            Valid = 0x00,
+            Composition = new ResourceCompositionData[] { }
         };
 
         client.NetChannels[ChannelType.ReliableGss].SendIAero(mapOpened, player.CharacterEntity.EntityId);

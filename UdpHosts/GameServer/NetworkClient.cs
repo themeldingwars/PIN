@@ -174,11 +174,11 @@ public class NetworkClient : INetworkClient
                 NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
                                                           {
                                                               MatrixBytesPerSecond = 0,
-                                                              MatrixBytesPerSecond2 = 0,
+                                                              GameShapedBytes = 0,
                                                               PacketUploss = 0,
                                                               PacketDownloss = 0,
                                                               Unk5 = 0,
-                                                              Unk6 = 0,
+                                                              IsEverlastingGobsocket = 0,
                                                               HaveUnk7 = 0,
                                                               Unk8 = Array.Empty<byte>()
                                                           });

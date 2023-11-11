@@ -9,6 +9,7 @@
 ### Changed
 
 - Update build pipeline to support .NET 8 and the latest macOS version
+- Update dependencies, incl. AeroMessages
 
 ## [1.2.0] - 2023-06-02
 

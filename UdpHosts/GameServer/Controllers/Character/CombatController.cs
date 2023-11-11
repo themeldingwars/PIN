@@ -36,8 +36,8 @@ public class CombatController : Base
         {
             ShortTime = (ushort)fireWeaponProjectile.Time,
             Aim = fireWeaponProjectile.AimDirection,
-            HaveMoreData = fireWeaponProjectile.HaveUnkVector,
-            MoreData = fireWeaponProjectile.UnkVector
+            HaveMoreData = fireWeaponProjectile.HaveShooterVelocity,
+            MoreData = fireWeaponProjectile.ShooterVelocity
         };
 
         client.NetChannels[ChannelType.ReliableGss].SendIAero(fireWeaponProjectile, player.CharacterEntity.EntityId);
