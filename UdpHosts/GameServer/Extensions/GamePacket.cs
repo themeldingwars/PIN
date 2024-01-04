@@ -9,8 +9,8 @@ internal static class GamePacketExtensions
     ///     Unpack the <see cref="GamePacket" /> into the provided class
     /// </summary>
     /// <typeparam name="T">The class to unpack into</typeparam>
-    /// <param name="packet"></param>
-    /// <returns></returns>
+    /// <param name="packet">The packet</param>
+    /// <returns>The unpacked class</returns>
     /// <remarks>Do not call after other reading operations during endpoint execution! Relies heavily on <see cref="GamePacket.CurrentPosition" /> to work correctly</remarks>
     internal static T Unpack<T>(this GamePacket packet)
         where T : class, IAero, new()

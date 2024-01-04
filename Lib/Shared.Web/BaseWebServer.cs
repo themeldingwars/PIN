@@ -35,6 +35,7 @@ public abstract class BaseWebServer
             }
 
             Log.Information($"Starting web host {serverType.FullName}");
+            #pragma warning disable SYSLIB0039 // TLS 1.0 required
             var hostBuilder =
                 Host.CreateDefaultBuilder()
                     .ConfigureWebHostDefaults(webBuilder =>
@@ -71,7 +72,7 @@ public abstract class BaseWebServer
                                                                                       });
                                        })
                     .UseSerilog();
-            
+            #pragma warning restore SYSLIB0039
             return hostBuilder.Build();
         }
         catch (Exception ex)

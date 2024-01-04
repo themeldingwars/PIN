@@ -6,6 +6,7 @@ namespace GameServer.Entities.Character;
 /// <summary>
 ///     Allows eased access to the several flags
 /// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Document when overhauling this")]
 internal class MovementStateContainer
 {
     public CharMovementState MovementState;
@@ -13,7 +14,6 @@ internal class MovementStateContainer
     /// <summary>
     ///     The set flags which are not specified in the enum
     /// </summary>
-    /// <returns></returns>
     public CharMovementState InvalidFlags => MovementState ^ ValidFlags;
 
     /// <summary>
@@ -79,7 +79,7 @@ internal class MovementStateContainer
     /// <summary>
     ///     Print the currently set valid and invalid flags
     /// </summary>
-    /// <returns></returns>
+    /// <returns>string</returns>
     public override string ToString()
     {
         return $"MovementState value: {MovementState,5} | {GetBinaryString(MovementState)}\n" +
@@ -93,8 +93,8 @@ internal class MovementStateContainer
     /// <summary>
     ///     Get a binary-number string representation of the passed value
     /// </summary>
-    /// <param name="state"></param>
-    /// <returns></returns>
+    /// <param name="state">state</param>
+    /// <returns>string</returns>
     private static string GetBinaryString(CharMovementState state)
     {
         return Convert.ToString((short)state, 2).PadLeft(16, '0');
@@ -103,8 +103,8 @@ internal class MovementStateContainer
     /// <summary>
     ///     Get a flag
     /// </summary>
-    /// <param name="state"></param>
-    /// <returns></returns>
+    /// <param name="state">state</param>
+    /// <returns>string</returns>
     private bool GetValue(CharMovementState state)
     {
         return (MovementState & state) == state;
@@ -113,7 +113,7 @@ internal class MovementStateContainer
     /// <summary>
     ///     Set or unset the flag, depending on the value
     /// </summary>
-    /// <param name="state"></param>
+    /// <param name="state">state</param>
     /// <param name="value">if true the specified flag will be set, else it will be unset</param>
     private void SetValue(CharMovementState state, bool value)
     {

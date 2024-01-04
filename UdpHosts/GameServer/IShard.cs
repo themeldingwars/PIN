@@ -9,8 +9,11 @@ namespace GameServer;
 public interface IShard : IInstance, IPacketSender
 {
     IDictionary<uint, INetworkPlayer> Clients { get; }
+    IDictionary<ulong, IEntity> Entities { get; }
     PhysicsEngine Physics { get; }
     AIEngine AI { get; }
+    MovementRelay Movement { get; }
+    EntityManager EntityMan { get; }
 
     int CurrentPlayers => Clients.Count;
 

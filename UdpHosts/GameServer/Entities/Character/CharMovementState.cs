@@ -3,6 +3,7 @@
 namespace GameServer.Entities.Character;
 
 [Flags]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Document when overhauling this")]
 public enum CharMovementState : short
 {
     JetSprint = -1 << 14,

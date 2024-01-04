@@ -3,7 +3,7 @@
 namespace GameServer;
 
 /// <summary>
-///     Holds the settings for the server
+///     Holds the settings for the server`
 /// </summary>
 public class GameServerSettings
 {
@@ -16,4 +16,9 @@ public class GameServerSettings
     ///     UDP port the game server should be listening on
     /// </summary>
     public ushort Port { get; set; } = 25001;
+
+    /// <summary>
+    ///    GrpcChannelAddress
+    /// </summary>
+    public string GrpcChannelAddress { get; set; } = "http://localhost:5201";
 }

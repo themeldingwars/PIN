@@ -25,6 +25,8 @@ public class Shard : IShard
         Entities = new ConcurrentDictionary<ulong, IEntity>();
         Physics = new PhysicsEngine(gameTickRate);
         AI = new AIEngine();
+        Movement = new MovementRelay(this);
+        EntityMan = new EntityManager(this);
         InstanceId = instanceId;
         Sender = sender;
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
@@ -36,8 +38,12 @@ public class Shard : IShard
     public IDictionary<uint, INetworkPlayer> Clients { get; }
     public PhysicsEngine Physics { get; }
     public AIEngine AI { get; }
+    public MovementRelay Movement { get; }
+    public EntityManager EntityMan { get; }
     public ulong InstanceId { get; }
     public ulong CurrentTimeLong { get; private set; }
+    public uint CurrentTime => unchecked((uint)CurrentTimeLong);
+    public ushort CurrentShortTime => unchecked((ushort)CurrentTime);
     public IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
     private IPacketSender Sender { get; }
 
@@ -61,6 +67,7 @@ public class Shard : IShard
 
         AI.Tick(deltaTime, currentTime, ct);
         Physics.Tick(deltaTime, currentTime, ct);
+        EntityMan.Tick(deltaTime, currentTime, ct);
 
         return true;
     }
@@ -80,8 +87,7 @@ public class Shard : IShard
         player.Init(this);
 
         Clients.Add(player.SocketId, player);
-        
-        // Entities.Add(player.CharacterEntity.EntityID, player.CharacterEntity);
+
         return true;
     }
 
@@ -118,7 +124,8 @@ public class Shard : IShard
 
         while (!ct.IsCancellationRequested)
         {
-            var currentUnixTimestamp = (ulong)(DateTime.Now.UnixTimestamp() * 1000);
+            var currentUnixTimestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            //(ulong)(DateTime.Now.UnixTimestamp() * 1000);
             var currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
             var delta = currentTime - lastTime;
 

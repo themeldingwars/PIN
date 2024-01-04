@@ -298,8 +298,8 @@ public class Channel
     ///     Send a GSS class to the client
     /// </summary>
     /// <typeparam name="TPacket">The type of the packet</typeparam>
-    /// <param name="packet"></param>
-    /// <param name="entityId"></param>
+    /// <param name="packet">The packet</param>
+    /// <param name="entityId">Id of the entity the packet is for</param>
     /// <param name="controllerIdParameter">If not provided on the <see cref="GSSMessageAttribute" /> on the packet, the controller Id may be specified here</param>
     /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
@@ -347,12 +347,12 @@ public class Channel
     ///     Send an <see cref="IAero" /> package to the client
     /// </summary>
     /// <typeparam name="TPacket">The type of the packet</typeparam>
-    /// <param name="packet"></param>
-    /// <param name="entityId"></param>
+    /// <param name="packet">The Aero message</param>
+    /// <param name="entityId">Id of the entity the packet is for</param>
     /// <param name="messageIdOverride">Optional way to override the message ID</param>
     /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentException">The passed packet does not have the AeroMessageIdAttribute</exception>
     public bool SendIAero<TPacket>(TPacket packet, ulong entityId = 0, byte messageIdOverride = 0, Type? messageEnumType = null)
         where TPacket : class, IAero
     {
@@ -419,13 +419,26 @@ public class Channel
         return SendPacketMemory(entityId, 1, typeCode, ref packetMemory);
     }
 
+    public bool SendIAeroChanges<TPacket>(TPacket packet, ulong entityId, Memory<byte> packetMemory)
+        where TPacket : class, IAeroViewInterface
+    {
+        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
+        }
+
+        var typeCode = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+
+        return SendPacketMemory(entityId, 1, typeCode, ref packetMemory);
+    }
+
     /// <summary>
     ///     Send serialized data of a gss channel packet to the client
     /// </summary>
-    /// <param name="entityId"></param>
-    /// <param name="messageId"></param>
-    /// <param name="controllerId"></param>
-    /// <param name="packetToSend"></param>
+    /// <param name="entityId">Id of the entity the packet is for</param>
+    /// <param name="messageId">Message Id relative to the controllerId</param>
+    /// <param name="controllerId">Typecode of the entity matching the view or controller</param>
+    /// <param name="packetToSend">Memory buffer</param>
     /// <param name="msgEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     /// <exception cref="InvalidOperationException">If <see cref="msgEnumType" /> is not null and does not contain an element with a value equal to <see cref="messageId" /> </exception>
@@ -472,8 +485,8 @@ public class Channel
     /// <summary>
     ///     Send serialized data of a matrix channel packet to the client
     /// </summary>
-    /// <param name="messageId"></param>
-    /// <param name="packetMemory"></param>
+    /// <param name="messageId">Id of the matrix message being sent</param>
+    /// <param name="packetMemory">Memory buffer</param>
     /// <param name="msgEnumType">TODO: Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     private bool SendPacketMemoryMatrix(byte messageId, ref Memory<byte> packetMemory, Type? msgEnumType = null)
@@ -488,7 +501,7 @@ public class Channel
     /// <summary>
     ///     Send data to the client
     /// </summary>
-    /// <param name="packetData"></param>
+    /// <param name="packetData">Memory buffer</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     private bool Send(Memory<byte> packetData)
     {
