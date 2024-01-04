@@ -164,6 +164,7 @@ public class NetworkClient : INetworkClient
                 break;
             case MatrixPacketType.EnterZoneAck:
                 Factory.Get<BaseController>().Init(this, Player, AssignedShard, Logger);
+                Player.EnterZoneAck();
                 break;
             case MatrixPacketType.KeyframeRequest:
                 packet.Unpack<KeyframeRequest>();
@@ -172,16 +173,16 @@ public class NetworkClient : INetworkClient
                 break;
             case MatrixPacketType.ClientStatus:
                 NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
-                                                          {
-                                                              MatrixBytesPerSecond = 0,
-                                                              GameShapedBytes = 0,
-                                                              PacketUploss = 0,
-                                                              PacketDownloss = 0,
-                                                              Unk5 = 0,
-                                                              IsEverlastingGobsocket = 0,
-                                                              HaveUnk7 = 0,
-                                                              Unk8 = Array.Empty<byte>()
-                                                          });
+                {
+                    MatrixBytesPerSecond = 0,
+                    GameShapedBytes = 0,
+                    PacketUploss = 0,
+                    PacketDownloss = 0,
+                    Unk5 = 0,
+                    IsEverlastingGobsocket = 0,
+                    HaveUnk7 = 0,
+                    Unk8 = Array.Empty<byte>()
+                });
                 break;
             case MatrixPacketType.LogInstrumentation:
                 // Ignore

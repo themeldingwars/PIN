@@ -6,6 +6,7 @@ namespace GameServer;
 
 public interface IPlayer
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Still figuring it out")]
     public enum PlayerStatus
     {
         Invalid = -1,
@@ -41,6 +42,7 @@ public interface IPlayer
     void Init(IShard shard);
 
     void Login(ulong characterId);
+    void EnterZoneAck();
     void Ready();
     void Respawn();
     void Jump();

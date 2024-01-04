@@ -6,6 +6,7 @@ using Shared.Udp;
 
 namespace GameServer;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Still figuring it out")]
 public enum Status
 {
     Unknown = 0,

@@ -1,0 +1,76 @@
+syntax = "proto3";
+option csharp_namespace = "GrpcGameServerAPIClient";
+package RIN;
+import "google/protobuf/timestamp.proto";
+
+message BasicCharacterInfo {
+   string Name = 1;
+   uint32 Race = 2;
+   uint32 Gender = 3;
+   int32 TitleId = 4;
+   uint32 CurrentBattleframeId = 5;
+}
+message CharacterAndBattleframeVisuals {
+   BasicCharacterInfo CharacterInfo = 1;
+   CharacterVisuals CharacterVisuals = 2;
+   PlayerBattleframeVisuals BattleframeVisuals = 3;
+}
+message CharacterID {
+   int64 ID = 1;
+}
+message CharacterVisuals {
+   int32 id = 1;
+   int32 race = 2;
+   int32 gender = 3;
+   WebIdValueColor skin_color = 4;
+   WebId voice_set = 5;
+   WebId head = 6;
+   WebIdValueColor eye_color = 7;
+   WebIdValueColor lip_color = 8;
+   WebIdValueColor hair_color = 9;
+   WebIdValueColor facial_hair_color = 10;
+   repeated WebIdValueColor head_accessories = 11;
+   repeated WebId ornaments = 12;
+   WebId eyes = 13;
+   WebIdValueColorId hair = 14;
+   WebIdValueColorId facial_hair = 15;
+   WebId glider = 16;
+   WebId vehicle = 17;
+}
+message PingReq {
+   .google.protobuf.Timestamp SentTime = 1;
+}
+message PingResp {
+   .google.protobuf.Timestamp ClientSentTime = 1;
+   .google.protobuf.Timestamp ServerReciveTime = 2;
+}
+message PlayerBattleframeVisuals {
+   repeated WebId decals = 1;
+   int32 warpaint_id = 2;
+   repeated uint32 warpaint = 3 [packed = false];
+   repeated int32 decalgradients = 4 [packed = false];
+   repeated int32 warpaint_patterns = 5 [packed = false];
+   repeated int32 visual_overrides = 6 [packed = false];
+}
+message WebColor {
+   uint32 color = 1;
+}
+message WebColorId {
+   int32 id = 1;
+   uint32 value = 2;
+}
+message WebId {
+   int32 id = 1;
+}
+message WebIdValueColor {
+   int32 id = 1;
+   WebColor value = 2;
+}
+message WebIdValueColorId {
+   int32 id = 1;
+   WebColorId color = 2;
+}
+service GameServerAPI {
+   rpc GetCharacterAndBattleframeVisuals (CharacterID) returns (CharacterAndBattleframeVisuals);
+   rpc Ping (PingReq) returns (PingResp);
+}

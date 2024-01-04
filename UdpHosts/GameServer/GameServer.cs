@@ -6,8 +6,11 @@ using System.Threading;
 using System.Threading.Tasks.Dataflow;
 using GameServer.Controllers;
 using GameServer.Test;
+using Grpc.Net.Client;
 using Serilog;
 using Shared.Udp;
+
+using GrpcGameServerAPIClient;
 
 namespace GameServer;
 
@@ -63,7 +66,6 @@ internal class GameServer : PacketServer
     ///     Generate the Server Id
     ///     TODO: Incorporate the Sql Node Number as per https://gist.github.com/SilentCLD/881839a9f45578f1618db012fc789a71
     /// </summary>
-    /// <returns></returns>
     private static ulong GenerateServerId()
     {
         Span<byte> ranSpan = stackalloc byte[8];
@@ -106,7 +108,7 @@ internal class GameServer : PacketServer
 
     private IShard NewShard(CancellationToken ct)
     {
-        var id = _serverId | (uint)(_nextShardId++ << 8);
+        var id = _serverId | (uint)(_nextShardId++ << 8) | (byte)Enums.GSS.Controllers.GenericShard;
         var shard = _shards.AddOrUpdate(id, new Shard(GameTickRate, id, this), (_, old) => old);
 
         shard.Run(ct);
