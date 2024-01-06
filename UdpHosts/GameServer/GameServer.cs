@@ -7,10 +7,9 @@ using System.Threading.Tasks.Dataflow;
 using GameServer.Controllers;
 using GameServer.Test;
 using Grpc.Net.Client;
+using GrpcGameServerAPIClient;
 using Serilog;
 using Shared.Udp;
-
-using GrpcGameServerAPIClient;
 
 namespace GameServer;
 

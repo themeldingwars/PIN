@@ -10,11 +10,11 @@ using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.Matrix.V25;
 using GameServer.Data;
 using GameServer.Test;
+using Grpc.Net.Client;
+using GrpcGameServerAPIClient;
 using Serilog;
 using Character = GameServer.Entities.Character.Character;
 using Loadout = AeroMessages.GSS.V66.Character.Event.Loadout;
-using GrpcGameServerAPIClient;
-using Grpc.Net.Client;
 
 namespace GameServer;
 
