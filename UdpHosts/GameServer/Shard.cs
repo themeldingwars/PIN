@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using FauFau.Formats;
 using GameServer.Entities;
 using Shared.Common;
 using Shared.Udp;

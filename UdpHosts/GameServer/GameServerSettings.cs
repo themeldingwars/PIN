@@ -21,4 +21,9 @@ public class GameServerSettings
     ///    GrpcChannelAddress
     /// </summary>
     public string GrpcChannelAddress { get; set; } = "http://localhost:5201";
+
+    /// <summary>
+    ///    File path to the clientdb.sd2 located in system\db\ of the Firefall installation
+    /// </summary>
+    public string StaticDBPath { get; set; } = @"E:\MeldingWars\bin.db.ini\production\prod\prod-1962.0\system\db\clientdb.sd2";
 }

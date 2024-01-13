@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using FauFau.Formats;
 using Serilog;
 using Shared.Common;
 
@@ -16,6 +17,7 @@ public class GameServerModule : Module
     private static void RegisterTypes(ContainerBuilder builder)
     {
         builder.RegisterType<GameServerSettings>().SingleInstance();
+        builder.RegisterType<StaticDB>().SingleInstance();
         builder.RegisterType<GameServer>();
     }
 
@@ -36,5 +38,14 @@ public class GameServerModule : Module
 
                              return loggerConfig.CreateLogger();
                          }).As<ILogger>().SingleInstance();
+        builder.Register(ctx =>
+                         {
+                            var settings = ctx.Resolve<GameServerSettings>();
+
+                            StaticDB sdb = new StaticDB();
+                            sdb.Read(settings.StaticDBPath);
+
+                            return sdb;
+                         }).As<StaticDB>().SingleInstance();
     }
 }

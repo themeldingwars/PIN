@@ -4,7 +4,9 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
+using FauFau.Formats;
 using GameServer.Controllers;
+using GameServer.Data.SDB;
 using GameServer.Test;
 using Grpc.Net.Client;
 using GrpcGameServerAPIClient;
@@ -27,7 +29,8 @@ internal class GameServer : PacketServer
     private byte _nextShardId;
 
     public GameServer(GameServerSettings serverSettings,
-                      ILogger logger)
+                      ILogger logger,
+                      StaticDB sdb)
         : base(serverSettings.Port, logger)
     {
         _clientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
@@ -35,6 +38,9 @@ internal class GameServer : PacketServer
 
         _nextShardId = 1;
         _serverId = GenerateServerId();
+
+        Logger.Information("Loading SDB");
+        SDBInterface.Init(sdb);
     }
 
     protected override void Startup(CancellationToken ct)
