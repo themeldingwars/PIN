@@ -112,11 +112,11 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         var baseController = CharacterEntity.Character_BaseController;
 
         // Update 1
-        CharacterEntity.SetSpawnTime(AssignedShard.CurrentTime); // Aegis style ho!
+        CharacterEntity.SetSpawnTime(AssignedShard.CurrentTime);
         CharacterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Respawning, AssignedShard.CurrentTime);
         CharacterEntity.SetSpawnPose();
-        baseController.RespawnTimesProp = new RespawnTimesData(); // And you know what it is
-        baseController.RespawnTimesProp = null; // Dirt
+        baseController.RespawnTimesProp = new RespawnTimesData(); 
+        baseController.RespawnTimesProp = null; // Make the field dirty so we send clear because we probably should send clear. At some point investigaste if this is neccessary.
         baseController.TimedDailyRewardProp = new TimedDailyRewardData { State = TimedDailyRewardData.TimedDailyRewardState.ROLLED, MaxRolls = 1, CountdownToTime = AssignedShard.CurrentTime };
         NetChannels[ChannelType.ReliableGss].SendIAeroChanges(baseController, CharacterEntity.EntityId);
 
@@ -136,13 +136,19 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         };
         NetChannels[ChannelType.ReliableGss].SendIAeroChanges(baseController, CharacterEntity.EntityId);
 
+        // Hack to add in jetpack fx until we hook up item effects
+        CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(986), new Aptitude.Context(AssignedShard, CharacterEntity)
+        {
+            InitTime = AssignedShard.CurrentTime,
+        });
+        CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(472), new Aptitude.Context(AssignedShard, CharacterEntity)
+        {
+            InitTime = AssignedShard.CurrentTime,
+        });
+
         var combatController = new CombatController
         {
             CombatTimer_0Prop = AssignedShard.CurrentTime,
-            StatusEffectsChangeTime_10Prop = AssignedShard.CurrentShortTime,
-            StatusEffects_10Prop = new StatusEffectData { Id = 986, Time = AssignedShard.CurrentTime, Initiator = new EntityId { Backing = Player.CharacterEntity.EntityId }, MoreDataFlag = 0 },
-            StatusEffectsChangeTime_11Prop = AssignedShard.CurrentShortTime,
-            StatusEffects_11Prop = new StatusEffectData { Id = 472, Time = AssignedShard.CurrentTime, Initiator = new EntityId { Backing = Player.CharacterEntity.EntityId }, MoreDataFlag = 0 }
         };
         NetChannels[ChannelType.ReliableGss].SendIAeroChanges(combatController, CharacterEntity.EntityId);
 

@@ -28,6 +28,8 @@ public class MovementRelay
         bool sendJumpActioned = poseData.TimeSinceLastJump < character.TimeSinceLastJump; // Compare the old value before updating 
         character.TimeSinceLastJump = poseData.TimeSinceLastJump;
 
+        character.IsAirborne = poseData.GroundTimePositiveAirTimeNegative < 0;
+
         // TODO: Fix or remove this container, refer to https://github.com/themeldingwars/Documentation/wiki/Character-State
         var movementStateValue = posRotState.MovementState;
         character.MovementStateContainer.MovementState = (Entities.Character.CharMovementState)movementStateValue;

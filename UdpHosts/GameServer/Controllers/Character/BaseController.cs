@@ -141,8 +141,8 @@ public class BaseController : Base
     [MessageID((byte)Commands.SetMovementSimulation)]
     public void SetMovementSimulation(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-        // Dear client, thanks for informing us about often you will update us.
-        // We will continue to rely on your support, whilst continuing to do nothing ourselves.
+        // Dear client, thanks for informing us about how often you will update us.
+        // We will continue to rely on your support, whilst doing nothing ourselves.
         // Best regards, TMW
         // var setMovementSimulation = packet.Unpack<SetMovementSimulation>();
         // LogMissingImplementation<BaseController>(nameof(SetMovementSimulation), entityId, packet, _logger);
