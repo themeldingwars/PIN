@@ -13,7 +13,7 @@ public record class DeployableCalldownCommandDef
     public uint Id { get; set; }
     public sbyte MaxOfType { get; set; }
     public byte UseOwnerFaction { get; set; }
-    public byte Flip180 { get; set; }
+    public byte Flip_180 { get; set; }
     public byte GroundAlignment { get; set; }
     public byte PassBonus { get; set; }
     public byte ConstructTimeRegop { get; set; }

@@ -1,10 +1,15 @@
 ﻿using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
+using GameServer.Aptitude;
+using GameServer.Data.SDB;
+using GameServer.Entities;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
+using System;
+using System.Linq;
 
 namespace GameServer.Controllers.Character;
 
@@ -116,76 +121,101 @@ public class CombatController : Base
     public void ActivateAbility(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var activateAbility = packet.Unpack<ActivateAbility>();
-
+        Console.WriteLine($"ActivateAbility Slot {activateAbility.AbilitySlotIndex}");
         if (activateAbility == null)
         {
             return;
         }
 
+        // Get the ability id based on the slotted ability
         var abilitySlot = activateAbility.AbilitySlotIndex;
-
-        // Ability1 - Default button 1
-        if (abilitySlot == 0)
+        var character = player.CharacterEntity;
+        uint abilityId = 0;
+        if (character.CharData != null) // Using the local data until we can get the loadout remotely
         {
-        }
-        
-        // Ability2 - Default button 2
-        if (abilitySlot == 1)
-        {
-        }
-        
-        // Ability3 - Default button 3
-        if (abilitySlot == 2)
-        {
-        }
-        
-        // AbilityHKM - Default button 4
-        if (abilitySlot == 3)
-        {
-        }
-        
-        // AbilityInteract - Default button E
-        if (abilitySlot == 4)
-        {
-        }
-        
-        // Auxiliary - Default button G
-        if (abilitySlot == 5)
-        {
-        }
-        
-        // AbilityMedical - Default button Q
-        if (abilitySlot == 6)
-        {
-        }
-        
-        // AbilitySIN - Default button F
-        if (abilitySlot == 13)
-        {
-        }
-        
-        // Vehicle - Default button V
-        if (abilitySlot == 16)
-        {
-        }
-        
-        // Auxiliary - Default button T
-        if (abilitySlot == 17)
-        {
-        }
-
-        /*var resp = new AbilityActivated
-        {
-            ActivatedAbilityId = activateAbility.AbilitySlotIndex,  // ??
-            ActivatedTime = activateAbility.Time,
-            AbilityCooldownsData = new AbilityCooldownsData
+            var loadout = character.CharData.Loadout;
+            var module = loadout.BackpackModules.FirstOrDefault((mod) => mod.SlotIDX == abilitySlot);
+            if (module != null)
             {
-                ActiveCooldowns_Group1 = Array.Empty<ActiveCooldown>(),
-                ActiveCooldowns_Group2 = Array.Empty<ActiveCooldown>(),
-                GlobalCooldown_Activated_Time = activateAbility.Time,
-                GlobalCooldown_ReadyAgain_Time = activateAbility.Time+119,
-                Unk = 0x00
+                var itemId = module.SdbID;
+                var abilityModule = SDBInterface.GetAbilityModule(itemId);
+                if (abilityModule != null)
+                {
+                    abilityId = abilityModule.AbilityChainId;
+                }
             }
-        };*/
+        }
+
+        // Defaults if we failed
+        if (abilityId == 0)
+        {
+            // Ability1 - Default button 1
+            if (abilitySlot == 0)
+            {
+            }
+            
+            // Ability2 - Default button 2
+            if (abilitySlot == 1)
+            {
+            }
+            
+            // Ability3 - Default button 3
+            if (abilitySlot == 2)
+            {
+            }
+            
+            // AbilityHKM - Default button 4
+            if (abilitySlot == 3)
+            {
+            }
+            
+            // AbilityInteract - Default button E
+            if (abilitySlot == 4)
+            {
+                abilityId = 187; // Interact
+            }
+            
+            // Auxiliary - Default button G
+            if (abilitySlot == 5)
+            {
+            }
+            
+            // AbilityMedical - Default button Q
+            if (abilitySlot == 6)
+            {
+            }
+            
+            // AbilitySIN - Default button F
+            if (abilitySlot == 13)
+            {
+                abilityId = 43; // 40? SIN Targetting
+            }
+            
+            // Vehicle - Default button V
+            if (abilitySlot == 16)
+            {
+            }
+            
+            // Auxiliary - Default button T
+            if (abilitySlot == 17)
+            {
+            }
+        }
+
+        if (abilityId != 0)
+        {
+            var initiator = character as IAptitudeTarget;
+            var shard = player.CharacterEntity.Shard;
+            var activationTime = activateAbility.Time;
+            var targets = activateAbility.Targets.Select((id) => {
+                shard.Entities.TryGetValue(id.Backing, out IEntity result);
+                if (result.GetType() == typeof(IAptitudeTarget))
+                {
+                    return result as IAptitudeTarget;
+                }
+                return null;
+            }).ToArray();
+            shard.Abilities.HandleActivateAbility(shard, initiator, abilityId, activationTime, targets);
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using GameServer.Entities;
 using Shared.Udp;
+using GameServer.Aptitude;
 
 namespace GameServer;
 
@@ -14,6 +15,7 @@ public interface IShard : IInstance, IPacketSender
     AIEngine AI { get; }
     MovementRelay Movement { get; }
     EntityManager EntityMan { get; }
+    AbilitySystem Abilities { get; }
 
     int CurrentPlayers => Clients.Count;
 

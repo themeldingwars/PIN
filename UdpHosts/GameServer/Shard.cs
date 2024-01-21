@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using FauFau.Formats;
+using GameServer.Aptitude;
 using GameServer.Entities;
 using Shared.Common;
 using Shared.Udp;
@@ -28,6 +28,7 @@ public class Shard : IShard
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         EntityMan = new EntityManager(this);
+        Abilities = new AbilitySystem(this);
         InstanceId = instanceId;
         Sender = sender;
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
@@ -41,6 +42,7 @@ public class Shard : IShard
     public AIEngine AI { get; }
     public MovementRelay Movement { get; }
     public EntityManager EntityMan { get; }
+    public AbilitySystem Abilities { get; }
     public ulong InstanceId { get; }
     public ulong CurrentTimeLong { get; private set; }
     public uint CurrentTime => unchecked((uint)CurrentTimeLong);
@@ -69,6 +71,7 @@ public class Shard : IShard
         AI.Tick(deltaTime, currentTime, ct);
         Physics.Tick(deltaTime, currentTime, ct);
         EntityMan.Tick(deltaTime, currentTime, ct);
+        Abilities.Tick(deltaTime, currentTime, ct);
 
         return true;
     }

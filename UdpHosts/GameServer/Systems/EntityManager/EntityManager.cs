@@ -183,7 +183,7 @@ public class EntityManager
             view.SerializeChangesToMemory(out var update);
             foreach (var client in Shard.Clients.Values)
             {
-                Console.WriteLine($"FlushedViewChanges:{client.SocketId} {typeof(TPacket).FullName} {entityId}");
+                // Console.WriteLine($"FlushedViewChanges:{client.SocketId} {typeof(TPacket).FullName} {entityId}");
 
                 bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
                 if (shouldSend)

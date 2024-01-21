@@ -8,11 +8,15 @@ using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.View;
+using GameServer.Aptitude;
 using GrpcGameServerAPIClient;
 
 namespace GameServer.Entities.Character;
 
-public class Character : BaseEntity
+/// <summary>
+/// Base Character
+/// </summary>
+public partial class Character : BaseEntity
 {
     public Character(IShard shard, ulong eid)
         : base(shard, eid)
@@ -43,6 +47,7 @@ public class Character : BaseEntity
     public ushort MovementShortTime { get; set; }
     public bool Alive { get; set; }
     public short TimeSinceLastJump { get; set; }
+    public bool IsAirborne { get; set; }
 
     public StaticInfoData StaticInfo { get; set; }
     public CharacterStateData CharacterState { get; set; }
@@ -64,6 +69,71 @@ public class Character : BaseEntity
     public WeaponIndexData WeaponIndex { get; set; }
     public FireModeData FireMode_0 { get; set; }
     public FireModeData FireMode_1 { get; set; }
+
+    public ushort StatusEffectsChangeTime_0 { get; set; }
+    public ushort StatusEffectsChangeTime_1 { get; set; }
+    public ushort StatusEffectsChangeTime_2 { get; set; }
+    public ushort StatusEffectsChangeTime_3 { get; set; }
+    public ushort StatusEffectsChangeTime_4 { get; set; }
+    public ushort StatusEffectsChangeTime_5 { get; set; }
+    public ushort StatusEffectsChangeTime_6 { get; set; }
+    public ushort StatusEffectsChangeTime_7 { get; set; }
+    public ushort StatusEffectsChangeTime_8 { get; set; }
+    public ushort StatusEffectsChangeTime_9 { get; set; }
+    public ushort StatusEffectsChangeTime_10 { get; set; }
+    public ushort StatusEffectsChangeTime_11 { get; set; }
+    public ushort StatusEffectsChangeTime_12 { get; set; }
+    public ushort StatusEffectsChangeTime_13 { get; set; }
+    public ushort StatusEffectsChangeTime_14 { get; set; }
+    public ushort StatusEffectsChangeTime_15 { get; set; }
+    public ushort StatusEffectsChangeTime_16 { get; set; }
+    public ushort StatusEffectsChangeTime_17 { get; set; }
+    public ushort StatusEffectsChangeTime_18 { get; set; }
+    public ushort StatusEffectsChangeTime_19 { get; set; }
+    public ushort StatusEffectsChangeTime_20 { get; set; }
+    public ushort StatusEffectsChangeTime_21 { get; set; }
+    public ushort StatusEffectsChangeTime_22 { get; set; }
+    public ushort StatusEffectsChangeTime_23 { get; set; }
+    public ushort StatusEffectsChangeTime_24 { get; set; }
+    public ushort StatusEffectsChangeTime_25 { get; set; }
+    public ushort StatusEffectsChangeTime_26 { get; set; }
+    public ushort StatusEffectsChangeTime_27 { get; set; }
+    public ushort StatusEffectsChangeTime_28 { get; set; }
+    public ushort StatusEffectsChangeTime_29 { get; set; }
+    public ushort StatusEffectsChangeTime_30 { get; set; }
+    public ushort StatusEffectsChangeTime_31 { get; set; }
+    public StatusEffectData? StatusEffects_0 { get; set; }
+    public StatusEffectData? StatusEffects_1 { get; set; }
+    public StatusEffectData? StatusEffects_2 { get; set; }
+    public StatusEffectData? StatusEffects_3 { get; set; }
+    public StatusEffectData? StatusEffects_4 { get; set; }
+    public StatusEffectData? StatusEffects_5 { get; set; }
+    public StatusEffectData? StatusEffects_6 { get; set; }
+    public StatusEffectData? StatusEffects_7 { get; set; }
+    public StatusEffectData? StatusEffects_8 { get; set; }
+    public StatusEffectData? StatusEffects_9 { get; set; }
+    public StatusEffectData? StatusEffects_10 { get; set; }
+    public StatusEffectData? StatusEffects_11 { get; set; }
+    public StatusEffectData? StatusEffects_12 { get; set; }
+    public StatusEffectData? StatusEffects_13 { get; set; }
+    public StatusEffectData? StatusEffects_14 { get; set; }
+    public StatusEffectData? StatusEffects_15 { get; set; }
+    public StatusEffectData? StatusEffects_16 { get; set; }
+    public StatusEffectData? StatusEffects_17 { get; set; }
+    public StatusEffectData? StatusEffects_18 { get; set; }
+    public StatusEffectData? StatusEffects_19 { get; set; }
+    public StatusEffectData? StatusEffects_20 { get; set; }
+    public StatusEffectData? StatusEffects_21 { get; set; }
+    public StatusEffectData? StatusEffects_22 { get; set; }
+    public StatusEffectData? StatusEffects_23 { get; set; }
+    public StatusEffectData? StatusEffects_24 { get; set; }
+    public StatusEffectData? StatusEffects_25 { get; set; }
+    public StatusEffectData? StatusEffects_26 { get; set; }
+    public StatusEffectData? StatusEffects_27 { get; set; }
+    public StatusEffectData? StatusEffects_28 { get; set; }
+    public StatusEffectData? StatusEffects_29 { get; set; }
+    public StatusEffectData? StatusEffects_30 { get; set; }
+    public StatusEffectData? StatusEffects_31 { get; set; }
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
 
@@ -183,11 +253,20 @@ public class Character : BaseEntity
             },
             Backpack = new SlottedItem
             {
-                SdbId = 0, // staticData.Loadout.BackpackID,
+                SdbId = staticData.Loadout.BackpackID,
                 SlotIndex = 0,
                 Flags = 0,
                 Unk2 = 0,
-                Modules = Array.Empty<SlottedModule>(),
+                Modules = new SlottedModule[]
+                {
+                    new SlottedModule
+                    {
+                        SdbId = 101940, // Afterburner,
+                        SlotIndex = 0,
+                        Flags = 0,
+                        Unk2 = 0,
+                    }
+                },
                 Visuals = new VisualsBlock
                 {
                     Decals = Array.Empty<VisualsDecalsBlock>(),
@@ -575,17 +654,53 @@ public class Character : BaseEntity
         Character_CombatView.WeaponIndexProp = value;
     }
 
+    public void SetStatusEffect(EffectState state)
+    {
+        var time = unchecked((ushort)state.Time);
+        var data = new StatusEffectData
+        {
+            Id = state.Effect.Id,
+            Initiator = new AeroMessages.Common.EntityId { Backing = state.Context.Initiator.EntityId },
+            Time = state.Time,
+            MoreDataFlag = 0
+        };
+
+        Console.WriteLine($"Character.SetStatusEffect Index {state.Index}, Time {time}, Id {state.Effect.Id}");
+
+        this.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}").SetValue(this, time, null);
+        this.GetType().GetProperty($"StatusEffects_{state.Index}").SetValue(this, data, null);
+        Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}Prop").SetValue(Character_CombatController, time, null);
+        Character_CombatController.GetType().GetProperty($"StatusEffects_{state.Index}Prop").SetValue(Character_CombatController, data, null);
+        Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}Prop").SetValue(Character_CombatView, time, null);
+        Character_CombatView.GetType().GetProperty($"StatusEffects_{state.Index}Prop").SetValue(Character_CombatView, data, null);
+    }
+
+    public void ClearStatusEffect(EffectState state)
+    {
+        var time = unchecked((ushort)state.Context.Shard.CurrentTime);
+
+        Console.WriteLine($"Character.ClearStatusEffect Index {state.Index}, Time {time}, Id {state.Effect.Id}");
+
+        this.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}").SetValue(this, time, null);
+        this.GetType().GetProperty($"StatusEffects_{state.Index}").SetValue(this, null, null);
+        Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}Prop").SetValue(Character_CombatController, time, null);
+        Character_CombatController.GetType().GetProperty($"StatusEffects_{state.Index}Prop").SetValue(Character_CombatController, null, null);
+        Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}Prop").SetValue(Character_CombatView, time, null);
+        Character_CombatView.GetType().GetProperty($"StatusEffects_{state.Index}Prop").SetValue(Character_CombatView, null, null);
+    }
+
     private void InitFields()
     {
         Position = new Vector3();
         Rotation = Quaternion.Identity;
         Velocity = new Vector3();
-        AimDirection = Vector3.UnitZ;
+        AimDirection = new Vector3(0.70707911253f, 0.707134246826f, 0.000504541851114f); // Look kinda forward instead of up
         MovementState = 0x1000;
         MovementShortTime = Shard.CurrentShortTime;
 
         Alive = false;
         TimeSinceLastJump = 0;
+        IsAirborne = false;
 
         StaticInfo = new StaticInfoData();
         CharacterState = new CharacterStateData { State = CharacterStateData.CharacterStatus.Living, Time = Shard.CurrentTime };
@@ -954,5 +1069,18 @@ public class Character : BaseEntity
             MovementState = (ushort)MovementState,
             Time = Shard.CurrentTime
         };
+    }
+
+    private void RefreshAllStatusEffects()
+    {
+        for (int i = 0; i < 31; i++)
+        {
+            var sourceTime = this.GetType().GetProperty($"StatusEffectsChangeTime_{i}").GetValue(this);
+            var sourceData = this.GetType().GetProperty($"StatusEffects_{i}").GetValue(this);
+            Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{i}Prop").SetValue(Character_CombatController, sourceTime, null);
+            Character_CombatController.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatController, sourceData, null);
+            Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{i}Prop").SetValue(Character_CombatView, sourceTime, null);
+            Character_CombatView.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatView, sourceData, null);
+        }
     }
 }
