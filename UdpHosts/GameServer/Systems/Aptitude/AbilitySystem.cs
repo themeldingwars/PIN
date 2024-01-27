@@ -24,15 +24,6 @@ public class AbilitySystem
     {
         Shard = shard;
         Factory = new Factory();
-        Test();
-    }
-
-    public void Test()
-    {
-        // var context = new Context(Shard, new Entities.Character.Character(Shard, 0))
-        // {
-        //     ChainId = 67035
-        // };
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -70,7 +61,11 @@ public class AbilitySystem
 
     public void DoApplyEffect(uint effectId, IAptitudeTarget target, Context context)
     {
-        if (effectId == 0) return;
+        if (effectId == 0)
+        {
+             return;
+        }
+
         var effect = Factory.LoadEffect(effectId);
         target.AddEffect(effect, context);
         effect.ApplyChain?.Execute(context);
@@ -84,28 +79,32 @@ public class AbilitySystem
 
     public void HandleVehicleCalldownRequest()
     {
-        
+        throw new NotImplementedException();
     }
 
     public void HandleDeployableCalldownRequest()
     {
-        
+        throw new NotImplementedException();
     }
 
     public void HandleResourceNodeBeaconCalldownRequest()
     {
-
+        throw new NotImplementedException();
     }
 
     public void HandleLocalProximityAbilitySuccess()
     {
-
+        throw new NotImplementedException();
     }
 
     public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, IAptitudeTarget[] targets)
     {
         var chainId = SDBInterface.GetAbilityData(abilityId).Chain;
-        if (chainId == 0) return;
+        if (chainId == 0)
+        {
+            return;
+        }
+
         var chain = Factory.LoadChain(chainId);
         chain.Execute(new Context(shard, initiator)
         {
@@ -113,22 +112,23 @@ public class AbilitySystem
             AbilityId = abilityId,
             Targets = targets,
             InitTime = activationTime,
+
             // InitPosition = 
         });
     }
 
     public void HandleTargetAbility()
     {
-
+        throw new NotImplementedException();
     }
 
     public void HandleDeactivateAbility()
     {
-
+        throw new NotImplementedException();
     }
 
     public void HandleActivateConsumable()
     {
-
+        throw new NotImplementedException();
     }
 }

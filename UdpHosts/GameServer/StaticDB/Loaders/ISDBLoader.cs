@@ -5,9 +5,14 @@ using Records.aptfs;
 using Records.dbviusalrecords;
 using Records.dbitems;
 using System.Collections.Generic;
+using Records.dbcharacter;
 
 public interface ISDBLoader
 {
+    // dbcharacter
+    Dictionary<uint, CharCreateLoadout> LoadCharCreateLoadout();
+    Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> LoadCharCreateLoadoutSlots();
+
     // dbvisualrecords
     Dictionary<uint, WarpaintPalette> LoadWarpaintPalettes();
 
@@ -17,6 +22,7 @@ public interface ISDBLoader
     Dictionary<KeyValuePair<uint, ushort>, AttributeRange> LoadAttributeRange();
     Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> LoadItemCharacterScalars();
     Dictionary<uint, RootItem> LoadRootItem();
+    Dictionary<uint, Battleframe> LoadBattleframe();
 
     // apt
     Dictionary<uint, BaseCommandDef> LoadBaseCommandDef();
