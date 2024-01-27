@@ -9,6 +9,7 @@ using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.View;
 using GameServer.Aptitude;
+using GameServer.Data.SDB;
 using GrpcGameServerAPIClient;
 
 namespace GameServer.Entities.Character;
@@ -16,7 +17,7 @@ namespace GameServer.Entities.Character;
 /// <summary>
 /// Base Character
 /// </summary>
-public partial class Character : BaseEntity
+public class Character : BaseAptitudeEntity, IAptitudeTarget
 {
     public Character(IShard shard, ulong eid)
         : base(shard, eid)
@@ -142,6 +143,10 @@ public partial class Character : BaseEntity
         Data.Character staticData = Data.Character.Load(0);
         CharData = staticData; // Necessary for InitControllers
 
+        // Temp: Hacky chassis colors until proper loadout structure
+        var chassisWarpaint = SDBUtils.GetChassisWarpaint(remoteData.CharacterInfo.CurrentBattleframeSDBId, 0, 0, 0, 0);
+        var chassisBackpackId = SDBUtils.GetChassisDefaultBackpack(remoteData.CharacterInfo.CurrentBattleframeSDBId);
+
         StaticInfo = new StaticInfoData
         {
             DisplayName = remoteData.CharacterInfo.Name,
@@ -188,63 +193,18 @@ public partial class Character : BaseEntity
         {
             Chassis = new SlottedItem
             {
-                SdbId = 77733, // staticData.Loadout.ChassisID,
+                SdbId = remoteData.CharacterInfo.CurrentBattleframeSDBId, // staticData.Loadout.ChassisID,
                 SlotIndex = 0,
                 Flags = 0,
                 Unk2 = 0,
                 Modules = Array.Empty<SlottedModule>(),
                 Visuals = new VisualsBlock
                 {
-                    Decals = new VisualsDecalsBlock[]
-                    {
-                        new()
-                        {
-                            DecalId = 10000,
-                            Color = 4294967295,
-                            Usage = 255,
-                            Transform = new HalfVector4[]
-                            {
-                                new()
-                                {
-                                    X = new HalfFloat { Value = 10935 },
-                                    Y = new HalfFloat { Value = 9478 },
-                                    Z = new HalfFloat { Value = 0 },
-                                    W = new HalfFloat { Value = 8106 }
-                                },
-                                new()
-                                {
-                                    X = new HalfFloat { Value = 42272 },
-                                    Y = new HalfFloat { Value = 43680 },
-                                    Z = new HalfFloat { Value = 9380 },
-                                    W = new HalfFloat { Value = 43573 }
-                                },
-                                new()
-                                {
-                                    X = new HalfFloat { Value = 9592 },
-                                    Y = new HalfFloat { Value = 12012 },
-                                    Z = new HalfFloat { Value = 44736 },
-                                    W = new HalfFloat { Value = 15867 }
-                                }
-                            }
-                        }
-                    },
-                    Gradients = Array.Empty<uint>(),
-                    Colors = ((List<uint>)staticData.ChassisVisuals.Colors).ToArray(),
-                    Palettes = new VisualsPaletteBlock[] { new() { PaletteId = 85163, PaletteType = 0 } },
-                    Patterns = new VisualsPatternBlock[]
-                    {
-                        new()
-                        {
-                            PatternId = 10022,
-                            TransformValues = new HalfVector4
-                            {
-                                X = new HalfFloat { Value = 0 },
-                                Y = new HalfFloat { Value = 16384 },
-                                Z = new HalfFloat { Value = 0 },
-                                W = new HalfFloat { Value = 0 }
-                            }
-                        }
-                    },
+                    Decals = Array.Empty<VisualsDecalsBlock>(),
+                    Gradients = chassisWarpaint.Gradients,
+                    Colors = chassisWarpaint.Colors,
+                    Palettes = chassisWarpaint.Palettes,
+                    Patterns = Array.Empty<VisualsPatternBlock>(),
                     OrnamentGroupIds = Array.Empty<uint>(),
                     CziMapAssetIds = Array.Empty<uint>(),
                     MorphWeights = Array.Empty<HalfFloat>(),
@@ -253,7 +213,7 @@ public partial class Character : BaseEntity
             },
             Backpack = new SlottedItem
             {
-                SdbId = staticData.Loadout.BackpackID,
+                SdbId = chassisBackpackId,
                 SlotIndex = 0,
                 Flags = 0,
                 Unk2 = 0,
@@ -654,39 +614,38 @@ public partial class Character : BaseEntity
         Character_CombatView.WeaponIndexProp = value;
     }
 
-    public void SetStatusEffect(EffectState state)
+    public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        var time = unchecked((ushort)state.Time);
-        var data = new StatusEffectData
-        {
-            Id = state.Effect.Id,
-            Initiator = new AeroMessages.Common.EntityId { Backing = state.Context.Initiator.EntityId },
-            Time = state.Time,
-            MoreDataFlag = 0
-        };
+        Console.WriteLine($"Character.SetStatusEffect Index {index}, Time {time}, Id {data.Id}");
 
-        Console.WriteLine($"Character.SetStatusEffect Index {state.Index}, Time {time}, Id {state.Effect.Id}");
-
-        this.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}").SetValue(this, time, null);
-        this.GetType().GetProperty($"StatusEffects_{state.Index}").SetValue(this, data, null);
-        Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}Prop").SetValue(Character_CombatController, time, null);
-        Character_CombatController.GetType().GetProperty($"StatusEffects_{state.Index}Prop").SetValue(Character_CombatController, data, null);
-        Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}Prop").SetValue(Character_CombatView, time, null);
-        Character_CombatView.GetType().GetProperty($"StatusEffects_{state.Index}Prop").SetValue(Character_CombatView, data, null);
+        // Member
+        this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+        this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
+        
+        // CombatController
+        Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
+        Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, data, null);
+        
+        // CombatView
+        Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
+        Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, data, null);
     }
 
-    public void ClearStatusEffect(EffectState state)
+    public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        var time = unchecked((ushort)state.Context.Shard.CurrentTime);
+        Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}");
 
-        Console.WriteLine($"Character.ClearStatusEffect Index {state.Index}, Time {time}, Id {state.Effect.Id}");
-
-        this.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}").SetValue(this, time, null);
-        this.GetType().GetProperty($"StatusEffects_{state.Index}").SetValue(this, null, null);
-        Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}Prop").SetValue(Character_CombatController, time, null);
-        Character_CombatController.GetType().GetProperty($"StatusEffects_{state.Index}Prop").SetValue(Character_CombatController, null, null);
-        Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{state.Index}Prop").SetValue(Character_CombatView, time, null);
-        Character_CombatView.GetType().GetProperty($"StatusEffects_{state.Index}Prop").SetValue(Character_CombatView, null, null);
+        // Member
+        this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+        this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
+        
+        // CombatController
+        Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
+        Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, null, null);
+        
+        // CombatView
+        Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
+        Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, null, null);
     }
 
     private void InitFields()

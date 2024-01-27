@@ -25,7 +25,7 @@ public record class Battleframe
     public float BodyMass { get; set; }
     public uint XprewardType { get; set; }
     public float RotationSpeed { get; set; }
-    public uint BaseHealth { get; set; }
+    public int BaseHealth { get; set; }
     public float BaseEnergy { get; set; }
     public uint DefaultBodysuitPaletteId { get; set; }
     public uint ShieldRechargeDelayMs { get; set; }

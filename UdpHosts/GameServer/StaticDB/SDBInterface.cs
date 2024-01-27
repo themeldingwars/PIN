@@ -6,10 +6,16 @@ using Records.dbitems;
 using Records.dbviusalrecords;
 using Records.apt;
 using Records.aptfs;
+using Records.dbcharacter;
 using Records;
+using System.Linq;
 
 public class SDBInterface
 {
+    // dbcharacter
+    private static Dictionary<uint, CharCreateLoadout> CharCreateLoadout;
+    private static Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> CharCreateLoadoutSlots;
+
     // dbvisualrecords
     private static Dictionary<uint, WarpaintPalette> WarpaintPalettes;
 
@@ -20,6 +26,7 @@ public class SDBInterface
     private static Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> ItemCharacterScalars;
     private static Dictionary<uint, RootItem> RootItem;
     private static Dictionary<uint, AbilityModule> AbilityModule;
+    private static Dictionary<uint, Battleframe> Battleframe;
 
     // apt
     private static Dictionary<uint, BaseCommandDef> BaseCommandDef;
@@ -128,6 +135,10 @@ public class SDBInterface
     {
         var loader = new StaticDBLoader(instance);
 
+        // dbcharacter
+        CharCreateLoadout = loader.LoadCharCreateLoadout();
+        CharCreateLoadoutSlots = loader.LoadCharCreateLoadoutSlots();
+
         // dbvisualrecords
         WarpaintPalettes = loader.LoadWarpaintPalettes();
 
@@ -138,6 +149,7 @@ public class SDBInterface
         ItemCharacterScalars = loader.LoadItemCharacterScalars();
         RootItem = loader.LoadRootItem();
         AbilityModule = loader.LoadAbilityModule();
+        Battleframe = loader.LoadBattleframe();
 
         // apt
         StatusEffectData = loader.LoadStatusEffectData();
@@ -226,11 +238,21 @@ public class SDBInterface
         RequireZoneTypeCommandDef = loader.LoadRequireZoneTypeCommandDef();
     }
 
+    // dbcharacter
+    public static CharCreateLoadout GetCharCreateLoadout(uint id) => CharCreateLoadout.GetValueOrDefault(id);
+    public static CharCreateLoadout[] GetCharCreateLoadoutsByFrame(uint frameId) => CharCreateLoadout
+    .Select(pair => pair.Value)
+    .Where(value => value.FrameId == frameId)
+    .ToArray();
+
+    public static Dictionary<byte, CharCreateLoadoutSlots> GetCharCreateLoadoutSlots(uint id) => CharCreateLoadoutSlots.GetValueOrDefault(id);
+
     // dbvisaulrecords
     public static WarpaintPalette GetWarpaintPalette(uint id) => WarpaintPalettes.GetValueOrDefault(id);
 
     // dbitems
     public static AbilityModule GetAbilityModule(uint id) => AbilityModule.GetValueOrDefault(id);
+    public static Battleframe GetBattleframe(uint id) => Battleframe.GetValueOrDefault(id);
 
     // apt
     public static BaseCommandDef GetBaseCommandDef(uint id) => BaseCommandDef.GetValueOrDefault(id);

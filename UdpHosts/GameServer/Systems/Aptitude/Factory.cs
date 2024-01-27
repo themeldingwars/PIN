@@ -1,10 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Numerics;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.apt;
 using GameServer.Enums.GSS.Character;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 
 namespace GameServer.Aptitude;
 

@@ -5,6 +5,7 @@ using Records.apt;
 using Records.aptfs;
 using Records.dbitems;
 using Records.dbviusalrecords;
+using Records.dbcharacter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,19 @@ public class StaticDBLoader : ISDBLoader
     public StaticDBLoader(StaticDB instance)
     {
         sdb = instance;
+    }
+
+    public Dictionary<uint, CharCreateLoadout> LoadCharCreateLoadout() 
+    {
+        return LoadStaticDB<CharCreateLoadout>("dbcharacter::CharCreateLoadout")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> LoadCharCreateLoadoutSlots() 
+    {
+        return LoadStaticDB<CharCreateLoadoutSlots>("dbcharacter::CharCreateLoadoutSlots")
+        .GroupBy(row => row.LoadoutId)
+        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.SlotType, row => row));
     }
 
     public Dictionary<uint, WarpaintPalette> LoadWarpaintPalettes() 
@@ -57,6 +71,12 @@ public class StaticDBLoader : ISDBLoader
     {
         return LoadStaticDB<RootItem>("dbitems::RootItem")
         .ToDictionary(row => row.SdbId);
+    }
+
+    public Dictionary<uint, Battleframe> LoadBattleframe() 
+    {
+        return LoadStaticDB<Battleframe>("dbitems::Battleframe")
+        .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, AbilityModule> LoadAbilityModule()
