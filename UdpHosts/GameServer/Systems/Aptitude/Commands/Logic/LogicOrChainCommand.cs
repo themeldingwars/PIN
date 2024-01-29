@@ -15,7 +15,10 @@ public class LogicOrChainCommand : ICommand
     {
         var chain = context.Abilities.Factory.LoadChain(Params.OrChain);
 
+        var prevExecutionHint = context.ExecutionHint;
+        context.ExecutionHint = ExecutionHint.Logic;
         bool result = chain.Execute(context, Chain.ExecutionMethod.OrChain);
+        context.ExecutionHint = prevExecutionHint;
 
         if (Params.AlwaysSuccess == 1)
         {

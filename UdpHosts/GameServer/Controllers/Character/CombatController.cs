@@ -1,4 +1,6 @@
-﻿using AeroMessages.GSS.V66.Character;
+﻿using System;
+using System.Linq;
+using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Aptitude;
@@ -8,8 +10,6 @@ using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
-using System;
-using System.Linq;
 
 namespace GameServer.Controllers.Character;
 
@@ -131,7 +131,9 @@ public class CombatController : Base
         var abilitySlot = activateAbility.AbilitySlotIndex;
         var character = player.CharacterEntity;
         uint abilityId = 0;
-        if (character.CharData != null) // Using the local data until we can get the loadout remotely
+
+        // Using the local data until we can get the loadout remotely
+        if (character.CharData != null)
         {
             var loadout = character.CharData.Loadout;
             var module = loadout.BackpackModules.FirstOrDefault((mod) => mod.SlotIDX == abilitySlot);
@@ -207,14 +209,16 @@ public class CombatController : Base
             var initiator = character as IAptitudeTarget;
             var shard = player.CharacterEntity.Shard;
             var activationTime = activateAbility.Time;
-            var targets = activateAbility.Targets.Select((id) => {
+            var targets = activateAbility.Targets.Select((id) =>
+            {
                 shard.Entities.TryGetValue(id.Backing, out IEntity result);
                 if (result.GetType() == typeof(IAptitudeTarget))
                 {
                     return result as IAptitudeTarget;
                 }
                 return null;
-            }).ToArray();
+            }).ToHashSet();
+
             shard.Abilities.HandleActivateAbility(shard, initiator, abilityId, activationTime, targets);
         }
     }

@@ -202,21 +202,21 @@ public class NetworkClient : INetworkClient
         switch (messageId)
         {
             case ControlPacketType.CloseConnection:
-                packet.Read<CloseConnection>();
-                
                 // TODO: Cleanly dispose of client
+                Logger.Information("RECEIVED CloseConnection");
+                packet.Read<CloseConnection>();
+                NetClientStatus = Status.Disconnecting;
+                AssignedShard.MigrateOut((INetworkPlayer)this);
                 break;
             case ControlPacketType.MatrixAck:
+                // TODO: Track reliable packets
                 var matrixAckPackage = packet.Read<MatrixAck>();
                 Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckFor), ChannelType.Matrix);
-                
-                // TODO: Track reliable packets
                 break;
             case ControlPacketType.ReliableGSSAck:
+                // TODO: Track reliable packets
                 var reliableGssAckPackage = packet.Read<ReliableGSSAck>();
                 Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckFor), ChannelType.ReliableGss);
-                
-                // TODO: Track reliable packets
                 break;
             case ControlPacketType.TimeSyncRequest:
                 var timeSyncRequestPackage = packet.Read<TimeSyncRequest>();

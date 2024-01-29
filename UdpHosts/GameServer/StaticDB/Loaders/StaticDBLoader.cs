@@ -35,6 +35,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.SlotType, row => row));
     }
 
+    public Dictionary<uint, Deployable> LoadDeployable()
+    {
+        return LoadStaticDB<Deployable>("dbcharacter::Deployable")
+        .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, WarpaintPalette> LoadWarpaintPalettes() 
     {
         return LoadStaticDB<WarpaintPalette>("dbvisualrecords::WarpaintPalette")
@@ -220,6 +226,12 @@ public class StaticDBLoader : ISDBLoader
     public Dictionary<uint, TargetHostilesCommandDef> LoadTargetHostilesCommandDef()
     {
         return LoadStaticDB<TargetHostilesCommandDef>("aptfs::TargetHostilesCommandDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetByCharacterStateCommandDef>  LoadTargetByCharacterStateCommandDef()
+    {
+        return LoadStaticDB<TargetByCharacterStateCommandDef>("aptfs::TargetByCharacterStateCommandDef")
         .ToDictionary(row => row.Id);
     }
 
@@ -573,7 +585,7 @@ public class StaticDBLoader : ISDBLoader
 
     public Dictionary<uint, RequireDamageTypeCommandDef> LoadRequireDamageTypeCommandDef()
     {
-        return LoadStaticDB<RequireDamageTypeCommandDef>("aptfs::RequireDamageTypeCommandDef")
+        return LoadStaticDB<RequireDamageTypeCommandDef>("apt::RequireDamageTypeCommandDef")
         .ToDictionary(row => row.Id);
     }
 
@@ -597,91 +609,93 @@ public class StaticDBLoader : ISDBLoader
 
     public Dictionary<uint, ReturnCommandDef> LoadReturnCommandDef()
     {
-        return LoadStaticDB<ReturnCommandDef>("aptfs::ReturnCommandDef")
+        return LoadStaticDB<ReturnCommandDef>("apt::ReturnCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, LoadRegisterFromItemStatCommandDef> LoadLoadRegisterFromItemStatCommandDef()
     {
-        return LoadStaticDB<LoadRegisterFromItemStatCommandDef>("aptfs::LoadRegisterFromItemStatCommandDef")
+        return LoadStaticDB<LoadRegisterFromItemStatCommandDef>("apt::LoadRegisterFromItemStatCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, LoadRegisterFromBonusCommandDef> LoadLoadRegisterFromBonusCommandDef()
     {
-        return LoadStaticDB<LoadRegisterFromBonusCommandDef>("aptfs::LoadRegisterFromBonusCommandDef")
+        return LoadStaticDB<LoadRegisterFromBonusCommandDef>("apt::LoadRegisterFromBonusCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, LoadRegisterFromDamageCommandDef> LoadLoadRegisterFromDamageCommandDef()
     {
-        return LoadStaticDB<LoadRegisterFromDamageCommandDef>("aptfs::LoadRegisterFromDamageCommandDef")
+        return LoadStaticDB<LoadRegisterFromDamageCommandDef>("apt::LoadRegisterFromDamageCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, LoadRegisterFromLevelCommandDef> LoadLoadRegisterFromLevelCommandDef()
     {
-        return LoadStaticDB<LoadRegisterFromLevelCommandDef>("aptfs::LoadRegisterFromLevelCommandDef")
+        return LoadStaticDB<LoadRegisterFromLevelCommandDef>("apt::LoadRegisterFromLevelCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, LoadRegisterFromModulePowerCommandDef> LoadLoadRegisterFromModulePowerCommandDef()
     {
-        return LoadStaticDB<LoadRegisterFromModulePowerCommandDef>("aptfs::LoadRegisterFromModulePowerCommandDef")
+        return LoadStaticDB<LoadRegisterFromModulePowerCommandDef>("apt::LoadRegisterFromModulePowerCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, LoadRegisterFromNamedVarCommandDef> LoadLoadRegisterFromNamedVarCommandDef()
     {
-        return LoadStaticDB<LoadRegisterFromNamedVarCommandDef>("aptfs::LoadRegisterFromNamedVarCommandDef")
+        return LoadStaticDB<LoadRegisterFromNamedVarCommandDef>("apt::LoadRegisterFromNamedVarCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, LoadRegisterFromResourceCommandDef> LoadLoadRegisterFromResourceCommandDef()
     {
-        return LoadStaticDB<LoadRegisterFromResourceCommandDef>("aptfs::LoadRegisterFromResourceCommandDef")
+        return LoadStaticDB<LoadRegisterFromResourceCommandDef>("apt::LoadRegisterFromResourceCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, LoadRegisterFromStatCommandDef> LoadLoadRegisterFromStatCommandDef()
     {
-        return LoadStaticDB<LoadRegisterFromStatCommandDef>("aptfs::LoadRegisterFromStatCommandDef")
+        return LoadStaticDB<LoadRegisterFromStatCommandDef>("apt::LoadRegisterFromStatCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, RegisterComparisonCommandDef> LoadRegisterComparisonCommandDef()
     {
-        return LoadStaticDB<RegisterComparisonCommandDef>("aptfs::RegisterComparisonCommandDef")
+        return LoadStaticDB<RegisterComparisonCommandDef>("apt::RegisterComparisonCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, RegisterRandomCommandDef> LoadRegisterRandomCommandDef()
     {
-        return LoadStaticDB<RegisterRandomCommandDef>("aptfs::RegisterRandomCommandDef")
+        return LoadStaticDB<RegisterRandomCommandDef>("apt::RegisterRandomCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, SetRegisterCommandDef> LoadSetRegisterCommandDef()
     {
-        return LoadStaticDB<SetRegisterCommandDef>("aptfs::SetRegisterCommandDef")
+        return LoadStaticDB<SetRegisterCommandDef>("apt::SetRegisterCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, NamedVariableAssignCommandDef> LoadNamedVariableAssignCommandDef()
     {
-        return LoadStaticDB<NamedVariableAssignCommandDef>("aptfs::NamedVariableAssignCommandDef")
+        return LoadStaticDB<NamedVariableAssignCommandDef>("apt::NamedVariableAssignCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, InflictCooldownCommandDef> LoadInflictCooldownCommandDef()
     {
-        return LoadStaticDB<InflictCooldownCommandDef>("aptfs::InflictCooldownCommandDef")
+        return LoadStaticDB<InflictCooldownCommandDef>("apt::InflictCooldownCommandDef")
         .ToDictionary(row => row.Id);
     }
 
     private static T[] LoadStaticDB<T>(string tableName)
     where T : class, new()
     {
+        HashSet<string> warningsSet = new HashSet<string>();
+
         Table table = sdb.GetTableByName(tableName);
         var list = new List<T>();
         foreach(Row row in table.Rows)
@@ -698,11 +712,16 @@ public class StaticDBLoader : ISDBLoader
                 }
                 else
                 {
-                    Console.WriteLine($"Could not find column for {propInfo.Name} (converted to {convertedName}) in {tableName}");
+                    warningsSet.Add($"Could not find column for {propInfo.Name} (converted to {convertedName}) in {tableName}");
                 }
             }
 
             list.Add(entry);
+        }
+
+        foreach(string text in warningsSet)
+        {
+            Console.WriteLine(text);
         }
 
         return list.ToArray();

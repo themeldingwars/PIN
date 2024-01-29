@@ -1,14 +1,15 @@
+/*
 using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
 public class ActivationDurationCommand : ICommand
 {
-    // private ActivationDurationCommandDef Params;
+    private ActivationDurationCommandDef Params;
 
-    public ActivationDurationCommand() // ActivationDurationCommandDef par
+    public ActivationDurationCommand(ActivationDurationCommandDef par)
     {
-        // Params = par;
+        Params = par;
     }
 
     public bool Execute(Context context)
@@ -16,3 +17,4 @@ public class ActivationDurationCommand : ICommand
         return false; // TODO: Implement based on Activation
     }
 }
+*/

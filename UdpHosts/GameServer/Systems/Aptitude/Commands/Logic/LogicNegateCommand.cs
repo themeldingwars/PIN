@@ -14,7 +14,11 @@ public class LogicNegateCommand : ICommand
     public bool Execute(Context context)
     {
         var chain = context.Abilities.Factory.LoadChain(Params.NegateChain);
+
+        var prevExecutionHint = context.ExecutionHint;
+        context.ExecutionHint = ExecutionHint.Logic;
         var result = chain.Execute(context);
+        context.ExecutionHint = prevExecutionHint;
 
         result = !result;
 

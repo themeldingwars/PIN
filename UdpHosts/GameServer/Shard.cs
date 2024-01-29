@@ -27,8 +27,8 @@ public class Shard : IShard
         Physics = new PhysicsEngine(gameTickRate);
         AI = new AIEngine();
         Movement = new MovementRelay(this);
-        EntityMan = new EntityManager(this);
         Abilities = new AbilitySystem(this);
+        EntityMan = new EntityManager(this);
         InstanceId = instanceId;
         Sender = sender;
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
@@ -78,6 +78,12 @@ public class Shard : IShard
 
     public bool MigrateOut(INetworkPlayer player)
     {
+        if (Clients.ContainsKey(player.SocketId))
+        {
+            Clients.Remove(player.SocketId);
+            return true;
+        }
+
         return false;
     }
 

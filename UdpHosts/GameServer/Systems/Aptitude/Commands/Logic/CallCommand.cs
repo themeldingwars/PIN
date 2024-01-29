@@ -1,5 +1,6 @@
-using GameServer.Data.SDB.Records.apt;
 using System;
+using System.Collections.Generic;
+using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
@@ -14,7 +15,7 @@ public class CallCommand : ICommand
 
     public bool Execute(Context context)
     {
-        context.Shard.Abilities.HandleActivateAbility(context.Shard, context.Initiator, Params.AbilityId, context.Shard.CurrentTime, Array.Empty<IAptitudeTarget>());
+        context.Shard.Abilities.HandleActivateAbility(context.Shard, context.Initiator, Params.AbilityId, context.Shard.CurrentTime, new HashSet<IAptitudeTarget>());
         return true;
     }
 }

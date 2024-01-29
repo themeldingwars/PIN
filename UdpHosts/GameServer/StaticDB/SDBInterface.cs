@@ -15,6 +15,7 @@ public class SDBInterface
     // dbcharacter
     private static Dictionary<uint, CharCreateLoadout> CharCreateLoadout;
     private static Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> CharCreateLoadoutSlots;
+    private static Dictionary<uint, Deployable> Deployable;
 
     // dbvisualrecords
     private static Dictionary<uint, WarpaintPalette> WarpaintPalettes;
@@ -72,6 +73,7 @@ public class SDBInterface
     private static Dictionary<uint, TargetOwnerCommandDef> TargetOwnerCommandDef;
     private static Dictionary<uint, TargetByObjectTypeCommandDef> TargetByObjectTypeCommandDef;
     private static Dictionary<uint, TargetHostilesCommandDef> TargetHostilesCommandDef;
+    private static Dictionary<uint, TargetByCharacterStateCommandDef> TargetByCharacterStateCommandDef;
     private static Dictionary<uint, InflictDamageCommandDef> InflictDamageCommandDef;
     private static Dictionary<uint, ForcePushCommandDef> ForcePushCommandDef;
     private static Dictionary<uint, ApplyImpulseCommandDef> ApplyImpulseCommandDef;
@@ -138,6 +140,7 @@ public class SDBInterface
         // dbcharacter
         CharCreateLoadout = loader.LoadCharCreateLoadout();
         CharCreateLoadoutSlots = loader.LoadCharCreateLoadoutSlots();
+        Deployable = loader.LoadDeployable();
 
         // dbvisualrecords
         WarpaintPalettes = loader.LoadWarpaintPalettes();
@@ -171,6 +174,21 @@ public class SDBInterface
         TargetSelfCommandDef = loader.LoadTargetSelfCommandDef();
         TargetInitiatorCommandDef = loader.LoadTargetInitiatorCommandDef();
         TimeDurationCommandDef = loader.LoadTimeDurationCommandDef();
+        ReturnCommandDef = loader.LoadReturnCommandDef();
+        LoadRegisterFromItemStatCommandDef = loader.LoadLoadRegisterFromItemStatCommandDef();
+        LoadRegisterFromBonusCommandDef = loader.LoadLoadRegisterFromBonusCommandDef();
+        LoadRegisterFromDamageCommandDef = loader.LoadLoadRegisterFromDamageCommandDef();
+        LoadRegisterFromLevelCommandDef = loader.LoadLoadRegisterFromLevelCommandDef();
+        LoadRegisterFromModulePowerCommandDef = loader.LoadLoadRegisterFromModulePowerCommandDef();
+        LoadRegisterFromNamedVarCommandDef = loader.LoadLoadRegisterFromNamedVarCommandDef();
+        LoadRegisterFromResourceCommandDef = loader.LoadLoadRegisterFromResourceCommandDef();
+        LoadRegisterFromStatCommandDef = loader.LoadLoadRegisterFromStatCommandDef();
+        RegisterComparisonCommandDef = loader.LoadRegisterComparisonCommandDef();
+        RegisterRandomCommandDef = loader.LoadRegisterRandomCommandDef();
+        SetRegisterCommandDef = loader.LoadSetRegisterCommandDef();
+        NamedVariableAssignCommandDef = loader.LoadNamedVariableAssignCommandDef();
+        InflictCooldownCommandDef = loader.LoadInflictCooldownCommandDef();
+        RequireDamageTypeCommandDef = loader.LoadRequireDamageTypeCommandDef();
 
         // aptfs
         TargetFriendliesCommandDef = loader.LoadTargetFriendliesCommandDef();
@@ -178,6 +196,7 @@ public class SDBInterface
         TargetOwnerCommandDef = loader.LoadTargetOwnerCommandDef();
         TargetByObjectTypeCommandDef = loader.LoadTargetByObjectTypeCommandDef();
         TargetHostilesCommandDef = loader.LoadTargetHostilesCommandDef();
+        TargetByCharacterStateCommandDef = loader.LoadTargetByCharacterStateCommandDef();
         InflictDamageCommandDef = loader.LoadInflictDamageCommandDef();
         ForcePushCommandDef = loader.LoadForcePushCommandDef();
         ApplyImpulseCommandDef = loader.LoadApplyImpulseCommandDef();
@@ -236,6 +255,8 @@ public class SDBInterface
         RequireWeaponArmedCommandDef = loader.LoadRequireWeaponArmedCommandDef();
         RequireWeaponTemplateCommandDef = loader.LoadRequireWeaponTemplateCommandDef();
         RequireZoneTypeCommandDef = loader.LoadRequireZoneTypeCommandDef();
+        AirborneDurationCommandDef = loader.LoadAirborneDurationCommandDef();
+        ActivationDurationCommandDef = loader.LoadActivationDurationCommandDef();
     }
 
     // dbcharacter
@@ -246,6 +267,7 @@ public class SDBInterface
     .ToArray();
 
     public static Dictionary<byte, CharCreateLoadoutSlots> GetCharCreateLoadoutSlots(uint id) => CharCreateLoadoutSlots.GetValueOrDefault(id);
+    public static Deployable GetDeployable(uint id) => Deployable.GetValueOrDefault(id);
 
     // dbvisaulrecords
     public static WarpaintPalette GetWarpaintPalette(uint id) => WarpaintPalettes.GetValueOrDefault(id);
@@ -298,6 +320,7 @@ public class SDBInterface
     public static TargetOwnerCommandDef GetTargetOwnerCommandDef(uint id) => TargetOwnerCommandDef.GetValueOrDefault(id);
     public static TargetByObjectTypeCommandDef GetTargetByObjectTypeCommandDef(uint id) => TargetByObjectTypeCommandDef.GetValueOrDefault(id);
     public static TargetHostilesCommandDef GetTargetHostilesCommandDef(uint id) => TargetHostilesCommandDef.GetValueOrDefault(id);
+    public static TargetByCharacterStateCommandDef GetTargetByCharacterStateCommandDef(uint id) => TargetByCharacterStateCommandDef.GetValueOrDefault(id);
     public static InflictDamageCommandDef GetInflictDamageCommandDef(uint id) => InflictDamageCommandDef.GetValueOrDefault(id);
     public static ForcePushCommandDef GetForcePushCommandDef(uint id) => ForcePushCommandDef.GetValueOrDefault(id);
     public static ApplyImpulseCommandDef GetApplyImpulseCommandDef(uint id) => ApplyImpulseCommandDef.GetValueOrDefault(id);

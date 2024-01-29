@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using GameServer.Aptitude;
 using GameServer.Entities;
 using Shared.Udp;
-using GameServer.Aptitude;
 
 namespace GameServer;
 

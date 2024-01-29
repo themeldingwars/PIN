@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq;
 using AeroMessages.GSS.V66.Generic;
+using GameServer.Aptitude;
+using GameServer.Entities;
 using GameServer.Enums;
 using GameServer.Enums.GSS.Generic;
 using GameServer.Extensions;
@@ -29,8 +32,6 @@ public class GenericShard : Base
             player.FirstUpdateRequested = true;
             player.Respawn();
         }
-
-        // Program.Logger.Error( "Update scheduled" );
     }
 
     [MessageID((byte)Commands.UIToEncounterMessage)]
@@ -46,6 +47,28 @@ public class GenericShard : Base
     [MessageID((byte)Commands.LocalProximityAbilitySuccess)]
     public void LocalProximityAbilitySuccess(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
+        var shard = client.AssignedShard;
+        var abilities = client.AssignedShard.Abilities;
+
+        var message = packet.Unpack<LocalProximityAbilitySuccess>();
+        shard.Entities.TryGetValue(message.Source.Backing & 0xffffffffffffff00, out IEntity sourceEntity);
+        var source = (IAptitudeTarget)sourceEntity;
+        var targets = message.Targets
+        .Where(entityId =>
+        {
+            try
+            {
+                return shard.Entities[entityId.Backing & 0xffffffffffffff00] != null;
+            }
+            catch
+            {
+                return false;
+            }
+        })
+        .Select(entityId => (IAptitudeTarget)shard.Entities[entityId.Backing & 0xffffffffffffff00])
+        .ToHashSet<IAptitudeTarget>();
+
+        abilities.HandleLocalProximityAbilitySuccess(shard, source, message.ClientProximityCommandId, message.Time, targets);
     }
 
     [MessageID((byte)Commands.RemoteProximityAbilitySuccess)]

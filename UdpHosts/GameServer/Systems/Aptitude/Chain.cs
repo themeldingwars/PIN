@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GameServer.Aptitude;
 
@@ -10,19 +11,36 @@ public class Chain
 
     public enum ExecutionMethod
     {
+        /// <summary>
+        /// Execution chain follows boolean AND logic. If a command returns false, early exit. Result of chain is only true if all commands succeeded.
+        /// </summary>
         AndChain,
+
+        /// <summary>
+        /// Execution of chain follows boolean OR logic. If a command returns true, early exit. Result of chain is true if some command succeded.
+        /// </summary>
         OrChain
     }
 
     public bool Execute(Context context, ExecutionMethod method = ExecutionMethod.AndChain) 
     {
-        Console.WriteLine($"Executing Chain {Id}");
+        bool debug = context.ExecutionHint != ExecutionHint.DurationEffect;
+
+        if (debug)
+        {
+            Console.WriteLine($"Executing Chain {Id} ({context.ExecutionHint}), Self {context.Self}, Initiator {context.Initiator}, Target {context.Targets.FirstOrDefault()}");
+        }
+
         if (method == ExecutionMethod.AndChain)
         {
             bool chainSuccess = true;
             foreach(var command in Commands)
             {
-                Console.WriteLine($"Chain {Id} - Executing Command {command}");
+                if (debug)
+                {
+                    Console.WriteLine($"Chain {Id} - Executing Command  {command}");
+                }
+
                 bool commandSuccess = command.Execute(context);
                 if (!commandSuccess)
                 {
@@ -38,7 +56,11 @@ public class Chain
             bool chainSuccess = false;
             foreach(var command in Commands)
             {
-                Console.WriteLine($"Chain {Id} - Executing Command {command}");
+                if (debug)
+                {
+                    Console.WriteLine($"Chain {Id} - Executing Command  {command}");
+                }
+
                 bool commandSuccess = command.Execute(context);
                 if (commandSuccess)
                 {
