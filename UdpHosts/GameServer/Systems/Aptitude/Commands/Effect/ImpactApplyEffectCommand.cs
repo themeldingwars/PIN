@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
@@ -15,7 +17,8 @@ public class ImpactApplyEffectCommand : ICommand
     {
         Context effectContext = new Context(context.Shard, context.Initiator)
         {
-            InitTime = context.InitTime
+            InitTime = context.InitTime,
+            ExecutionHint = ExecutionHint.ApplyEffect
         };
 
         if (Params.InheritInitPos == 1)
@@ -47,7 +50,13 @@ public class ImpactApplyEffectCommand : ICommand
         }
         else if (Params.OverrideInitiatorWithTarget == 1)
         {
-            effectContext.Initiator = context.Targets[0];
+            effectContext.Initiator = context.Targets.First(); // Eh?
+        }
+
+
+        if (Params.RemoveOnRollback == 1)
+        {
+            Console.WriteLine($"The ApplyEffect {Params.EffectId} specifies it should be RemovedOnRollback");
         }
 
         if (Params.ApplyToSelf == 1)

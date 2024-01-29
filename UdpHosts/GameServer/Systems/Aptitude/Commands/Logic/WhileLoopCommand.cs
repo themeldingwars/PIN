@@ -22,6 +22,9 @@ public class WhileLoopCommand : ICommand
 
         var conditionChain = context.Abilities.Factory.LoadChain(Params.ConditionChain);
         var bodyChain = context.Abilities.Factory.LoadChain(Params.BodyChain);
+
+        var prevExecutionHint = context.ExecutionHint;
+        context.ExecutionHint = ExecutionHint.Logic;
     
         uint lap = 0;
         while (lap < MaximumLaps)
@@ -49,6 +52,8 @@ public class WhileLoopCommand : ICommand
 
             lap++;
         }
+
+        context.ExecutionHint = prevExecutionHint;
 
         return true;
     }

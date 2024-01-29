@@ -2,6 +2,7 @@ namespace GameServer.Data.SDB;
 
 using System.Collections.Generic;
 using FauFau.Formats;
+using Records.dbcharacter;
 using Records.dbitems;
 using Records.dbviusalrecords;
 using Records.apt;
@@ -10,7 +11,6 @@ using Records;
 using System;
 using AeroMessages.GSS.V66.Character;
 using System.Linq;
-using global::GameServer.Data.SDB.Records.dbcharacter;
 
 public class SDBUtils
 {

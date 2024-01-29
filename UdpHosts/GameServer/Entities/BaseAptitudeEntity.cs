@@ -17,7 +17,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
     public const byte MaxEffectCount = 32;
     public const byte InvalidIndex = 255;
 
-    protected EffectState?[] ActiveEffects = new EffectState[MaxEffectCount];
+    protected EffectState[] ActiveEffects = new EffectState[MaxEffectCount];
 
     public BaseAptitudeEntity(IShard shard, ulong eid)
     : base(shard, eid)

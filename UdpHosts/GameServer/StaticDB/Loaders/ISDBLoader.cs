@@ -12,6 +12,7 @@ public interface ISDBLoader
     // dbcharacter
     Dictionary<uint, CharCreateLoadout> LoadCharCreateLoadout();
     Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> LoadCharCreateLoadoutSlots();
+    Dictionary<uint, Deployable> LoadDeployable();
 
     // dbvisualrecords
     Dictionary<uint, WarpaintPalette> LoadWarpaintPalettes();
@@ -68,6 +69,7 @@ public interface ISDBLoader
     Dictionary<uint, TargetOwnerCommandDef> LoadTargetOwnerCommandDef();
     Dictionary<uint, TargetByObjectTypeCommandDef> LoadTargetByObjectTypeCommandDef();
     Dictionary<uint, TargetHostilesCommandDef> LoadTargetHostilesCommandDef();
+    Dictionary<uint, TargetByCharacterStateCommandDef> LoadTargetByCharacterStateCommandDef();
     Dictionary<uint, InflictDamageCommandDef> LoadInflictDamageCommandDef();
     Dictionary<uint, ForcePushCommandDef> LoadForcePushCommandDef();
     Dictionary<uint, ApplyImpulseCommandDef> LoadApplyImpulseCommandDef();

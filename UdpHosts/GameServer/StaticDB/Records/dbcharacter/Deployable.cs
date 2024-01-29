@@ -1,9 +1,11 @@
+using FauFau.Util.CommmonDataTypes;
+
 namespace GameServer.Data.SDB.Records.dbcharacter;
 public record class Deployable
 {
     // public Vec3 VisualOffset { get; set; }
     // public Vec3 AimOffset { get; set; }
-    // public Vec3 AimDirection { get; set; }
+    public Vector3 AimDirection { get; set; }
     public uint LocalizedNameId { get; set; }
     public uint Flags { get; set; }
     public uint CalldownfxCompleteId { get; set; }
@@ -41,7 +43,7 @@ public record class Deployable
     public uint InteractionDurationMs { get; set; }
     public uint ConstructedAbilityid { get; set; }
     public uint InteractAbilityid { get; set; }
-    public uint StartHitpoints { get; set; }
+    public int StartHitpoints { get; set; }
     public int GameplayPriorityBoost { get; set; }
     public uint DeployableCategory { get; set; }
     public uint DifficultyCost { get; set; }

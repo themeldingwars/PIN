@@ -100,7 +100,8 @@ public class CharacterLoadout
     {
         return SlottedItems
         .Where(slotted => LoadoutAbilitySlots.Contains(slotted.Key))
-        .Select((slotted) => {
+        .Select((slotted) =>
+        {
             return new SlottedModule
             {
                 SdbId = slotted.Value,

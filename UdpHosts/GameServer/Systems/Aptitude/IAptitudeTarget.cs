@@ -1,6 +1,6 @@
-using AeroMessages.GSS.V66;
 using System;
 using System.Collections.Generic;
+using AeroMessages.GSS.V66;
 
 namespace GameServer.Aptitude;
 

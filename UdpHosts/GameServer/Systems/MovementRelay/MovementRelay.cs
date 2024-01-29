@@ -30,15 +30,8 @@ public class MovementRelay
 
         character.IsAirborne = poseData.GroundTimePositiveAirTimeNegative < 0;
 
-        // TODO: Fix or remove this container, refer to https://github.com/themeldingwars/Documentation/wiki/Character-State
         var movementStateValue = posRotState.MovementState;
-        character.MovementStateContainer.MovementState = (Entities.Character.CharMovementState)movementStateValue;
-
-        if (character.MovementStateContainer.InvalidFlags != Entities.Character.CharMovementState.None)
-        {
-            // FIXME: Sorry, don't have a logger here, inject pls
-            // _logger.Error($"Unmapped {nameof(CharMovementState)} encountered! \n{player.CharacterEntity.MovementStateContainer}");
-        }
+        character.MovementStateContainer.MovementStateValue = (ushort)movementStateValue;
 
         // Confirm the pose with the client
         var confirmedPose = new ConfirmedPoseUpdate
@@ -52,7 +45,7 @@ public class MovementRelay
                             {
                                 Pos = character.Position,
                                 Rot = character.Rotation,
-                                MovementState = (short)character.MovementStateContainer.MovementState // ToDo: This was ushort previously!
+                                MovementState = movementStateValue // ToDo: This was ushort previously!
                             },
                 Velocity = character.Velocity,
                 JetpackEnergy = poseData.JetpackEnergy,

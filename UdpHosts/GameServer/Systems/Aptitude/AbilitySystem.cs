@@ -1,14 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
-using Aero.Gen;
-using AeroMessages.Common;
-using AeroMessages.GSS.V66.Character.Command;
-using AeroMessages.GSS.V66.Character.Event;
-using GameServer.Data;
 using GameServer.Data.SDB;
-using GameServer.Entities;
-using GameServer.Entities.Character;
-using GameServer.Extensions;
 
 namespace GameServer.Aptitude;
 
@@ -33,8 +26,6 @@ public class AbilitySystem
             LastUpdate = currentTime;
             foreach (var entity in Shard.Entities.Values)
             {
-                // if (entity.GetType() == typeof(IAptitudeTarget))
-                // entity.GetType() is IAptitudeTarget
                 if (typeof(IAptitudeTarget).IsAssignableFrom(entity.GetType()))
                 {
                     ProcessTarget(entity as IAptitudeTarget);
@@ -50,6 +41,7 @@ public class AbilitySystem
         {
             if (activeEffect?.Effect.DurationChain != null)
             {
+                activeEffect.Context.ExecutionHint = ExecutionHint.DurationEffect;
                 bool durationResult = activeEffect.Effect.DurationChain.Execute(activeEffect.Context);
                 if (!durationResult)
                 {
@@ -66,15 +58,32 @@ public class AbilitySystem
              return;
         }
 
+        var applyContext = Context.CopyContext(context);
+        applyContext.Self = target;
+        applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
+
         var effect = Factory.LoadEffect(effectId);
-        target.AddEffect(effect, context);
-        effect.ApplyChain?.Execute(context);
+        target.AddEffect(effect, applyContext);
+        effect.ApplyChain?.Execute(applyContext);
+
+        foreach (var pair in applyContext.Actives)
+        {
+            BaseActive active = pair.Value;
+            active.OnApply(applyContext);
+        }
     }
 
     public void DoRemoveEffect(EffectState activeEffect)
     {
+        activeEffect.Context.ExecutionHint = ExecutionHint.RemoveEffect;
         activeEffect.Context.Self.ClearEffect(activeEffect);
         activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context);
+
+        foreach (var pair in activeEffect.Context.Actives)
+        {
+            BaseActive active = pair.Value;
+            active.OnRemove(activeEffect.Context);
+        }
     }
 
     public void HandleVehicleCalldownRequest()
@@ -92,12 +101,31 @@ public class AbilitySystem
         throw new NotImplementedException();
     }
 
-    public void HandleLocalProximityAbilitySuccess()
+    public void HandleLocalProximityAbilitySuccess(IShard shard, IAptitudeTarget source, uint commandId, uint time, HashSet<IAptitudeTarget> targets)
     {
-        throw new NotImplementedException();
+        Console.WriteLine($"HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, Targets {string.Join(Environment.NewLine, targets)} ({targets.Count})");
+
+        var commandDef = SDBInterface.GetRegisterClientProximityCommandDef(commandId);
+
+        if (commandDef.AbilityId != 0)
+        {
+            HandleActivateAbility(shard, source, commandDef.AbilityId, time, targets);
+        }
+
+        if (commandDef.Chain != 0)
+        {
+            var chain = Factory.LoadChain(commandDef.Chain);
+            chain.Execute(new Context(shard, source)
+            {
+                ChainId = commandDef.Chain,
+                Targets = targets,
+                InitTime = time,
+                ExecutionHint = ExecutionHint.Proximity
+            });
+        }
     }
 
-    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, IAptitudeTarget[] targets)
+    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, HashSet<IAptitudeTarget> targets)
     {
         var chainId = SDBInterface.GetAbilityData(abilityId).Chain;
         if (chainId == 0)
@@ -112,8 +140,7 @@ public class AbilitySystem
             AbilityId = abilityId,
             Targets = targets,
             InitTime = activationTime,
-
-            // InitPosition = 
+            ExecutionHint = ExecutionHint.Ability
         });
     }
 

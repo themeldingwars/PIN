@@ -49,6 +49,43 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
     public bool Alive { get; set; }
     public short TimeSinceLastJump { get; set; }
     public bool IsAirborne { get; set; }
+    public Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> CurrentPermissions { get; set; } = new Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool>()
+    {
+        { PermissionFlagsData.CharacterPermissionFlags.movement, true },
+        { PermissionFlagsData.CharacterPermissionFlags.sprint, true },
+        { PermissionFlagsData.CharacterPermissionFlags.jump, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_3, true },
+        { PermissionFlagsData.CharacterPermissionFlags.weapon, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_5, true },
+        { PermissionFlagsData.CharacterPermissionFlags.abilities, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_7, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_8, false },
+        { PermissionFlagsData.CharacterPermissionFlags.cheat_jump_midair, false },
+        { PermissionFlagsData.CharacterPermissionFlags.glider, false },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_11, false },
+        { PermissionFlagsData.CharacterPermissionFlags.jetpack, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_13, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_14, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_15, true },
+        { PermissionFlagsData.CharacterPermissionFlags.new_character, false },
+        { PermissionFlagsData.CharacterPermissionFlags.glider_hud, false },
+        { PermissionFlagsData.CharacterPermissionFlags.crouch, true },
+        { PermissionFlagsData.CharacterPermissionFlags.cheat_float, false },
+        { PermissionFlagsData.CharacterPermissionFlags.detect_resources, false },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_21, true },
+        { PermissionFlagsData.CharacterPermissionFlags.calldown_abilities, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_23, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_24, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_25, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_26, true },
+        { PermissionFlagsData.CharacterPermissionFlags.self_revive, true },
+        { PermissionFlagsData.CharacterPermissionFlags.respawn_input, false },
+        { PermissionFlagsData.CharacterPermissionFlags.free_repairs, false },
+        { PermissionFlagsData.CharacterPermissionFlags.battleframe_abilities, true },
+        { PermissionFlagsData.CharacterPermissionFlags.unk_31, true },
+    };
+
+    public ulong CurrentPermissionsValue => GetCurrentPermissionsValue();
 
     public StaticInfoData StaticInfo { get; set; }
     public CharacterStateData CharacterState { get; set; }
@@ -70,6 +107,7 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
     public WeaponIndexData WeaponIndex { get; set; }
     public FireModeData FireMode_0 { get; set; }
     public FireModeData FireMode_1 { get; set; }
+    public PermissionFlagsData PermissionFlags { get; set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -614,6 +652,22 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
         Character_CombatView.WeaponIndexProp = value;
     }
 
+    public void SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags flag, bool value)
+    {
+        CurrentPermissions[flag] = value;
+        PermissionFlags = new PermissionFlagsData
+        {
+            Time = Shard.CurrentTime,
+            Value = (PermissionFlagsData.CharacterPermissionFlags)GetCurrentPermissionsValue(),
+        };
+        Character_CombatController.PermissionFlagsProp = PermissionFlags;
+    }
+
+    public void SetGliderProfileId(uint profileId)
+    {
+        Character_CombatController.GliderProfileIdProp = profileId;
+    }
+
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
         Console.WriteLine($"Character.SetStatusEffect Index {index}, Time {time}, Id {data.Id}");
@@ -719,6 +773,12 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
         FireMode_0 = new FireModeData { Mode = 0, Time = Shard.CurrentTime };
         FireMode_1 = new FireModeData { Mode = 0, Time = Shard.CurrentTime };
         WeaponIndex = new WeaponIndexData { Index = 0, Unk1 = 1, Unk2 = 0, Time = Shard.CurrentTime };
+
+        PermissionFlags = new PermissionFlagsData
+        {
+            Time = Shard.CurrentTime,
+            Value = (PermissionFlagsData.CharacterPermissionFlags)GetCurrentPermissionsValue(),
+        };
     }
 
     private void InitControllers()
@@ -875,35 +935,7 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
             WeaponFireBaseTimeProp = new WeaponFireBaseTimeData { ChangeTime = 0, Unk = 0 },
             WeaponAgilityModProp = 1.0f,
             CombatFlagsProp = new CombatFlagsData { Value = 0, Time = Shard.CurrentTime },
-            PermissionFlagsProp = new PermissionFlagsData
-            {
-                Time = Shard.CurrentTime,
-                Value = 0ul
-                        | PermissionFlagsData.CharacterPermissionFlags.movement
-                        | PermissionFlagsData.CharacterPermissionFlags.sprint
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_3
-                        | PermissionFlagsData.CharacterPermissionFlags.jump
-                        | PermissionFlagsData.CharacterPermissionFlags.weapon
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_5
-                        | PermissionFlagsData.CharacterPermissionFlags.abilities
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_7
-                        | PermissionFlagsData.CharacterPermissionFlags.jetpack
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_13
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_14
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_15
-                        | PermissionFlagsData.CharacterPermissionFlags.crouch
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_21
-                        | PermissionFlagsData.CharacterPermissionFlags.calldown_abilities
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_23
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_24
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_25
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_26
-                        | PermissionFlagsData.CharacterPermissionFlags.self_revive
-                        
-                        // | PermissionFlagsData.CharacterPermissionFlags.respawn_input
-                        | PermissionFlagsData.CharacterPermissionFlags.battleframe_abilities
-                        | PermissionFlagsData.CharacterPermissionFlags.unk_31
-            },
+            PermissionFlagsProp = PermissionFlags,
             NemesesProp = new NemesesData { Values = Array.Empty<ulong>() },
             SuperChargeProp = new SuperChargeData { Value = 0, Op = 0 }
         };
@@ -1041,5 +1073,19 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
             Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{i}Prop").SetValue(Character_CombatView, sourceTime, null);
             Character_CombatView.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatView, sourceData, null);
         }
+    }
+
+    private ulong GetCurrentPermissionsValue()
+    {
+        ulong result = 0ul;
+        foreach(var pair in CurrentPermissions)
+        {
+            if (pair.Value)
+            {
+                result += (ulong)pair.Key;
+            }
+        }
+
+        return result;
     }
 }

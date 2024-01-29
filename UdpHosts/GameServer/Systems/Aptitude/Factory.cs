@@ -4,6 +4,8 @@ using System.Numerics;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.apt;
+using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Data.SDB.Records.customdata;
 using GameServer.Enums.GSS.Character;
 
 namespace GameServer.Aptitude;
@@ -68,7 +70,9 @@ public class Factory
     {
         var commandTypeRec = SDBInterface.GetCommandType(typeId);
         var commandType = (CommandType)commandTypeRec.Id;
-        if (commandTypeRec.Environment == "client\0") // :) Fix this null terminator later
+
+        // :) Fix this null terminator later
+        if (commandTypeRec.Environment == "client\0")
         {
             // Far as I know we don't care about client commands on the server, though the params can be helpful.
             return new CustomNOOPCommand(commandType.ToString(), commandId);
@@ -98,6 +102,24 @@ public class Factory
                 return new InstantActivationCommand(SDBInterface.GetInstantActivationCommandDef(commandId));
             case CommandType.TimeDuration:
                 return new TimeDurationCommand(SDBInterface.GetTimeDurationCommandDef(commandId));
+            case CommandType.AirborneDuration:
+                return new AirborneDurationCommand(SDBInterface.GetAirborneDurationCommandDef(commandId));
+            case CommandType.RequireHasEffect:
+                return new RequireHasEffectCommand(SDBInterface.GetRequireHasEffectCommandDef(commandId));
+            case CommandType.RequireMovestate:
+                return new RequireMovestateCommand(SDBInterface.GetRequireMovestateCommandDef(commandId));
+            case CommandType.TargetByObjectType:
+                return new TargetByObjectTypeCommand(SDBInterface.GetTargetByObjectTypeCommandDef(commandId));
+            case CommandType.TargetSelf:
+                return new TargetSelfCommand(SDBInterface.GetTargetSelfCommandDef(commandId));
+            case CommandType.TargetByCharacterState:
+                return new TargetByCharacterStateCommand(SDBInterface.GetTargetByCharacterStateCommandDef(commandId));
+            case CommandType.ForcePush:
+                return new ForcePushCommand(SDBInterface.GetForcePushCommandDef(commandId));
+            case CommandType.ModifyPermission:
+                return new ModifyPermissionCommand(CustomDBInterface.GetModifyPermissionCommandDef(commandId));
+            case CommandType.SetGliderParametersDef:
+                return new SetGliderParametersCommand(CustomDBInterface.GetSetGliderParametersCommandDef(commandId));
             default:
                 break;
         }

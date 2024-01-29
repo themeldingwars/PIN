@@ -1,6 +1,20 @@
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace GameServer.Aptitude;
+
+public enum ExecutionHint
+{
+    Ability,
+    Proximity,
+    ApplyEffect,
+    RemoveEffect,
+    DurationEffect,
+    UpdateEffect,
+    Logic,
+    Unspecified,
+}
 
 public class Context
 {
@@ -10,6 +24,8 @@ public class Context
         Initiator = initiator;
         Self = initiator;
         Abilities = shard.Abilities;
+        Targets = new HashSet<IAptitudeTarget>();
+        InitPosition = Vector3.Zero;
     }
 
     public uint ChainId { get; set; }
@@ -19,11 +35,36 @@ public class Context
     public AbilitySystem Abilities { get; set; }
     public IAptitudeTarget Self { get; set; }
     public IAptitudeTarget Initiator { get; set; }
-    public IAptitudeTarget[] Targets { get; set; }
+    public HashSet<IAptitudeTarget> Targets { get; set; }
+    public HashSet<IAptitudeTarget> FormerTargets { get; set; }
     public int Register { get; set; }
     public int Bonus { get; set; }
     public uint InitTime { get; set; }
     public Vector3 InitPosition { get; set; }
+    public ExecutionHint ExecutionHint { get; set; }
+
+    public Dictionary<uint, BaseActive> Actives { get; set; } = new Dictionary<uint, BaseActive>();
+
+    public static Context CopyContext(Context original)
+    {
+        return new Context(original.Shard, original.Initiator)
+        {
+            ChainId = original.ChainId,
+            AbilityId = original.AbilityId,
+            Success = original.Success,
+            Shard = original.Shard,
+            Abilities = original.Abilities,
+            Self = original.Self,
+            Initiator = original.Initiator,
+            Targets = original.Targets,
+            FormerTargets = original.FormerTargets,
+            Register = original.Register,
+            Bonus = original.Bonus,
+            InitTime = original.InitTime,
+            InitPosition = original.InitPosition,
+            ExecutionHint = original.ExecutionHint,
+        };
+    } 
 
     /*
     public uint NamedVar;

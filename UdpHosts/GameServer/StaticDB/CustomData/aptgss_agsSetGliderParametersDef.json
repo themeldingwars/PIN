@@ -1,0 +1,149 @@
+[
+	{
+		"id": 201610,
+		"comment": "Triggered by Effect 2016  "
+	},
+	{
+		"id": 201638,
+		"comment": "Triggered by Effect 2007  "
+	},
+	{
+		"id": 203051,
+		"comment": "Triggered by Effect 2038  "
+	},
+	{
+		"id": 337263,
+		"comment": "Triggered by Effect 3388  "
+	},
+	{
+		"id": 337292,
+		"comment": "Triggered by Effect 3402  "
+	},
+	{
+		"id": 350617,
+		"comment": "Triggered by Effect 2230  "
+	},
+	{
+		"id": 350619,
+		"comment": "Triggered by Effect 3274  "
+	},
+	{
+		"id": 408082,
+		"comment": "Triggered by Effect 1537  "
+	},
+	{
+		"id": 408106,
+		"comment": "Triggered by Effect 3273  "
+	},
+	{
+		"id": 408246,
+		"comment": "Triggered by Effect 2278  "
+	},
+	{
+		"id": 411479,
+		"comment": "Triggered by Effect 4255  "
+	},
+	{
+		"id": 426050,
+		"comment": "Triggered by Effect 4397  "
+	},
+	{
+		"id": 428161,
+		"comment": "Triggered by Effect 4254  "
+	},
+	{
+		"id": 428234,
+		"comment": "Triggered by Effect 4413  "
+	},
+	{
+		"id": 440066,
+		"comment": "Triggered by Effect 2018  "
+	},
+	{
+		"id": 499617,
+		"comment": "Triggered by Effect 5178  "
+	},
+	{
+		"id": 1112170,
+		"comment": "Triggered by Effect 9287  "
+	},
+	{
+		"id": 1112171,
+		"comment": "Triggered by Effect 9287  "
+	},
+	{
+		"id": 1114871,
+		"comment": "Triggered by Effect 7558  "
+	},
+	{
+		"id": 1148366,
+		"comment": "Triggered by Effect 3401  "
+	},
+	{
+		"id": 1148397,
+		"comment": "Triggered by Effect 3387  "
+	},
+	{
+		"id": 1272313,
+		"comment": "Triggered by Effect 702  "
+	},
+	{
+		"id": 1342452,
+		"comment": "Triggered by Effect 13176  "
+	},
+	{
+		"id": 1385139,
+		"comment": "Triggered by Effect 3452  "
+	},
+	{
+		"id": 1509279,
+		"comment": " through logic 1509283 - Triggered by Effect 9495 | Making assumption here based on captures and logic.",
+		"value": 18
+	},
+	{
+		"id": 1509281,
+		"comment": " through logic 1509283 - Triggered by Effect 9495  | Making assumption here based on captures and logic.",
+		"value": 18
+	},
+	{
+		"id": 1509365,
+		"comment": "Triggered by Effect 9496  "
+	},
+	{
+		"id": 1509370,
+		"comment": "Triggered by Effect 9500  "
+	},
+	{
+		"id": 1509376,
+		"comment": "Triggered by Effect 9501  "
+	},
+	{
+		"id": 1509470,
+		"comment": "Triggered by Effect 13974  "
+	},
+	{
+		"id": 1509696,
+		"comment": "Triggered by Effect 12114  "
+	},
+	{
+		"id": 1509698,
+		"comment": " through logic 1509702 - Triggered by Effect 12115  "
+	},
+	{
+		"id": 1509700,
+		"comment": " through logic 1509702 - Triggered by Effect 12115  "
+	},
+	{
+		"id": 1511094,
+		"comment": "Triggered by Effect 3417  | Assuming this is the basic one",
+		"value": 0
+	},
+	{
+		"id": 1540951,
+		"comment": "Triggered by Effect 5155  "
+	},
+	{
+		"id": 1559927,
+		"comment": "Triggered by Effect 14852  "
+	}
+]

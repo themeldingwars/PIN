@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Numerics;
 using System.Threading;
 using Aero.Gen;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
+using GameServer.Aptitude;
+using GameServer.Data.SDB;
 using GameServer.Entities;
+using GameServer.Entities.Deployable;
 using GameServer.Extensions;
 
 namespace GameServer;
@@ -21,6 +26,50 @@ public class EntityManager
     public EntityManager(Shard shard)
     {
         Shard = shard;
+        TempSpawnTestEntities();
+    }
+
+    public void TempSpawnTestDeployable(uint typeId, Vector3 position, Quaternion orientation)
+    {
+        var deployableInfo = SDBInterface.GetDeployable(typeId);
+        var deployableEntity = new DeployableEntity(Shard,  GetNextGuid() & 0xffffffffffffff00, typeId, 0);
+        var aimDirection = new Vector3(deployableInfo.AimDirection.x, deployableInfo.AimDirection.y, deployableInfo.AimDirection.z);
+        deployableEntity.SetPosition(position);
+        deployableEntity.SetOrientation(orientation);
+        deployableEntity.SetAimDirection(aimDirection);
+        Add(deployableEntity.EntityId, deployableEntity);
+
+        if (deployableInfo.SpawnAbilityid != 0)
+        {
+            Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
+        }
+
+        if (deployableInfo.ConstructedAbilityid != 0)
+        {
+            new Timer(state =>
+            {
+                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
+                ((Timer)state).Dispose();
+            },
+            null,
+            deployableInfo.BuildTimeMs,
+            Timeout.Infinite);
+        }
+    }
+
+    public void TempSpawnTestEntities()
+    {
+        // NewYou
+        TempSpawnTestDeployable(676, new Vector3(177.37387f, 239.90964f, 491.86758f), new Quaternion(-4.0596834E-08f, -1.620471E-08f, -0.37071967f, 0.92874485f));
+
+        // Battleframe Station
+        TempSpawnTestDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
+
+        // Garage
+        TempSpawnTestDeployable(44, new Vector3(185.69464f, 247.1212f, 491.86783f), new Quaternion(1.6204714E-08f, -4.059684E-08f, 0.92874485f, 0.37071967f));
+
+        // Glider Pad
+        TempSpawnTestDeployable(372, new Vector3(164.84642f, 262.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -136,6 +185,16 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendIAero(tinyobject, entity.EntityId, 3);
             }
         }
+        else if (entity.GetType() == typeof(Entities.Deployable.DeployableEntity))
+        {
+            var deployable = entity as Entities.Deployable.DeployableEntity;
+            var observer = deployable.Deployable_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
+            }
+        }
     }
 
     public void FlushChanges(IEntity entity)
@@ -158,6 +217,11 @@ public class EntityManager
             FlushViewChangesToEveryone(character.Character_EquipmentView, character.EntityId);
             FlushViewChangesToEveryone(character.Character_CombatView, character.EntityId);
             FlushViewChangesToEveryone(character.Character_TinyObjectView, character.EntityId);
+        }
+        else if (entity.GetType() == typeof(Entities.Deployable.DeployableEntity))
+        {
+            var deployable = entity as Entities.Deployable.DeployableEntity;
+            FlushViewChangesToEveryone(deployable.Deployable_ObserverView, deployable.EntityId);
         }
     }
 
@@ -183,8 +247,6 @@ public class EntityManager
             view.SerializeChangesToMemory(out var update);
             foreach (var client in Shard.Clients.Values)
             {
-                // Console.WriteLine($"FlushedViewChanges:{client.SocketId} {typeof(TPacket).FullName} {entityId}");
-
                 bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
                 if (shouldSend)
                 {
