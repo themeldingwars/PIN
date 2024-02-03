@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AeroMessages.Control;
 using AeroMessages.GSS.V66.Generic;
 using GameServer.Aptitude;
 using GameServer.Entities;
@@ -7,7 +8,6 @@ using GameServer.Enums;
 using GameServer.Enums.GSS.Generic;
 using GameServer.Extensions;
 using GameServer.Packets;
-using GameServer.Packets.Control;
 using Serilog;
 
 namespace GameServer.Controllers;
@@ -89,8 +89,8 @@ public class GenericShard : Base
     [MessageID((byte)Commands.RequestLogout)]
     public void RequestLogout(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-        var resp = new CloseConnection { Unknown1 = 0 };
-        client.NetChannels[ChannelType.Control].SendClass(resp, typeof(ControlPacketType));
+        var resp = new CloseConnection { Unk = new byte[] { 0, 0, 0, 0 } };
+        client.NetChannels[ChannelType.Control].SendIAero(resp);
     }
 
     [MessageID((byte)Commands.RequestEncounterInfo)]

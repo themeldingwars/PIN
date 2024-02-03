@@ -5,12 +5,12 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using AeroMessages.Matrix.V25;
+using AeroMessages.Control;
 using GameServer.Controllers;
 using GameServer.Controllers.Character;
 using GameServer.Enums;
 using GameServer.Extensions;
 using GameServer.Packets;
-using GameServer.Packets.Control;
 using Serilog;
 using Shared.Udp;
 
@@ -122,11 +122,11 @@ public class NetworkClient : INetworkClient
 
         if (forChannel == ChannelType.Matrix)
         {
-            NetChannels[ChannelType.Control].SendClass(new MatrixAck { AckFor = forNum, NextSeqNum = nextNum });
+            NetChannels[ChannelType.Control].SendIAero(new MatrixAck { AckForNum = forNum, NextSeqNum = nextNum });
         }
         else if (forChannel == ChannelType.ReliableGss)
         {
-            NetChannels[ChannelType.Control].SendClass(new ReliableGSSAck { AckFor = forNum, NextSeqNum = nextNum });
+            NetChannels[ChannelType.Control].SendIAero(new GSSAck { AckForNum = forNum, NextSeqNum = nextNum });
         }
     }
 
@@ -167,9 +167,8 @@ public class NetworkClient : INetworkClient
                 Player.EnterZoneAck();
                 break;
             case MatrixPacketType.KeyframeRequest:
-                packet.Unpack<KeyframeRequest>();
-                
                 // TODO: Send checksums/keyframes in return.
+                packet.Unpack<KeyframeRequest>();
                 break;
             case MatrixPacketType.ClientStatus:
                 NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
@@ -202,30 +201,29 @@ public class NetworkClient : INetworkClient
         switch (messageId)
         {
             case ControlPacketType.CloseConnection:
-                // TODO: Cleanly dispose of client
                 Logger.Information("RECEIVED CloseConnection");
-                packet.Read<CloseConnection>();
                 NetClientStatus = Status.Disconnecting;
                 AssignedShard.MigrateOut((INetworkPlayer)this);
                 break;
             case ControlPacketType.MatrixAck:
                 // TODO: Track reliable packets
-                var matrixAckPackage = packet.Read<MatrixAck>();
-                Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckFor), ChannelType.Matrix);
+                var matrixAckPackage = packet.Unpack<MatrixAck>();
+                Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckForNum), ChannelType.Matrix);
                 break;
             case ControlPacketType.ReliableGSSAck:
                 // TODO: Track reliable packets
-                var reliableGssAckPackage = packet.Read<ReliableGSSAck>();
-                Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckFor), ChannelType.ReliableGss);
+                var reliableGssAckPackage = packet.Unpack<GSSAck>();
+                Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckForNum), ChannelType.ReliableGss);
                 break;
             case ControlPacketType.TimeSyncRequest:
-                var timeSyncRequestPackage = packet.Read<TimeSyncRequest>();
-
-                NetChannels[ChannelType.Control].Send(new TimeSyncResponse(timeSyncRequestPackage.ClientTime, unchecked(AssignedShard.CurrentTimeLong * 1000)));
+                var timeSyncRequestPackage = packet.Unpack<TimeSyncRequest>();
+                NetChannels[ChannelType.Control].SendIAero(new TimeSyncResponse()
+                {
+                    ClientTime = timeSyncRequestPackage.ClientTime,
+                    ServerTime = unchecked(AssignedShard.CurrentTimeLong * 1000)
+                });
                 break;
             case ControlPacketType.MTUProbe:
-                packet.Read<MTUProbe>();
-                
                 // TODO: ???
                 break;
             default:
