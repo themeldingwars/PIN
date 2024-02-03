@@ -383,6 +383,7 @@ public class Channel
                 }
             
             case AeroMessageIdAttribute.MsgType.Control:
+                return SendPacketMemoryMatrix(messageId, ref packetMemory, messageEnumType); // Everything's gonna be just fine
             default:
                 throw new ArgumentException("Message type not implemented");
         }
