@@ -209,15 +209,20 @@ public class CombatController : Base
             var initiator = character as IAptitudeTarget;
             var shard = player.CharacterEntity.Shard;
             var activationTime = activateAbility.Time;
-            var targets = activateAbility.Targets.Select((id) =>
+            var targets = activateAbility.Targets
+            .Where(entityId =>
             {
-                shard.Entities.TryGetValue(id.Backing, out IEntity result);
-                if (result.GetType() == typeof(IAptitudeTarget))
+                try
                 {
-                    return result as IAptitudeTarget;
+                    return shard.Entities[entityId.Backing & 0xffffffffffffff00] != null;
                 }
-                return null;
-            }).ToHashSet();
+                catch
+                {
+                    return false;
+                }
+            })
+            .Select(entityId => (IAptitudeTarget)shard.Entities[entityId.Backing & 0xffffffffffffff00])
+            .ToHashSet<IAptitudeTarget>();
 
             shard.Abilities.HandleActivateAbility(shard, initiator, abilityId, activationTime, targets);
         }

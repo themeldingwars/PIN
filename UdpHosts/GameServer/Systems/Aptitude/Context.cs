@@ -4,18 +4,6 @@ using System.Numerics;
 
 namespace GameServer.Aptitude;
 
-public enum ExecutionHint
-{
-    Ability,
-    Proximity,
-    ApplyEffect,
-    RemoveEffect,
-    DurationEffect,
-    UpdateEffect,
-    Logic,
-    Unspecified,
-}
-
 public class Context
 {
     public Context(IShard shard, IAptitudeTarget initiator)
@@ -43,7 +31,7 @@ public class Context
     public Vector3 InitPosition { get; set; }
     public ExecutionHint ExecutionHint { get; set; }
 
-    public Dictionary<uint, BaseActive> Actives { get; set; } = new Dictionary<uint, BaseActive>();
+    public Dictionary<uint, ICommand> Actives { get; set; } = new Dictionary<uint, ICommand>();
 
     public static Context CopyContext(Context original)
     {

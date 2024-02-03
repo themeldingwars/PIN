@@ -37,7 +37,8 @@ public class ForcePushCommand : ICommand
                     Data = new AeroMessages.GSS.V66.ForcedMovementData
                     {
                         Type = 5,
-                        Params5 = new AeroMessages.GSS.V66.ForcedMovementType5Params {
+                        Params5 = new AeroMessages.GSS.V66.ForcedMovementType5Params
+                        {
                             Velocity = velocity,
                             Time1 = context.Shard.CurrentTime + 19,
                             Time2 = context.Shard.CurrentTime + 20,
@@ -47,7 +48,6 @@ public class ForcePushCommand : ICommand
 
                     ShortTime = context.Shard.CurrentShortTime,
                 };
-                Console.WriteLine($"ForcedMovement Type 5 at {message.ShortTime}");
                 player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
             }
         }

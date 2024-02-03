@@ -1,5 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace GameServer.Aptitude;
 
+/// <summary>
+/// Aptitude Command Types
+/// </summary>
+[SuppressMessage("StyleCop.CSharp.DocumentationRules",
+"SA1602:EnumerationItemsMustBeDocumented",
+Justification = "See https://github.com/themeldingwars/Documentation/wiki/Aptitude for cursory overview.")]
 public enum CommandType : uint
 {
     ActiveInitiation = 1,
@@ -189,7 +197,7 @@ public enum CommandType : uint
     AbilitySlotted = 192,
     LoadRegisterFromResource = 193,
     SetLookAtTarget = 194,
-    agsEncounterSpawn = 195,
+    EncounterSpawn = 195,
     CustomPlayerCamera = 196,
     MatchMakingQueue = 197,
     ActivateMission = 198,

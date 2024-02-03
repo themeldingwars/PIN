@@ -128,4 +128,5 @@ public interface ISDBLoader
     Dictionary<uint, RequireWeaponArmedCommandDef> LoadRequireWeaponArmedCommandDef();
     Dictionary<uint, RequireWeaponTemplateCommandDef> LoadRequireWeaponTemplateCommandDef();
     Dictionary<uint, RequireZoneTypeCommandDef> LoadRequireZoneTypeCommandDef();
+    Dictionary<uint, InteractionTypeCommandDef> LoadInteractionTypeCommandDef();
 }

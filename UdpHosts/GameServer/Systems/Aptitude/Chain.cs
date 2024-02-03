@@ -38,7 +38,7 @@ public class Chain
             {
                 if (debug)
                 {
-                    Console.WriteLine($"Chain {Id} - Executing Command  {command}");
+                    Console.WriteLine($"Chain {Id} - Executing Command {command}");
                 }
 
                 bool commandSuccess = command.Execute(context);
@@ -58,7 +58,7 @@ public class Chain
             {
                 if (debug)
                 {
-                    Console.WriteLine($"Chain {Id} - Executing Command  {command}");
+                    Console.WriteLine($"Chain {Id} - Executing Command {command}");
                 }
 
                 bool commandSuccess = command.Execute(context);

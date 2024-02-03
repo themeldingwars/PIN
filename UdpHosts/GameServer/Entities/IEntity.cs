@@ -9,6 +9,9 @@ public interface IEntity
     IDictionary<Enums.GSS.Controllers, ushort> ControllerRefMap { get; }
 
     bool IsInteractable();
+    bool CanBeInteractedBy(IEntity other);
+    byte GetInteractionType();
+    uint GetInteractionDuration();
 
     void RegisterController(Enums.GSS.Controllers controller);
 }

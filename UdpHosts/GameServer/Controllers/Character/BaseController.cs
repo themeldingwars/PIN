@@ -390,20 +390,28 @@ public class BaseController : Base
     [MessageID((byte)Commands.ClientQueryInteractionStatus)]
     public void ClientQueryInteractionStatus(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
+        var inquiringEntity = player.CharacterEntity;
         var query = packet.Unpack<ClientQueryInteractionStatus>();
-        ulong requestedEntityId = query.Entity.Id;
+        ulong requestedEntityId = query.Entity.Id << 8;
         var found = client.AssignedShard.Entities.TryGetValue(requestedEntityId, out var entity);
         if (found)
         {
-            if (entity.IsInteractable())
+            // Console.WriteLine($"ClientQueryInteractionStatus IsInteractable: {entity.IsInteractable()} CanBeInteractedBy {entity.CanBeInteractedBy(inquiringEntity)}");
+            if (entity.IsInteractable() && entity.CanBeInteractedBy(inquiringEntity))
             {
-                // TODO: Support interactable entities, get interaction data and send AddOrUpdateInteractives 
+                var response = new AddOrUpdateInteractives()
+                {
+                    Entities = new ulong[] { query.Entity.Backing },
+                    InteractionTypes = new byte[] { entity.GetInteractionType() },
+                    InteractionDurationsMs = new uint[] { entity.GetInteractionDuration() },
+                };
+                client.NetChannels[ChannelType.ReliableGss].SendIAero(response, player.CharacterEntity.EntityId);
             }
             else
             {
                 var response = new RemoveInteractives
                 {
-                    Entities = new EntityId[] { new EntityId { Backing = requestedEntityId } }
+                    Entities = new EntityId[] { query.Entity }
                 };
                 client.NetChannels[ChannelType.ReliableGss].SendIAero(response, player.CharacterEntity.EntityId);
             }

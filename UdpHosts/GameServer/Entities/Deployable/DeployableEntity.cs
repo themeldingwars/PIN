@@ -149,6 +149,16 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
         Deployable_ObserverView.AimDirectionProp = AimDirection;
     }
 
+    public override bool IsInteractable()
+    {
+        return Interaction != null ? Interaction.Type != 0 : false;
+    }
+
+    public override bool CanBeInteractedBy(IEntity other)
+    {
+        return IsInteractable();
+    }
+
     private void InitFields()
     {
         Position = new Vector3();

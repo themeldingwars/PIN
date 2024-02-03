@@ -691,6 +691,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, InteractionTypeCommandDef> LoadInteractionTypeCommandDef()
+    {
+        return LoadStaticDB<InteractionTypeCommandDef>("aptfs::InteractionTypeCommandDef")
+        .ToDictionary(row => row.Id);
+    }
+
     private static T[] LoadStaticDB<T>(string tableName)
     where T : class, new()
     {

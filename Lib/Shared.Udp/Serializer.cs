@@ -45,7 +45,7 @@ public static class Serializer
         var size = Unsafe.SizeOf<T>();
         Memory<byte> memory = new byte[size];
 
-        MemoryMarshal.Write(memory.Span, ref packet);
+        MemoryMarshal.Write(memory.Span, in packet);
 
         return memory;
     }
