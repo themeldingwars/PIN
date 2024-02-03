@@ -68,7 +68,7 @@ public class AbilitySystem
 
         foreach (var pair in applyContext.Actives)
         {
-            BaseActive active = pair.Value;
+            ICommand active = pair.Value;
             active.OnApply(applyContext);
         }
     }
@@ -81,7 +81,7 @@ public class AbilitySystem
 
         foreach (var pair in activeEffect.Context.Actives)
         {
-            BaseActive active = pair.Value;
+            ICommand active = pair.Value;
             active.OnRemove(activeEffect.Context);
         }
     }

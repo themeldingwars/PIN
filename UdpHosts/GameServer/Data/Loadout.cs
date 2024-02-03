@@ -36,8 +36,9 @@ public class Loadout
         ChassisModules.Add(140713);
 
         BackpackModules = new List<AbilityModule>();
-        BackpackModules.Add(AbilityModule.Load(101940, 0));
+
         // BackpackModules.Add(AbilityModule.Load(143330, 0));
+        BackpackModules.Add(AbilityModule.Load(101940, 0));
         BackpackModules.Add(AbilityModule.Load(136056, 1));
         BackpackModules.Add(AbilityModule.Load(113552, 2));
         BackpackModules.Add(AbilityModule.Load(113931, 3));

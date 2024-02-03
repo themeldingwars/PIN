@@ -86,6 +86,8 @@ public class Factory
                 break;
             case CommandType.ImpactRemoveEffect:
                 break;
+            case CommandType.Call:
+                return new CallCommand(SDBInterface.GetCallCommandDef(commandId));
             case CommandType.ConditionalBranch:
                 return new ConditionalBranchCommand(SDBInterface.GetConditionalBranchCommandDef(commandId));
             case CommandType.LogicAndChain:
@@ -120,6 +122,14 @@ public class Factory
                 return new ModifyPermissionCommand(CustomDBInterface.GetModifyPermissionCommandDef(commandId));
             case CommandType.SetGliderParametersDef:
                 return new SetGliderParametersCommand(CustomDBInterface.GetSetGliderParametersCommandDef(commandId));
+            case CommandType.BeginInteraction:
+                return new BeginInteractionCommand();
+            case CommandType.EndInteraction:
+                return new EndInteractionCommand();
+            case CommandType.InteractionType:
+                return new InteractionTypeCommand(SDBInterface.GetInteractionTypeCommandDef(commandId));
+            case CommandType.AuthorizeTerminal:
+                return new AuthorizeTerminalCommand(CustomDBInterface.GetAuthorizeTerminalCommandDef(commandId));
             default:
                 break;
         }

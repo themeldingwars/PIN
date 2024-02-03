@@ -134,8 +134,8 @@ public class Shard : IShard
 
         while (!ct.IsCancellationRequested)
         {
+            // (ulong)(DateTime.Now.UnixTimestamp() * 1000);
             var currentUnixTimestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            //(ulong)(DateTime.Now.UnixTimestamp() * 1000);
             var currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
             var delta = currentTime - lastTime;
 

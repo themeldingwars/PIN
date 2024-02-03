@@ -2,7 +2,7 @@ namespace GameServer.Data.SDB.Records.dbitems;
 public record class TinkerPlansInputSubtypes
 {
     public uint TinkerplansId { get; set; }
-    public string? FeatureEnabled { get; set; }
+    public string FeatureEnabled { get; set; }
     public uint SubtypeId { get; set; }
     public byte IsGear { get; set; }
     public sbyte RankOffset { get; set; }

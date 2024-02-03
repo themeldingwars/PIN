@@ -108,6 +108,7 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
     public FireModeData FireMode_0 { get; set; }
     public FireModeData FireMode_1 { get; set; }
     public PermissionFlagsData PermissionFlags { get; set; }
+    public AuthorizedTerminalData AuthorizedTerminal { get; set; } = new AuthorizedTerminalData { TerminalType = 0, TerminalId = 0, TerminalEntityId = 0 };
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -668,6 +669,12 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
         Character_CombatController.GliderProfileIdProp = profileId;
     }
 
+    public void SetAuthorizedTerminal(AuthorizedTerminalData value)
+    {
+        AuthorizedTerminal = value;
+        Character_BaseController.AuthorizedTerminalProp = AuthorizedTerminal;
+    }
+
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
         Console.WriteLine($"Character.SetStatusEffect Index {index}, Time {time}, Id {data.Id}");
@@ -790,7 +797,7 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
             TimePlayedProp = 0,
             CurrentWeightProp = 0,
             EncumberedWeightProp = 255,
-            AuthorizedTerminalProp = new AuthorizedTerminalData { TerminalType = 0, TerminalId = 0, TerminalEntityId = 0 },
+            AuthorizedTerminalProp = AuthorizedTerminal,
             PingTimeProp = 0, // Shard.CurrentTime,
             StaticInfoProp = StaticInfo,
             SpawnTimeProp = Shard.CurrentTime,

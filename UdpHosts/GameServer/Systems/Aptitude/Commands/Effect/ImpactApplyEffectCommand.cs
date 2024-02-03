@@ -53,7 +53,6 @@ public class ImpactApplyEffectCommand : ICommand
             effectContext.Initiator = context.Targets.First(); // Eh?
         }
 
-
         if (Params.RemoveOnRollback == 1)
         {
             Console.WriteLine($"The ApplyEffect {Params.EffectId} specifies it should be RemovedOnRollback");

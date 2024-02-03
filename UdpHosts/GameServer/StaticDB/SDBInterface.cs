@@ -132,6 +132,7 @@ public class SDBInterface
     private static Dictionary<uint, RequireWeaponArmedCommandDef> RequireWeaponArmedCommandDef;
     private static Dictionary<uint, RequireWeaponTemplateCommandDef> RequireWeaponTemplateCommandDef;
     private static Dictionary<uint, RequireZoneTypeCommandDef> RequireZoneTypeCommandDef;
+    private static Dictionary<uint, InteractionTypeCommandDef> InteractionTypeCommandDef;
 
     public static void Init(StaticDB instance)
     {
@@ -257,6 +258,7 @@ public class SDBInterface
         RequireZoneTypeCommandDef = loader.LoadRequireZoneTypeCommandDef();
         AirborneDurationCommandDef = loader.LoadAirborneDurationCommandDef();
         ActivationDurationCommandDef = loader.LoadActivationDurationCommandDef();
+        InteractionTypeCommandDef = loader.LoadInteractionTypeCommandDef();
     }
 
     // dbcharacter
@@ -379,4 +381,5 @@ public class SDBInterface
     public static RequireWeaponArmedCommandDef GetRequireWeaponArmedCommandDef(uint id) => RequireWeaponArmedCommandDef.GetValueOrDefault(id);
     public static RequireWeaponTemplateCommandDef GetRequireWeaponTemplateCommandDef(uint id) => RequireWeaponTemplateCommandDef.GetValueOrDefault(id);
     public static RequireZoneTypeCommandDef GetRequireZoneTypeCommandDef(uint id) => RequireZoneTypeCommandDef.GetValueOrDefault(id);
+    public static InteractionTypeCommandDef GetInteractionTypeCommandDef(uint id) => InteractionTypeCommandDef.GetValueOrDefault(id);
 }

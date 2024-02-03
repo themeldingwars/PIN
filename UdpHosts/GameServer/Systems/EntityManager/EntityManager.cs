@@ -39,6 +39,19 @@ public class EntityManager
         deployableEntity.SetAimDirection(aimDirection);
         Add(deployableEntity.EntityId, deployableEntity);
 
+        if (deployableInfo.InteractionType != 0)
+        {
+            deployableEntity.Interaction = new InteractionComponent()
+            {
+                Radius = deployableInfo.InteractRadius,
+                Height = deployableInfo.InteractHeight,
+                CompletedAbilityId = deployableInfo.InteractCompletedAbilityid,
+                StartedAbilityId = deployableInfo.InteractAbilityid,
+                DurationMs = deployableInfo.InteractionDurationMs,
+                Type = (InteractionType)deployableInfo.InteractionType
+            };
+        }
+
         if (deployableInfo.SpawnAbilityid != 0)
         {
             Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
