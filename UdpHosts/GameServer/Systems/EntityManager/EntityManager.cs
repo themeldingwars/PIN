@@ -6,10 +6,14 @@ using Aero.Gen;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
+using AeroMessages.GSS.V66.Melding.View;
 using GameServer.Aptitude;
 using GameServer.Data.SDB;
+using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
 using GameServer.Entities.Deployable;
+using GameServer.Entities.Melding;
+using GameServer.Entities.Outpost;
 using GameServer.Extensions;
 
 namespace GameServer;
@@ -70,6 +74,19 @@ public class EntityManager
         }
     }
 
+    public void TempSpawnTestMelding(string perimiterSetName, ActiveDataStruct activeData)
+    {
+        var meldingEntity = new MeldingEntity(Shard,  GetNextGuid() & 0xffffffffffffff00, perimiterSetName);
+        meldingEntity.SetActiveData(activeData);
+        Add(meldingEntity.EntityId, meldingEntity);
+    }
+
+    public void TempSpawnTestOutpost(Outpost outpost)
+    {
+        var outpostEntity = new OutpostEntity(Shard,  GetNextGuid() & 0xffffffffffffff00, outpost);
+        Add(outpostEntity.EntityId, outpostEntity);
+    }
+
     public void TempSpawnTestEntities()
     {
         // NewYou
@@ -83,6 +100,29 @@ public class EntityManager
 
         // Glider Pad
         TempSpawnTestDeployable(372, new Vector3(164.84642f, 262.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
+
+        // Melding
+        foreach (var entry in CustomDBInterface.GetZoneMeldings(448))
+        {
+            var melding = entry.Value;
+            TempSpawnTestMelding(melding.PerimiterSetName, new ActiveDataStruct()
+            {
+                Unk1 = melding.Unk1,
+                Unk2 = melding.Unk2,
+                Unk3 = melding.Unk3,
+                ControlPoints_1 = melding.ControlPoints,
+                Offsets_1 = melding.Offsets,
+                ControlPoints_2 = melding.ControlPoints,
+                Offsets_2 = melding.Offsets,
+            });
+        }
+
+        // Outpost
+        foreach (var entry in CustomDBInterface.GetZoneOutposts(448))
+        {
+            var outpost = entry.Value;
+            TempSpawnTestOutpost(outpost);
+        }
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -202,6 +242,36 @@ public class EntityManager
         {
             var deployable = entity as Entities.Deployable.DeployableEntity;
             var observer = deployable.Deployable_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.Melding.MeldingEntity))
+        {
+            var melding = entity as Entities.Melding.MeldingEntity;
+            var observer = melding.Melding_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.MeldingBubble.MeldingBubbleEntity))
+        {
+            var meldingBubble = entity as Entities.MeldingBubble.MeldingBubbleEntity;
+            var observer = meldingBubble.MeldingBubble_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.Outpost.OutpostEntity))
+        {
+            var outpost = entity as Entities.Outpost.OutpostEntity;
+            var observer = outpost.Outpost_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
             {

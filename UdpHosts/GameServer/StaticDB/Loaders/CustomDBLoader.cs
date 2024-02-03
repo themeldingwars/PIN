@@ -12,6 +12,7 @@ public class CustomDBLoader
     {
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = Policy,
+        IncludeFields = true
     };
 
     public Dictionary<uint, AuthorizeTerminalCommandDef> LoadAuthorizeTerminalCommandDef() 
@@ -36,6 +37,20 @@ public class CustomDBLoader
     {
         return LoadJSON<ImpactRemoveEffectCommandDef>("./StaticDB/CustomData/aptgss_agsImpactRemoveEffectCommandDef.json")
         .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, Dictionary<uint, Melding>> LoadMelding() 
+    {
+        return LoadJSON<Melding>("./StaticDB/CustomData/melding.json")
+        .GroupBy(row => row.ZoneId)
+        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
+    }
+
+    public Dictionary<uint, Dictionary<uint, Outpost>> LoadOutpost() 
+    {
+        return LoadJSON<Outpost>("./StaticDB/CustomData/outpost.json")
+        .GroupBy(row => row.ZoneId)
+        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
     }
 
     private T[] LoadJSON<T>(string fileName)

@@ -10,6 +10,10 @@ public class CustomDBInterface
     private static Dictionary<uint, SetGliderParametersCommandDef> SetGliderParametersCommandDef;
     private static Dictionary<uint, ModifyPermissionCommandDef> ModifyPermissionCommandDef;
 
+    // custom
+    private static Dictionary<uint, Dictionary<uint, Melding>> Melding;
+    private static Dictionary<uint, Dictionary<uint, Outpost>> Outpost;
+
     public static void Init()
     {
         var loader = new CustomDBLoader();
@@ -18,10 +22,18 @@ public class CustomDBInterface
         AuthorizeTerminalCommandDef = loader.LoadAuthorizeTerminalCommandDef();
         SetGliderParametersCommandDef = loader.LoadSetGliderParametersCommandDef();
         ModifyPermissionCommandDef = loader.LoadModifyPermissionCommandDef();
+
+        // custom
+        Melding = loader.LoadMelding();
+        Outpost = loader.LoadOutpost();
     }
 
     // aptgss
     public static AuthorizeTerminalCommandDef GetAuthorizeTerminalCommandDef(uint id) => AuthorizeTerminalCommandDef.GetValueOrDefault(id);
     public static SetGliderParametersCommandDef GetSetGliderParametersCommandDef(uint id) => SetGliderParametersCommandDef.GetValueOrDefault(id);
     public static ModifyPermissionCommandDef GetModifyPermissionCommandDef(uint id) => ModifyPermissionCommandDef.GetValueOrDefault(id);
+
+    // custom
+    public static Dictionary<uint, Melding> GetZoneMeldings(uint zoneId) => Melding.GetValueOrDefault(zoneId);
+    public static Dictionary<uint, Outpost> GetZoneOutposts(uint zoneId) => Outpost.GetValueOrDefault(zoneId);
 }

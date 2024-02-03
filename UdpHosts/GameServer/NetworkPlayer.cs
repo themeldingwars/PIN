@@ -128,6 +128,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         baseController.CurrentHealthProp = CharacterEntity.CharData.MaxHealth;
         baseController.MaxHealthProp = new MaxVital { Value = CharacterEntity.CharData.MaxHealth, Time = AssignedShard.CurrentTime };
         baseController.CurrentShieldsProp = 0;
+        baseController.ZoneUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
         baseController.RegionUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
         baseController.PersonalFactionStanceProp = new PersonalFactionStanceData
         {
@@ -197,7 +198,24 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             ItemsPart2 = Array.Empty<Item>(),
             ItemsPart3Length = 0,
             ItemsPart3 = Array.Empty<Item>(),
-            Resources = Array.Empty<Resource>(),
+            Resources = new Resource[] {
+                new()
+                {
+                    SdbId = 10, // Crystite
+                    Quantity = 10000,
+                    SubInventory = 1,
+                    TextKey = string.Empty,
+                    Unk2 = 0,
+                },
+                new()
+                {
+                    SdbId = 30101, // Credits
+                    Quantity = 10000,
+                    SubInventory = 1,
+                    TextKey = string.Empty,
+                    Unk2 = 0,
+                }
+            },
             Loadouts = new Loadout[]
             {
                 new()
