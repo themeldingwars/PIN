@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
@@ -9,6 +10,7 @@ using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Character.View;
 using AeroMessages.GSS.V66.Vehicle;
+using GameServer.Data.SDB;
 using GameServer.Entities.Character;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
@@ -478,5 +480,40 @@ public class BaseController : Base
         };
 
         client.NetChannels[ChannelType.ReliableGss].SendIAero(mapOpened, player.CharacterEntity.EntityId);
+    }
+
+    [MessageID((byte)Commands.RequestTeleport)]
+    public void RequestTeleport(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var character = player.CharacterEntity;
+        var query = packet.Unpack<RequestTeleport>();
+
+        // TODO: Raycast for z
+        var targetPosition = new Vector3(query.PosX, query.PosY, 500);
+
+        // Workaround by looking for Z coordinate in Outposts since that's the primary way players send this message
+        var zoneId = player.CurrentZone.ID;
+        foreach (var outpost in CustomDBInterface.GetZoneOutposts(zoneId).Values)
+        {
+            if (Math.Round(outpost.Position.X) == Math.Round(query.PosX) && Math.Round(outpost.Position.Y) == Math.Round(query.PosY)) {
+                targetPosition.Z = outpost.Position.Z;
+                break;
+            }
+        }
+
+        // Instantly transport character to target location
+        character.SetPosition(targetPosition);
+        var forcedMove = new ForcedMovement
+        {
+            Data = new ForcedMovementData
+            {
+                Type = 1,
+                Unk1 = 0,
+                HaveUnk2 = 0,
+                Params1 = new ForcedMovementType1Params { Position = targetPosition, Direction = character.AimDirection, Velocity = Vector3.Zero, Time = character.Shard.CurrentTime + 1 }
+            },
+            ShortTime = character.Shard.CurrentShortTime
+        };
+        client.NetChannels[ChannelType.ReliableGss].SendIAero(forcedMove, character.EntityId);
     }
 }

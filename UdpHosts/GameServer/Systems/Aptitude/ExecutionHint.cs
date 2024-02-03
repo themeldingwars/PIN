@@ -5,7 +5,6 @@ namespace GameServer.Aptitude;
 /// </summary>
 public enum ExecutionHint
 {
-    
     /// <summary>
     /// From an Ability reference
     /// </summary>
