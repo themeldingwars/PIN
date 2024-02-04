@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using AeroMessages.Common;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace GameServer.Entities;
@@ -9,10 +10,12 @@ public class BaseEntity : IEntity
     {
         Shard = shard;
         EntityId = id;
+        AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Generic };
         ControllerRefMap = new ConcurrentDictionary<Enums.GSS.Controllers, ushort>();
     }
 
     public ulong EntityId { get; }
+    public EntityId AeroEntityId { get; protected set; }
     public IShard Shard { get; }
     public IDictionary<Enums.GSS.Controllers, ushort> ControllerRefMap { get; }
 

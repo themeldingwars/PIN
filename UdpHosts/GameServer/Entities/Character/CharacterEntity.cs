@@ -22,6 +22,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     public CharacterEntity(IShard shard, ulong eid)
         : base(shard, eid)
     {
+        AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Character };
         InitFields();
         InitViews();
     }

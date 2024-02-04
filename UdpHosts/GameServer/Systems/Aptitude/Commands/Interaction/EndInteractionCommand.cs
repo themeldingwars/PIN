@@ -46,17 +46,14 @@ public class EndInteractionCommand : ICommand
                     var character = actingEntity as Entities.Character.CharacterEntity;
                     var vehicle = interactionEntity as Entities.Vehicle.VehicleEntity;
 
-                    var test = new AeroMessages.Common.EntityId { Backing = vehicle.EntityId, ControllerId = AeroMessages.Common.Controller.Vehicle };
-                    Console.WriteLine($"Setting attached to {test}");
-
                     var occupiedSeat = vehicle.AddOccupant(character);
                     if (occupiedSeat != null)
                     {
                         character.SetAttachedTo(new AttachedToData()
                         {
-                            Id1 = new AeroMessages.Common.EntityId { Backing = vehicle.EntityId, ControllerId = AeroMessages.Common.Controller.Vehicle },
-                            Id2 = new AeroMessages.Common.EntityId { Backing = vehicle.EntityId, ControllerId = AeroMessages.Common.Controller.Vehicle },
-                            Role = (AeroMessages.GSS.V66.Character.AttachedToData.AttachmentRoleType)occupiedSeat.Role,
+                            Id1 = vehicle.AeroEntityId,
+                            Id2 = vehicle.AeroEntityId,
+                            Role = (AttachedToData.AttachmentRoleType)occupiedSeat.Role,
                             Unk2 = 3, // posture?
                             Unk3 = 1,
                         }, vehicle);
