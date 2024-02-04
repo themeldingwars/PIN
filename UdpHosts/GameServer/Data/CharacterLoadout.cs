@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using AeroMessages.GSS.V66.Character;
 using GameServer.Enums.Visuals;
 
 namespace GameServer.Data;
 
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Self explanatory")]
 public enum LoadoutSlotType
 {
     Primary = 1,
@@ -27,6 +29,7 @@ public enum LoadoutSlotType
     GearGadget2 = 137
 }
 
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Self explanatory")]
 public enum AbilitySlotType
 {
     Ability1 = 0,

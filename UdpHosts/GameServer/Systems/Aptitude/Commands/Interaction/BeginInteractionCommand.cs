@@ -24,6 +24,7 @@ public class BeginInteractionCommand : ICommand
                 var actingEntity = context.Self;
                 context.Shard.Abilities.HandleActivateAbility(context.Shard, actingEntity, abilityId, context.Shard.CurrentTime, new HashSet<IAptitudeTarget>() { interactionEntity });
             }
+
             return true;
         }
         else

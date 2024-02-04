@@ -86,7 +86,6 @@ public class Factory
                 break;
             case CommandType.ImpactRemoveEffect:
                 return new ImpactRemoveEffectCommand(CustomDBInterface.GetImpactRemoveEffectCommandDef(commandId));
-                break;
             case CommandType.Call:
                 return new CallCommand(SDBInterface.GetCallCommandDef(commandId));
             case CommandType.ConditionalBranch:

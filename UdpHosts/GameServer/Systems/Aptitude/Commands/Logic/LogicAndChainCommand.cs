@@ -17,8 +17,6 @@ public class LogicAndChainCommand : ICommand
     {
         var chain = context.Abilities.Factory.LoadChain(Params.AndChain);
 
-        Console.WriteLine($"LogicAndChainCommand Pre Target {context.Targets.FirstOrDefault()}");
-
         var prevExecutionHint = context.ExecutionHint;
         context.ExecutionHint = ExecutionHint.Logic;
         bool result = chain.Execute(context, Chain.ExecutionMethod.AndChain);

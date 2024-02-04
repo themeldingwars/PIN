@@ -1,6 +1,8 @@
-﻿namespace GameServer.Enums.GSS.Turret;
+﻿using System.Diagnostics.CodeAnalysis;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Turret#commands")]
+namespace GameServer.Enums.GSS.Turret;
+
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Turret#commands")]
 internal enum Commands
 {
     PoseUpdate = 83,

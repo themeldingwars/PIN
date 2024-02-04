@@ -1,6 +1,8 @@
-﻿namespace GameServer.Enums.GSS.Vehicle;
+﻿using System.Diagnostics.CodeAnalysis;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Vehicle#commands")]
+namespace GameServer.Enums.GSS.Vehicle;
+
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Vehicle#commands")]
 internal enum Commands
 {
     MovementInput = 83,

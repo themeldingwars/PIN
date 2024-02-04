@@ -1,9 +1,11 @@
-﻿namespace GameServer.Enums.GSS;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GameServer.Enums.GSS;
 
 /// <summary>
 /// Typecodes for network views.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Views%2C-Updates-and-Keyframes")]
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Views%2C-Updates-and-Keyframes")]
 public enum Controllers : byte
 {
     Generic = 0,
