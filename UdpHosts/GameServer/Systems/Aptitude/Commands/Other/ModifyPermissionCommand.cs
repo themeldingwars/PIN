@@ -17,7 +17,7 @@ public class ModifyPermissionCommand : ICommand
     public bool Execute(Context context)
     {
         var target = context.Self; // NOTE: Based on glider, it seems like it should use self, maybe that is reasonable for all 'active' style commands?
-        if (target.GetType() == typeof(Entities.Character.Character))
+        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {
             if (Params.Glider != null)
             {
@@ -36,9 +36,9 @@ public class ModifyPermissionCommand : ICommand
     public void OnApply(Context context)
     {
         var target = context.Self;
-        if (target.GetType() == typeof(Entities.Character.Character))
+        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {
-            var character = target as Entities.Character.Character;
+            var character = target as Entities.Character.CharacterEntity;
 
             if (Params.Glider != null)
             {
@@ -55,9 +55,9 @@ public class ModifyPermissionCommand : ICommand
     public void OnRemove(Context context)
     {
         var target = context.Self;
-        if (target.GetType() == typeof(Entities.Character.Character))
+        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {
-            var character = target as Entities.Character.Character;
+            var character = target as Entities.Character.CharacterEntity;
 
             if (Params.Glider != null)
             {

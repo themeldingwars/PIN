@@ -19,8 +19,11 @@ public class BeginInteractionCommand : ICommand
             var interactionEntity = context.Targets.First();
             var hack = interactionEntity as BaseEntity;
             var abilityId = hack.Interaction.StartedAbilityId;
-            var actingEntity = context.Self;
-            context.Shard.Abilities.HandleActivateAbility(context.Shard, actingEntity, abilityId, context.Shard.CurrentTime, new HashSet<IAptitudeTarget>() { interactionEntity });
+            if (abilityId != 0)
+            {
+                var actingEntity = context.Self;
+                context.Shard.Abilities.HandleActivateAbility(context.Shard, actingEntity, abilityId, context.Shard.CurrentTime, new HashSet<IAptitudeTarget>() { interactionEntity });
+            }
             return true;
         }
         else

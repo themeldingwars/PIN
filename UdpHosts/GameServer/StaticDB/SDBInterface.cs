@@ -7,6 +7,7 @@ using Records.dbviusalrecords;
 using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
+using Records.vcs;
 using Records;
 using System.Linq;
 
@@ -134,6 +135,20 @@ public class SDBInterface
     private static Dictionary<uint, RequireZoneTypeCommandDef> RequireZoneTypeCommandDef;
     private static Dictionary<uint, InteractionTypeCommandDef> InteractionTypeCommandDef;
 
+    // vcs
+    private static Dictionary<byte, VehicleClass> VehicleClass;
+    private static Dictionary<ushort, VehicleInfo> VehicleInfo;
+    private static Dictionary<ushort, Dictionary<uint, BaseComponentDef>> BaseComponentDef;
+    private static Dictionary<uint, ScopingComponentDef> ScopingComponentDef;
+    private static Dictionary<uint, DriverComponentDef> DriverComponentDef;
+    private static Dictionary<uint, PassengerComponentDef> PassengerComponentDef;
+    private static Dictionary<uint, AbilityComponentDef> AbilityComponentDef;
+    private static Dictionary<uint, DamageComponentDef> DamageComponentDef;
+    private static Dictionary<uint, StatusEffectComponentDef> StatusEffectComponentDef;
+    private static Dictionary<uint, TurretComponentDef> TurretComponentDef;
+    private static Dictionary<uint, DeployableComponentDef> DeployableComponentDef;
+    private static Dictionary<uint, SpawnPointComponentDef> SpawnPointComponentDef;
+
     public static void Init(StaticDB instance)
     {
         var loader = new StaticDBLoader(instance);
@@ -259,6 +274,20 @@ public class SDBInterface
         AirborneDurationCommandDef = loader.LoadAirborneDurationCommandDef();
         ActivationDurationCommandDef = loader.LoadActivationDurationCommandDef();
         InteractionTypeCommandDef = loader.LoadInteractionTypeCommandDef();
+
+        // vcs
+        VehicleClass = loader.LoadVehicleClass();
+        VehicleInfo = loader.LoadVehicleInfo();
+        BaseComponentDef = loader.LoadBaseComponentDef();
+        ScopingComponentDef = loader.LoadScopingComponentDef();
+        DriverComponentDef = loader.LoadDriverComponentDef();
+        PassengerComponentDef = loader.LoadPassengerComponentDef();
+        AbilityComponentDef = loader.LoadAbilityComponentDef();
+        DamageComponentDef = loader.LoadDamageComponentDef();
+        StatusEffectComponentDef = loader.LoadStatusEffectComponentDef();
+        TurretComponentDef = loader.LoadTurretComponentDef();
+        DeployableComponentDef = loader.LoadDeployableComponentDef();
+        SpawnPointComponentDef = loader.LoadSpawnPointComponentDef();
     }
 
     // dbcharacter
@@ -382,4 +411,18 @@ public class SDBInterface
     public static RequireWeaponTemplateCommandDef GetRequireWeaponTemplateCommandDef(uint id) => RequireWeaponTemplateCommandDef.GetValueOrDefault(id);
     public static RequireZoneTypeCommandDef GetRequireZoneTypeCommandDef(uint id) => RequireZoneTypeCommandDef.GetValueOrDefault(id);
     public static InteractionTypeCommandDef GetInteractionTypeCommandDef(uint id) => InteractionTypeCommandDef.GetValueOrDefault(id);
+
+    // vcs
+    public static VehicleClass GetVehicleClass(byte id) => VehicleClass.GetValueOrDefault(id);
+    public static VehicleInfo GetVehicleInfo(ushort id) => VehicleInfo.GetValueOrDefault(id);
+    public static Dictionary<uint, BaseComponentDef> GetBaseComponentDef(ushort id) => BaseComponentDef.GetValueOrDefault(id);
+    public static ScopingComponentDef GetScopingComponentDef(uint id) => ScopingComponentDef.GetValueOrDefault(id);
+    public static DriverComponentDef GetDriverComponentDef(uint id) => DriverComponentDef.GetValueOrDefault(id);
+    public static PassengerComponentDef GetPassengerComponentDef(uint id) => PassengerComponentDef.GetValueOrDefault(id);
+    public static AbilityComponentDef GetAbilityComponentDef(uint id) => AbilityComponentDef.GetValueOrDefault(id);
+    public static DamageComponentDef GetDamageComponentDef(uint id) => DamageComponentDef.GetValueOrDefault(id);
+    public static StatusEffectComponentDef GetStatusEffectComponentDef(uint id) => StatusEffectComponentDef.GetValueOrDefault(id);
+    public static TurretComponentDef GetTurretComponentDef(uint id) => TurretComponentDef.GetValueOrDefault(id);
+    public static DeployableComponentDef GetDeployableComponentDef(uint id) => DeployableComponentDef.GetValueOrDefault(id);
+    public static SpawnPointComponentDef GetSpawnPointComponentDef(uint id) => SpawnPointComponentDef.GetValueOrDefault(id);
 }

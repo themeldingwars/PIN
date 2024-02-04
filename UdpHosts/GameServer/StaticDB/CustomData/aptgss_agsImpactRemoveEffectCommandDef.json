@@ -9705,7 +9705,9 @@
 	},
 	{
 		"id": 1135693,
-		"comment": "Triggered by Ability 181 - Interact With: Completed\u0000 "
+		"comment": "Triggered by Ability 181 - Interact With: Completed\u0000 ",
+		"effect_id": 269,
+		"remove_from_self": true
 	},
 	{
 		"id": 1136358,

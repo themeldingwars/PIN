@@ -18,7 +18,7 @@ public class MovementRelay
 
     public void CharacterMovementInput(INetworkClient client, IEntity entity, AeroMessages.GSS.V66.Character.Command.MovementInput input)
     {
-        var character = entity as Entities.Character.Character;
+        var character = entity as Entities.Character.CharacterEntity;
 
         // Update our data based on the clients input
         var poseData = input.PoseData;
@@ -82,6 +82,39 @@ public class MovementRelay
     
                 remoteClient.NetChannels[ChannelType.UnreliableGss].SendIAero(currentPose, character.EntityId);
             }
+        }
+    }
+
+    public void VehicleMovementInput(INetworkClient client, IEntity entity, AeroMessages.GSS.V66.Vehicle.Command.MovementInput input)
+    {
+        var vehicle = entity as Entities.Vehicle.VehicleEntity;
+        vehicle.SetPoseData(input);
+
+        if (vehicle.ControllingPlayer?.CharacterEntity != null)
+        {
+            var character = vehicle.ControllingPlayer.CharacterEntity;
+            character.SetPosition(input.Position);
+            CharacterMovementInput(client, character, new AeroMessages.GSS.V66.Character.Command.MovementInput()
+            {
+                ShortTime = client.AssignedShard.CurrentShortTime,
+                PoseData = new MovementPoseData()
+                {
+                    ShortTime = client.AssignedShard.CurrentShortTime,
+                    MovementType = MovementDataType.PosRotState,
+                    MovementUnk3 = 0,
+                    PosRotState = new MovementPosRotState()
+                    {
+                        Pos = input.Position,
+                        Rot = character.Rotation,
+                        MovementState = unchecked((short)0xd000)
+                    },
+                    Velocity = character.Velocity,
+                    JetpackEnergy = 0x639c,
+                    GroundTimePositiveAirTimeNegative = 0,
+                    TimeSinceLastJump = character.TimeSinceLastJump,
+                    HaveDebugData = 0
+                } 
+            });
         }
     }
 }

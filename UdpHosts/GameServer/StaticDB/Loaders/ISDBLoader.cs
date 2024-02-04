@@ -6,6 +6,7 @@ using Records.dbviusalrecords;
 using Records.dbitems;
 using System.Collections.Generic;
 using Records.dbcharacter;
+using Records.vcs;
 
 public interface ISDBLoader
 {
@@ -129,4 +130,18 @@ public interface ISDBLoader
     Dictionary<uint, RequireWeaponTemplateCommandDef> LoadRequireWeaponTemplateCommandDef();
     Dictionary<uint, RequireZoneTypeCommandDef> LoadRequireZoneTypeCommandDef();
     Dictionary<uint, InteractionTypeCommandDef> LoadInteractionTypeCommandDef();
+
+    // vcs
+    Dictionary<byte, VehicleClass> LoadVehicleClass();
+    Dictionary<ushort, VehicleInfo> LoadVehicleInfo();
+    Dictionary<ushort, Dictionary<uint, BaseComponentDef>> LoadBaseComponentDef();
+    Dictionary<uint, ScopingComponentDef> LoadScopingComponentDef();
+    Dictionary<uint, DriverComponentDef> LoadDriverComponentDef();
+    Dictionary<uint, PassengerComponentDef> LoadPassengerComponentDef();
+    Dictionary<uint, AbilityComponentDef> LoadAbilityComponentDef();
+    Dictionary<uint, DamageComponentDef> LoadDamageComponentDef();
+    Dictionary<uint, StatusEffectComponentDef> LoadStatusEffectComponentDef();
+    Dictionary<uint, TurretComponentDef> LoadTurretComponentDef();
+    Dictionary<uint, DeployableComponentDef> LoadDeployableComponentDef();
+    Dictionary<uint, SpawnPointComponentDef> LoadSpawnPointComponentDef();
 }

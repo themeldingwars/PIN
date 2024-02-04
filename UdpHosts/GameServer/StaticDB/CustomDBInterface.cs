@@ -9,6 +9,7 @@ public class CustomDBInterface
     private static Dictionary<uint, AuthorizeTerminalCommandDef> AuthorizeTerminalCommandDef;
     private static Dictionary<uint, SetGliderParametersCommandDef> SetGliderParametersCommandDef;
     private static Dictionary<uint, ModifyPermissionCommandDef> ModifyPermissionCommandDef;
+    private static Dictionary<uint, ImpactRemoveEffectCommandDef> ImpactRemoveEffectCommandDef;
 
     // custom
     private static Dictionary<uint, Dictionary<uint, Melding>> Melding;
@@ -22,6 +23,7 @@ public class CustomDBInterface
         AuthorizeTerminalCommandDef = loader.LoadAuthorizeTerminalCommandDef();
         SetGliderParametersCommandDef = loader.LoadSetGliderParametersCommandDef();
         ModifyPermissionCommandDef = loader.LoadModifyPermissionCommandDef();
+        ImpactRemoveEffectCommandDef = loader.LoadImpactRemoveEffectCommandDef();
 
         // custom
         Melding = loader.LoadMelding();
@@ -32,6 +34,7 @@ public class CustomDBInterface
     public static AuthorizeTerminalCommandDef GetAuthorizeTerminalCommandDef(uint id) => AuthorizeTerminalCommandDef.GetValueOrDefault(id);
     public static SetGliderParametersCommandDef GetSetGliderParametersCommandDef(uint id) => SetGliderParametersCommandDef.GetValueOrDefault(id);
     public static ModifyPermissionCommandDef GetModifyPermissionCommandDef(uint id) => ModifyPermissionCommandDef.GetValueOrDefault(id);
+    public static ImpactRemoveEffectCommandDef GetImpactRemoveEffectCommandDef(uint id) => ImpactRemoveEffectCommandDef.GetValueOrDefault(id);
 
     // custom
     public static Dictionary<uint, Melding> GetZoneMeldings(uint zoneId) => Melding.GetValueOrDefault(zoneId);

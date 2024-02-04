@@ -405,6 +405,20 @@ public class Channel
         return SendPacketMemory(entityId, 4, controllerId, ref messageData);
     }
 
+    public bool SendIAeroControllerRemove<TPacket>(TPacket packet, ulong entityId, ulong playerId)
+        where TPacket : class, IAero
+    {
+        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
+        }
+
+        var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+        var messageData = new Memory<byte>(new byte[8]);
+        Serializer.WritePrimitive(playerId).CopyTo(messageData);
+        return SendPacketMemory(entityId, 5, controllerId, ref messageData);
+    }
+
     public bool SendIAeroChanges<TPacket>(TPacket packet, ulong entityId)
         where TPacket : class, IAeroViewInterface
     {

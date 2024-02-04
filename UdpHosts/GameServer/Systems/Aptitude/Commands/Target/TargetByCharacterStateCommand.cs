@@ -19,9 +19,9 @@ public class TargetByCharacterStateCommand : ICommand
         var newTargets = new HashSet<IAptitudeTarget>();
         foreach (IAptitudeTarget target in previousTargets)
         {
-            if (target.GetType() == typeof(Entities.Character.Character))
+            if (target.GetType() == typeof(Entities.Character.CharacterEntity))
             {
-                var character = target as Entities.Character.Character;
+                var character = target as Entities.Character.CharacterEntity;
 
                 var characterState = character.CharacterState.State;
 

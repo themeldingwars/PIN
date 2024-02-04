@@ -16,9 +16,9 @@ public class InstantActivationCommand : ICommand
 
     public bool Execute(Context context)
     {
-        if (context.Self.GetType() == typeof(Entities.Character.Character))
+        if (context.Self.GetType() == typeof(Entities.Character.CharacterEntity))
         {
-            var character = context.Self as Entities.Character.Character;
+            var character = context.Self as Entities.Character.CharacterEntity;
 
             if (character.IsPlayerControlled)
             {

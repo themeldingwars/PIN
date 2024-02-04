@@ -16,9 +16,9 @@ public class AirborneDurationCommand : ICommand
         var target = context.Self; // NOTE: Investigate
 
         bool result = false;
-        if (target.GetType() == typeof(Entities.Character.Character))
+        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {
-            var character = target as Entities.Character.Character;
+            var character = target as Entities.Character.CharacterEntity;
             result = character.IsAirborne;
         }
 
