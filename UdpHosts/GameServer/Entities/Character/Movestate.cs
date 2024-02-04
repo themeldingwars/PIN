@@ -1,5 +1,3 @@
-using System;
-
 namespace GameServer.Entities.Character;
 
 public enum Movestate : byte

@@ -1,6 +1,8 @@
-﻿namespace GameServer.Enums.GSS.LootStoreExtensions;
+﻿using System.Diagnostics.CodeAnalysis;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-LootStoreExtension#events")]
+namespace GameServer.Enums.GSS.LootStoreExtensions;
+
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-LootStoreExtension#events")]
 internal enum Events
 {
     PartialUpdate = 1, // Delete

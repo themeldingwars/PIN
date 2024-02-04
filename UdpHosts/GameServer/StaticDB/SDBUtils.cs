@@ -12,8 +12,6 @@ using Records;
 using System;
 using AeroMessages.GSS.V66.Character;
 using System.Linq;
-using Microsoft.VisualBasic;
-
 
 public class SDBUtils
 {

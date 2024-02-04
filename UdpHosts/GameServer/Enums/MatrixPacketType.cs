@@ -1,6 +1,8 @@
-﻿namespace GameServer.Enums;
+﻿using System.Diagnostics.CodeAnalysis;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Matrix")]
+namespace GameServer.Enums;
+
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Matrix")]
 public enum MatrixPacketType : byte
 {
     Login = 17,

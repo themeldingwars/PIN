@@ -230,7 +230,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             ItemsPart2 = Array.Empty<Item>(),
             ItemsPart3Length = 0,
             ItemsPart3 = Array.Empty<Item>(),
-            Resources = new Resource[] {
+            Resources = new Resource[]
+            {
                 new()
                 {
                     SdbId = 10, // Crystite

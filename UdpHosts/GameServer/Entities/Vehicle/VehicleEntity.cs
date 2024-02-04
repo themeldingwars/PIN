@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
@@ -9,19 +8,36 @@ using AeroMessages.GSS.V66.Vehicle.Command;
 using AeroMessages.GSS.V66.Vehicle.Controller;
 using AeroMessages.GSS.V66.Vehicle.View;
 using GameServer.Aptitude;
-using GameServer.Controllers;
 using GameServer.Data.SDB;
 using GameServer.Entities.Character;
-using GrpcGameServerAPIClient;
 
 namespace GameServer.Entities.Vehicle;
 
 public enum AttachmentRole : byte
 {
+    /// <summary>
+    /// No role
+    /// </summary>
     None = 0,
+
+    /// <summary>
+    /// Controls the vehicle
+    /// </summary>
     Driver = 1,
+
+    /// <summary>
+    /// Passenger with weapon
+    /// </summary>
     ActivePassenger = 3,
+
+    /// <summary>
+    /// Passenger just chillin
+    /// </summary>
     PassivePassenger = 4,
+
+    /// <summary>
+    /// TODO: Investigate
+    /// </summary>
     Turret = 5
 }
 
@@ -513,12 +529,10 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             if (seat.Occupant == character)
             {
-                Console.WriteLine($"RemoveOccupant found character");
                 seat.Occupant = null;
                 RefreshOccupants();
                 if (character.IsPlayerControlled && character.Player == ControllingPlayer)
                 {
-                    Console.WriteLine($"RemoveOccupant set controlling player null");
                     SetControllingPlayer(null);
                 }
 
@@ -672,7 +686,6 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 
     private void RefreshOccupants()
     {
-        // Setting typecode byte to Character (as opposed to Generic) is neccessary
         var occupantIds0 = Occupants[0].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };
         var occupantIds1 = Occupants[1].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };
         var occupantIds2 = Occupants[2].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };

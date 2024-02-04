@@ -1,6 +1,8 @@
-﻿namespace GameServer.Enums.GSS.Character;
+﻿using System.Diagnostics.CodeAnalysis;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Character#events")]
+namespace GameServer.Enums.GSS.Character;
+
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Character#events")]
 internal enum Events
 {
     PartialUpdate = 1, // Delete

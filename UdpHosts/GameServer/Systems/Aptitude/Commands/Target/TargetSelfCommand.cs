@@ -15,12 +15,12 @@ public class TargetSelfCommand : ICommand
 
     public bool Execute(Context context)
     {
-        Console.WriteLine($"TargetSelfCommand Pre Target {context.Targets.FirstOrDefault()}");
+        // Console.WriteLine($"TargetSelfCommand Pre Target {context.Targets.FirstOrDefault()}");
 
         // TODO: FormerTargets ?
         context.Targets.Add(context.Self);
 
-        Console.WriteLine($"TargetSelfCommand Post Target {context.Targets.FirstOrDefault()}");
+        // Console.WriteLine($"TargetSelfCommand Post Target {context.Targets.FirstOrDefault()}");
         return true;
     }
 }

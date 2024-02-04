@@ -1,6 +1,8 @@
-﻿namespace GameServer.Enums.GSS.Generic;
+﻿using System.Diagnostics.CodeAnalysis;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Generic#client")]
+namespace GameServer.Enums.GSS.Generic;
+
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Generic#client")]
 public enum Commands : byte
 {
     UIToEncounterMessage = 17,
