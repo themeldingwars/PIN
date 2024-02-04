@@ -13,7 +13,7 @@ using GameServer.Test;
 using Grpc.Net.Client;
 using GrpcGameServerAPIClient;
 using Serilog;
-using Character = GameServer.Entities.Character.Character;
+using CharacterEntity = GameServer.Entities.Character.CharacterEntity;
 using Loadout = AeroMessages.GSS.V66.Character.Event.Loadout;
 
 namespace GameServer;
@@ -31,7 +31,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
     public ulong PlayerId { get; private set; }
     public ulong CharacterId { get; private set; }
-    public Character CharacterEntity { get; private set; }
+    public CharacterEntity CharacterEntity { get; private set; }
     public IPlayer.PlayerStatus Status { get; private set; }
     public Zone CurrentZone { get; private set; }
     public uint LastRequestedUpdate { get; set; }
@@ -49,7 +49,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         PlayerId = 0x4658281c142e9f00ul;
         var guid = AssignedShard.EntityMan.GetNextGuid() & 0xffffffffffffff00; // At the moment, instead of using the character id, we generate a new guid so that we can support multiple people of the same character guid connecting. This has to be removed later because it makes it difficult to associate the webapi calls.
         CharacterId = guid;
-        CharacterEntity = new Character(AssignedShard, guid);
+        CharacterEntity = new CharacterEntity(AssignedShard, guid);
         using var channel = GrpcChannel.ForAddress("http://localhost:5201");
         var client = new GameServerAPI.GameServerAPIClient(channel);
         var reply = await client.GetCharacterAndBattleframeVisualsAsync(new CharacterID { ID = (long)characterId });
@@ -158,7 +158,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         var inventoryUpdate = new InventoryUpdate
         {
             ClearExistingData = 1,
-            ItemsPart1Length = 2,
+            ItemsPart1Length = 4,
             ItemsPart1 = new Item[]
             {
                 new()
@@ -184,6 +184,38 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                     GUID = 9181641073530142461ul,
                     SubInventory = 4,
                     Unk2 = 0x964C1352,
+                    DynamicFlags = 0,
+                    Durability = 0,
+                    Unk3 = 0,
+                    Unk4 = 0,
+                    Unk5 = 1,
+                    Unk6 = Array.Empty<ItemUnkData>(),
+                    Unk7 = 0,
+                    Modules = Array.Empty<uint>()
+                },
+                new()
+                {
+                    Unk1 = 0,
+                    SdbId = 81423, // Glider
+                    GUID = 9203082006052811773ul,
+                    SubInventory = 2,
+                    Unk2 = 0x518973AE,
+                    DynamicFlags = 0,
+                    Durability = 0,
+                    Unk3 = 0,
+                    Unk4 = 0,
+                    Unk5 = 1,
+                    Unk6 = Array.Empty<ItemUnkData>(),
+                    Unk7 = 0,
+                    Modules = Array.Empty<uint>()
+                },
+                new()
+                {
+                    Unk1 = 0,
+                    SdbId = 77087, // LGV
+                    GUID = 9168405683759816701ul,
+                    SubInventory = 2,
+                    Unk2 = 0x582A0A04,
                     DynamicFlags = 0,
                     Durability = 0,
                     Unk3 = 0,

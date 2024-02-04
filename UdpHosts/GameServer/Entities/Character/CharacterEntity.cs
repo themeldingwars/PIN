@@ -17,9 +17,9 @@ namespace GameServer.Entities.Character;
 /// <summary>
 /// Base Character
 /// </summary>
-public class Character : BaseAptitudeEntity, IAptitudeTarget
+public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 {
-    public Character(IShard shard, ulong eid)
+    public CharacterEntity(IShard shard, ulong eid)
         : base(shard, eid)
     {
         InitFields();
@@ -109,6 +109,8 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
     public FireModeData FireMode_1 { get; set; }
     public PermissionFlagsData PermissionFlags { get; set; }
     public AuthorizedTerminalData AuthorizedTerminal { get; set; } = new AuthorizedTerminalData { TerminalType = 0, TerminalId = 0, TerminalEntityId = 0 };
+    public AttachedToData? AttachedTo { get; set; } = null;
+    public IEntity AttachedToEntity { get; set; } = null;
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -707,6 +709,30 @@ public class Character : BaseAptitudeEntity, IAptitudeTarget
         // CombatView
         Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
         Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, null, null);
+    }
+
+    public void SetAttachedTo(AttachedToData newValue, IEntity entity)
+    {
+        AttachedToEntity = entity;
+        AttachedTo = newValue;
+        Character_ObserverView.AttachedToProp = AttachedTo;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.AttachedToProp = AttachedTo;
+        }
+    }
+
+    public void ClearAttachedTo()
+    {
+        AttachedToEntity = null;
+        AttachedTo = null;
+        Character_ObserverView.AttachedToProp = AttachedTo;
+        Character_ObserverView.SnapMountProp = 0;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.AttachedToProp = AttachedTo;
+            Character_BaseController.SnapMountProp = 0;
+        }
     }
 
     private void InitFields()

@@ -7,10 +7,13 @@ using Records.dbitems;
 using Records.dbviusalrecords;
 using Records.apt;
 using Records.aptfs;
+using Records.vcs;
 using Records;
 using System;
 using AeroMessages.GSS.V66.Character;
 using System.Linq;
+using Microsoft.VisualBasic;
+
 
 public class SDBUtils
 {
@@ -143,6 +146,128 @@ public class SDBUtils
             Palettes = palettes.ToArray(),
         };
     }
+
+    public static VehicleInfoResult GetDetailedVehicleInfo(ushort vehicleId)
+    {
+        var vehicleInfo = SDBInterface.GetVehicleInfo(vehicleId);
+        var vehicleClass = SDBInterface.GetVehicleClass(vehicleInfo.VehicleClass);
+        var baseComponents = SDBInterface.GetBaseComponentDef(vehicleId);
+        var result = new VehicleInfoResult()
+        {
+            VehicleId = vehicleId,
+            FactionId = vehicleInfo.FactionId,
+            Class = vehicleClass.Name,
+            ScopeRange = 300,
+            SpawnHeight = 1,
+            SpawnAbility = 0,
+            DespawnAbility = 0,
+            HasDriverSeat = false,
+            DriverPosture = 0,
+            MaxPassengers = 0,
+            PassengerPosture = 0,
+            HasActivePassenger = false,
+            Abilities = new List<AbilityComponentDef>(),
+            DeathAbility = 0,
+            MaxHitPoints = 100,
+            DamageResponse = 0,
+            StatusFxId = 0,
+            Turrets = new List<TurretComponentDef>(),
+            Deployables = new List<DeployableComponentDef>(),
+        };
+        foreach (var baseComponent in baseComponents.Values)
+        {
+            // We don't know how to identify the type, so we look each one up in every table of interest.
+            // Not sure if the sdb_guid somehow hints at where to find it
+            var componentId = baseComponent.Id;
+            var scopingComponent = SDBInterface.GetScopingComponentDef(componentId);
+            var driverComponent = SDBInterface.GetDriverComponentDef(componentId);
+            var passengerComponent = SDBInterface.GetPassengerComponentDef(componentId);
+            var abilityComponent = SDBInterface.GetAbilityComponentDef(componentId);
+            var damageComponent = SDBInterface.GetDamageComponentDef(componentId);
+            var statusEffectComponent = SDBInterface.GetStatusEffectComponentDef(componentId);
+            var turretComponent = SDBInterface.GetTurretComponentDef(componentId);
+            var deployableComponent = SDBInterface.GetDeployableComponentDef(componentId);
+            var spawnPointComponent = SDBInterface.GetSpawnPointComponentDef(componentId);
+
+            if (scopingComponent != null)
+            {
+                result.ScopeRange = scopingComponent.ScopeRange;
+                result.SpawnHeight = scopingComponent.SpawnHeight;
+                result.SpawnAbility = scopingComponent.SpawnAbility;
+                result.DespawnAbility = scopingComponent.DespawnAbility;
+            }
+
+            if (driverComponent != null)
+            {
+                result.HasDriverSeat = true;
+                result.DriverPosture = driverComponent.Posture;
+            }
+
+            if (passengerComponent != null)
+            {
+                result.MaxPassengers = passengerComponent.MaxPassengers;
+                result.PassengerPosture = passengerComponent.Posture;
+                result.HasActivePassenger = passengerComponent.ActivePassenger == 1;
+            }
+
+            if (abilityComponent != null)
+            {
+                result.Abilities.Add(abilityComponent);
+            }
+
+            if (damageComponent != null)
+            {
+                result.DeathAbility = damageComponent.DeathAbility;
+                result.MaxHitPoints = damageComponent.MaxHitPoints;
+                result.DamageResponse = damageComponent.DamageResponse;
+            }
+
+            if (statusEffectComponent != null)
+            {
+                result.StatusFxId = statusEffectComponent.StatusFxId;
+            }
+
+            if (turretComponent != null)
+            {
+                result.Turrets.Add(turretComponent);
+            }
+
+            if (deployableComponent != null)
+            {
+                result.Deployables.Add(deployableComponent);
+            }
+
+            if (spawnPointComponent != null)
+            {
+                // TODO: Probably for allowing spawning into the vehicle
+            }
+        }
+
+        return result;
+    }
+}
+
+public class VehicleInfoResult
+{
+    public ushort VehicleId;
+    public uint FactionId;
+    public string Class;
+    public float ScopeRange;
+    public float SpawnHeight;
+    public uint SpawnAbility;
+    public uint DespawnAbility;
+    public bool HasDriverSeat;
+    public byte DriverPosture;
+    public uint MaxPassengers;
+    public byte PassengerPosture;
+    public bool HasActivePassenger;
+    public List<AbilityComponentDef> Abilities;
+    public uint DeathAbility;
+    public float MaxHitPoints;
+    public uint DamageResponse;
+    public uint StatusFxId;
+    public List<TurretComponentDef> Turrets;
+    public List<DeployableComponentDef> Deployables;
 }
 
 public class ChassisWarpaintResult

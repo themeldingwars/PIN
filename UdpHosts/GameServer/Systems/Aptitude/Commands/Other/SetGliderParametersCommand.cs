@@ -19,9 +19,9 @@ public class SetGliderParametersCommand : ICommand
         // TODO: Extend character to support active modifiers that are removed when the source status effect ends        
         foreach (IAptitudeTarget target in context.Targets)
         {
-            if (target.GetType() == typeof(Entities.Character.Character))
+            if (target.GetType() == typeof(Entities.Character.CharacterEntity))
             {
-                var character = target as Entities.Character.Character;
+                var character = target as Entities.Character.CharacterEntity;
 
                 if (Params.Value != null)
                 {

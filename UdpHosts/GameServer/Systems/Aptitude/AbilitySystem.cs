@@ -86,6 +86,22 @@ public class AbilitySystem
         }
     }
 
+    public void DoRemoveEffect(IAptitudeTarget entity, uint effectId)
+    {
+        var activeEffects = entity.GetActiveEffects();
+        foreach (var activeEffect in activeEffects)
+        {
+            if (activeEffect?.Effect.Id != null)
+            {
+                if (activeEffect.Effect.Id == effectId)
+                {
+                    DoRemoveEffect(activeEffect);
+                    break;
+                }
+            }
+        }
+    }
+
     public void HandleVehicleCalldownRequest()
     {
         throw new NotImplementedException();

@@ -21,7 +21,7 @@ public class TargetByObjectTypeCommand : ICommand
         var newTargets = new HashSet<IAptitudeTarget>();
         foreach (IAptitudeTarget target in previousTargets)
         {
-            if (Params.Character == 1 && target.GetType() == typeof(Entities.Character.Character))
+            if (Params.Character == 1 && target.GetType() == typeof(Entities.Character.CharacterEntity))
             {
                 newTargets.Add(target);
             }

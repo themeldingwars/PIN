@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using GameServer.Data.SDB.Records.customdata;
 
@@ -12,9 +13,28 @@ public class ImpactRemoveEffectCommand : ICommand
         Params = par;
     }
 
-    // TODO
     public bool Execute(Context context)
     {
+        if (Params.EffectId != null)
+        {
+            uint effectId = (uint)Params.EffectId;
+            if (Params.RemoveFromSelf != null && Params.RemoveFromSelf == true)
+            {
+                context.Abilities.DoRemoveEffect(context.Self, effectId);
+            }
+            else
+            {
+                foreach (IAptitudeTarget target in context.Targets)
+                {
+                   context.Abilities.DoRemoveEffect(target, effectId);
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Don't know which effect to remove for ImpactRemoveEffectCommand {Params.Id}");
+        }
+
         return true;
     }
 }

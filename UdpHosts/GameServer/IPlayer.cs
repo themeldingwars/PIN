@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using GameServer.Data;
-using Character = GameServer.Entities.Character.Character;
+using CharacterEntity = GameServer.Entities.Character.CharacterEntity;
 
 namespace GameServer;
 
@@ -23,7 +23,7 @@ public interface IPlayer
     ulong PlayerId { get; }
     ulong CharacterId { get; }
     ulong EntityId => CharacterId & 0xffffffffffffff00; // Ignore last byte
-    Character CharacterEntity { get; }
+    CharacterEntity CharacterEntity { get; }
     PlayerStatus Status { get; }
     Zone CurrentZone { get; }
     uint LastRequestedUpdate { get; set; }

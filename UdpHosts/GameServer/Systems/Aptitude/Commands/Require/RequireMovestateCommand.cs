@@ -19,9 +19,9 @@ public class RequireMovestateCommand : ICommand
         // NOTE: Investigate target handling
         var target = context.Self;
         
-        if (target.GetType() == typeof(Entities.Character.Character))
+        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {
-            var character = target as Entities.Character.Character;
+            var character = target as Entities.Character.CharacterEntity;
             var movestate = character.MovementStateContainer.Movestate;
 
             if (Params.Standing == 1 && (movestate == Entities.Character.Movestate.Standing))

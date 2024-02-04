@@ -6,6 +6,7 @@ using Records.aptfs;
 using Records.dbitems;
 using Records.dbviusalrecords;
 using Records.dbcharacter;
+using Records.vcs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -694,6 +695,79 @@ public class StaticDBLoader : ISDBLoader
     public Dictionary<uint, InteractionTypeCommandDef> LoadInteractionTypeCommandDef()
     {
         return LoadStaticDB<InteractionTypeCommandDef>("aptfs::InteractionTypeCommandDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<byte, VehicleClass> LoadVehicleClass()
+    {
+        return LoadStaticDB<VehicleClass>("vcs::VehicleClass")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<ushort, VehicleInfo> LoadVehicleInfo()
+    {
+        return LoadStaticDB<VehicleInfo>("vcs::VehicleInfo")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<ushort, Dictionary<uint, BaseComponentDef>> LoadBaseComponentDef()
+    {
+        return LoadStaticDB<BaseComponentDef>("vcs::BaseComponentDef")
+        .GroupBy(row => row.VehicleId)
+        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
+    }
+
+    public Dictionary<uint, ScopingComponentDef> LoadScopingComponentDef()
+    {
+        return LoadStaticDB<ScopingComponentDef>("vcs::ScopingComponentDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, DriverComponentDef> LoadDriverComponentDef()
+    {
+        return LoadStaticDB<DriverComponentDef>("vcs::DriverComponentDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PassengerComponentDef> LoadPassengerComponentDef()
+    {
+        return LoadStaticDB<PassengerComponentDef>("vcs::PassengerComponentDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, AbilityComponentDef> LoadAbilityComponentDef()
+    {
+        return LoadStaticDB<AbilityComponentDef>("vcs::AbilityComponentDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, DamageComponentDef> LoadDamageComponentDef()
+    {
+        return LoadStaticDB<DamageComponentDef>("vcs::DamageComponentDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, StatusEffectComponentDef> LoadStatusEffectComponentDef()
+    {
+        return LoadStaticDB<StatusEffectComponentDef>("vcs::StatusEffectComponentDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TurretComponentDef> LoadTurretComponentDef()
+    {
+        return LoadStaticDB<TurretComponentDef>("vcs::TurretComponentDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, DeployableComponentDef> LoadDeployableComponentDef()
+    {
+        return LoadStaticDB<DeployableComponentDef>("vcs::DeployableComponentDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, SpawnPointComponentDef> LoadSpawnPointComponentDef()
+    {
+        return LoadStaticDB<SpawnPointComponentDef>("vcs::SpawnPointComponentDef")
         .ToDictionary(row => row.Id);
     }
 
