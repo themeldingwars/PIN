@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 
 namespace GameServer.Aptitude;
@@ -7,6 +8,7 @@ namespace GameServer.Aptitude;
 public interface IAptitudeTarget
 {
     public ulong EntityId { get; } // From BaseEntity
+    public EntityId AeroEntityId { get; } // From BaseEntity
     public IShard Shard { get; } // From BaseEntity
 
     public List<EffectState> GetActiveEffects();

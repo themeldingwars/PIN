@@ -68,7 +68,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
         var data = new StatusEffectData
         {
             Id = state.Effect.Id,
-            Initiator = new AeroMessages.Common.EntityId { Backing = state.Context.Initiator.EntityId },
+            Initiator = state.Context.Initiator.AeroEntityId,
             Time = state.Time,
             MoreDataFlag = 0
         };

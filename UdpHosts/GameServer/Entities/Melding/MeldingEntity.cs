@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Melding.View;
 
@@ -10,6 +11,7 @@ public class MeldingEntity : BaseEntity
     public MeldingEntity(IShard shard, ulong eid, string perimiterSetName)
         : base(shard, eid)
     {
+        AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Melding };
         PerimiterSetName = perimiterSetName;
         InitFields();
         InitViews();

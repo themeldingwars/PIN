@@ -16,6 +16,7 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public DeployableEntity(IShard shard, ulong eid, uint type, uint abilitySrcId)
         : base(shard, eid)
     {
+        AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Deployable };
         Type = type;
         AbilitySrcId = abilitySrcId;
         InitFields();
@@ -173,7 +174,7 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
         Deployable_ObserverView = new ObserverView
         {
             TypeProp = Type,
-            OwningEntityProp = new AeroMessages.Common.EntityId { Backing = Owner?.EntityId ?? 0 },
+            OwningEntityProp = Owner?.AeroEntityId ?? new EntityId { Backing = 0 },
             AbilitySrcIdProp = AbilitySrcId,
             PositionProp = Position,
             OrientationProp = Orientation,
@@ -186,7 +187,7 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
             ScalingLevelProp = 0,
             GibVisualsIDProp = GibVisualsID,
             HostilityInfoProp = HostilityInfo,
-            AttachedToProp = new AeroMessages.Common.EntityId { Backing = 0ul },
+            AttachedToProp = new EntityId { Backing = 0 },
             CharacterStatsProp = new CharacterStatsData
             {
                 ItemAttributes = Array.Empty<StatsData>(),

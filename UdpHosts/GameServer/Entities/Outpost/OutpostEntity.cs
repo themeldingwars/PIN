@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Outpost.View;
 
@@ -10,6 +11,7 @@ public class OutpostEntity : BaseEntity
     public OutpostEntity(IShard shard, ulong eid, Data.SDB.Records.customdata.Outpost record)
         : base(shard, eid)
     {
+        AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Outpost };
         InitFields();
         InitViews(record);
     }
@@ -49,7 +51,7 @@ public class OutpostEntity : BaseEntity
             MapMarkerTypeIdProp = record.MarkerType,
             RadiusProp = record.Radius,
             Dynamic_11Prop = new byte[4],
-            EncounterIdProp = new AeroMessages.Common.EntityId { Backing = EncounterId },
+            EncounterIdProp = new EntityId { Backing = EncounterId },
             ScopeBubbleInfoProp = ScopeBubbleInfo
         };
     }

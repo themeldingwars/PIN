@@ -37,6 +37,7 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public VehicleEntity(IShard shard, ulong eid)
         : base(shard, eid)
     {
+        AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Vehicle };
         Interaction = new InteractionComponent()
         {
             Type = InteractionType.Vehicle
@@ -135,16 +136,16 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     };
     public Dictionary<byte, DeployableIdsData> DeployableData { get; set; } = new Dictionary<byte, DeployableIdsData>()
     {
-        { 0, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 1, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 2, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 3, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 4, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 5, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 6, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 7, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 8, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 9, new DeployableIdsData { Target = new AeroMessages.Common.EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 0, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 1, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 2, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 3, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 4, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 5, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 6, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 7, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 8, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 9, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
     };
     public Dictionary<byte, uint> Abilities { get; set; } = new Dictionary<byte, uint>()
     {
@@ -312,13 +313,13 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     {
         Owner = entity;
 
-        Vehicle_ObserverView.OwnerIdProp = new EntityId() { Backing = entity.EntityId };
+        Vehicle_ObserverView.OwnerIdProp = Owner.AeroEntityId;
         Vehicle_ObserverView.OwnerNameProp = string.Empty;
         Vehicle_ObserverView.OwnerLocalStringProp = 0;
 
         if (Vehicle_BaseController != null)
         {
-            Vehicle_BaseController.OwnerIdProp = new EntityId() { Backing = entity.EntityId };
+            Vehicle_BaseController.OwnerIdProp = Owner.AeroEntityId;
             Vehicle_BaseController.OwnerNameProp = string.Empty; // FIXME
             Vehicle_BaseController.OwnerLocalStringProp = 0; // FIXME
         }
@@ -542,15 +543,15 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             FlagsProp = Flags,
             EngineStateProp = EngineState,
             PathStateProp = PathState,
-            OwnerIdProp = new EntityId() { Backing = Owner?.EntityId ?? 0 },
+            OwnerIdProp = Owner?.AeroEntityId ?? new EntityId { Backing = 0 },
             OwnerNameProp = string.Empty,
             OwnerLocalStringProp = 0,
-            OccupantIds_0Prop = new EntityId() { Backing = Occupants[0].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_1Prop = new EntityId() { Backing = Occupants[1].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_2Prop = new EntityId() { Backing = Occupants[2].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_3Prop = new EntityId() { Backing = Occupants[3].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_4Prop = new EntityId() { Backing = Occupants[4].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_5Prop = new EntityId() { Backing = Occupants[5].Occupant?.EntityId | 0x01 ?? 0 },
+            OccupantIds_0Prop = Occupants[0].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_1Prop = Occupants[1].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_2Prop = Occupants[2].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_3Prop = Occupants[3].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_4Prop = Occupants[4].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_5Prop = Occupants[5].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
             DeployableIds_0Prop = DeployableData[0],
             DeployableIds_1Prop = DeployableData[1],
             DeployableIds_2Prop = DeployableData[2],
@@ -606,15 +607,15 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             FlagsProp = Flags,
             EngineStateProp = EngineState,
             PathStateProp = PathState,
-            OwnerIdProp = new EntityId() { Backing = Owner?.EntityId ?? 0 },
+            OwnerIdProp = Owner?.AeroEntityId ?? new AeroMessages.Common.EntityId { Backing = 0 },
             OwnerNameProp = string.Empty,
             OwnerLocalStringProp = 0,
-            OccupantIds_0Prop = new EntityId() { Backing = Occupants[0].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_1Prop = new EntityId() { Backing = Occupants[1].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_2Prop = new EntityId() { Backing = Occupants[2].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_3Prop = new EntityId() { Backing = Occupants[3].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_4Prop = new EntityId() { Backing = Occupants[4].Occupant?.EntityId | 0x01 ?? 0 },
-            OccupantIds_5Prop = new EntityId() { Backing = Occupants[5].Occupant?.EntityId | 0x01 ?? 0 },
+            OccupantIds_0Prop = Occupants[0].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_1Prop = Occupants[1].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_2Prop = Occupants[2].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_3Prop = Occupants[3].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_4Prop = Occupants[4].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
+            OccupantIds_5Prop = Occupants[5].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 },
             DeployableIds_0Prop = DeployableData[0],
             DeployableIds_1Prop = DeployableData[1],
             DeployableIds_2Prop = DeployableData[2],
@@ -672,12 +673,12 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     private void RefreshOccupants()
     {
         // Setting typecode byte to Character (as opposed to Generic) is neccessary
-        var occupantIds0 = new EntityId() { Backing = Occupants[0].Occupant?.EntityId | 0x01 ?? 0 };
-        var occupantIds1 = new EntityId() { Backing = Occupants[1].Occupant?.EntityId | 0x01 ?? 0 };
-        var occupantIds2 = new EntityId() { Backing = Occupants[2].Occupant?.EntityId | 0x01 ?? 0 };
-        var occupantIds3 = new EntityId() { Backing = Occupants[3].Occupant?.EntityId | 0x01 ?? 0 };
-        var occupantIds4 = new EntityId() { Backing = Occupants[4].Occupant?.EntityId | 0x01 ?? 0 };
-        var occupantIds5 = new EntityId() { Backing = Occupants[5].Occupant?.EntityId | 0x01 ?? 0 };
+        var occupantIds0 = Occupants[0].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };
+        var occupantIds1 = Occupants[1].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };
+        var occupantIds2 = Occupants[2].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };
+        var occupantIds3 = Occupants[3].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };
+        var occupantIds4 = Occupants[4].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };
+        var occupantIds5 = Occupants[5].Occupant?.AeroEntityId ?? new EntityId { Backing = 0 };
 
         Vehicle_ObserverView.OccupantIds_0Prop = occupantIds0;
         Vehicle_ObserverView.OccupantIds_1Prop = occupantIds1;

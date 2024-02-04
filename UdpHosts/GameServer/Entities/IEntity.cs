@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using AeroMessages.Common;
+using System.Collections.Generic;
 
 namespace GameServer.Entities;
 
 public interface IEntity
 {
     ulong EntityId { get; }
+    EntityId AeroEntityId { get; }
     IShard Shard { get; }
     IDictionary<Enums.GSS.Controllers, ushort> ControllerRefMap { get; }
 

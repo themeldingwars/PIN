@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.MeldingBubble.View;
 
@@ -10,6 +11,7 @@ public class MeldingBubbleEntity : BaseEntity
     public MeldingBubbleEntity(IShard shard, ulong eid)
         : base(shard, eid)
     {
+        AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.MeldingBubble };
         InitFields();
         InitViews();
     }
