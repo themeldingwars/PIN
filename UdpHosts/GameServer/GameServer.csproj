@@ -32,6 +32,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ContentWithTargetPath Include="StaticDB\CustomData\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>StaticDB\CustomData\%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
+
+  <ItemGroup>
   <Protobuf Include="Protos\GameServerAPI.proto" GrpcServices="Client" />
   </ItemGroup>
   <Target Name="Create_App-config_from_App-Default-config" Condition="!Exists('App.config')" BeforeTargets="Build">
