@@ -27,11 +27,11 @@ public class EntityManager
 
     private ulong LastUpdateFlush = 0;
     private ulong UpdateFlushIntervalMs = 5;
+    private bool hasSpawnedTestEntities = false;
 
     public EntityManager(Shard shard)
     {
         Shard = shard;
-        TempSpawnTestEntities();
     }
 
     public void SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, IEntity owner, bool autoMount = false)
@@ -176,6 +176,14 @@ public class EntityManager
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
+        // Spawn test entities on first real tick
+        if (!hasSpawnedTestEntities && currentTime != 0)
+        {
+            hasSpawnedTestEntities = true;
+            TempSpawnTestEntities();
+        }
+
+        // Flush changes periodically
         if (currentTime > LastUpdateFlush + UpdateFlushIntervalMs)
         {
             LastUpdateFlush = currentTime;
