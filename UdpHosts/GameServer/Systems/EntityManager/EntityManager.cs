@@ -672,7 +672,7 @@ public class EntityManager
         foreach (var client in Shard.Clients.Values)
         {
             // We don't want to inform players that are still in the early steps of connecting
-            if (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading))
+            if ((client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected))
             {
                 ScopeIn(client, entity);
             }
@@ -685,7 +685,7 @@ public class EntityManager
         foreach (var client in Shard.Clients.Values)
         {
             // We don't want to inform players that are still in the early steps of connecting
-            if (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading))
+            if ((client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected))
             {
                 ScopeOut(client, entity);
             }
