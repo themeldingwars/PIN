@@ -224,7 +224,12 @@ public class EntityManager
 
     public void Remove(ulong guid)
     {
-        Shard.Entities.Remove(guid);
+        Shard.Entities.TryGetValue(guid, out IEntity entity);
+        if (entity != null)
+        {
+            OnRemovedEntity(entity);
+            Shard.Entities.Remove(guid);
+        }
     }
 
     public void ScopeInAll(INetworkPlayer player)
@@ -237,6 +242,14 @@ public class EntityManager
             }
 
             ScopeIn(player, entity);
+        }
+    }
+
+    public void ScopeOutAll(INetworkPlayer player)
+    {
+        foreach (var entity in Shard.Entities.Values)
+        {
+            ScopeOut(player, entity);
         }
     }
 
@@ -371,6 +384,177 @@ public class EntityManager
         }
     }
 
+    public void ScopeOut(INetworkPlayer player, IEntity entity)
+    {
+        if (entity.GetType() == typeof(Entities.Character.CharacterEntity))
+        {
+            var character = entity as Entities.Character.CharacterEntity;
+
+            if (character.IsPlayerControlled && character.Player == player)
+            {
+                var baseController = character.Character_BaseController;
+                var combatController = character.Character_CombatController;
+                var missionController = character.Character_MissionAndMarkerController;
+                var effectsController = character.Character_LocalEffectsController;
+                var specController = character.Character_SpectatorController;
+
+                bool haveBaseController = baseController != null;
+                bool haveCombatController = combatController != null;
+                bool haveMissionController = missionController != null;
+                bool haveEffectsController = effectsController != null;
+                bool haveSpecController = specController != null;
+
+                if (haveBaseController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(baseController, entity.EntityId, player.PlayerId);
+                }
+                
+                if (haveCombatController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(combatController, entity.EntityId, player.PlayerId);
+                }
+
+                if (haveMissionController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(missionController, entity.EntityId, player.PlayerId);
+                }
+
+                if (haveEffectsController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(effectsController, entity.EntityId, player.PlayerId);
+                }
+
+                if (haveSpecController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(specController, entity.EntityId, player.PlayerId);
+                }
+            }
+
+            var observer = character.Character_ObserverView;
+            var equipment = character.Character_EquipmentView;
+            var combat = character.Character_CombatView;
+            var movement = character.Character_MovementView;
+            var tinyobject = character.Character_TinyObjectView;
+
+            bool haveObserver = observer != null;
+            bool haveEquipment = equipment != null;
+            bool haveCombat = combat != null;
+            bool haveMovement = movement != null;
+            bool haveTinyObject = tinyobject != null;
+
+            if (haveObserver)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+            }
+
+            if (haveEquipment)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(equipment, entity.EntityId);
+            }
+
+            if (haveCombat)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(combat, entity.EntityId);
+            }
+
+            if (haveMovement)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(movement, entity.EntityId);
+            }
+
+            if (haveTinyObject)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(tinyobject, entity.EntityId);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.Melding.MeldingEntity))
+        {
+            var melding = entity as Entities.Melding.MeldingEntity;
+            var observer = melding.Melding_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.MeldingBubble.MeldingBubbleEntity))
+        {
+            var meldingBubble = entity as Entities.MeldingBubble.MeldingBubbleEntity;
+            var observer = meldingBubble.MeldingBubble_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.Vehicle.VehicleEntity))
+        {
+            var vehicle = entity as Entities.Vehicle.VehicleEntity;
+
+            if (vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player)
+            {
+                var baseController = vehicle.Vehicle_BaseController;
+                var combatController = vehicle.Vehicle_CombatController;
+
+                bool haveBaseController = baseController != null;
+                bool haveCombatController = combatController != null;
+
+                if (haveBaseController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(baseController, entity.EntityId, player.PlayerId);
+                }
+
+                if (haveCombatController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(combatController, entity.EntityId, player.PlayerId);
+                }
+            }
+
+            var observer = vehicle.Vehicle_ObserverView;
+            var combat = vehicle.Vehicle_CombatView;
+            var movement = vehicle.Vehicle_MovementView;
+
+            bool haveObserver = observer != null;
+            bool haveCombat = combat != null;
+            bool haveMovement = movement != null;
+
+            if (haveObserver)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+            }
+
+            if (haveCombat)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(combat, entity.EntityId);
+            }
+
+            if (haveMovement)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(movement, entity.EntityId);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.Deployable.DeployableEntity))
+        {
+            var deployable = entity as Entities.Deployable.DeployableEntity;
+            var observer = deployable.Deployable_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.Outpost.OutpostEntity))
+        {
+            var outpost = entity as Entities.Outpost.OutpostEntity;
+            var observer = outpost.Outpost_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+            }
+        }
+    }
+
     public void RemoveControllers(INetworkPlayer player, IEntity entity)
     {
         if (entity.GetType() == typeof(Entities.Vehicle.VehicleEntity))
@@ -491,6 +675,19 @@ public class EntityManager
             if (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading))
             {
                 ScopeIn(client, entity);
+            }
+        }
+    }
+
+    private void OnRemovedEntity(Entities.IEntity entity)
+    {
+        // TEMP: Like OnAddedEntity
+        foreach (var client in Shard.Clients.Values)
+        {
+            // We don't want to inform players that are still in the early steps of connecting
+            if (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading))
+            {
+                ScopeOut(client, entity);
             }
         }
     }

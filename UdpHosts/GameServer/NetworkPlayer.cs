@@ -47,8 +47,19 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public async void Login(ulong characterId)
     {
         PlayerId = 0x4658281c142e9f00ul;
-        var guid = AssignedShard.EntityMan.GetNextGuid() & 0xffffffffffffff00; // At the moment, instead of using the character id, we generate a new guid so that we can support multiple people of the same character guid connecting. This has to be removed later because it makes it difficult to associate the webapi calls.
+        var guid = characterId & 0xffffffffffffff00;
         CharacterId = guid;
+
+        // Don't crash if they are already logged in
+        AssignedShard.Entities.TryGetValue(CharacterId, out var existing);
+        if (existing != null)
+        {
+            Console.WriteLine($"Closing login because entity with this id is already zoned in");
+            var resp = new AeroMessages.Control.CloseConnection { Unk = new byte[] { 0, 0, 0, 0 } };
+            NetChannels[ChannelType.Control].SendIAero(resp);
+            return;
+        }
+
         CharacterEntity = new CharacterEntity(AssignedShard, guid);
         using var channel = GrpcChannel.ForAddress("http://localhost:5201");
         var client = new GameServerAPI.GameServerAPIClient(channel);

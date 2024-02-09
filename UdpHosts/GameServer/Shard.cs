@@ -80,6 +80,10 @@ public class Shard : IShard
     {
         if (Clients.ContainsKey(player.SocketId))
         {
+            if (Entities.ContainsKey(player.CharacterId)) {
+                EntityMan.Remove(player.CharacterId);
+            }
+
             Clients.Remove(player.SocketId);
             return true;
         }
