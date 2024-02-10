@@ -407,8 +407,11 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
         
         // CombatController
-        Vehicle_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatController, time, null);
-        Vehicle_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Vehicle_CombatController, data, null);
+        if (Vehicle_CombatController != null)
+        {
+            Vehicle_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatController, time, null);
+            Vehicle_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Vehicle_CombatController, data, null);
+        }
         
         // CombatView
         Vehicle_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatView, time, null);
@@ -424,8 +427,11 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
         
         // CombatController
-        Vehicle_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatController, time, null);
-        Vehicle_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Vehicle_CombatController, null, null);
+        if (Vehicle_CombatController != null)
+        {
+            Vehicle_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatController, time, null);
+            Vehicle_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Vehicle_CombatController, null, null);
+        }
         
         // CombatView
         Vehicle_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatView, time, null);
@@ -680,8 +686,12 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             Time = Shard.CurrentTime + 200
         };
 
-        Vehicle_BaseController.CurrentPoseProp = CurrentPose;
         Vehicle_MovementView.CurrentPoseProp = CurrentPose;
+
+        if (Vehicle_BaseController != null)
+        {
+            Vehicle_BaseController.CurrentPoseProp = CurrentPose;
+        }
     }
 
     private void RefreshOccupants()
