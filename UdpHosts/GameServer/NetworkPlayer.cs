@@ -61,16 +61,19 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         }
 
         CharacterEntity = new CharacterEntity(AssignedShard, guid);
+
         using var channel = GrpcChannel.ForAddress("http://localhost:5201");
         var client = new GameServerAPI.GameServerAPIClient(channel);
         var reply = await client.GetCharacterAndBattleframeVisualsAsync(new CharacterID { ID = (long)characterId });
-        if (reply != null)
+
+        bool useRemoteData = true;
+        if (reply != null && useRemoteData)
         {
             CharacterEntity.LoadRemote(reply);
         }
         else
         {
-            CharacterEntity.Load(characterId);
+            CharacterEntity.Load(HardcodedCharacterData.FallbackData);
         }
 
         CharacterEntity.SetControllingPlayer(this);
@@ -136,8 +139,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         baseController.GibVisualsIdProp = new GibVisuals { Id = 0, Time = AssignedShard.CurrentTime + 1 };
         baseController.RespawnTimesProp = new RespawnTimesData(); // Shake it up
         baseController.RespawnTimesProp = null; // It's dirt
-        baseController.CurrentHealthProp = CharacterEntity.CharData.MaxHealth;
-        baseController.MaxHealthProp = new MaxVital { Value = CharacterEntity.CharData.MaxHealth, Time = AssignedShard.CurrentTime };
+        baseController.CurrentHealthProp = HardcodedCharacterData.MaxHealth;
+        baseController.MaxHealthProp = new MaxVital { Value = HardcodedCharacterData.MaxHealth, Time = AssignedShard.CurrentTime };
         baseController.CurrentShieldsProp = 0;
         baseController.ZoneUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
         baseController.RegionUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
@@ -260,7 +263,9 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                     Unk2 = 0,
                 }
             },
-            Loadouts = new Loadout[]
+            Loadouts = HardcodedCharacterData.GetTempAvailableLoadouts(),
+            /*
+            new Loadout[]
             {
                 new()
                 {
@@ -343,6 +348,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                     }
                 }
             },
+            */
             Unk = 1,
             SecondItems = Array.Empty<Item>(),
             SecondResources = Array.Empty<Resource>()

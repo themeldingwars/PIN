@@ -9,6 +9,7 @@ using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Character.View;
+using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Entities.Character;
 using GameServer.Entities.Vehicle;
@@ -347,6 +348,18 @@ public class BaseController : Base
             };
 
             client.NetChannels[ChannelType.ReliableGss].SendIAero(response, character.EntityId);
+        }
+    }
+
+    [MessageID((byte)Commands.SelectLoadout)]
+    public void SelectLoadout(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var query = packet.Unpack<SelectLoadout>();
+        var character = player.CharacterEntity;
+        var chassisId = HardcodedCharacterData.TempAvailableLoadouts.GetValueOrDefault(query.LoadoutId);
+        if (chassisId != 0)
+        {
+            character.ApplyLoadout(new CharacterLoadout(chassisId));
         }
     }
 }

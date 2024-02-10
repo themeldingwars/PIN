@@ -2,7 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using AeroMessages.Common;
 using AeroMessages.GSS.V66.Character;
+using AeroMessages.GSS.V66.Character.Event;
+using GameServer.Data.SDB;
+using GameServer.Data.SDB.Records.dbcharacter;
 using GameServer.Enums.Visuals;
 
 namespace GameServer.Data;
@@ -56,6 +60,26 @@ public class CharacterLoadout
         LoadoutSlotType.GearMedicalSystem
     };
 
+    public static readonly LoadoutSlotType[] LoadoutChassisSlots =
+    {
+        LoadoutSlotType.GearTorso,
+        LoadoutSlotType.GearAuxWeapon,
+        LoadoutSlotType.GearMedicalSystem,
+        LoadoutSlotType.GearHead,
+        LoadoutSlotType.GearArms,
+        LoadoutSlotType.GearLegs,
+        LoadoutSlotType.GearReactor,
+        LoadoutSlotType.GearOS,
+        LoadoutSlotType.GearGadget1,
+        LoadoutSlotType.GearGadget2
+    };
+
+    public static readonly LoadoutSlotType[] LoadoutWeaponSlots =
+    {
+        LoadoutSlotType.Primary,
+        LoadoutSlotType.Secondary,
+    };
+
     public static readonly Dictionary<LoadoutSlotType, AbilitySlotType> LoadoutToAbilitySlotMap = new Dictionary<LoadoutSlotType, AbilitySlotType>()
     {
         { LoadoutSlotType.Ability1, AbilitySlotType.Ability1 },
@@ -65,39 +89,102 @@ public class CharacterLoadout
         { LoadoutSlotType.GearAuxWeapon, AbilitySlotType.AbilityAux },
         { LoadoutSlotType.GearMedicalSystem, AbilitySlotType.AbilityMedical },
     };
+    public static readonly Dictionary<AbilitySlotType, LoadoutSlotType> AbilityToLoadoutSlotMap = new Dictionary<AbilitySlotType, LoadoutSlotType>()
+    {
+        { AbilitySlotType.Ability1, LoadoutSlotType.Ability1 },
+        { AbilitySlotType.Ability2, LoadoutSlotType.Ability2 },
+        { AbilitySlotType.Ability3, LoadoutSlotType.Ability3 },
+        { AbilitySlotType.AbilityHKM, LoadoutSlotType.AbilityHKM },
+        { AbilitySlotType.AbilityAux, LoadoutSlotType.GearAuxWeapon },
+        { AbilitySlotType.AbilityMedical, LoadoutSlotType.GearMedicalSystem },
+    };
 
-    public Dictionary<LoadoutSlotType, uint> SlottedItems;
+    public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>();
 
-    public CharacterLoadout()
+    public CharacterLoadout(uint chassisId)
     {
         VehicleID = 77087;
         GliderID = 81423;
-        ChassisID = 76331;
-        BackpackID = 78041;
+        ChassisID = chassisId;
+        BackpackID = SDBUtils.GetChassisDefaultBackpack(ChassisID);
 
-        SlottedItems.Add(LoadoutSlotType.Primary, 134616);
-        SlottedItems.Add(LoadoutSlotType.Secondary, 114316);
+        ChassisWarpaint = SDBUtils.GetChassisWarpaint(ChassisID, 0, 0, 0, 0);
 
-        SlottedItems.Add(LoadoutSlotType.AbilityHKM, 113931);
-        SlottedItems.Add(LoadoutSlotType.Ability1, 143330);
-        SlottedItems.Add(LoadoutSlotType.Ability2, 136056);
-        SlottedItems.Add(LoadoutSlotType.Ability3, 113552);
-        SlottedItems.Add(LoadoutSlotType.GearTorso, 126575);
-        SlottedItems.Add(LoadoutSlotType.GearAuxWeapon, 129458);
-        SlottedItems.Add(LoadoutSlotType.GearMedicalSystem, 129056);
-        SlottedItems.Add(LoadoutSlotType.GearHead, 125845);
-        SlottedItems.Add(LoadoutSlotType.GearArms, 128036);
-        SlottedItems.Add(LoadoutSlotType.GearLegs, 128766);
-        SlottedItems.Add(LoadoutSlotType.GearReactor, 127306);
-        SlottedItems.Add(LoadoutSlotType.GearOS, 129202);
-        SlottedItems.Add(LoadoutSlotType.GearGadget1, 142078);
-        SlottedItems.Add(LoadoutSlotType.GearGadget2, 130419);
+        // Temp load some default equipment :)
+        bool forceFallback = false;
+        var defaultSlots = SDBUtils.GetChassisDefaultLoadoutSlots(ChassisID);
+        if (defaultSlots != null && !forceFallback)
+        {
+            foreach (LoadoutSlotType slot in defaultSlots.Keys)
+            {
+                if (LoadoutAbilitySlots.Contains(slot) || LoadoutChassisSlots.Contains(slot) || LoadoutWeaponSlots.Contains(slot))
+                {
+                    CharCreateLoadoutSlots record = defaultSlots.GetValueOrDefault((byte)slot);
+                    if (record.DefaultPveModule != 0)
+                    {
+                        SlottedItems.Add(slot, record.DefaultPveModule);
+                    }
+                    else if (record.DefaultPvpModule != 0)
+                    {
+                        SlottedItems.Add(slot, record.DefaultPvpModule);
+                    }
+                }
+            }
+        }
+        else
+        {
+            SlottedItems.Add(LoadoutSlotType.Primary, 134616);
+            SlottedItems.Add(LoadoutSlotType.Secondary, 114316);
+            SlottedItems.Add(LoadoutSlotType.AbilityHKM, 113931);
+            SlottedItems.Add(LoadoutSlotType.Ability1, 143330);
+            SlottedItems.Add(LoadoutSlotType.Ability2, 136056);
+            SlottedItems.Add(LoadoutSlotType.Ability3, 113552);
+            SlottedItems.Add(LoadoutSlotType.GearTorso, 126575);
+            SlottedItems.Add(LoadoutSlotType.GearAuxWeapon, 129458);
+            SlottedItems.Add(LoadoutSlotType.GearMedicalSystem, 129056);
+            SlottedItems.Add(LoadoutSlotType.GearHead, 125845);
+            SlottedItems.Add(LoadoutSlotType.GearArms, 128036);
+            SlottedItems.Add(LoadoutSlotType.GearLegs, 128766);
+            SlottedItems.Add(LoadoutSlotType.GearReactor, 127306);
+            SlottedItems.Add(LoadoutSlotType.GearOS, 129202);
+            SlottedItems.Add(LoadoutSlotType.GearGadget1, 142078);
+            SlottedItems.Add(LoadoutSlotType.GearGadget2, 130419);
+        }
     }
 
     public uint VehicleID { get; set; }
     public uint GliderID { get; set; }
     public uint ChassisID { get; set; }
     public uint BackpackID { get; set; }
+    public ChassisWarpaintResult ChassisWarpaint { get; set; }
+
+    public VisualsBlock GetChassisVisuals()
+    {
+        return new VisualsBlock
+        {
+            Decals = Array.Empty<VisualsDecalsBlock>(),
+            Gradients = ChassisWarpaint.Gradients,
+            Colors = ChassisWarpaint.Colors,
+            Palettes = ChassisWarpaint.Palettes,
+            Patterns = Array.Empty<VisualsPatternBlock>(),
+            OrnamentGroupIds = Array.Empty<uint>(),
+            CziMapAssetIds = Array.Empty<uint>(),
+            MorphWeights = Array.Empty<HalfFloat>(),
+            Overlays = Array.Empty<VisualsOverlayBlock>()
+        };
+    }
+
+    public uint GetAbilityModuleIdBySlotIndex(byte slotIndex)
+    {
+        var slotType = (AbilitySlotType)slotIndex;
+        var loadoutSlot = AbilityToLoadoutSlotMap.GetValueOrDefault(slotType);
+        if (loadoutSlot == 0)
+        {
+            return 0;
+        }
+
+        return SlottedItems.GetValueOrDefault(loadoutSlot);
+    }
 
     public SlottedModule[] GetBackpackModules()
     {
@@ -109,6 +196,23 @@ public class CharacterLoadout
             {
                 SdbId = slotted.Value,
                 SlotIndex = (byte)LoadoutToAbilitySlotMap[slotted.Key],
+                Flags = 0,
+                Unk2 = 0,
+            };
+        })
+        .ToArray();
+    }
+
+    public SlottedModule[] GetChassisModules()
+    {
+        return SlottedItems
+        .Where(slotted => LoadoutChassisSlots.Contains(slotted.Key))
+        .Select((slotted) =>
+        {
+            return new SlottedModule
+            {
+                SdbId = slotted.Value,
+                SlotIndex = 0xff,
                 Flags = 0,
                 Unk2 = 0,
             };

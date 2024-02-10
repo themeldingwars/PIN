@@ -133,14 +133,12 @@ public class CombatController : Base
         uint abilityId = 0;
 
         // Using the local data until we can get the loadout remotely
-        if (character.CharData != null)
+        if (character.CurrentLoadout != null)
         {
-            var loadout = character.CharData.Loadout;
-            var module = loadout.BackpackModules.FirstOrDefault((mod) => mod.SlotIDX == abilitySlot);
-            if (module != null)
+            var moduleId = character.CurrentLoadout.GetAbilityModuleIdBySlotIndex(abilitySlot);
+            if (moduleId != 0)
             {
-                var itemId = module.SdbID;
-                var abilityModule = SDBInterface.GetAbilityModule(itemId);
+                var abilityModule = SDBInterface.GetAbilityModule(moduleId);
                 if (abilityModule != null)
                 {
                     abilityId = abilityModule.AbilityChainId;
