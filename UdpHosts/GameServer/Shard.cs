@@ -80,7 +80,8 @@ public class Shard : IShard
     {
         if (Clients.ContainsKey(player.SocketId))
         {
-            if (Entities.ContainsKey(player.CharacterId)) {
+            if (Entities.ContainsKey(player.CharacterId))
+            {
                 EntityMan.Remove(player.CharacterId);
             }
 
