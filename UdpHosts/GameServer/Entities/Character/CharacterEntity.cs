@@ -533,8 +533,11 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             State = characterStatus, Time = time
         };
-        Character_BaseController.CharacterStateProp = CharacterState;
         Character_ObserverView.CharacterStateProp = CharacterState;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.CharacterStateProp = CharacterState;
+        }
     }
     
     public void SetControllingPlayer(INetworkPlayer player)
@@ -553,7 +556,10 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     {
         Emote = value;
         Character_ObserverView.EmoteIDProp = value;
-        Character_BaseController.EmoteIDProp = value;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.EmoteIDProp = value;
+        }
     }
 
     public void SetFireBurst(uint time)
@@ -577,13 +583,21 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             case 0:
                 FireMode_0 = value;
-                Character_CombatController.FireMode_0Prop = FireMode_0;
                 Character_CombatView.FireMode_0Prop = FireMode_0;
+                if (Character_CombatController != null)
+                {
+                    Character_CombatController.FireMode_0Prop = FireMode_0;
+                }
+
                 break;
             case 1:
                 FireMode_1 = value;
-                Character_CombatController.FireMode_1Prop = FireMode_1;
                 Character_CombatView.FireMode_1Prop = FireMode_1;
+                if (Character_CombatController != null)
+                {
+                    Character_CombatController.FireMode_1Prop = FireMode_1;
+                }
+
                 break;
         }
     }
@@ -638,22 +652,32 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             JumpTimer = 0,
             HaveDebugData = 0
         };
-        Character_BaseController.SpawnPoseProp = SpawnPose;
-        Character_BaseController.SpawnTimeProp = Shard.CurrentTime;
         Character_ObserverView.SpawnTimeProp = Shard.CurrentTime;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.SpawnPoseProp = SpawnPose;
+            Character_BaseController.SpawnTimeProp = Shard.CurrentTime;
+        }
     }
 
     public void SetSpawnTime(uint time)
     {
-        Character_BaseController.SpawnTimeProp = time;
         Character_ObserverView.SpawnTimeProp = time;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.SpawnTimeProp = time;
+        }
     }
 
     public void SetWeaponIndex(WeaponIndexData value)
     {
         WeaponIndex = value;
-        Character_CombatController.WeaponIndexProp = value;
         Character_CombatView.WeaponIndexProp = value;
+        
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.WeaponIndexProp = value;
+        }
     }
 
     public void SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags flag, bool value)
@@ -664,18 +688,29 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             Time = Shard.CurrentTime,
             Value = (PermissionFlagsData.CharacterPermissionFlags)GetCurrentPermissionsValue(),
         };
-        Character_CombatController.PermissionFlagsProp = PermissionFlags;
+
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.PermissionFlagsProp = PermissionFlags;
+        }
     }
 
     public void SetGliderProfileId(uint profileId)
     {
-        Character_CombatController.GliderProfileIdProp = profileId;
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.GliderProfileIdProp = profileId;
+        }
     }
 
     public void SetAuthorizedTerminal(AuthorizedTerminalData value)
     {
         AuthorizedTerminal = value;
-        Character_BaseController.AuthorizedTerminalProp = AuthorizedTerminal;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.AuthorizedTerminalProp = AuthorizedTerminal;
+        }
     }
 
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
@@ -687,8 +722,11 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
         
         // CombatController
-        Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
-        Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, data, null);
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
+            Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, data, null);
+        }
         
         // CombatView
         Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
@@ -704,8 +742,11 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
         
         // CombatController
-        Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
-        Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, null, null);
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
+            Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, null, null);
+        }
         
         // CombatView
         Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
@@ -1102,10 +1143,15 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             var sourceTime = this.GetType().GetProperty($"StatusEffectsChangeTime_{i}").GetValue(this);
             var sourceData = this.GetType().GetProperty($"StatusEffects_{i}").GetValue(this);
-            Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{i}Prop").SetValue(Character_CombatController, sourceTime, null);
-            Character_CombatController.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatController, sourceData, null);
+
             Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{i}Prop").SetValue(Character_CombatView, sourceTime, null);
             Character_CombatView.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatView, sourceData, null);
+
+            if (Character_CombatController != null)
+            {
+                Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{i}Prop").SetValue(Character_CombatController, sourceTime, null);
+                Character_CombatController.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatController, sourceData, null);
+            }
         }
     }
 
