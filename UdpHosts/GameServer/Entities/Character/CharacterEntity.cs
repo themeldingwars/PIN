@@ -180,6 +180,208 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
 
+    public void SetStaticInfo(StaticInfoData value)
+    {
+        StaticInfo = value;
+        Character_ObserverView.StaticInfoProp = StaticInfo;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.StaticInfoProp = StaticInfo;
+        }
+    }
+
+    public void SetCurrentEquipment(EquipmentData value)
+    {
+        CurrentEquipment = value;
+        Character_EquipmentView.CurrentEquipmentProp = CurrentEquipment;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.CurrentEquipmentProp = CurrentEquipment;
+        }
+    }
+
+    public void LoadMonster(uint typeId)
+    {
+        // TODO: GetMonsterVisualOptions
+        var monsterInfo = SDBInterface.GetMonster(typeId);
+        var chassisWarpaint = SDBUtils.GetChassisWarpaint(monsterInfo.ChassisId, monsterInfo.FullbodyWarpaintPaletteId, monsterInfo.ArmorWarpaintPaletteId, monsterInfo.BodysuitWarpaintPaletteId, monsterInfo.GlowWarpaintPaletteId);
+        var chassisBackpackId = monsterInfo.BackpackId;
+
+        var ornaments = new List<uint>();
+        if (monsterInfo.OrnamentsMapGroupId_1 != 0)
+        {
+            ornaments.Add(monsterInfo.OrnamentsMapGroupId_1);
+        }
+
+        if (monsterInfo.OrnamentsMapGroupId_2 != 0)
+        {
+            ornaments.Add(monsterInfo.OrnamentsMapGroupId_2);
+        }
+
+        if (monsterInfo.OrnamentsMapGroupId_3 != 0)
+        {
+            ornaments.Add(monsterInfo.OrnamentsMapGroupId_3);
+        }
+
+        if (monsterInfo.OrnamentsMapGroupId_4 != 0)
+        {
+            ornaments.Add(monsterInfo.OrnamentsMapGroupId_4);
+        }
+
+        SetStaticInfo(new StaticInfoData()
+        {
+            DisplayName = "_noname",
+            UniqueName = string.Empty,
+            Gender = (byte)(monsterInfo.Gender == 'F' ? 1 : 0),
+            Race = monsterInfo.Race,
+            CharInfoId = monsterInfo.CharinfoId,
+            HeadMain = monsterInfo.HeadId,
+            Eyes = monsterInfo.EyesId,
+            Unk_1 = 0xff,
+            IsNPC = 1,
+            StaffFlags = 0,
+            CharacterTypeId = monsterInfo.Id,
+            VoiceSet = monsterInfo.VoiceSet,
+            TitleId = monsterInfo.Title,
+            NameLocalizationId = monsterInfo.LocalizedNameId,
+            HeadAccessories = new uint[] { monsterInfo.HeadAcc1Id, monsterInfo.HeadAcc2Id },
+            LoadoutVehicle = 0,
+            LoadoutGlider = 0,
+            Visuals = new VisualsBlock
+            {
+                Decals = Array.Empty<VisualsDecalsBlock>(),
+                Gradients = Array.Empty<uint>(),
+                Colors = new uint[5]
+                {
+                    monsterInfo.SkinColor,
+                    monsterInfo.LipColor,
+                    monsterInfo.EyeColor,
+                    monsterInfo.HairColor,
+                    monsterInfo.FacialHairColor
+                },
+                Palettes = Array.Empty<VisualsPaletteBlock>(),
+                Patterns = Array.Empty<VisualsPatternBlock>(),
+                OrnamentGroupIds = ornaments.ToArray(),
+                CziMapAssetIds = Array.Empty<uint>(),
+                MorphWeights = Array.Empty<HalfFloat>(),
+                Overlays = Array.Empty<VisualsOverlayBlock>()
+            },
+            ArmyTag = string.Empty
+        });
+
+        SetCurrentEquipment(new EquipmentData()
+        {
+            Chassis = new SlottedItem
+            {
+                SdbId = monsterInfo.ChassisId,
+                SlotIndex = 0,
+                Flags = 0,
+                Unk2 = 0,
+                Modules = Array.Empty<SlottedModule>(),
+                Visuals = new VisualsBlock
+                {
+                    Decals = Array.Empty<VisualsDecalsBlock>(),
+                    Gradients = chassisWarpaint.Gradients,
+                    Colors = chassisWarpaint.Colors,
+                    Palettes = chassisWarpaint.Palettes,
+                    Patterns = Array.Empty<VisualsPatternBlock>(),
+                    OrnamentGroupIds = Array.Empty<uint>(),
+                    CziMapAssetIds = Array.Empty<uint>(),
+                    MorphWeights = Array.Empty<HalfFloat>(),
+                    Overlays = Array.Empty<VisualsOverlayBlock>()
+                }
+            },
+            Backpack = new SlottedItem
+            {
+                SdbId = chassisBackpackId,
+                SlotIndex = 0,
+                Flags = 0,
+                Unk2 = 0,
+                Modules = Array.Empty<SlottedModule>(),
+                Visuals = new VisualsBlock
+                {
+                    Decals = Array.Empty<VisualsDecalsBlock>(),
+                    Gradients = Array.Empty<uint>(),
+                    Colors = Array.Empty<uint>(),
+                    Palettes = Array.Empty<VisualsPaletteBlock>(),
+                    Patterns = Array.Empty<VisualsPatternBlock>(),
+                    OrnamentGroupIds = Array.Empty<uint>(),
+                    CziMapAssetIds = Array.Empty<uint>(),
+                    MorphWeights = Array.Empty<HalfFloat>(),
+                    Overlays = Array.Empty<VisualsOverlayBlock>()
+                }
+            },
+            PrimaryWeapon = new SlottedWeapon
+            {
+                Item = new SlottedItem
+                {
+                    SdbId = monsterInfo.Weapon1Id,
+                    SlotIndex = 0,
+                    Flags = 0,
+                    Unk2 = 0,
+                    Modules = Array.Empty<SlottedModule>(),
+                    Visuals = new VisualsBlock
+                    {
+                        Decals = Array.Empty<VisualsDecalsBlock>(),
+                        Gradients = Array.Empty<uint>(),
+                        Colors = Array.Empty<uint>(),
+                        Palettes = Array.Empty<VisualsPaletteBlock>(),
+                        Patterns = Array.Empty<VisualsPatternBlock>(),
+                        OrnamentGroupIds = Array.Empty<uint>(),
+                        CziMapAssetIds = Array.Empty<uint>(),
+                        MorphWeights = Array.Empty<HalfFloat>(),
+                        Overlays = Array.Empty<VisualsOverlayBlock>()
+                    }
+                },
+                Unk1 = 0,
+                Unk2 = 0
+            },
+            SecondaryWeapon = new SlottedWeapon
+            {
+                Item = new SlottedItem
+                {
+                    SdbId = monsterInfo.Weapon2Id,
+                    SlotIndex = 0,
+                    Flags = 0,
+                    Unk2 = 0,
+                    Modules = Array.Empty<SlottedModule>(),
+                    Visuals = new VisualsBlock
+                    {
+                        Decals = Array.Empty<VisualsDecalsBlock>(),
+                        Gradients = Array.Empty<uint>(),
+                        Colors = Array.Empty<uint>(),
+                        Palettes = Array.Empty<VisualsPaletteBlock>(),
+                        Patterns = Array.Empty<VisualsPatternBlock>(),
+                        OrnamentGroupIds = Array.Empty<uint>(),
+                        CziMapAssetIds = Array.Empty<uint>(),
+                        MorphWeights = Array.Empty<HalfFloat>(),
+                        Overlays = Array.Empty<VisualsOverlayBlock>()
+                    }
+                },
+                Unk1 = 0,
+                Unk2 = 0
+            },
+            EndUnk1 = 0,
+            EndUnk2 = 0
+        });
+        
+        // Temp hack to equip weapon
+        if (monsterInfo.Weapon1Id != 0)
+        {
+            SetWeaponIndex(new WeaponIndexData()
+            {
+                Index = 1, Unk1 = 1, Unk2 = 0, Time = Shard.CurrentTime
+            });
+        }
+        else if (monsterInfo.Weapon2Id != 0)
+        {
+            SetWeaponIndex(new WeaponIndexData()
+            {
+                Index = 2, Unk1 = 1, Unk2 = 0, Time = Shard.CurrentTime
+            });
+        }
+    }
+
     public void LoadRemote(CharacterAndBattleframeVisuals remoteData)
     {
         Data.Character staticData = Data.Character.Load(0);
@@ -189,7 +391,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         var chassisWarpaint = SDBUtils.GetChassisWarpaint(remoteData.CharacterInfo.CurrentBattleframeSDBId, 0, 0, 0, 0);
         var chassisBackpackId = SDBUtils.GetChassisDefaultBackpack(remoteData.CharacterInfo.CurrentBattleframeSDBId);
 
-        StaticInfo = new StaticInfoData
+        SetStaticInfo(new StaticInfoData
         {
             DisplayName = remoteData.CharacterInfo.Name,
             UniqueName = remoteData.CharacterInfo.Name,
@@ -228,10 +430,9 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
                 Overlays = Array.Empty<VisualsOverlayBlock>()
             },
             ArmyTag = staticData.Army.Name
-        };
-        Character_ObserverView.StaticInfoProp = StaticInfo;
+        });
 
-        CurrentEquipment = new EquipmentData
+        SetCurrentEquipment(new EquipmentData
         {
             Chassis = new SlottedItem
             {
@@ -334,8 +535,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             },
             EndUnk1 = 0,
             EndUnk2 = 0
-        };
-        Character_EquipmentView.CurrentEquipmentProp = CurrentEquipment;
+        });
     }
 
     public void Load(ulong characterId)

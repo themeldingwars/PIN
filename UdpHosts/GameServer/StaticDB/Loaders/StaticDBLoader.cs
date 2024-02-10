@@ -42,6 +42,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, Monster> LoadMonster()
+    {
+        return LoadStaticDB<Monster>("dbcharacter::Monster")
+        .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, WarpaintPalette> LoadWarpaintPalettes() 
     {
         return LoadStaticDB<WarpaintPalette>("dbvisualrecords::WarpaintPalette")
@@ -786,7 +792,12 @@ public class StaticDBLoader : ISDBLoader
             {
                 string convertedName = Policy.ConvertName(propInfo.Name);
                 int index = table.GetColumnIndexByName(convertedName);
+                int backupIndex = table.GetColumnIndexByName(propInfo.Name);
                 if (index != -1)
+                {
+                    propInfo.SetValue(entry, row[index], null);
+                }
+                else if (backupIndex != -1)
                 {
                     propInfo.SetValue(entry, row[index], null);
                 }
