@@ -8,20 +8,20 @@ public record class Monster
     // public Vec3f projectile_offset { get; set; }
     public uint LocalizedNameId { get; set; }
     public uint BackpackId { get; set; }
-    public uint OrnamentsMapGroupId3 { get; set; }
+    public uint OrnamentsMapGroupId_3 { get; set; }
     public float FastSpeed { get; set; }
     public uint XpResourceId { get; set; }
-    public long HairColor { get; set; }
+    public uint HairColor { get; set; }
     public uint HeadAcc2Id { get; set; }
     public float NormalSpeed { get; set; }
-    public long EyeColor { get; set; }
+    public uint EyeColor { get; set; }
     public uint BodysuitWarpaintPaletteId { get; set; }
     public float BodyRadius { get; set; }
     public string Behavior { get; set; }
     public uint LipColor { get; set; }
     public uint FullbodyWarpaintPaletteId { get; set; }
-    public uint OrnamentsMapGroupId4 { get; set; }
-    public uint OrnamentsMapGroupId1 { get; set; }
+    public uint OrnamentsMapGroupId_4 { get; set; }
+    public uint OrnamentsMapGroupId_1 { get; set; }
 
     // public int[] WarpaintTattooData { get; set; }
     public uint Weapon1Id { get; set; }
@@ -56,7 +56,7 @@ public record class Monster
     public float NetworkFidelity { get; set; }
     public uint FacialHairColor { get; set; }
     public float MaxRandScale { get; set; }
-    public uint OrnamentsMapGroupId2 { get; set; }
+    public uint OrnamentsMapGroupId_2 { get; set; }
     public uint VendorId { get; set; }
     public uint ArmorWarpaintPaletteId { get; set; }
     public uint DifficultyCost { get; set; }
@@ -69,6 +69,6 @@ public record class Monster
     public byte Gravity { get; set; }
     public byte IsComponented { get; set; }
     public byte DamageResponseId { get; set; }
-    public string Gender { get; set; }
+    public char Gender { get; set; }
     public byte Race { get; set; }
 }

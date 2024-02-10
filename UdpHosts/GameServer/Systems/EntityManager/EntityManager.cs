@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Threading;
 using Aero.Gen;
 using AeroMessages.Common;
+using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Melding.View;
@@ -11,6 +12,7 @@ using GameServer.Aptitude;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
+using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
 using GameServer.Entities.Melding;
 using GameServer.Entities.Outpost;
@@ -32,6 +34,16 @@ public class EntityManager
     public EntityManager(Shard shard)
     {
         Shard = shard;
+    }
+
+    public void SpawnCharacter(uint typeId, Vector3 position)
+    {
+        var characterEntity = new CharacterEntity(Shard, GetNextGuid() & 0xffffffffffffff00);
+        characterEntity.LoadMonster(typeId);
+        characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, Shard.CurrentTime);
+        characterEntity.SetPosition(position);
+        characterEntity.SetSpawnPose();
+        Add(characterEntity.EntityId, characterEntity);
     }
 
     public void SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, IEntity owner, bool autoMount = false)
@@ -138,6 +150,9 @@ public class EntityManager
 
     public void TempSpawnTestEntities()
     {
+        // Aero
+        SpawnCharacter(356, new Vector3(167.84642f, 262.20822f, 491.86758f));
+
         // NewYou
         SpawnDeployable(676, new Vector3(177.37387f, 239.90964f, 491.86758f), new Quaternion(-4.0596834E-08f, -1.620471E-08f, -0.37071967f, 0.92874485f));
 
@@ -199,20 +214,20 @@ public class EntityManager
         return new Core.Data.EntityGuid(ServerId, Shard.CurrentTime, Counter++, (byte)Enums.GSS.Controllers.Character).Full;
     }
 
-    public void Add(ulong guid, Entities.IEntity entity)
+    public void Add(ulong guid, IEntity entity)
     {
         Shard.Entities.Add(guid, entity);
         OnAddedEntity(entity);
     }
 
-    public void Add(Entities.IEntity entity)
+    public void Add(IEntity entity)
     {
         var guid = new Core.Data.EntityGuid(ServerId, Shard.CurrentTime, Counter++, (byte)Enums.GSS.Controllers.Character);
         Shard.Entities.Add(guid.Full, entity);
         OnAddedEntity(entity);
     }
 
-    public void Remove(Entities.IEntity entity)
+    public void Remove(IEntity entity)
     {
         Remove(entity.EntityId);
     }

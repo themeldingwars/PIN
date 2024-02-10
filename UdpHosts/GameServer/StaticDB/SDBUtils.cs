@@ -17,8 +17,17 @@ public class SDBUtils
 {
     public static uint GetChassisDefaultBackpack(uint chassisId)
     {
-        var defaultLoadout = SDBInterface.GetCharCreateLoadoutsByFrame(chassisId)
-        .First(); // yolo
+        var loadouts = SDBInterface.GetCharCreateLoadoutsByFrame(chassisId); // yolo
+        CharCreateLoadout defaultLoadout;
+        if (loadouts.Length == 0) 
+        {
+            return 0;
+        }
+        else
+        {
+            defaultLoadout = loadouts.First();
+        }
+
         if (defaultLoadout == null)
         {
             return 0;
