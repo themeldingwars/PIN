@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using AeroMessages.Common;
+using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB;
@@ -101,8 +102,9 @@ public class CharacterLoadout
 
     public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>();
 
-    public CharacterLoadout(uint chassisId)
+    public CharacterLoadout(uint chassisId, uint loadoutId)
     {
+        LoadoutID = loadoutId;
         VehicleID = 77087;
         GliderID = 81423;
         ChassisID = chassisId;
@@ -152,6 +154,7 @@ public class CharacterLoadout
         }
     }
 
+    public uint LoadoutID { get; set; }
     public uint VehicleID { get; set; }
     public uint GliderID { get; set; }
     public uint ChassisID { get; set; }
@@ -215,6 +218,53 @@ public class CharacterLoadout
                 SlotIndex = 0xff,
                 Flags = 0,
                 Unk2 = 0,
+            };
+        })
+        .ToArray();
+    }
+
+    public AeroMessages.GSS.V66.StatsData[] GetItemAttributes()
+    {
+        var result = new Dictionary<ushort, float>()
+        {
+            // Base stats that should probably be collected elsewhere
+            { 5, 75 }, // Jet Energy Recharge
+            { 6, 100 }, // Health
+            { 7, 3.75f }, // Health Regen
+            { 12, 10 }, // Run Speed
+            { 35, 500 }, // Jet Energy
+            { 37, 1.75f }, // Jump Height
+            { 1121, 150 }, // Jet Spring Cost
+            { 1451, 100 }, // Power Rating
+            { 1377, 130 }, // Sprint Speed
+        };
+
+        foreach (var pair in SlottedItems)
+        {
+            if (LoadoutAbilitySlots.Contains(pair.Key) || LoadoutChassisSlots.Contains(pair.Key))
+            {
+                var itemAttributes = SDBInterface.GetItemAttributeRange(pair.Value);
+                foreach (var range in itemAttributes.Values)
+                {
+                    if (result.ContainsKey(range.AttributeId))
+                    {
+                        result[range.AttributeId] += range.Base;
+                    }
+                    else
+                    {
+                        result.Add(range.AttributeId, range.Base);
+                    }
+                }
+
+            }
+        }
+
+        return result
+        .Select((pair) => {
+            return new StatsData()
+            {
+                Id = pair.Key,
+                Value = pair.Value
             };
         })
         .ToArray();

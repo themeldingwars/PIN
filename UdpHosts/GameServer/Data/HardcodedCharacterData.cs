@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using GrpcGameServerAPIClient;
@@ -73,6 +74,11 @@ public static class HardcodedCharacterData
         { 246, 124356 }, // Beach Party
         { 247, 77733 }, // BattleLab Trainee
     };
+    public static uint LookupTempAvailableLoadoutId(uint chassisId) => TempAvailableLoadouts
+    .Where((pair) => pair.Value == chassisId)
+    .Select((pair) => pair.Key)
+    .FirstOrDefault(HardcodedCharacterData.SelectedLoadout);
+
     public static AeroMessages.GSS.V66.Character.Event.Loadout[] GetTempAvailableLoadouts()
     {
         var entries = new List<Loadout>();

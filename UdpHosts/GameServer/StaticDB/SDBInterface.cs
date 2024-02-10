@@ -299,6 +299,14 @@ public class SDBInterface
     .Where(value => value.FrameId == frameId)
     .ToArray();
 
+    public static Dictionary<ushort, AttributeRange> GetItemAttributeRange(uint itemId)
+    {
+        return AttributeRange
+        .Where(pair => pair.Key.Key.Equals(itemId))
+        .Select(pair => new KeyValuePair<ushort, AttributeRange>(pair.Key.Value, pair.Value))
+        .ToDictionary();
+    }
+
     public static Dictionary<byte, CharCreateLoadoutSlots> GetCharCreateLoadoutSlots(uint id) => CharCreateLoadoutSlots.GetValueOrDefault(id);
     public static Deployable GetDeployable(uint id) => Deployable.GetValueOrDefault(id);
     public static Monster GetMonster(uint id) => Monster.GetValueOrDefault(id);

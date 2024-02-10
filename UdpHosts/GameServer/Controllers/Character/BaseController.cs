@@ -359,7 +359,7 @@ public class BaseController : Base
         var chassisId = HardcodedCharacterData.TempAvailableLoadouts.GetValueOrDefault(query.LoadoutId);
         if (chassisId != 0)
         {
-            character.ApplyLoadout(new CharacterLoadout(chassisId));
+            character.ApplyLoadout(new CharacterLoadout(chassisId, query.LoadoutId));
         }
     }
 }

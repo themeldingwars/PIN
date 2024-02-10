@@ -113,6 +113,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     public AuthorizedTerminalData AuthorizedTerminal { get; set; } = new AuthorizedTerminalData { TerminalType = 0, TerminalId = 0, TerminalEntityId = 0 };
     public AttachedToData? AttachedTo { get; set; } = null;
     public IEntity AttachedToEntity { get; set; } = null;
+    public uint SelectedLoadout { get; set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -190,7 +191,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         var chassisWarpaint = SDBUtils.GetChassisWarpaint(monsterInfo.ChassisId, monsterInfo.FullbodyWarpaintPaletteId, monsterInfo.ArmorWarpaintPaletteId, monsterInfo.BodysuitWarpaintPaletteId, monsterInfo.GlowWarpaintPaletteId);
         var chassisBackpackId = monsterInfo.BackpackId;
 
-        var loadout = new CharacterLoadout(monsterInfo.ChassisId);
+        var loadout = new CharacterLoadout(monsterInfo.ChassisId, 0);
         loadout.BackpackID = chassisBackpackId;
         loadout.ChassisWarpaint = chassisWarpaint;
         loadout.SlottedItems[LoadoutSlotType.Primary] = monsterInfo.Weapon1Id;
@@ -358,7 +359,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             ArmyTag = HardcodedCharacterData.ArmyTag
         });
 
-        ApplyLoadout(new CharacterLoadout(info.CurrentBattleframeSDBId));
+        ApplyLoadout(new CharacterLoadout(info.CurrentBattleframeSDBId, HardcodedCharacterData.LookupTempAvailableLoadoutId(info.CurrentBattleframeSDBId)));
 
         /*
         CurrentEquipment = new EquipmentData
@@ -599,6 +600,34 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             EndUnk1 = 0,
             EndUnk2 = 0
         });
+
+        SetCharacterStats(new CharacterStatsData
+        {
+            ItemAttributes = loadout.GetItemAttributes(),
+            Unk1 = 0,
+            WeaponA = Array.Empty<StatsData>(),
+            Unk2 = 0,
+            WeaponB = Array.Empty<StatsData>(),
+            Unk3 = 0,
+            AttributeCategories1 = Array.Empty<StatsData>(),
+            AttributeCategories2 = Array.Empty<StatsData>()
+        });
+
+        SelectedLoadout = loadout.LoadoutID;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.SelectedLoadoutProp = SelectedLoadout;
+        }
+    }
+
+    public void SetCharacterStats(CharacterStatsData value)
+    {
+        CharacterStats = value;
+        Character_EquipmentView.CharacterStatsProp = value;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.CharacterStatsProp = value;
+        }
     }
 
     public void SetStaticInfo(StaticInfoData value)
@@ -969,7 +998,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             SpawnTimeProp = Shard.CurrentTime,
             VisualOverridesProp = VisualOverrides,
             CurrentEquipmentProp = CurrentEquipment,
-            SelectedLoadoutProp = HardcodedCharacterData.SelectedLoadout,
+            SelectedLoadoutProp = SelectedLoadout,
             SelectedLoadoutIsPvPProp = 0,
             GibVisualsIdProp = GibVisualsInfo,
             SpawnPoseProp = SpawnPose,
