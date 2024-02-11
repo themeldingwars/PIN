@@ -31,7 +31,7 @@ public class Context
     public Vector3 InitPosition { get; set; }
     public ExecutionHint ExecutionHint { get; set; }
 
-    public Dictionary<uint, ICommand> Actives { get; set; } = new Dictionary<uint, ICommand>();
+    public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = new Dictionary<ICommand, ICommandActiveContext>();
 
     public static Context CopyContext(Context original)
     {
