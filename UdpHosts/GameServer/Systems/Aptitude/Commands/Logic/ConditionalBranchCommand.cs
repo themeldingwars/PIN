@@ -13,6 +13,9 @@ public class ConditionalBranchCommand : ICommand
 
     public bool Execute(Context context)
     {
+        var prevExecutionHint = context.ExecutionHint;
+        context.ExecutionHint = ExecutionHint.Logic;
+
         var conditionChain = context.Abilities.Factory.LoadChain(Params.IfChain);
         var conditionResult = conditionChain.Execute(context);
         bool success = true;
@@ -27,6 +30,8 @@ public class ConditionalBranchCommand : ICommand
             var elseChain = context.Abilities.Factory.LoadChain(Params.ElseChain);
             success = elseChain.Execute(context);
         }
+
+        context.ExecutionHint = prevExecutionHint;
 
         return success;
     }

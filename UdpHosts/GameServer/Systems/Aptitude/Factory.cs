@@ -130,6 +130,8 @@ public class Factory
                 return new InteractionTypeCommand(SDBInterface.GetInteractionTypeCommandDef(commandId));
             case CommandType.AuthorizeTerminal:
                 return new AuthorizeTerminalCommand(CustomDBInterface.GetAuthorizeTerminalCommandDef(commandId));
+            case CommandType.RequireCState:
+                return new RequireCStateCommand(SDBInterface.GetRequireCStateCommandDef(commandId));
             default:
                 break;
         }

@@ -75,8 +75,7 @@ public class RequireMovestateCommand : ICommand
         }
         else
         {
-            // If this is happening, we should investigate why. I think that only Vehicles have movestates aside from Characters.
-            Console.WriteLine($"RequireMovestateCommand fails because target is not a Character");
+            Console.WriteLine($"RequireMovestateCommand fails because target is not a Character. If this is happening, we should investigate why.");
             result = false;
         }
 
