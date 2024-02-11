@@ -204,9 +204,28 @@ public class CombatController : Base
 
         if (abilityId != 0)
         {
+            var activationTime = activateAbility.Time;
+            if (character.IsPlayerControlled)
+            {
+                var message = new AbilityActivated
+                {
+                    ActivatedAbilityId = abilityId,
+                    ActivatedTime = activationTime,
+                    AbilityCooldownsData = new AbilityCooldownsData
+                    {
+                        ActiveCooldowns_Group1 = Array.Empty<ActiveCooldown>(),
+                        ActiveCooldowns_Group2 = Array.Empty<ActiveCooldown>(),
+                        Unk = 0,
+                        GlobalCooldown_Activated_Time = activationTime,
+                        GlobalCooldown_ReadyAgain_Time = activationTime + 300,
+                    }
+                };
+                Console.WriteLine($"ActivateAbility {message.ActivatedAbilityId} at {message.ActivatedTime}");
+                character.Player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+            }
+
             var initiator = character as IAptitudeTarget;
             var shard = player.CharacterEntity.Shard;
-            var activationTime = activateAbility.Time;
             var targets = activateAbility.Targets
             .Where(entityId =>
             {

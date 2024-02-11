@@ -16,6 +16,7 @@ public class InstantActivationCommand : ICommand
 
     public bool Execute(Context context)
     {
+        /*
         if (context.Self.GetType() == typeof(Entities.Character.CharacterEntity))
         {
             var character = context.Self as Entities.Character.CharacterEntity;
@@ -40,6 +41,7 @@ public class InstantActivationCommand : ICommand
                 player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
             }
         }
+        */
 
         return true;
     }
