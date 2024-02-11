@@ -14931,7 +14931,9 @@
 	},
 	{
 		"id": 1606856,
-		"comment": "Triggered by Effect 1375  "
+		"comment": "Triggered by Effect 1375  | Meteor Strike 300ms Temporary Physics Immunity Removal",
+		"effect_id": 3403,
+		"remove_from_self": true
 	},
 	{
 		"id": 1606997,
@@ -15212,7 +15214,9 @@
 	},
 	{
 		"id": 1634947,
-		"comment": "Triggered by Effect 10531  "
+		"comment": "Triggered by Effect 10531  | Meteor Strike On-Hit-Ground",
+		"effect_id": 14647,
+		"remove_from_self": true
 	},
 	{
 		"id": 1634981,
