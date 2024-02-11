@@ -68,8 +68,8 @@ public class AbilitySystem
 
         foreach (var pair in applyContext.Actives)
         {
-            ICommand active = pair.Value;
-            active.OnApply(applyContext);
+            ICommand activeCommand = pair.Key;
+            activeCommand.OnApply(applyContext, pair.Value);
         }
     }
 
@@ -81,8 +81,8 @@ public class AbilitySystem
 
         foreach (var pair in activeEffect.Context.Actives)
         {
-            ICommand active = pair.Value;
-            active.OnRemove(activeEffect.Context);
+            ICommand activeCommand = pair.Key;
+            activeCommand.OnRemove(activeEffect.Context, pair.Value);
         }
     }
 

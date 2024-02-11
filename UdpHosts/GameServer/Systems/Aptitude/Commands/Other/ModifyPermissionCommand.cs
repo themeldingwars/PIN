@@ -21,19 +21,19 @@ public class ModifyPermissionCommand : ICommand
         {
             if (Params.Glider != null)
             {
-                context.Actives.Add(Params.Id, this);
+                context.Actives.Add(this, null);
             }
 
             if (Params.GliderHud != null)
             {
-                context.Actives.Add(Params.Id, this);
+                context.Actives.Add(this, null);
             }
         }
 
         return true;
     }
 
-    public void OnApply(Context context)
+    public void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
         var target = context.Self;
         if (target.GetType() == typeof(Entities.Character.CharacterEntity))
@@ -52,7 +52,7 @@ public class ModifyPermissionCommand : ICommand
         }
     }
 
-    public void OnRemove(Context context)
+    public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
         var target = context.Self;
         if (target.GetType() == typeof(Entities.Character.CharacterEntity))
