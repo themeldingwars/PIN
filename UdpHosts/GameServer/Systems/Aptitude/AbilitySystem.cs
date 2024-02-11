@@ -63,8 +63,8 @@ public class AbilitySystem
         applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
         var effect = Factory.LoadEffect(effectId);
-        effect.ApplyChain?.Execute(applyContext);
         target.AddEffect(effect, applyContext);
+        effect.ApplyChain?.Execute(applyContext);
 
         foreach (var pair in applyContext.Actives)
         {
