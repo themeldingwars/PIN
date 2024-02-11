@@ -74,6 +74,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
         };
         var index = state.Index;
         SetStatusEffect(index, time, data);
+        Shard.EntityMan.FlushChanges(this); // Force flush so that we communicate every change
 
         return state;
     }
@@ -83,6 +84,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
         ActiveEffects[state.Index] = null;
         var time = unchecked((ushort)state.Context.Shard.CurrentTime);
         ClearStatusEffect(state.Index, time, state.Effect.Id);
+        Shard.EntityMan.FlushChanges(this); // Force flush so that we communicate every change
     }
 
     public abstract void SetStatusEffect(byte index, ushort time, StatusEffectData data);
