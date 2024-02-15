@@ -16,6 +16,7 @@ using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
 using GameServer.Entities.Melding;
 using GameServer.Entities.Outpost;
+using GameServer.Entities.Thumper;
 using GameServer.Entities.Vehicle;
 using GameServer.Extensions;
 
@@ -148,6 +149,13 @@ public class EntityManager
         Add(outpostEntity.EntityId, outpostEntity);
     }
 
+    public void SpawnThumper(uint nodeType, uint beaconType, Vector3 position)
+    {
+        var thumperEntity = new ThumperEntity(Shard, GetNextGuid() & 0xffffffffffffff00, nodeType, beaconType);
+        thumperEntity.SetPosition(position);
+        Add(thumperEntity.EntityId, thumperEntity);
+    }
+
     public void TempSpawnTestEntities()
     {
         // Aero
@@ -187,6 +195,9 @@ public class EntityManager
             var outpost = entry.Value;
             SpawnOutpost(outpost);
         }
+
+        // Thumper
+        SpawnThumper(20, 33978, new Vector3(158.3f, 249.3f, 491.93f));
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -397,6 +408,16 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
             }
         }
+        else if (entity.GetType() == typeof(Entities.Thumper.ThumperEntity))
+        {
+            var thumper = entity as Entities.Thumper.ThumperEntity;
+            var observer = thumper.ResourceNode_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
+            }
+        }
     }
 
     public void ScopeOut(INetworkPlayer player, IEntity entity)
@@ -568,6 +589,16 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
             }
         }
+        else if (entity.GetType() == typeof(Entities.Thumper.ThumperEntity))
+        {
+            var outpost = entity as Entities.Thumper.ThumperEntity;
+            var observer = outpost.ResourceNode_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+            }
+        }
     }
 
     public void RemoveControllers(INetworkPlayer player, IEntity entity)
@@ -647,6 +678,11 @@ public class EntityManager
         {
             var deployable = entity as Entities.Deployable.DeployableEntity;
             FlushViewChangesToEveryone(deployable.Deployable_ObserverView, deployable.EntityId);
+        }
+        else if (entity.GetType() == typeof(Entities.Thumper.ThumperEntity))
+        {
+            var thumper = entity as Entities.Thumper.ThumperEntity;
+            FlushViewChangesToEveryone(thumper.ResourceNode_ObserverView, thumper.EntityId);
         }
     }
 
