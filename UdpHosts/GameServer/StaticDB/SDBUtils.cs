@@ -15,6 +15,23 @@ using System.Linq;
 
 public class SDBUtils
 {
+    public static Dictionary<byte, CharCreateLoadoutSlots> GetDefaultLoadoutSlots(uint loadoutId)
+    {
+        var loadout = SDBInterface.GetCharCreateLoadout(loadoutId);
+        if (loadout == null)
+        {
+            return null;
+        }
+
+        var defaultLoadoutSlots = SDBInterface.GetCharCreateLoadoutSlots(loadout.Id);
+        if (defaultLoadoutSlots == null)
+        {
+            return null;
+        }
+
+        return defaultLoadoutSlots;
+    }
+
     public static Dictionary<byte, CharCreateLoadoutSlots> GetChassisDefaultLoadoutSlots(uint chassisId)
     {
         var loadouts = SDBInterface.GetCharCreateLoadoutsByFrame(chassisId); // yolo

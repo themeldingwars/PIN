@@ -605,9 +605,9 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             ItemAttributes = loadout.GetItemAttributes(),
             Unk1 = 0,
-            WeaponA = Array.Empty<StatsData>(),
+            WeaponA = loadout.GetPrimaryWeaponAttributes(),
             Unk2 = 0,
-            WeaponB = Array.Empty<StatsData>(),
+            WeaponB = loadout.GetSecondaryWeaponAttributes(),
             Unk3 = 0,
             AttributeCategories1 = Array.Empty<StatsData>(),
             AttributeCategories2 = Array.Empty<StatsData>()

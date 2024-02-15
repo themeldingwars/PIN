@@ -112,10 +112,22 @@ public class CharacterLoadout
 
         ChassisWarpaint = SDBUtils.GetChassisWarpaint(ChassisID, 0, 0, 0, 0);
 
-        // Temp load some default equipment :)
+        // TEMP: Load some default equipment :)
         bool forceFallback = false;
-        var defaultSlots = SDBUtils.GetChassisDefaultLoadoutSlots(ChassisID);
-        if (defaultSlots != null && !forceFallback)
+        Dictionary<byte, CharCreateLoadoutSlots> defaultSlots = null;
+        if (loadoutId != 0)
+        {
+            // loadoutId provided, try loading that one 
+            defaultSlots = SDBUtils.GetDefaultLoadoutSlots(LoadoutID);
+        }
+
+        if (defaultSlots == null)
+        {
+            // Still no slots, try loading one that works for this chassis
+            defaultSlots = SDBUtils.GetChassisDefaultLoadoutSlots(ChassisID);
+        }
+
+        if (!forceFallback && defaultSlots != null)
         {
             foreach (LoadoutSlotType slot in defaultSlots.Keys)
             {
@@ -135,6 +147,7 @@ public class CharacterLoadout
         }
         else
         {
+            // Fallback to harcoded setup
             SlottedItems.Add(LoadoutSlotType.Primary, 134616);
             SlottedItems.Add(LoadoutSlotType.Secondary, 114316);
             SlottedItems.Add(LoadoutSlotType.AbilityHKM, 113931);
@@ -223,7 +236,7 @@ public class CharacterLoadout
         .ToArray();
     }
 
-    public AeroMessages.GSS.V66.StatsData[] GetItemAttributes()
+    public StatsData[] GetItemAttributes()
     {
         var result = new Dictionary<ushort, float>()
         {
@@ -256,6 +269,68 @@ public class CharacterLoadout
                     }
                 }
 
+            }
+        }
+
+        return result
+        .Select((pair) => {
+            return new StatsData()
+            {
+                Id = pair.Key,
+                Value = pair.Value
+            };
+        })
+        .ToArray();
+    }
+
+    public StatsData[] GetPrimaryWeaponAttributes()
+    {
+        var result = new Dictionary<ushort, float>();
+        var itemId = SlottedItems[LoadoutSlotType.Primary];
+        if (itemId != 0)
+        {
+            var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
+            foreach (var range in itemAttributes.Values)
+            {
+                if (result.ContainsKey(range.AttributeId))
+                {
+                    result[range.AttributeId] += range.Base;
+                }
+                else
+                {
+                    result.Add(range.AttributeId, range.Base);
+                }
+            }
+        }
+
+        return result
+        .Select((pair) => {
+            return new StatsData()
+            {
+                Id = pair.Key,
+                Value = pair.Value
+            };
+        })
+        .ToArray();
+    }
+
+    public StatsData[] GetSecondaryWeaponAttributes()
+    {
+        var result = new Dictionary<ushort, float>();
+        var itemId = SlottedItems[LoadoutSlotType.Secondary];
+        if (itemId != 0)
+        {
+            var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
+            foreach (var range in itemAttributes.Values)
+            {
+                if (result.ContainsKey(range.AttributeId))
+                {
+                    result[range.AttributeId] += range.Base;
+                }
+                else
+                {
+                    result.Add(range.AttributeId, range.Base);
+                }
             }
         }
 
