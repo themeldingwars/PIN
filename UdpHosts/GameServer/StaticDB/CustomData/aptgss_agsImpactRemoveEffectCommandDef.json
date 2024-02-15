@@ -15228,7 +15228,9 @@
 	},
 	{
 		"id": 1635134,
-		"comment": "Triggered by Effect 15216  "
+		"comment": "Triggered by Effect 15216  || Charge related",
+		"effect_id": 15456,
+		"remove_from_self": true
 	},
 	{
 		"id": 1635135,
