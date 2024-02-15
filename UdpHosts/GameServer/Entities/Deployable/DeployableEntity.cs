@@ -38,6 +38,7 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public uint Type { get; set; }
     public uint AbilitySrcId { get; set; }
     public uint GibVisualsID { get; set; }
+    public int MaxHealth { get; set; } = 0;
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -182,7 +183,7 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
             AimDirectionProp = AimDirection,
             ConstructedTimeProp = ConstructedTime,
             CurrentHealthPctProp = 100,
-            MaxHealthProp = 10000,
+            MaxHealthProp = MaxHealth,
             LevelProp = 0,
             ScalingLevelProp = 0,
             GibVisualsIDProp = GibVisualsID,
