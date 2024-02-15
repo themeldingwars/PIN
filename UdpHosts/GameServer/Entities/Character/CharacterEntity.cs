@@ -1266,7 +1266,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 
     private void RefreshAllStatusEffects()
     {
-        for (int i = 0; i < 31; i++)
+        for (int i = 0; i < 32; i++)
         {
             var sourceTime = this.GetType().GetProperty($"StatusEffectsChangeTime_{i}").GetValue(this);
             var sourceData = this.GetType().GetProperty($"StatusEffects_{i}").GetValue(this);
@@ -1280,6 +1280,32 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
                 Character_CombatController.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatController, sourceData, null);
             }
         }
+    }
+
+    public void HackClearAllStatusEffects()
+    {
+        var time = Shard.CurrentShortTime;
+        for (int index = 0; index < 32; index++)
+        {
+            Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}");
+
+            // Member
+            this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+            this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
+            
+            // CombatController
+            if (Character_CombatController != null)
+            {
+                Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
+                Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, null, null);
+            }
+            
+            // CombatView
+            Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
+            Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, null, null);
+        }
+
+        Shard.EntityMan.FlushChanges(this);
     }
 
     private ulong GetCurrentPermissionsValue()
