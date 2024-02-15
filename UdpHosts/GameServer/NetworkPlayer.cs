@@ -62,14 +62,22 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         CharacterEntity = new CharacterEntity(AssignedShard, guid);
 
-        using var channel = GrpcChannel.ForAddress("http://localhost:5201");
-        var client = new GameServerAPI.GameServerAPIClient(channel);
-        var reply = await client.GetCharacterAndBattleframeVisualsAsync(new CharacterID { ID = (long)characterId });
+        CharacterAndBattleframeVisuals remoteData = null;
+        try
+        {
+            using var channel = GrpcChannel.ForAddress("http://localhost:5201");
+            var client = new GameServerAPI.GameServerAPIClient(channel);
+            remoteData = await client.GetCharacterAndBattleframeVisualsAsync(new CharacterID { ID = (long)characterId });
+        }
+        catch
+        {
+            Console.WriteLine($"Could not get character over GRPC, will use fallback");
+        }
 
         bool useRemoteData = true;
-        if (reply != null && useRemoteData)
+        if (remoteData != null && useRemoteData)
         {
-            CharacterEntity.LoadRemote(reply);
+            CharacterEntity.LoadRemote(remoteData);
         }
         else
         {
