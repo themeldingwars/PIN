@@ -12,6 +12,7 @@ using GameServer.Aptitude;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
+using GameServer.Entities.Carryable;
 using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
 using GameServer.Entities.Melding;
@@ -156,6 +157,13 @@ public class EntityManager
         Add(thumperEntity.EntityId, thumperEntity);
     }
 
+    public void SpawnCarryable(uint type, Vector3 position)
+    {
+        var carryableEntity = new CarryableEntity(Shard, GetNextGuid() & 0xffffffffffffff00, type);
+        carryableEntity.SetPosition(position);
+        Add(carryableEntity.EntityId, carryableEntity);
+    }
+
     public void TempSpawnTestEntities()
     {
         // Aero
@@ -198,6 +206,9 @@ public class EntityManager
 
         // Thumper
         SpawnThumper(20, 33978, new Vector3(158.3f, 249.3f, 491.93f));
+
+        // Datapad
+        SpawnCarryable(26, new Vector3(160.3f, 250.3f, 491.93f));
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -418,6 +429,16 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
             }
         }
+        else if (entity.GetType() == typeof(Entities.Carryable.CarryableEntity))
+        {
+            var carryable = entity as Entities.Carryable.CarryableEntity;
+            var observer = carryable.CarryableObject_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
+            }
+        }
     }
 
     public void ScopeOut(INetworkPlayer player, IEntity entity)
@@ -593,6 +614,16 @@ public class EntityManager
         {
             var outpost = entity as Entities.Thumper.ThumperEntity;
             var observer = outpost.ResourceNode_ObserverView;
+            bool haveObserver = observer != null;
+            if (haveObserver)
+            {
+                 player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+            }
+        }
+        else if (entity.GetType() == typeof(Entities.Carryable.CarryableEntity))
+        {
+            var outpost = entity as Entities.Carryable.CarryableEntity;
+            var observer = outpost.CarryableObject_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
             {
