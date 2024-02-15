@@ -132,6 +132,10 @@ public class Factory
                 return new AuthorizeTerminalCommand(CustomDBInterface.GetAuthorizeTerminalCommandDef(commandId));
             case CommandType.RequireCState:
                 return new RequireCStateCommand(SDBInterface.GetRequireCStateCommandDef(commandId));
+            case CommandType.RequirementServer:
+                return new RequirementServerCommand(SDBInterface.GetRequirementServerCommandDef(commandId));
+            case CommandType.RequireWeaponArmed:
+                return new RequireWeaponArmedCommand(SDBInterface.GetRequireWeaponArmedCommandDef(commandId));
             default:
                 break;
         }
