@@ -63,7 +63,13 @@ public class AbilitySystem
         applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
         var effect = Factory.LoadEffect(effectId);
-        target.AddEffect(effect, applyContext);
+
+        // TODO: Need to AddEffect even though it is hidden
+        if (effect.Data.Hidden == 0)
+        {
+            target.AddEffect(effect, applyContext);
+        }
+
         effect.ApplyChain?.Execute(applyContext);
 
         foreach (var pair in applyContext.Actives)
