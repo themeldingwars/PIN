@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,8 @@ public class Channel
     private readonly INetworkClient _client;
     private readonly ConcurrentQueue<GamePacket> _incomingPackets;
     private readonly ConcurrentQueue<Memory<byte>> _outgoingPackets;
+    
+    private ConcurrentQueue<GamePacket> _splitPackets;
 
     private Channel(ChannelType channelType, bool isSequenced, bool isReliable, INetworkClient networkClient, ILogger logger)
     {
@@ -42,6 +45,7 @@ public class Channel
 
         _incomingPackets = new ConcurrentQueue<GamePacket>();
         _outgoingPackets = new ConcurrentQueue<Memory<byte>>();
+        _splitPackets = new ConcurrentQueue<GamePacket>();
     }
 
     public delegate void PacketAvailableDelegate(GamePacket packet);
@@ -54,6 +58,7 @@ public class Channel
     private ushort CurrentSequenceNumber { get; set; }
     private DateTime LastActivity { get; set; }
     private ushort LastAck { get; set; }
+    private bool InSplitMode { get; set; }
 
     public static Dictionary<ChannelType, Channel> GetChannels(INetworkClient client, ILogger logger)
     {
@@ -90,6 +95,7 @@ public class Channel
             }
             
             // TODO: Implement SequencedPacketQueue
+            // TODO: Fix resent message handling
             if (packet.Header.ResendCount > 0)
             {
                 // de-xor data
@@ -126,18 +132,40 @@ public class Channel
                 _logger.Fatal("---> Resent packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
             }
 
-            if (packet.Header.IsSplit)
-            {
-                _logger.Fatal("---> Split packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
-            }
-
             if (IsReliable && (sequenceNumber > LastAck || (sequenceNumber < 0xff && LastAck > 0xff00)))
             {
                 _client.SendAck(Type, sequenceNumber, packet.Received);
                 LastAck = sequenceNumber;
             }
 
-            PacketAvailable?.Invoke(packet);
+            // TODO: Ensure we follow sequence number when combining split messages
+            if (InSplitMode)
+            {
+                _splitPackets.Enqueue(packet);
+                if (!packet.Header.IsSplit)
+                {
+                    // Finish split mode
+                    InSplitMode = false;
+                    var combined = _splitPackets
+                    .SelectMany((splitPacket) => splitPacket.PacketData[2..].ToArray()) // Skip seqnum
+                    .ToArray();
+                    _splitPackets.Clear();
+                    
+                    var combinedPacket = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(combined));
+                    PacketAvailable?.Invoke(combinedPacket);
+                }
+            }
+            else if (packet.Header.IsSplit)
+            {
+                // Enter split mode
+                InSplitMode = true;
+                _splitPackets.Enqueue(packet);
+            }
+            else
+            {
+                PacketAvailable?.Invoke(packet);
+            }
+            
             LastActivity = DateTime.Now;
         }
 

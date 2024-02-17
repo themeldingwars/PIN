@@ -168,7 +168,8 @@ public class NetworkClient : INetworkClient
                 break;
             case MatrixPacketType.KeyframeRequest:
                 // TODO: Send checksums/keyframes in return.
-                packet.Unpack<KeyframeRequest>();
+                var query = packet.Unpack<KeyframeRequest>();
+                Logger.Verbose($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests");
                 break;
             case MatrixPacketType.ClientStatus:
                 NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
