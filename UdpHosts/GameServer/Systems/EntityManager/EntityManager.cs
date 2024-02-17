@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
+using System.Timers;
 using Aero.Gen;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66.Character;
@@ -31,7 +34,17 @@ public class EntityManager
 
     private ulong LastUpdateFlush = 0;
     private ulong UpdateFlushIntervalMs = 5;
+    private ulong LastScopeIn = 0;
+    private ulong ScopeInIntervalMs = 20;
     private bool hasSpawnedTestEntities = false;
+
+    public class ScopeInRequest
+    {
+        public INetworkPlayer Player;
+        public IEntity Entity;
+    }
+
+    private ConcurrentQueue<ScopeInRequest> QueuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
 
     public EntityManager(Shard shard)
     {
@@ -126,10 +139,13 @@ public class EntityManager
 
         if (deployableInfo.ConstructedAbilityid != 0)
         {
-            new Timer(state =>
+            new System.Threading.Timer(state =>
             {
                 Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
-                ((Timer)state).Dispose();
+                if (state != null)
+                {
+                    ((System.Threading.Timer)state).Dispose();
+                }
             },
             null,
             deployableInfo.BuildTimeMs,
@@ -169,17 +185,37 @@ public class EntityManager
         // Aero
         SpawnCharacter(356, new Vector3(167.84642f, 262.20822f, 491.86758f));
 
-        // NewYou
-        SpawnDeployable(676, new Vector3(177.37387f, 239.90964f, 491.86758f), new Quaternion(-4.0596834E-08f, -1.620471E-08f, -0.37071967f, 0.92874485f));
+        if (false)
+        {
+            // NewYou
+            SpawnDeployable(676, new Vector3(177.37387f, 239.90964f, 491.86758f), new Quaternion(-4.0596834E-08f, -1.620471E-08f, -0.37071967f, 0.92874485f));
 
-        // Battleframe Station
-        SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
+            // Battleframe Station
+            SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
 
-        // Garage
-        SpawnDeployable(44, new Vector3(185.69464f, 247.1212f, 491.86783f), new Quaternion(1.6204714E-08f, -4.059684E-08f, 0.92874485f, 0.37071967f));
+            // Garage
+            SpawnDeployable(44, new Vector3(185.69464f, 247.1212f, 491.86783f), new Quaternion(1.6204714E-08f, -4.059684E-08f, 0.92874485f, 0.37071967f));
 
-        // Glider Pad
-        SpawnDeployable(372, new Vector3(164.84642f, 262.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
+            // Glider Pad
+            SpawnDeployable(372, new Vector3(164.84642f, 262.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
+        }
+
+        // Thumper
+        SpawnThumper(20, 33978, new Vector3(158.3f, 249.3f, 491.93f));
+
+        // Datapad
+        SpawnCarryable(26, new Vector3(160.3f, 250.3f, 491.93f));
+    }
+
+    public void SpawnZoneEntities(uint zoneId)
+    {
+        // Deployable
+        foreach (var entry in CustomDBInterface.GetZoneDeployables(448))
+        {
+            var deployable = entry.Value;
+            Console.WriteLine($"Spawning deployable {deployable.Id}");
+            SpawnDeployable(deployable.Type, deployable.Position, deployable.Orientation);
+        }
 
         // Melding
         foreach (var entry in CustomDBInterface.GetZoneMeldings(448))
@@ -203,12 +239,6 @@ public class EntityManager
             var outpost = entry.Value;
             SpawnOutpost(outpost);
         }
-
-        // Thumper
-        SpawnThumper(20, 33978, new Vector3(158.3f, 249.3f, 491.93f));
-
-        // Datapad
-        SpawnCarryable(26, new Vector3(160.3f, 250.3f, 491.93f));
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -218,6 +248,17 @@ public class EntityManager
         {
             hasSpawnedTestEntities = true;
             TempSpawnTestEntities();
+            SpawnZoneEntities(448);
+        }
+
+        if (QueuedScopeIn.Count > 0 && currentTime > LastScopeIn + ScopeInIntervalMs)
+        {
+            bool ok = QueuedScopeIn.TryDequeue(out ScopeInRequest request);
+            if (ok)
+            {
+                ScopeIn(request.Player, request.Entity);
+            }
+            LastScopeIn = currentTime;
         }
 
         // Flush changes periodically
@@ -278,7 +319,7 @@ public class EntityManager
                 continue; // Hack: Prevent ScopeInAll from triggering keyframes for the local player's character. We have already sent down those in the login process, repeating is wasteful but also causes some issues if we don't properly persist the changes made to the views during respawn.
             }
 
-            ScopeIn(player, entity);
+            QueuedScopeIn.Enqueue(new ScopeInRequest { Player = player, Entity = entity });
         }
     }
 
