@@ -18,12 +18,13 @@ public class AuthorizeTerminalCommand : ICommand
     public bool Execute(Context context)
     {
         var target = context.Self;
-        var terminal = context.Targets.First();
-        if (terminal == null)
+        if (context.Targets.Count == 0)
         {
-            Console.WriteLine($"AuthorizeTerminalCommand fails because target is missing (should it not work this way?)");
+            Console.WriteLine($"AuthorizeTerminalCommand fails because there are no targets (There should be a target?)");
             return false;
-        }
+        };
+
+        var terminal = context.Targets.First();
 
         if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {

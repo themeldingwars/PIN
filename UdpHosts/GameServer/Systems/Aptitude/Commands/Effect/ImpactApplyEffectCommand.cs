@@ -50,7 +50,14 @@ public class ImpactApplyEffectCommand : ICommand
         }
         else if (Params.OverrideInitiatorWithTarget == 1)
         {
-            effectContext.Initiator = context.Targets.First(); // Eh?
+            if (context.Targets.Count > 0)
+            {
+                effectContext.Initiator = context.Targets.First(); // Eh?
+            }
+            else
+            {
+                Console.WriteLine($"ApplyEffect {Params.Id} (effect {Params.EffectId}) specifies OverrideInitiatorWithTarget but there are no targets");
+            }
         }
 
         if (Params.RemoveOnRollback == 1)
