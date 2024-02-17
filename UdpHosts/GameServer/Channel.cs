@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -30,8 +31,7 @@ public class Channel
     private readonly INetworkClient _client;
     private readonly ConcurrentQueue<GamePacket> _incomingPackets;
     private readonly ConcurrentQueue<Memory<byte>> _outgoingPackets;
-    
-    private ConcurrentQueue<GamePacket> _splitPackets;
+    private SortedDictionary<ushort, GamePacket> _incomingSplitMessagePackets;
 
     private Channel(ChannelType channelType, bool isSequenced, bool isReliable, INetworkClient networkClient, ILogger logger)
     {
@@ -45,7 +45,7 @@ public class Channel
 
         _incomingPackets = new ConcurrentQueue<GamePacket>();
         _outgoingPackets = new ConcurrentQueue<Memory<byte>>();
-        _splitPackets = new ConcurrentQueue<GamePacket>();
+        _incomingSplitMessagePackets = new SortedDictionary<ushort, GamePacket>();
     }
 
     public delegate void PacketAvailableDelegate(GamePacket packet);
@@ -132,37 +132,42 @@ public class Channel
                 _logger.Fatal("---> Resent packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
             }
 
-            if (IsReliable && (sequenceNumber > LastAck || (sequenceNumber < 0xff && LastAck > 0xff00)))
-            {
-                _client.SendAck(Type, sequenceNumber, packet.Received);
-                LastAck = sequenceNumber;
-            }
-
             // TODO: Ensure we follow sequence number when combining split messages
             if (InSplitMode)
             {
-                _splitPackets.Enqueue(packet);
+                _incomingSplitMessagePackets.Add(sequenceNumber, packet);
                 if (!packet.Header.IsSplit)
                 {
                     // Finish split mode
                     InSplitMode = false;
-                    var combined = _splitPackets
-                    .SelectMany((splitPacket) => splitPacket.PacketData[2..].ToArray()) // Skip seqnum
+                    var combined = _incomingSplitMessagePackets
+                    .SelectMany((pair) => pair.Value.PacketData[2..].ToArray()) // Skip seqnum
                     .ToArray();
-                    _splitPackets.Clear();
+                    _incomingSplitMessagePackets.Clear();
                     
                     var combinedPacket = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(combined));
+
+                    _client.SendAck(Type, sequenceNumber, packet.Received);
+                    LastAck = sequenceNumber;
+
                     PacketAvailable?.Invoke(combinedPacket);
+                    _logger.Fatal("---> Collected Split Packet");
                 }
             }
             else if (packet.Header.IsSplit)
             {
                 // Enter split mode
                 InSplitMode = true;
-                _splitPackets.Enqueue(packet);
+                _incomingSplitMessagePackets.Add(sequenceNumber, packet);
             }
             else
             {
+                if (IsReliable && (sequenceNumber > LastAck || (sequenceNumber < 0xff && LastAck > 0xff00)))
+                {
+                    _client.SendAck(Type, sequenceNumber, packet.Received);
+                    LastAck = sequenceNumber;
+                }
+
                 PacketAvailable?.Invoke(packet);
             }
             
