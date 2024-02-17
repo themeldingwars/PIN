@@ -98,7 +98,7 @@ public class ImpactApplyEffectCommand : ICommand
 
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
-        var rollbackContext = (RemoveOnRollbackCommandActiveContext) activeCommandContext;
+        var rollbackContext = (RemoveOnRollbackCommandActiveContext)activeCommandContext;
         foreach (IAptitudeTarget target in rollbackContext.Targets)
         {
             Console.WriteLine($"RemoveOnRollback of {Params.Id} triggers removal of {Params.EffectId}");

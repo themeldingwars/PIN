@@ -239,6 +239,84 @@ public class CharacterLoadout
         .ToArray();
     }
 
+    public StatsData[] GetItemAttributes()
+    {
+        return ItemAttributes
+        .Select((pair) =>
+        {
+            return new StatsData()
+            {
+                Id = pair.Key,
+                Value = pair.Value
+            };
+        })
+        .ToArray();
+    }
+
+    public StatsData[] GetPrimaryWeaponAttributes()
+    {
+        var result = new Dictionary<ushort, float>();
+        var itemId = SlottedItems[LoadoutSlotType.Primary];
+        if (itemId != 0)
+        {
+            var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
+            foreach (var range in itemAttributes.Values)
+            {
+                if (result.ContainsKey(range.AttributeId))
+                {
+                    result[range.AttributeId] += range.Base;
+                }
+                else
+                {
+                    result.Add(range.AttributeId, range.Base);
+                }
+            }
+        }
+
+        return result
+        .Select((pair) =>
+        {
+            return new StatsData()
+            {
+                Id = pair.Key,
+                Value = pair.Value
+            };
+        })
+        .ToArray();
+    }
+
+    public StatsData[] GetSecondaryWeaponAttributes()
+    {
+        var result = new Dictionary<ushort, float>();
+        var itemId = SlottedItems[LoadoutSlotType.Secondary];
+        if (itemId != 0)
+        {
+            var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
+            foreach (var range in itemAttributes.Values)
+            {
+                if (result.ContainsKey(range.AttributeId))
+                {
+                    result[range.AttributeId] += range.Base;
+                }
+                else
+                {
+                    result.Add(range.AttributeId, range.Base);
+                }
+            }
+        }
+
+        return result
+        .Select((pair) =>
+        {
+            return new StatsData()
+            {
+                Id = pair.Key,
+                Value = pair.Value
+            };
+        })
+        .ToArray();
+    }
+
     private void CalculateItemAttributes()
     {
         var result = new Dictionary<ushort, float>()
@@ -271,85 +349,9 @@ public class CharacterLoadout
                         result.Add(range.AttributeId, range.Base);
                     }
                 }
-
             }
         }
 
         ItemAttributes = result;
-    }
-
-    public StatsData[] GetItemAttributes()
-    {
-        return ItemAttributes
-        .Select((pair) => {
-            return new StatsData()
-            {
-                Id = pair.Key,
-                Value = pair.Value
-            };
-        })
-        .ToArray();
-    }
-
-    public StatsData[] GetPrimaryWeaponAttributes()
-    {
-        var result = new Dictionary<ushort, float>();
-        var itemId = SlottedItems[LoadoutSlotType.Primary];
-        if (itemId != 0)
-        {
-            var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
-            foreach (var range in itemAttributes.Values)
-            {
-                if (result.ContainsKey(range.AttributeId))
-                {
-                    result[range.AttributeId] += range.Base;
-                }
-                else
-                {
-                    result.Add(range.AttributeId, range.Base);
-                }
-            }
-        }
-
-        return result
-        .Select((pair) => {
-            return new StatsData()
-            {
-                Id = pair.Key,
-                Value = pair.Value
-            };
-        })
-        .ToArray();
-    }
-
-    public StatsData[] GetSecondaryWeaponAttributes()
-    {
-        var result = new Dictionary<ushort, float>();
-        var itemId = SlottedItems[LoadoutSlotType.Secondary];
-        if (itemId != 0)
-        {
-            var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
-            foreach (var range in itemAttributes.Values)
-            {
-                if (result.ContainsKey(range.AttributeId))
-                {
-                    result[range.AttributeId] += range.Base;
-                }
-                else
-                {
-                    result.Add(range.AttributeId, range.Base);
-                }
-            }
-        }
-
-        return result
-        .Select((pair) => {
-            return new StatsData()
-            {
-                Id = pair.Key,
-                Value = pair.Value
-            };
-        })
-        .ToArray();
     }
 }

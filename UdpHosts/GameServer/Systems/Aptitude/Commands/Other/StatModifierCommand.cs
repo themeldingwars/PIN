@@ -39,7 +39,7 @@ public class StatModifierCommand : ICommand
 
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
-        var modifierContext = (StatModifierCommandActiveContext) activeCommandContext;
+        var modifierContext = (StatModifierCommandActiveContext)activeCommandContext;
         var target = context.Self;
         if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {
@@ -50,7 +50,7 @@ public class StatModifierCommand : ICommand
             var mod = new CharacterEntity.ActiveStatModifier()
             {
                 Op = Params.Op,
-                Stat = (CharacterEntity.StatModifierIdentifier)Params.Stat,
+                Stat = (StatModifierIdentifier)Params.Stat,
                 Value = value,
             };
             character.AddStatModifier(Params.Id, mod);
@@ -63,10 +63,9 @@ public class StatModifierCommand : ICommand
         if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {
             var character = target as Entities.Character.CharacterEntity;
-            character.RemoveStatModifier(Params.Id, (CharacterEntity.StatModifierIdentifier)Params.Stat);
+            character.RemoveStatModifier(Params.Id, (StatModifierIdentifier)Params.Stat);
         }
     }
-    
 }
 
 public class StatModifierCommandActiveContext : ICommandActiveContext
