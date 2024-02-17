@@ -78,7 +78,7 @@ public class NetworkClient : INetworkClient
 
             var gamePacket = new GamePacket(header, data.Slice(index + headerSize, header.Length - headerSize), packet.Received);
 
-            // Program.Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", hdr.Channel, hdr.ResendCount, hdr.IsSplit, hdr.Length);
+            // Logger.Verbose("-> {0} = R:{1} S:{2} L:{3}", header.Channel, header.ResendCount, header.IsSplit, header.Length);
             NetChannels[header.Channel].HandlePacket(gamePacket);
 
             index += header.Length;
@@ -169,7 +169,7 @@ public class NetworkClient : INetworkClient
             case MatrixPacketType.KeyframeRequest:
                 // TODO: Send checksums/keyframes in return.
                 var query = packet.Unpack<KeyframeRequest>();
-                Logger.Verbose($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests");
+                Logger.Information($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests");
                 break;
             case MatrixPacketType.ClientStatus:
                 NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
