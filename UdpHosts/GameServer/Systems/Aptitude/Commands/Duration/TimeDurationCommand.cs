@@ -15,7 +15,7 @@ public class TimeDurationCommand : ICommand
     {
         var currentTime = context.Shard.CurrentTime;
         var baseTime = context.InitTime;
-        var duration = Params.DurationMs; // TODO: Handle Params.DurationRegop
+        var duration = AbilitySystem.RegistryOp(context.Register, Params.DurationMs, (Enums.Operand)Params.DurationRegop);
         var condition = currentTime - baseTime > duration;
 
         bool result = true;

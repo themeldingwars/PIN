@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using GameServer.Data.SDB;
+using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
@@ -64,11 +65,14 @@ public class AbilitySystem
 
         var effect = Factory.LoadEffect(effectId);
 
-        // TODO: Need to AddEffect even though it is hidden
+        // TODO: Decouple effect storage from fields so that hidden effects can be added without using a network field
+        /*
         if (effect.Data.Hidden == 0)
         {
-            target.AddEffect(effect, applyContext);
+            
         }
+        */
+        target.AddEffect(effect, applyContext);
 
         effect.ApplyChain?.Execute(applyContext);
 
@@ -179,5 +183,30 @@ public class AbilitySystem
     public void HandleActivateConsumable()
     {
         throw new NotImplementedException();
+    }
+
+    public static float RegistryOp(float first, float second, Operand op)
+    {
+        switch (op)
+        {
+            case Operand.ASSIGN:
+                return second;
+            case Operand.ADDITIVE:
+                return first + second;
+            case Operand.MULTIPLICATIVE:
+                return first * second;
+            case Operand.PERK_DAMAGE_SCALAR:
+                Console.WriteLine($"Uncertain RegistryOp {op}");
+                return first * second; // TODO: Uncertain
+            case Operand.DIVIDE_FIRST_BY_SECOND:
+                Console.WriteLine($"Uncertain RegistryOp {op}");
+                return first / second;
+            case Operand.DIVIDE_SECOND_BY_FIRST:
+                Console.WriteLine($"Uncertain RegistryOp {op}");
+                return second / first;
+            default:
+                Console.WriteLine($"Unknown RegistryOp {op}");
+                return second;
+        }
     }
 }

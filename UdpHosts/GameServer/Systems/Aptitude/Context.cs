@@ -25,7 +25,7 @@ public class Context
     public IAptitudeTarget Initiator { get; set; }
     public HashSet<IAptitudeTarget> Targets { get; set; }
     public HashSet<IAptitudeTarget> FormerTargets { get; set; }
-    public int Register { get; set; }
+    public float Register { get; set; }
     public int Bonus { get; set; }
     public uint InitTime { get; set; }
     public Vector3 InitPosition { get; set; }

@@ -10,8 +10,10 @@ using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Character.View;
 using GameServer.Aptitude;
+using GameServer.Controllers;
 using GameServer.Data;
 using GameServer.Data.SDB;
+using GameServer.Data.SDB.Records.dbstats;
 using GrpcGameServerAPIClient;
 
 namespace GameServer.Entities.Character;
@@ -25,6 +27,13 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         : base(shard, eid)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Character };
+        
+        CurrentStatModifiers = new Dictionary<StatModifierIdentifier, Dictionary<uint, ActiveStatModifier>>();
+        foreach(StatModifierIdentifier stat in Enum.GetValues(typeof(StatModifierIdentifier)))
+        {
+            CurrentStatModifiers.Add(stat, new Dictionary<uint, ActiveStatModifier>());
+        }
+
         InitFields();
         InitViews();
     }
@@ -181,6 +190,261 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     public StatusEffectData? StatusEffects_31 { get; set; }
 
     public CharacterLoadout CurrentLoadout { get; set; }
+    public float GetItemAttribute(ushort id) => CurrentLoadout.ItemAttributes.GetValueOrDefault(id);
+
+    // TODO: Maybe rewrite this, not sure if the mapping is supposed to be 1 to 1
+    public enum StatModifierIdentifier : ushort
+    {
+        RunSpeedMult = 1,
+        FireRateModifier = 21,
+        AmmoConsumption = 22, // Based on Overcharge command 1626508, seems to hold up
+
+        // Related
+        MaxTurnRate = 20, // Seems confirmed by msg 551119, command 1120999, effect 11686
+        GravityMult = 50, // Either GravityMult or TurnSpeed
+        TurnSpeed = 27, // Either GravityMult or TurnSpeed
+        // --
+
+        Unknown_10 = 16, // Air Control? Based Engineer Overclock
+        AirControlMult = 10, // Air Control? Based on Hover Mode, command 859100 is loading Hover Mode Air Control stat right before 859099 which modifies this stat
+
+        Unknown_4 = 4, // Damage Resistance? Boomerang, Heavy Armor
+        Unknown_56 = 56, // Jet Energy Consumption? Damage Resistance? Heavy Armor
+
+        // TODO: Map out these
+        Unknown_2 = 2,
+        Unknown_3 = 3,
+        Unknown_5 = 5,
+        Unknown_6 = 6,
+        Unknown_7 = 7,
+        Unknown_8 = 8,
+        Unknown_9 = 9,
+        Unknown_11 = 11,
+        Unknown_12 = 12,
+        Unknown_13 = 13,
+        Unknown_14 = 14,
+        Unknown_15 = 15,
+        Unknown_17 = 17,
+        Unknown_18 = 18,
+        Unknown_19 = 19,
+        Unknown_23 = 23,
+        Unknown_24 = 24,
+        Unknown_25 = 25,
+        Unknown_26 = 26,
+        Unknown_28 = 28,
+        Unknown_29 = 29,
+        Unknown_30 = 30,
+        Unknown_31 = 31,
+        Unknown_38 = 38,
+        Unknown_39 = 39,
+        Unknown_47 = 47,
+        Unknown_57 = 57,
+        FwdRunSpeedMult = 9901,
+        JumpHeightMult = 9902,
+        ThrustStrengthMult = 9904,
+        ThrustAirControl = 9905,
+        AirResistanceMult = 9913,
+        Friction = 9906,
+        TimeDilation = 9910,
+        AccuracyModifier = 9911,
+        WeaponChargeupMod = 9914,
+        WeaponDamageDealtMod = 9915,
+    }
+
+    public class ActiveStatModifier
+    {
+        public StatModifierIdentifier Stat { get; set; }
+        public byte Op { get; set; }
+        public float Value { get; set; }
+    }
+
+    public void AddStatModifier(uint reference, ActiveStatModifier mod)
+    {
+        CurrentStatModifiers[mod.Stat][reference] = mod;
+        RefreshStatModifier(mod.Stat);
+    }
+
+    public void RemoveStatModifier(uint reference, StatModifierIdentifier stat)
+    {
+        if (CurrentStatModifiers[stat].ContainsKey(reference))
+        {
+            CurrentStatModifiers[stat].Remove(reference);
+            RefreshStatModifier(stat);
+        }
+    }
+
+    public void RefreshStatModifier(StatModifierIdentifier stat)
+    {
+        if (Character_CombatController != null)
+        {
+            StatMultiplierData value = new()
+            {
+                Value = GetCurrentStatModifierValue(stat),
+                Time = Shard.CurrentTime,
+            };
+
+            Console.WriteLine($"StatModifier {stat} set to {value.Value}");
+
+            switch (stat)
+            {
+                case StatModifierIdentifier.RunSpeedMult:
+                    Character_CombatController.RunSpeedMultProp = value;
+                    break;
+                case StatModifierIdentifier.FireRateModifier:
+                    Character_CombatController.FireRateModifierProp = value;
+                    break;
+                case StatModifierIdentifier.FwdRunSpeedMult:
+                    Character_CombatController.FwdRunSpeedMultProp = value;
+                    break;
+                case StatModifierIdentifier.JumpHeightMult:
+                    Character_CombatController.JumpHeightMultProp = value;
+                    break;
+                case StatModifierIdentifier.AirControlMult:
+                    Character_CombatController.AirControlMultProp = value;
+                    break;
+                case StatModifierIdentifier.ThrustStrengthMult:
+                    Character_CombatController.ThrustStrengthMultProp = value;
+                    break;
+                case StatModifierIdentifier.ThrustAirControl:
+                    Character_CombatController.ThrustAirControlProp = value;
+                    break;
+                case StatModifierIdentifier.Friction:
+                    Character_CombatController.FrictionProp = value;
+                    break;
+                case StatModifierIdentifier.AmmoConsumption:
+                    Character_CombatController.AmmoConsumptionProp = value;
+                    break;
+                case StatModifierIdentifier.MaxTurnRate:
+                    Character_CombatController.MaxTurnRateProp = value;
+                    break;
+                case StatModifierIdentifier.TurnSpeed:
+                    Character_CombatController.TurnSpeedProp = value;
+                    break;
+                case StatModifierIdentifier.TimeDilation:
+                    Character_CombatController.TimeDilationProp = value;
+                    break;
+                case StatModifierIdentifier.AccuracyModifier:
+                    Character_CombatController.AccuracyModifierProp = value;
+                    break;
+                case StatModifierIdentifier.GravityMult:
+                    Character_CombatController.GravityMultProp = value;
+                    break;
+                case StatModifierIdentifier.AirResistanceMult:
+                    Character_CombatController.AirResistanceMultProp = value;
+                    break;
+                case StatModifierIdentifier.WeaponChargeupMod:
+                    Character_CombatController.WeaponChargeupModProp = value;
+                    break;
+                case StatModifierIdentifier.WeaponDamageDealtMod:
+                    Character_CombatController.WeaponDamageDealtModProp = value;
+                    break;
+            }
+        }
+    }
+
+    public float GetCurrentStatModifierValue(StatModifierIdentifier stat)
+    {
+        float value = 0;
+        try
+        {
+            value = BaseStatModifiers[stat];
+        }
+        catch
+        {
+            Console.WriteLine($"MISSING BaseStatModifier for {stat}");
+        }
+
+        foreach (ActiveStatModifier mod in CurrentStatModifiers[stat].Values)
+        {
+            if (mod.Op == 1)
+            {
+                value += mod.Value;
+            }
+            else if (mod.Op == 2)
+            {
+                value = (value * mod.Value) / 100;
+            }
+            else
+            {
+                Console.WriteLine($"GetCurrentStatModifierValue Unknown Op {mod.Op}");
+            }
+        }
+
+        return value;
+    }
+
+    public Dictionary<StatModifierIdentifier, Dictionary<uint, ActiveStatModifier>> CurrentStatModifiers { get; set; }
+    public Dictionary<StatModifierIdentifier, float> BaseStatModifiers { get; set; } = new()
+    {
+        {
+            StatModifierIdentifier.RunSpeedMult,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.FireRateModifier,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.FwdRunSpeedMult,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.JumpHeightMult,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.AirControlMult,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.ThrustStrengthMult,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.ThrustAirControl,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.Friction,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.AmmoConsumption,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.MaxTurnRate,
+            0.0f
+        },
+        {
+            StatModifierIdentifier.TurnSpeed,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.TimeDilation,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.AccuracyModifier,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.GravityMult,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.AirResistanceMult,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.WeaponChargeupMod,
+            1.0f
+        },
+        {
+            StatModifierIdentifier.WeaponDamageDealtMod,
+            1.0f
+        },
+    };
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
 
@@ -1139,7 +1403,7 @@ public class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             CombatFlagsProp = new CombatFlagsData { Value = 0, Time = Shard.CurrentTime },
             PermissionFlagsProp = PermissionFlags,
             NemesesProp = new NemesesData { Values = Array.Empty<ulong>() },
-            SuperChargeProp = new SuperChargeData { Value = 0, Op = 0 }
+            SuperChargeProp = new SuperChargeData { Value = 100, Op = 0 }
         };
         Character_MissionAndMarkerController = new MissionAndMarkerController();
         Character_LocalEffectsController = new LocalEffectsController();
