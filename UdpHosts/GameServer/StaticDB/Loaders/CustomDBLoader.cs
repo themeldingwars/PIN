@@ -39,6 +39,13 @@ public class CustomDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, Dictionary<uint, Deployable>> LoadDeployable() 
+    {
+        return LoadJSON<Deployable>("./StaticDB/CustomData/deployable.json")
+        .GroupBy(row => row.ZoneId)
+        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
+    }
+
     public Dictionary<uint, Dictionary<uint, Melding>> LoadMelding() 
     {
         return LoadJSON<Melding>("./StaticDB/CustomData/melding.json")
