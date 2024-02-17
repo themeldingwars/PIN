@@ -49,6 +49,7 @@ internal class GameServer : PacketServer
     {
         DataUtils.Init();
         Factory.Init();
+        NewShard(ct);
     }
 
     protected override async void ServerRunThreadAsync(CancellationToken ct)
