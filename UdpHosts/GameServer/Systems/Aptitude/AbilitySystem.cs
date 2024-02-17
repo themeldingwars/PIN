@@ -20,6 +20,31 @@ public class AbilitySystem
         Factory = new Factory();
     }
 
+    public static float RegistryOp(float first, float second, Operand op)
+    {
+        switch (op)
+        {
+            case Operand.ASSIGN:
+                return second;
+            case Operand.ADDITIVE:
+                return first + second;
+            case Operand.MULTIPLICATIVE:
+                return first * second;
+            case Operand.PERK_DAMAGE_SCALAR:
+                Console.WriteLine($"Uncertain RegistryOp {op}");
+                return first * second; // TODO: Uncertain
+            case Operand.DIVIDE_FIRST_BY_SECOND:
+                Console.WriteLine($"Uncertain RegistryOp {op}");
+                return first / second;
+            case Operand.DIVIDE_SECOND_BY_FIRST:
+                Console.WriteLine($"Uncertain RegistryOp {op}");
+                return second / first;
+            default:
+                Console.WriteLine($"Unknown RegistryOp {op}");
+                return second;
+        }
+    }
+
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
         if (currentTime > LastUpdate + UpdateIntervalMs)
@@ -183,30 +208,5 @@ public class AbilitySystem
     public void HandleActivateConsumable()
     {
         throw new NotImplementedException();
-    }
-
-    public static float RegistryOp(float first, float second, Operand op)
-    {
-        switch (op)
-        {
-            case Operand.ASSIGN:
-                return second;
-            case Operand.ADDITIVE:
-                return first + second;
-            case Operand.MULTIPLICATIVE:
-                return first * second;
-            case Operand.PERK_DAMAGE_SCALAR:
-                Console.WriteLine($"Uncertain RegistryOp {op}");
-                return first * second; // TODO: Uncertain
-            case Operand.DIVIDE_FIRST_BY_SECOND:
-                Console.WriteLine($"Uncertain RegistryOp {op}");
-                return first / second;
-            case Operand.DIVIDE_SECOND_BY_FIRST:
-                Console.WriteLine($"Uncertain RegistryOp {op}");
-                return second / first;
-            default:
-                Console.WriteLine($"Unknown RegistryOp {op}");
-                return second;
-        }
     }
 }

@@ -200,7 +200,6 @@ public class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
             AllowHostilePickupProp = AllowHostilePickup,
             PersonalFactionStanceProp = null,
             ScopeBubbleInfoProp = ScopeBubble
-
         };
     }
 }

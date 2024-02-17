@@ -38,12 +38,6 @@ public class EntityManager
     private ulong ScopeInIntervalMs = 20;
     private bool hasSpawnedTestEntities = false;
 
-    public class ScopeInRequest
-    {
-        public INetworkPlayer Player;
-        public IEntity Entity;
-    }
-
     private ConcurrentQueue<ScopeInRequest> QueuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
 
     public EntityManager(Shard shard)
@@ -258,6 +252,7 @@ public class EntityManager
             {
                 ScopeIn(request.Player, request.Entity);
             }
+
             LastScopeIn = currentTime;
         }
 
@@ -813,5 +808,11 @@ public class EntityManager
                 ScopeOut(client, entity);
             }
         }
+    }
+
+    private class ScopeInRequest
+    {
+        public INetworkPlayer Player;
+        public IEntity Entity;
     }
 }

@@ -22,7 +22,7 @@ public class AuthorizeTerminalCommand : ICommand
         {
             Console.WriteLine($"AuthorizeTerminalCommand fails because there are no targets (There should be a target?)");
             return false;
-        };
+        }
 
         var terminal = context.Targets.First();
 
