@@ -299,6 +299,8 @@ public class SDBInterface
     .Where(value => value.FrameId == frameId)
     .ToArray();
 
+    public static AttributeDefinition GetAttributeDefinition(uint id) => AttributeDefinition.GetValueOrDefault(id);
+
     public static Dictionary<ushort, AttributeRange> GetItemAttributeRange(uint itemId)
     {
         return AttributeRange

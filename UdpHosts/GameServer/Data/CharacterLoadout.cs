@@ -101,6 +101,7 @@ public class CharacterLoadout
     };
 
     public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>();
+    public Dictionary<ushort, float> ItemAttributes = new Dictionary<ushort, float>();
 
     public CharacterLoadout(uint chassisId, uint loadoutId)
     {
@@ -165,6 +166,8 @@ public class CharacterLoadout
             SlottedItems.Add(LoadoutSlotType.GearGadget1, 142078);
             SlottedItems.Add(LoadoutSlotType.GearGadget2, 130419);
         }
+
+        CalculateItemAttributes();
     }
 
     public uint LoadoutID { get; set; }
@@ -236,7 +239,7 @@ public class CharacterLoadout
         .ToArray();
     }
 
-    public StatsData[] GetItemAttributes()
+    private void CalculateItemAttributes()
     {
         var result = new Dictionary<ushort, float>()
         {
@@ -272,7 +275,12 @@ public class CharacterLoadout
             }
         }
 
-        return result
+        ItemAttributes = result;
+    }
+
+    public StatsData[] GetItemAttributes()
+    {
+        return ItemAttributes
         .Select((pair) => {
             return new StatsData()
             {

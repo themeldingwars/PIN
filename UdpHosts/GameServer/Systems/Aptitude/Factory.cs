@@ -136,6 +136,20 @@ public class Factory
                 return new RequirementServerCommand(SDBInterface.GetRequirementServerCommandDef(commandId));
             case CommandType.RequireWeaponArmed:
                 return new RequireWeaponArmedCommand(SDBInterface.GetRequireWeaponArmedCommandDef(commandId));
+            case CommandType.StatModifier:
+                return new StatModifierCommand(SDBInterface.GetStatModifierCommandDef(commandId));
+            case CommandType.LoadRegisterFromItemStat:
+                return new LoadRegisterFromItemStatCommand(SDBInterface.GetLoadRegisterFromItemStatCommandDef(commandId));
+            case CommandType.SetRegister:
+                return new SetRegisterCommand(SDBInterface.GetSetRegisterCommandDef(commandId));
+            case CommandType.RegisterRandom:
+                return new RegisterRandomCommand(SDBInterface.GetRegisterRandomCommandDef(commandId));
+            case CommandType.RegisterComparison:
+                return new RegisterComparisonCommand(SDBInterface.GetRegisterComparisonCommandDef(commandId));
+            case CommandType.OrientationLock:
+                return new OrientationLockCommand(SDBInterface.GetOrientationLockCommandDef(commandId));
+            case CommandType.ApplyFreeze:
+                return new ApplyFreezeCommand(SDBInterface.GetApplyFreezeCommandDef(commandId));
             default:
                 break;
         }
