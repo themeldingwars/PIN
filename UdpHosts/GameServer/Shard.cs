@@ -29,6 +29,7 @@ public class Shard : IShard
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
         EntityMan = new EntityManager(this);
+        Chat = new ChatService(this);
         InstanceId = instanceId;
         Sender = sender;
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
@@ -43,6 +44,7 @@ public class Shard : IShard
     public MovementRelay Movement { get; }
     public EntityManager EntityMan { get; }
     public AbilitySystem Abilities { get; }
+    public ChatService Chat { get; }
     public ulong InstanceId { get; }
     public ulong CurrentTimeLong { get; private set; }
     public uint CurrentTime => unchecked((uint)CurrentTimeLong);

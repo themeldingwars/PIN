@@ -16,6 +16,7 @@ public interface IShard : IInstance, IPacketSender
     MovementRelay Movement { get; }
     EntityManager EntityMan { get; }
     AbilitySystem Abilities { get; }
+    ChatService Chat { get; }
 
     int CurrentPlayers => Clients.Count;
 
