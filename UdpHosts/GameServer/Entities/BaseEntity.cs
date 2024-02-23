@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Numerics;
 using AeroMessages.Common;
 
 namespace GameServer.Entities;
@@ -11,15 +12,15 @@ public class BaseEntity : IEntity
         Shard = shard;
         EntityId = id;
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Generic };
-        ControllerRefMap = new ConcurrentDictionary<Enums.GSS.Controllers, ushort>();
     }
 
     public ulong EntityId { get; }
     public EntityId AeroEntityId { get; protected set; }
     public IShard Shard { get; }
-    public IDictionary<Enums.GSS.Controllers, ushort> ControllerRefMap { get; }
+    public Vector3 Position { get; set; }
 
     public InteractionComponent Interaction { get; set; }
+    public ScopingComponent Scoping { get; set; }
 
     public virtual bool IsInteractable()
     {
@@ -41,8 +42,13 @@ public class BaseEntity : IEntity
         return (Interaction != null) ? Interaction.DurationMs : 0;
     }
 
-    public void RegisterController(Enums.GSS.Controllers controller)
+    public bool IsGlobalScope()
     {
-        ControllerRefMap.Add(controller, Shard.AssignNewRefId(this, controller));
+        return (Scoping != null) && Scoping.Global;
+    }
+
+    public float GetScopeRange()
+    {
+        return (Scoping != null) ? Scoping.Range : 100f;
     }
 }

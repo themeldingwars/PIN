@@ -28,7 +28,6 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerOwned => Player != null;
     public BaseEntity Owner { get; set; }
-    public Vector3 Position { get; set; }
     public Quaternion Orientation { get; set; }
     public Vector3 AimPosition => Position;
     public Vector3 AimDirection { get; set; }

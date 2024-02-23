@@ -74,7 +74,6 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public INetworkPlayer OwningPlayer { get; set; }
     public bool IsPlayerOwned => OwningPlayer != null;
 
-    public Vector3 Position { get; set; } = new Vector3();
     public Quaternion Rotation { get; set; } = Quaternion.Identity;
     public Vector3 Velocity { get; set; } = new Vector3();
     public Vector3 AimDirection { get; set; } = new Vector3(0.70707911253f, 0.707134246826f, 0.000504541851114f); // Look kinda forward instead of up

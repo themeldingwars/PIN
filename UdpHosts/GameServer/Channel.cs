@@ -376,6 +376,12 @@ public class Channel
         return SendPacketMemory(entityId, messageId, controllerId, ref packetToSend, messageEnumType);
     }
 
+    public bool SendChecksum(ulong entityId, Enums.GSS.Controllers controllerId, uint checksum)
+    {
+        var messageData = Serializer.WritePrimitive(checksum);
+        return SendPacketMemory(entityId, 2, controllerId, ref messageData);
+    }
+
     /// <summary>
     ///     Send an <see cref="IAero" /> package to the client
     /// </summary>

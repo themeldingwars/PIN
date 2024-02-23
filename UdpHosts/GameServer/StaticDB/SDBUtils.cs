@@ -208,7 +208,7 @@ public class SDBUtils
             VehicleId = vehicleId,
             FactionId = vehicleInfo.FactionId,
             Class = vehicleClass.Name,
-            ScopeRange = 300,
+            ScopeRange = 150,
             SpawnHeight = 1,
             SpawnAbility = 0,
             DespawnAbility = 0,

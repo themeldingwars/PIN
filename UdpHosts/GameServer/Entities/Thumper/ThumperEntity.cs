@@ -28,7 +28,6 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerOwned => Player != null;
     public BaseEntity Owner { get; set; }
-    public Vector3 Position { get; set; }
     public HostilityInfoData HostilityInfo { get; set; }
 
     public uint NodeType { get; set; }

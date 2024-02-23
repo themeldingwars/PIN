@@ -12,6 +12,7 @@ public class OutpostEntity : BaseEntity
         : base(shard, eid)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Outpost };
+        Scoping = new ScopingComponent() { Global = true };
         InitFields();
         InitViews(record);
     }

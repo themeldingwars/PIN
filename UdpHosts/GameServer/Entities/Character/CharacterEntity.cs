@@ -52,7 +52,6 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerControlled => Player != null;
-    public Vector3 Position { get; set; }
     public Quaternion Rotation { get; set; }
     public Vector3 Velocity { get; set; }
     public Vector3 AimDirection { get; set; }
