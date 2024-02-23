@@ -18,7 +18,7 @@ public class GameServerSettings
     public ushort Port { get; set; } = 25001;
 
     /// <summary>
-    ///    GrpcChannelAddress
+    ///    Address to use to connect to RIN.InternalAPI for GRPC. If the connection fails, GRPC will not be used.
     /// </summary>
     public string GrpcChannelAddress { get; set; } = "http://localhost:5201";
 

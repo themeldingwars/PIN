@@ -9,8 +9,8 @@ using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.Matrix.V25;
 using GameServer.Data;
+using GameServer.GRPC;
 using GameServer.Test;
-using Grpc.Net.Client;
 using GrpcGameServerAPIClient;
 using Serilog;
 using CharacterEntity = GameServer.Entities.Character.CharacterEntity;
@@ -65,9 +65,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         CharacterAndBattleframeVisuals remoteData = null;
         try
         {
-            using var channel = GrpcChannel.ForAddress("http://localhost:5201");
-            var client = new GameServerAPI.GameServerAPIClient(channel);
-            remoteData = await client.GetCharacterAndBattleframeVisualsAsync(new CharacterID { ID = (long)characterId });
+            remoteData = await GRPCService.GetCharacterAndBattleframeVisualsAsync((long)characterId);
         }
         catch
         {
