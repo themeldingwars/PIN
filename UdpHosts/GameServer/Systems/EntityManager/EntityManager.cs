@@ -19,9 +19,11 @@ using GameServer.Entities.Carryable;
 using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
 using GameServer.Entities.Melding;
+using GameServer.Entities.MeldingBubble;
 using GameServer.Entities.Outpost;
 using GameServer.Entities.Thumper;
 using GameServer.Entities.Vehicle;
+using GameServer.Enums.GSS;
 using GameServer.Extensions;
 
 namespace GameServer;
@@ -36,7 +38,17 @@ public class EntityManager
     private ulong UpdateFlushIntervalMs = 5;
     private ulong LastScopeIn = 0;
     private ulong ScopeInIntervalMs = 20;
+    private ulong LastScopeCheck = 0;
+    private ulong ScopeCheckIntervalMs = 5000;
     private bool hasSpawnedTestEntities = false;
+
+    private Dictionary<ulong, HashSet<INetworkPlayer>> ScopedPlayersByEntity = new Dictionary<ulong, HashSet<INetworkPlayer>>();
+    public int GetNumberOfScopedEntities(IPlayer player)
+    {
+        return ScopedPlayersByEntity.Values
+        .Where((set) => set.Contains(player))
+        .Count();
+    }
 
     private ConcurrentQueue<ScopeInRequest> QueuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
 
@@ -76,13 +88,14 @@ public class EntityManager
             MovementState = 0x1000,
             Time = Shard.CurrentTime,
         });
+        vehicleEntity.Scoping = new ScopingComponent() { Range = vehicleInfo.ScopeRange };
         if (owner != null)
         {
             vehicleEntity.SetOwner(owner as BaseEntity);
             
-            if (owner.GetType() == typeof(Entities.Character.CharacterEntity))
+            if (owner.GetType() == typeof(CharacterEntity))
             {
-                var character = owner as Entities.Character.CharacterEntity;
+                var character = owner as CharacterEntity;
                 if (character.IsPlayerControlled)
                 {
                     vehicleEntity.SetOwningPlayer(character.Player);
@@ -126,6 +139,12 @@ public class EntityManager
             };
         }
 
+        if (deployableInfo.ScopeRange != 0)
+        {
+            // TODO: What does ScopeRange 0 mean? Anyway, it will get a default from the component if so.
+            deployableEntity.Scoping = new ScopingComponent() { Range = deployableInfo.ScopeRange };
+        }
+
         if (deployableInfo.SpawnAbilityid != 0)
         {
             Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
@@ -143,6 +162,21 @@ public class EntityManager
             },
             null,
             deployableInfo.BuildTimeMs,
+            Timeout.Infinite);
+        }
+
+        if (deployableInfo.PoweredOnAbility != 0)
+        {
+            new System.Threading.Timer(state =>
+            {
+                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.PoweredOnAbility, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
+                if (state != null)
+                {
+                    ((System.Threading.Timer)state).Dispose();
+                }
+            },
+            null,
+            deployableInfo.BuildTimeMs + 100,
             Timeout.Infinite);
         }
     }
@@ -245,6 +279,7 @@ public class EntityManager
             SpawnZoneEntities(448);
         }
 
+        // Process queued scope-ins
         if (QueuedScopeIn.Count > 0 && currentTime > LastScopeIn + ScopeInIntervalMs)
         {
             bool ok = QueuedScopeIn.TryDequeue(out ScopeInRequest request);
@@ -265,6 +300,62 @@ public class EntityManager
                 FlushChanges(entity);
             }
         }
+
+        // Check if we should scope in/out entities for each player
+        if (currentTime > LastScopeCheck + ScopeCheckIntervalMs)
+        {
+            LastScopeCheck = currentTime;
+            var players = Shard.Clients.Values.Where((client) => (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected));
+            var entities = Shard.Entities.Values;
+
+            foreach (var entity in entities)
+            {
+                float distanceThreshold = entity.GetScopeRange();
+                var currentlyScoped = ScopedPlayersByEntity[entity.EntityId];
+                var entityPosition = entity.Position;
+                foreach (var player in players)
+                {
+                    if (player.CharacterEntity == null)
+                    {
+                        // If we somehow don't have a CharacterEntity, we can't check positions, so why bother scoping in entities.
+                        continue;
+                    }
+
+                    bool isScoped = currentlyScoped.Contains(player);
+                    bool shouldBeScoped = false;
+
+                    // Determine shouldBeScoped
+                    if (entity == player.CharacterEntity)
+                    {
+                        // Players local character should probably always be scoped in
+                        shouldBeScoped = true;
+                    }
+                    else if (entity.IsGlobalScope())
+                    {
+                        shouldBeScoped = true;
+                    }
+                    else
+                    {
+                        var playerPosition = player.CharacterEntity.Position;
+                        float distance = Vector3.Distance(entityPosition, playerPosition);
+                        shouldBeScoped = distance <= distanceThreshold;
+                    }
+
+                    // Resolve shouldBeScoped
+                    if (isScoped != shouldBeScoped)
+                    {
+                        if (shouldBeScoped)
+                        {
+                            QueuedScopeIn.Enqueue(new ScopeInRequest { Player = player, Entity = entity });
+                        }
+                        else
+                        {
+                            ScopeOut(player, entity);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public ulong GetNextGuid()
@@ -274,6 +365,7 @@ public class EntityManager
 
     public void Add(ulong guid, IEntity entity)
     {
+        ScopedPlayersByEntity.Add(guid, new());
         Shard.Entities.Add(guid, entity);
         OnAddedEntity(entity);
     }
@@ -281,6 +373,7 @@ public class EntityManager
     public void Add(IEntity entity)
     {
         var guid = new Core.Data.EntityGuid(ServerId, Shard.CurrentTime, Counter++, (byte)Enums.GSS.Controllers.Character);
+        ScopedPlayersByEntity.Add(guid.Full, new());
         Shard.Entities.Add(guid.Full, entity);
         OnAddedEntity(entity);
     }
@@ -302,35 +395,430 @@ public class EntityManager
         {
             OnRemovedEntity(entity);
             Shard.Entities.Remove(guid);
+            ScopedPlayersByEntity.Remove(guid);
         }
     }
 
-    public void ScopeInAll(INetworkPlayer player)
+    public void KeyframeRequest(INetworkClient client, IPlayer player, IEntity entity, Enums.GSS.Controllers typecode, uint clientChecksum)
     {
-        foreach (var entity in Shard.Entities.Values)
+        switch (entity)
         {
-            if (entity == player.CharacterEntity)
-            {
-                continue; // Hack: Prevent ScopeInAll from triggering keyframes for the local player's character. We have already sent down those in the login process, repeating is wasteful but also causes some issues if we don't properly persist the changes made to the views during respawn.
-            }
+            case CharacterEntity character:
+                bool isCharacterController = character.IsPlayerControlled && character.Player == player;
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.Character_BaseController:
+                        if (isCharacterController && character.Character_BaseController != null)
+                        {
+                            uint ourChecksum = character.Character_BaseController.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_BaseController, entity.EntityId, player.PlayerId);
+                            }
+                        }
 
-            QueuedScopeIn.Enqueue(new ScopeInRequest { Player = player, Entity = entity });
-        }
-    }
+                        break;
+                    case Enums.GSS.Controllers.Character_MissionAndMarkerController:
+                        if (isCharacterController && character.Character_MissionAndMarkerController != null)
+                        {
+                            uint ourChecksum = character.Character_MissionAndMarkerController.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_MissionAndMarkerController, entity.EntityId, player.PlayerId);
+                            }
+                        }
 
-    public void ScopeOutAll(INetworkPlayer player)
-    {
-        foreach (var entity in Shard.Entities.Values)
-        {
-            ScopeOut(player, entity);
+                        break;
+                    case Enums.GSS.Controllers.Character_CombatController:
+                        if (isCharacterController && character.Character_CombatController != null)
+                        {
+                            uint ourChecksum = character.Character_CombatController.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_CombatController, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Character_LocalEffectsController:
+                        if (isCharacterController && character.Character_LocalEffectsController != null)
+                        {
+                            uint ourChecksum = character.Character_LocalEffectsController.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_LocalEffectsController, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Character_SpectatorController:
+                        if (isCharacterController && character.Character_SpectatorController != null)
+                        {
+                            uint ourChecksum = character.Character_SpectatorController.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_SpectatorController, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Character_ObserverView:
+                        if (character.Character_ObserverView != null)
+                        {
+                            uint ourChecksum = character.Character_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_ObserverView, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Character_EquipmentView:
+                        if (character.Character_EquipmentView != null)
+                        {
+                            uint ourChecksum = character.Character_EquipmentView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_EquipmentView, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Character_CombatView:
+                        if (character.Character_CombatView != null)
+                        {
+                            uint ourChecksum = character.Character_CombatView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_CombatView, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Character_MovementView:
+                        if (character.Character_MovementView != null)
+                        {
+                            uint ourChecksum = character.Character_MovementView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_MovementView, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Character_TinyObjectView:
+                        if (character.Character_TinyObjectView != null)
+                        {
+                            uint ourChecksum = character.Character_TinyObjectView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(character.Character_TinyObjectView, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
+
+            case MeldingEntity melding:
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.Melding_ObserverView:
+                        if (melding.Melding_ObserverView != null)
+                        {
+                            uint ourChecksum = melding.Melding_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(melding.Melding_ObserverView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
+            case MeldingBubbleEntity meldingBubble:
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.MeldingBubble_ObserverView:
+                        if (meldingBubble.MeldingBubble_ObserverView != null)
+                        {
+                            uint ourChecksum = meldingBubble.MeldingBubble_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(meldingBubble.MeldingBubble_ObserverView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
+
+            // TODO: AreaVisualData
+            // --
+            case VehicleEntity vehicle:
+                bool isVehicleController = vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player;
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.Vehicle_BaseController:
+                        if (isVehicleController && vehicle.Vehicle_BaseController != null)
+                        {
+                            uint ourChecksum = vehicle.Vehicle_BaseController.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicle.Vehicle_BaseController, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Vehicle_CombatController:
+                        if (isVehicleController && vehicle.Vehicle_CombatController != null)
+                        {
+                            uint ourChecksum = vehicle.Vehicle_CombatController.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(vehicle.Vehicle_CombatController, entity.EntityId, player.PlayerId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Vehicle_ObserverView:
+                        if (vehicle.Vehicle_ObserverView != null)
+                        {
+                            uint ourChecksum = vehicle.Vehicle_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(vehicle.Vehicle_ObserverView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Vehicle_CombatView:
+                        if (vehicle.Vehicle_CombatView != null)
+                        {
+                            uint ourChecksum = vehicle.Vehicle_CombatView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(vehicle.Vehicle_CombatView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.Vehicle_MovementView:
+                        if (vehicle.Vehicle_MovementView != null)
+                        {
+                            uint ourChecksum = vehicle.Vehicle_MovementView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(vehicle.Vehicle_MovementView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
+            case DeployableEntity deployable:
+                switch (typecode)
+                {
+                    // TODO: Deployable_HardpointView
+                    case Enums.GSS.Controllers.Deployable_ObserverView:
+                        if (deployable.Deployable_ObserverView != null)
+                        {
+                            uint ourChecksum = deployable.Deployable_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(deployable.Deployable_ObserverView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
+
+            // TODO: Turret
+            // --
+            case OutpostEntity outpost:
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.Outpost_ObserverView:
+                        if (outpost.Outpost_ObserverView != null)
+                        {
+                            uint ourChecksum = outpost.Outpost_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(outpost.Outpost_ObserverView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
+            case ThumperEntity thumper:
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.ResourceNode_ObserverView:
+                        if (thumper.ResourceNode_ObserverView != null)
+                        {
+                            uint ourChecksum = thumper.ResourceNode_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(thumper.ResourceNode_ObserverView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
+            case CarryableEntity carryable:
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.CarryableObject_ObserverView:
+                        if (carryable.CarryableObject_ObserverView != null)
+                        {
+                            uint ourChecksum = carryable.CarryableObject_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendIAero(carryable.CarryableObject_ObserverView, entity.EntityId, 3);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
+            default:
+                Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                break;
         }
     }
 
     public void ScopeIn(INetworkPlayer player, IEntity entity)
     {
-        if (entity.GetType() == typeof(Entities.Character.CharacterEntity))
+        // Avoid sending messages if player is not in the appropriate state
+        if (!(player.Status.Equals(IPlayer.PlayerStatus.Playing) || player.Status.Equals(IPlayer.PlayerStatus.Loading)) && player.NetClientStatus.Equals(Status.Connected))
         {
-            var character = entity as Entities.Character.CharacterEntity;
+            return;
+        }
+
+        ScopedPlayersByEntity[entity.EntityId].Add(player);
+
+        if (entity.GetType() == typeof(CharacterEntity))
+        {
+            var character = entity as CharacterEntity;
 
             if (character.IsPlayerControlled && character.Player == player)
             {
@@ -381,9 +869,9 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendIAero(tinyobject, entity.EntityId, 3);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Melding.MeldingEntity))
+        else if (entity.GetType() == typeof(MeldingEntity))
         {
-            var melding = entity as Entities.Melding.MeldingEntity;
+            var melding = entity as MeldingEntity;
             var observer = melding.Melding_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -391,9 +879,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
             }
         }
-        else if (entity.GetType() == typeof(Entities.MeldingBubble.MeldingBubbleEntity))
+        else if (entity.GetType() == typeof(MeldingBubbleEntity))
         {
-            var meldingBubble = entity as Entities.MeldingBubble.MeldingBubbleEntity;
+            var meldingBubble = entity as MeldingBubbleEntity;
             var observer = meldingBubble.MeldingBubble_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -401,9 +889,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Vehicle.VehicleEntity))
+        else if (entity.GetType() == typeof(VehicleEntity))
         {
-            var vehicle = entity as Entities.Vehicle.VehicleEntity;
+            var vehicle = entity as VehicleEntity;
 
             if (vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player)
             {
@@ -435,9 +923,9 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendIAero(movement, entity.EntityId, 3);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Deployable.DeployableEntity))
+        else if (entity.GetType() == typeof(DeployableEntity))
         {
-            var deployable = entity as Entities.Deployable.DeployableEntity;
+            var deployable = entity as DeployableEntity;
             var observer = deployable.Deployable_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -445,9 +933,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Outpost.OutpostEntity))
+        else if (entity.GetType() == typeof(OutpostEntity))
         {
-            var outpost = entity as Entities.Outpost.OutpostEntity;
+            var outpost = entity as OutpostEntity;
             var observer = outpost.Outpost_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -455,9 +943,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Thumper.ThumperEntity))
+        else if (entity.GetType() == typeof(ThumperEntity))
         {
-            var thumper = entity as Entities.Thumper.ThumperEntity;
+            var thumper = entity as ThumperEntity;
             var observer = thumper.ResourceNode_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -465,9 +953,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Carryable.CarryableEntity))
+        else if (entity.GetType() == typeof(CarryableEntity))
         {
-            var carryable = entity as Entities.Carryable.CarryableEntity;
+            var carryable = entity as CarryableEntity;
             var observer = carryable.CarryableObject_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -479,9 +967,17 @@ public class EntityManager
 
     public void ScopeOut(INetworkPlayer player, IEntity entity)
     {
-        if (entity.GetType() == typeof(Entities.Character.CharacterEntity))
+        ScopedPlayersByEntity[entity.EntityId].Remove(player);
+        
+        // Avoid sending messages if player is not in the appropriate state
+        if (!(player.Status.Equals(IPlayer.PlayerStatus.Playing) || player.Status.Equals(IPlayer.PlayerStatus.Loading)) && player.NetClientStatus.Equals(Status.Connected))
         {
-            var character = entity as Entities.Character.CharacterEntity;
+            return;
+        }
+
+        if (entity.GetType() == typeof(CharacterEntity))
+        {
+            var character = entity as CharacterEntity;
 
             if (character.IsPlayerControlled && character.Player == player)
             {
@@ -580,9 +1076,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Vehicle.VehicleEntity))
+        else if (entity.GetType() == typeof(VehicleEntity))
         {
-            var vehicle = entity as Entities.Vehicle.VehicleEntity;
+            var vehicle = entity as VehicleEntity;
 
             if (vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player)
             {
@@ -626,9 +1122,9 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(movement, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Deployable.DeployableEntity))
+        else if (entity.GetType() == typeof(DeployableEntity))
         {
-            var deployable = entity as Entities.Deployable.DeployableEntity;
+            var deployable = entity as DeployableEntity;
             var observer = deployable.Deployable_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -636,9 +1132,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Outpost.OutpostEntity))
+        else if (entity.GetType() == typeof(OutpostEntity))
         {
-            var outpost = entity as Entities.Outpost.OutpostEntity;
+            var outpost = entity as OutpostEntity;
             var observer = outpost.Outpost_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -646,9 +1142,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Thumper.ThumperEntity))
+        else if (entity.GetType() == typeof(ThumperEntity))
         {
-            var outpost = entity as Entities.Thumper.ThumperEntity;
+            var outpost = entity as ThumperEntity;
             var observer = outpost.ResourceNode_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -656,9 +1152,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Carryable.CarryableEntity))
+        else if (entity.GetType() == typeof(CarryableEntity))
         {
-            var outpost = entity as Entities.Carryable.CarryableEntity;
+            var outpost = entity as CarryableEntity;
             var observer = outpost.CarryableObject_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -670,9 +1166,9 @@ public class EntityManager
 
     public void RemoveControllers(INetworkPlayer player, IEntity entity)
     {
-        if (entity.GetType() == typeof(Entities.Vehicle.VehicleEntity))
+        if (entity.GetType() == typeof(VehicleEntity))
         {
-            var vehicle = entity as Entities.Vehicle.VehicleEntity;
+            var vehicle = entity as VehicleEntity;
 
             if (vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player)
             {
@@ -696,9 +1192,9 @@ public class EntityManager
 
     public void FlushChanges(IEntity entity)
     {
-        if (entity.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (entity.GetType() == typeof(CharacterEntity))
         {
-            var character = entity as Entities.Character.CharacterEntity;
+            var character = entity as CharacterEntity;
 
             if (character.IsPlayerControlled)
             {
@@ -727,9 +1223,9 @@ public class EntityManager
 
             FlushViewChangesToEveryone(meldingBubble.MeldingBubble_ObserverView, meldingBubble.EntityId);
         }
-        else if (entity.GetType() == typeof(Entities.Vehicle.VehicleEntity))
+        else if (entity.GetType() == typeof(VehicleEntity))
         {
-            var vehicle = entity as Entities.Vehicle.VehicleEntity;
+            var vehicle = entity as VehicleEntity;
 
             if (vehicle.IsPlayerControlled)
             {
@@ -741,14 +1237,14 @@ public class EntityManager
             FlushViewChangesToEveryone(vehicle.Vehicle_CombatView, vehicle.EntityId);
             FlushViewChangesToEveryone(vehicle.Vehicle_MovementView, vehicle.EntityId);
         }
-        else if (entity.GetType() == typeof(Entities.Deployable.DeployableEntity))
+        else if (entity.GetType() == typeof(DeployableEntity))
         {
-            var deployable = entity as Entities.Deployable.DeployableEntity;
+            var deployable = entity as DeployableEntity;
             FlushViewChangesToEveryone(deployable.Deployable_ObserverView, deployable.EntityId);
         }
-        else if (entity.GetType() == typeof(Entities.Thumper.ThumperEntity))
+        else if (entity.GetType() == typeof(ThumperEntity))
         {
-            var thumper = entity as Entities.Thumper.ThumperEntity;
+            var thumper = entity as ThumperEntity;
             FlushViewChangesToEveryone(thumper.ResourceNode_ObserverView, thumper.EntityId);
         }
     }
@@ -799,14 +1295,9 @@ public class EntityManager
 
     private void OnRemovedEntity(Entities.IEntity entity)
     {
-        // TEMP: Like OnAddedEntity
-        foreach (var client in Shard.Clients.Values)
+        foreach (var client in ScopedPlayersByEntity[entity.EntityId])
         {
-            // We don't want to inform players that are still in the early steps of connecting
-            if ((client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected))
-            {
-                ScopeOut(client, entity);
-            }
+            ScopeOut(client, entity);
         }
     }
 

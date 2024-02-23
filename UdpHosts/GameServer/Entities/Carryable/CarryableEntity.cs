@@ -27,7 +27,6 @@ public class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerCarried => Player != null;
     public BaseEntity Carrier { get; set; }
-    public Vector3 Position { get; set; }
     public Quaternion Orientation { get; set; }
     public HostilityInfoData HostilityInfo { get; set; }
 

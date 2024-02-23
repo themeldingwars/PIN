@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 using AeroMessages.Common;
 
 namespace GameServer.Entities;
@@ -8,12 +9,13 @@ public interface IEntity
     ulong EntityId { get; }
     EntityId AeroEntityId { get; }
     IShard Shard { get; }
-    IDictionary<Enums.GSS.Controllers, ushort> ControllerRefMap { get; }
+    Vector3 Position { get; set; }
 
     bool IsInteractable();
     bool CanBeInteractedBy(IEntity other);
     byte GetInteractionType();
     uint GetInteractionDuration();
 
-    void RegisterController(Enums.GSS.Controllers controller);
+    bool IsGlobalScope();
+    float GetScopeRange();
 }

@@ -13,6 +13,7 @@ public class MeldingEntity : BaseEntity
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Melding };
         PerimiterSetName = perimiterSetName;
+        Scoping = new ScopingComponent() { Global = true };
         InitFields();
         InitViews();
     }

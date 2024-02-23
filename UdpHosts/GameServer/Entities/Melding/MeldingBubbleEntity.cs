@@ -12,13 +12,14 @@ public class MeldingBubbleEntity : BaseEntity
         : base(shard, eid)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.MeldingBubble };
+        Scoping = new ScopingComponent() { Global = true };
         InitFields();
         InitViews();
     }
 
     public ObserverView MeldingBubble_ObserverView { get; set; }
 
-    public PositionStruct Position { get; set; }
+    public new PositionStruct Position { get; set; }
     public RadiusStruct Radius { get; set; }
     public byte BubbleType { get; set; }
     public byte FxFlags { get; set; }

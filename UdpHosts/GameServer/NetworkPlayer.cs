@@ -363,7 +363,6 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         };
         NetChannels[ChannelType.ReliableGss].SendIAero(inventoryUpdate, CharacterEntity.EntityId);
 
-        AssignedShard.EntityMan.ScopeInAll(this); // Move elsewhere when adding actual respawning as we only need to call this once
         CharacterEntity.Alive = true; // Accept MovementInputs only after Respawn
     }
 

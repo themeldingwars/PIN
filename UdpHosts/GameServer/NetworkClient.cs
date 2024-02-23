@@ -8,7 +8,9 @@ using AeroMessages.Control;
 using AeroMessages.Matrix.V25;
 using GameServer.Controllers;
 using GameServer.Controllers.Character;
+using GameServer.Entities;
 using GameServer.Enums;
+using GameServer.Enums.GSS;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
@@ -167,9 +169,21 @@ public class NetworkClient : INetworkClient
                 Player.EnterZoneAck();
                 break;
             case MatrixPacketType.KeyframeRequest:
-                // TODO: Send checksums/keyframes in return.
                 var query = packet.Unpack<KeyframeRequest>();
-                Logger.Information($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests");
+                Logger.Information($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests. Total scoped for player: {AssignedShard.EntityMan.GetNumberOfScopedEntities(Player)}");
+                foreach (var request in query.EntityRequests)
+                {
+                    Enums.GSS.Controllers typecode = (Enums.GSS.Controllers)(request.Entity & 0x00000000000000FFul);
+                    AssignedShard.Entities.TryGetValue(request.Entity & 0xffffffffffffff00, out IEntity entity);
+                    if (entity != null)
+                    {
+                        AssignedShard.EntityMan.KeyframeRequest(this, Player, entity, typecode, request.Checksum);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"KeyframeRequest failed to find {request.Entity} ({typecode})");
+                    }
+                }
                 break;
             case MatrixPacketType.ClientStatus:
                 NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
