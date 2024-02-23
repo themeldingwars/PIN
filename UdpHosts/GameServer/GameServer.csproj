@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-  <Protobuf Include="Protos\GameServerAPI.proto" GrpcServices="Client" />
+  <Protobuf Include="GRPC\GameServerAPI.proto" GrpcServices="Client" />
   </ItemGroup>
   <Target Name="Create_App-config_from_App-Default-config" Condition="!Exists('App.config')" BeforeTargets="Build">
     <Copy SourceFiles="App.Default.config" DestinationFiles="App.config" />

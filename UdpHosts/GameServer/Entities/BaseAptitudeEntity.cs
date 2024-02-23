@@ -10,7 +10,8 @@ using AeroMessages.GSS.V66.Deployable.View;
 using GameServer;
 using GameServer.Aptitude;
 using GameServer.Entities;
-using GrpcGameServerAPIClient;
+
+namespace GameServer.Entities;
 
 public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 {

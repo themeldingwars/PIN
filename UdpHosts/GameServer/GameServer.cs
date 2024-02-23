@@ -8,6 +8,7 @@ using System.Threading.Tasks.Dataflow;
 using FauFau.Formats;
 using GameServer.Controllers;
 using GameServer.Data.SDB;
+using GameServer.GRPC;
 using GameServer.Test;
 using Grpc.Net.Client;
 using GrpcGameServerAPIClient;
@@ -43,6 +44,7 @@ internal class GameServer : PacketServer
         Logger.Information("Loading SDB");
         SDBInterface.Init(sdb);
         CustomDBInterface.Init();
+        GRPCService.Init(serverSettings.GrpcChannelAddress);
     }
 
     protected override void Startup(CancellationToken ct)
