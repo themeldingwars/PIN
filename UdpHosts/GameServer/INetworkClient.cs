@@ -32,4 +32,7 @@ public interface INetworkClient
     void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct);
     void Send(Memory<byte> packet);
     void SendAck(ChannelType forChannel, ushort forSequenceNumber, DateTime? received = null);
+
+    void SendDebugChat(string message);
+    void SendDebugLog(string log);
 }

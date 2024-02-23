@@ -1,10 +1,12 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using AeroMessages.Control;
+using AeroMessages.GSS.V66.Generic;
 using AeroMessages.Matrix.V25;
 using GameServer.Controllers;
 using GameServer.Controllers.Character;
@@ -97,6 +99,49 @@ public class NetworkClient : INetworkClient
         }
     }
 
+    public void SendDebugChat(string message)
+    {
+        if (AssignedShard != null)
+        {
+            AssignedShard.Chat.SendToPlayer(message, ChatChannel.Debug, this);
+        }
+    }
+
+    public void SendDebugLog(string message)
+    {
+        if (AssignedShard != null)
+        {
+            if (message.Length > 200)
+            {
+                List<string> splits = SplitConsoleMessage(message);
+                foreach (var split in splits)
+                {
+                    var response = new TempConsoleMessage()
+                    {
+                        ConsoleNoticeMessage = split,
+                        ConsoleCommand = string.Empty,
+                        ChatNotification = string.Empty,
+                        DebugReportArgType = string.Empty,
+                        DebugReportArgData = string.Empty,
+                    };
+                    NetChannels[ChannelType.UnreliableGss].SendIAero(response, AssignedShard.InstanceId);
+                }
+            }
+            else
+            {
+                var response = new TempConsoleMessage()
+                {
+                    ConsoleNoticeMessage = message,
+                    ConsoleCommand = string.Empty,
+                    ChatNotification = string.Empty,
+                    DebugReportArgType = string.Empty,
+                    DebugReportArgData = string.Empty,
+                };
+                NetChannels[ChannelType.UnreliableGss].SendIAero(response, AssignedShard.InstanceId);
+            }
+        }
+    }
+
     public void Send(Memory<byte> packet)
     {
         NetLastActive = DateTime.Now;
@@ -184,6 +229,7 @@ public class NetworkClient : INetworkClient
                         Console.WriteLine($"KeyframeRequest failed to find {request.Entity} ({typecode})");
                     }
                 }
+
                 break;
             case MatrixPacketType.ClientStatus:
                 NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
@@ -246,5 +292,46 @@ public class NetworkClient : INetworkClient
                 Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 break;
         }
+    }
+
+    private List<string> SplitConsoleMessage(string input)
+    {
+        List<string> result = new List<string>();
+
+        int index = 0;
+
+        while (index < input.Length)
+        {
+            int endIndex = index + 700;
+            if (endIndex >= input.Length)
+            {
+                endIndex = input.Length;
+            }
+            else
+            {
+                endIndex = FindSplitIndex(input, endIndex);
+            }
+
+            result.Add($"\n\n{input.Substring(index, endIndex - index).Trim()}");
+            index = endIndex;
+        }
+
+        return result;
+    }
+
+    private int FindSplitIndex(string input, int endIndex)
+    {
+        int splitIndex = endIndex;
+        while (splitIndex > endIndex - 745 && splitIndex > 0)
+        {
+            if (input[splitIndex] == '\n')
+            {
+                return splitIndex + 1;
+            }
+
+            splitIndex--;
+        }
+
+        return endIndex;
     }
 }

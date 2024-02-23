@@ -46,19 +46,16 @@ public class ChatService
         }
         else if (queryChannel == ChatChannel.Admin)
         {
-            // TODO: ParseCommand
+            Shard.Admin.ExecuteCommand(query.Message, ((CharacterEntity)entity).Player);
         }
         else
         {
             var player = ((CharacterEntity)entity).Player;
-            if (player != null)
-            {
-                SendToPlayer("This channel is not available", ChatChannel.Debug, player);
-            }
+            player?.SendDebugChat("This channel is not available");
         }
     }
 
-    public void SendToPlayer(string message, ChatChannel channel, INetworkPlayer player)
+    public void SendToPlayer(string message, ChatChannel channel, INetworkClient player)
     {
         var response = PrepareSingleMessage(message, channel, null);
         player.NetChannels[ChannelType.UnreliableGss].SendIAero(response, Shard.InstanceId);
