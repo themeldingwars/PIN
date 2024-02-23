@@ -362,4 +362,13 @@ public class BaseController : Base
             character.ApplyLoadout(new CharacterLoadout(chassisId, query.LoadoutId));
         }
     }
+
+    [MessageID((byte)Commands.PerformTextChat)]
+    public void PerformTextChat(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var query = packet.Unpack<PerformTextChat>();
+        var character = player.CharacterEntity;
+        var shard = player.CharacterEntity.Shard;
+        shard.Chat.CharacterPerformTextChat(client, character, query);
+    }
 }
