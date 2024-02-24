@@ -63,7 +63,7 @@ public class MeldingBubbleEntity : BaseEntity
         };
         ScopeBubbleInfo = new ScopeBubbleInfoData()
         {
-            Unk1 = 0,
+            Layer = 0,
             Unk2 = 1
         };
     }

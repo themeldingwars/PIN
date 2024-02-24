@@ -37,7 +37,7 @@ public class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
     public byte AllowHostilePickup { get; set; }
     public ScopeBubbleInfoData ScopeBubble { get; set; } = new ScopeBubbleInfoData()
     {
-        Unk1 = 0,
+        Layer = 0,
         Unk2 = 1
     };
 

@@ -310,7 +310,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             HeadMain = monsterInfo.HeadId,
             Eyes = monsterInfo.EyesId,
             Unk_1 = 0xff,
-            IsNPC = 1,
+            TargetFlags = TargetFlags.IsNPC,
             StaffFlags = 0,
             CharacterTypeId = monsterInfo.Id,
             VoiceSet = monsterInfo.VoiceSet,
@@ -408,7 +408,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 
             CharInfoId = 1,
             Unk_1 = 0xff,
-            IsNPC = 0,
+            TargetFlags = 0,
             StaffFlags = 0x3,
             CharacterTypeId = 0,
             NameLocalizationId = 0,
@@ -1181,7 +1181,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         };
 
         EnergyParams = new EnergyParamsData { Max = 1000.0f, Delay = 500, Recharge = 156.0f, Time = Shard.CurrentTime };
-        ScopeBubble = new ScopeBubbleInfoData { Unk1 = 0, Unk2 = 0 };
+        ScopeBubble = new ScopeBubbleInfoData { Layer = 0, Unk2 = 0 };
         SpawnPose = new CharacterSpawnPose
         {
             Time = Shard.CurrentTime,

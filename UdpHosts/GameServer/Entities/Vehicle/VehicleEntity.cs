@@ -550,7 +550,7 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     {
         HostilityInfo = new HostilityInfoData { Flags = 0 | HostilityInfoData.HostilityFlags.Faction, FactionId = 1 };
         ProcessDelay = new ProcessDelayData { Unk1 = 30721, Unk2 = 236 };
-        ScopeBubble = new ScopeBubbleInfoData { Unk1 = 0, Unk2 = 0 };
+        ScopeBubble = new ScopeBubbleInfoData { Layer = 0, Unk2 = 0 };
     }
 
     private void InitControllers()
