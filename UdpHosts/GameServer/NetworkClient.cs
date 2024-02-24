@@ -215,7 +215,7 @@ public class NetworkClient : INetworkClient
                 break;
             case MatrixPacketType.KeyframeRequest:
                 var query = packet.Unpack<KeyframeRequest>();
-                Logger.Information($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests. Total scoped for player: {AssignedShard.EntityMan.GetNumberOfScopedEntities(Player)}");
+                Logger.Verbose($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests. Total scoped for player: {AssignedShard.EntityMan.GetNumberOfScopedEntities(Player)}");
                 foreach (var request in query.EntityRequests)
                 {
                     Enums.GSS.Controllers typecode = (Enums.GSS.Controllers)(request.Entity & 0x00000000000000FFul);
