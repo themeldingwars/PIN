@@ -43,18 +43,19 @@ public class EntityManager
     private bool hasSpawnedTestEntities = false;
 
     private Dictionary<ulong, HashSet<INetworkPlayer>> ScopedPlayersByEntity = new Dictionary<ulong, HashSet<INetworkPlayer>>();
-    public int GetNumberOfScopedEntities(IPlayer player)
-    {
-        return ScopedPlayersByEntity.Values
-        .Where((set) => set.Contains(player))
-        .Count();
-    }
-
+    
     private ConcurrentQueue<ScopeInRequest> QueuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
 
     public EntityManager(Shard shard)
     {
         Shard = shard;
+    }
+
+    public int GetNumberOfScopedEntities(IPlayer player)
+    {
+        return ScopedPlayersByEntity.Values
+        .Where((set) => set.Contains(player))
+        .Count();
     }
 
     public void SpawnCharacter(uint typeId, Vector3 position)
