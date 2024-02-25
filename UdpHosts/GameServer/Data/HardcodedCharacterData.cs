@@ -73,6 +73,7 @@ public static class HardcodedCharacterData
         { 246, 124356 }, // Beach Party
         { 247, 77733 }, // BattleLab Trainee
     };
+
     public static uint LookupTempAvailableLoadoutId(uint chassisId) => TempAvailableLoadouts
     .Where((pair) => pair.Value == chassisId)
     .Select((pair) => pair.Key)
