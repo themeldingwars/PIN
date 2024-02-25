@@ -7,8 +7,9 @@ using Shared.Udp;
 
 namespace GameServer;
 
-public interface IShard : IInstance, IPacketSender
+public interface IShard : IPacketSender
 {
+    ulong InstanceId { get; }
     IDictionary<uint, INetworkPlayer> Clients { get; }
     IDictionary<ulong, IEntity> Entities { get; }
     PhysicsEngine Physics { get; }
