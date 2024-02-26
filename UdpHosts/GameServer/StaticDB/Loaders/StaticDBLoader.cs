@@ -266,6 +266,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, VehicleCalldownCommandDef> LoadVehicleCalldownCommandDef()
+    {
+        return LoadStaticDB<VehicleCalldownCommandDef>("aptfs::VehicleCalldownCommandDef")
+        .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, FireProjectileCommandDef> LoadFireProjectileCommandDef()
     {
         return LoadStaticDB<FireProjectileCommandDef>("aptfs::FireProjectileCommandDef")
@@ -275,6 +281,12 @@ public class StaticDBLoader : ISDBLoader
     public Dictionary<uint, ResourceNodeBeaconCalldownCommandDef> LoadResourceNodeBeaconCalldownCommandDef()
     {
         return LoadStaticDB<ResourceNodeBeaconCalldownCommandDef>("aptfs::ResourceNodeBeaconCalldownCommandDef")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, AttemptToCalldownVehicleCommandDef> LoadAttemptToCalldownVehicleCommandDef()
+    {
+        return LoadStaticDB<AttemptToCalldownVehicleCommandDef>("aptfs::AttemptToCalldownVehicleCommandDef")
         .ToDictionary(row => row.Id);
     }
 

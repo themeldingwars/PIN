@@ -11,6 +11,7 @@ public class GameServerModule : Module
     {
         RegisterTypes(builder);
         RegisterInstances(builder);
+
         base.Load(builder);
     }
 
@@ -24,28 +25,31 @@ public class GameServerModule : Module
     private static void RegisterInstances(ContainerBuilder builder)
     {
         builder.Register(ctx =>
-                         {
-                             var loggerConfig = new LoggerConfiguration()
-                                                .ReadFrom.AppSettings()
-                                                .WriteTo.Console(theme: SerilogTheme.Custom);
+        {
+            var loggerConfig = new LoggerConfiguration()
+            .ReadFrom.AppSettings()
+            .WriteTo.Console(theme: SerilogTheme.Custom);
 
-                             var settings = ctx.Resolve<GameServerSettings>();
+            var settings = ctx.Resolve<GameServerSettings>();
 
-                             if (settings.LogLevel.HasValue)
-                             {
-                                 loggerConfig = loggerConfig.MinimumLevel.Is(settings.LogLevel.Value);
-                             }
+            if (settings.LogLevel.HasValue)
+            {
+                loggerConfig = loggerConfig.MinimumLevel.Is(settings.LogLevel.Value);
+            }
 
-                             return loggerConfig.CreateLogger();
-                         }).As<ILogger>().SingleInstance();
+            return loggerConfig.CreateLogger();
+        })
+        .As<ILogger>().SingleInstance();
+
         builder.Register(ctx =>
-                         {
-                            var settings = ctx.Resolve<GameServerSettings>();
+        {
+            var settings = ctx.Resolve<GameServerSettings>();
 
-                            StaticDB sdb = new StaticDB();
-                            sdb.Read(settings.StaticDBPath);
+            StaticDB sdb = new StaticDB();
+            sdb.Read(settings.StaticDBPath);
 
-                            return sdb;
-                         }).As<StaticDB>().SingleInstance();
+            return sdb;
+        })
+        .As<StaticDB>().SingleInstance();
     }
 }

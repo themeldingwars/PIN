@@ -150,6 +150,14 @@ public class Factory
                 return new OrientationLockCommand(SDBInterface.GetOrientationLockCommandDef(commandId));
             case CommandType.ApplyFreeze:
                 return new ApplyFreezeCommand(SDBInterface.GetApplyFreezeCommandDef(commandId));
+            case CommandType.VehicleCalldown:
+                return new VehicleCalldownCommand(SDBInterface.GetVehicleCalldownCommandDef(commandId));
+            case CommandType.DeployableCalldown:
+                return new DeployableCalldownCommand(SDBInterface.GetDeployableCalldownCommandDef(commandId));
+            case CommandType.ResourceNodeBeaconCalldown:
+                return new ResourceNodeBeaconCalldownCommand(SDBInterface.GetResourceNodeBeaconCalldownCommandDef(commandId));
+            case CommandType.AttemptToCalldownVehicle:
+                return new AttemptToCalldownVehicleCommand(SDBInterface.GetAttemptToCalldownVehicleCommandDef(commandId));
             default:
                 break;
         }

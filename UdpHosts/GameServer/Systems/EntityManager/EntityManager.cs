@@ -60,7 +60,7 @@ public class EntityManager
 
     public void SpawnCharacter(uint typeId, Vector3 position)
     {
-        var characterEntity = new CharacterEntity(Shard, GetNextGuid() & 0xffffffffffffff00);
+        var characterEntity = new CharacterEntity(Shard, Shard.GetNextGuid());
         characterEntity.LoadMonster(typeId);
         characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, Shard.CurrentTime);
         characterEntity.SetPosition(position);
@@ -71,7 +71,7 @@ public class EntityManager
     public void SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, IEntity owner, bool autoMount = false)
     {
         var vehicleInfo = SDBUtils.GetDetailedVehicleInfo(typeId);
-        var vehicleEntity = new VehicleEntity(Shard, GetNextGuid() & 0xffffffffffffff00);
+        var vehicleEntity = new VehicleEntity(Shard, Shard.GetNextGuid());
         vehicleEntity.Load(vehicleInfo);
         position.Z += vehicleInfo.SpawnHeight;
         vehicleEntity.SetSpawnPose(new AeroMessages.GSS.V66.Vehicle.Controller.SpawnPoseData()
@@ -120,7 +120,7 @@ public class EntityManager
     public void SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation)
     {
         var deployableInfo = SDBInterface.GetDeployable(typeId);
-        var deployableEntity = new DeployableEntity(Shard,  GetNextGuid() & 0xffffffffffffff00, typeId, 0);
+        var deployableEntity = new DeployableEntity(Shard, Shard.GetNextGuid(), typeId, 0);
         var aimDirection = new Vector3(deployableInfo.AimDirection.x, deployableInfo.AimDirection.y, deployableInfo.AimDirection.z);
         deployableEntity.SetPosition(position);
         deployableEntity.SetOrientation(orientation);
@@ -184,27 +184,27 @@ public class EntityManager
 
     public void SpawnMelding(string perimiterSetName, ActiveDataStruct activeData)
     {
-        var meldingEntity = new MeldingEntity(Shard,  GetNextGuid() & 0xffffffffffffff00, perimiterSetName);
+        var meldingEntity = new MeldingEntity(Shard, Shard.GetNextGuid(), perimiterSetName);
         meldingEntity.SetActiveData(activeData);
         Add(meldingEntity.EntityId, meldingEntity);
     }
 
     public void SpawnOutpost(Outpost outpost)
     {
-        var outpostEntity = new OutpostEntity(Shard,  GetNextGuid() & 0xffffffffffffff00, outpost);
+        var outpostEntity = new OutpostEntity(Shard, Shard.GetNextGuid(), outpost);
         Add(outpostEntity.EntityId, outpostEntity);
     }
 
     public void SpawnThumper(uint nodeType, uint beaconType, Vector3 position)
     {
-        var thumperEntity = new ThumperEntity(Shard, GetNextGuid() & 0xffffffffffffff00, nodeType, beaconType);
+        var thumperEntity = new ThumperEntity(Shard, Shard.GetNextGuid(), nodeType, beaconType);
         thumperEntity.SetPosition(position);
         Add(thumperEntity.EntityId, thumperEntity);
     }
 
     public void SpawnCarryable(uint type, Vector3 position)
     {
-        var carryableEntity = new CarryableEntity(Shard, GetNextGuid() & 0xffffffffffffff00, type);
+        var carryableEntity = new CarryableEntity(Shard, Shard.GetNextGuid(), type);
         carryableEntity.SetPosition(position);
         Add(carryableEntity.EntityId, carryableEntity);
     }
@@ -357,11 +357,6 @@ public class EntityManager
                 }
             }
         }
-    }
-
-    public ulong GetNextGuid()
-    {
-        return new Core.Data.EntityGuid(ServerId, Shard.CurrentTime, Counter++, (byte)Enums.GSS.Controllers.Character).Full;
     }
 
     public void Add(ulong guid, IEntity entity)

@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using GameServer.Aptitude;
+using GameServer.Data;
 using GameServer.Entities;
 using Shared.Common;
 using Shared.Udp;
@@ -124,6 +125,11 @@ public class Shard : IShard
         EntityRefMap.Add(_lastEntityRefId, new Tuple<IEntity, Enums.GSS.Controllers>(entity, controller));
 
         return unchecked(_lastEntityRefId++);
+    }
+
+    public ulong GetNextGuid(byte type = (byte)Enums.GSS.Controllers.Generic)
+    {
+        return GuidService.GetNext(this, type);
     }
 
     protected virtual bool ShouldNetworkTick(double deltaTime, ulong currentTime)

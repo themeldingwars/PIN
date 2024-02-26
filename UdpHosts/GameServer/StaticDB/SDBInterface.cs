@@ -80,8 +80,10 @@ public class SDBInterface
     private static Dictionary<uint, ForcePushCommandDef> ForcePushCommandDef;
     private static Dictionary<uint, ApplyImpulseCommandDef> ApplyImpulseCommandDef;
     private static Dictionary<uint, DeployableCalldownCommandDef> DeployableCalldownCommandDef;
+    private static Dictionary<uint, VehicleCalldownCommandDef> VehicleCalldownCommandDef;
     private static Dictionary<uint, FireProjectileCommandDef> FireProjectileCommandDef;
     private static Dictionary<uint, ResourceNodeBeaconCalldownCommandDef> ResourceNodeBeaconCalldownCommandDef;
+    private static Dictionary<uint, AttemptToCalldownVehicleCommandDef> AttemptToCalldownVehicleCommandDef;
     private static Dictionary<uint, RegisterClientProximityCommandDef> RegisterClientProximityCommandDef;
     private static Dictionary<uint, CombatFlagsCommandDef> CombatFlagsCommandDef;
     private static Dictionary<uint, ApplyFreezeCommandDef> ApplyFreezeCommandDef;
@@ -221,6 +223,8 @@ public class SDBInterface
         DeployableCalldownCommandDef = loader.LoadDeployableCalldownCommandDef();
         FireProjectileCommandDef = loader.LoadFireProjectileCommandDef();
         ResourceNodeBeaconCalldownCommandDef = loader.LoadResourceNodeBeaconCalldownCommandDef();
+        AttemptToCalldownVehicleCommandDef = loader.LoadAttemptToCalldownVehicleCommandDef();
+        VehicleCalldownCommandDef = loader.LoadVehicleCalldownCommandDef();
         RegisterClientProximityCommandDef = loader.LoadRegisterClientProximityCommandDef();
         CombatFlagsCommandDef = loader.LoadCombatFlagsCommandDef();
         ApplyFreezeCommandDef = loader.LoadApplyFreezeCommandDef();
@@ -317,6 +321,7 @@ public class SDBInterface
     public static WarpaintPalette GetWarpaintPalette(uint id) => WarpaintPalettes.GetValueOrDefault(id);
 
     // dbitems
+    public static RootItem GetRootItem(uint id) => RootItem.GetValueOrDefault(id);
     public static AbilityModule GetAbilityModule(uint id) => AbilityModule.GetValueOrDefault(id);
     public static Battleframe GetBattleframe(uint id) => Battleframe.GetValueOrDefault(id);
 
@@ -369,8 +374,10 @@ public class SDBInterface
     public static ForcePushCommandDef GetForcePushCommandDef(uint id) => ForcePushCommandDef.GetValueOrDefault(id);
     public static ApplyImpulseCommandDef GetApplyImpulseCommandDef(uint id) => ApplyImpulseCommandDef.GetValueOrDefault(id);
     public static DeployableCalldownCommandDef GetDeployableCalldownCommandDef(uint id) => DeployableCalldownCommandDef.GetValueOrDefault(id);
+    public static VehicleCalldownCommandDef GetVehicleCalldownCommandDef(uint id) => VehicleCalldownCommandDef.GetValueOrDefault(id);
     public static FireProjectileCommandDef GetFireProjectileCommandDef(uint id) => FireProjectileCommandDef.GetValueOrDefault(id);
     public static ResourceNodeBeaconCalldownCommandDef GetResourceNodeBeaconCalldownCommandDef(uint id) => ResourceNodeBeaconCalldownCommandDef.GetValueOrDefault(id);
+    public static AttemptToCalldownVehicleCommandDef GetAttemptToCalldownVehicleCommandDef(uint id) => AttemptToCalldownVehicleCommandDef.GetValueOrDefault(id);
     public static RegisterClientProximityCommandDef GetRegisterClientProximityCommandDef(uint id) => RegisterClientProximityCommandDef.GetValueOrDefault(id);
     public static CombatFlagsCommandDef GetCombatFlagsCommandDef(uint id) => CombatFlagsCommandDef.GetValueOrDefault(id);
     public static ApplyFreezeCommandDef GetApplyFreezeCommandDef(uint id) => ApplyFreezeCommandDef.GetValueOrDefault(id);

@@ -1,6 +1,7 @@
 namespace GameServer.Admin;
 
-[ServerCommand("Toggle (hacky) spectator mode", "spectate", "flycam")]
+// TODO: Not functioning as intended atm
+//[ServerCommand("Toggle (hacky) spectator mode", "spectate", "flycam")]
 public class SpectateServerCommand : ServerCommand
 {
     public override void Execute(string[] parameters, ServerCommandContext context)
