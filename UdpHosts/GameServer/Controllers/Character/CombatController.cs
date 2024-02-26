@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
@@ -115,6 +116,53 @@ public class CombatController : Base
     {
         var query = packet.Unpack<CancelReload>();
         player.CharacterEntity.SetWeaponReloadCancelled(query.Time);
+    }
+
+    [MessageID((byte)Commands.ActivateConsumable)]
+    public void ActivateConsumable(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var query = packet.Unpack<ActivateConsumable>();
+        Console.WriteLine($"ActivateConsumable {query.ItemSdbId}");
+        if (query == null)
+        {
+            return;
+        }
+
+        var abilityModule = SDBInterface.GetAbilityModule(query.ItemSdbId);
+        if (abilityModule == null)
+        {
+            return;
+        }
+
+        uint abilityId = abilityModule.AbilityChainId;
+        if (abilityId != 0)
+        {
+            var character = player.CharacterEntity;
+            var activationTime = query.Time;
+            if (character.IsPlayerControlled)
+            {
+                var message = new AbilityActivated
+                {
+                    ActivatedAbilityId = abilityId,
+                    ActivatedTime = activationTime,
+                    AbilityCooldownsData = new AbilityCooldownsData
+                    {
+                        ActiveCooldowns_Group1 = Array.Empty<ActiveCooldown>(),
+                        ActiveCooldowns_Group2 = Array.Empty<ActiveCooldown>(),
+                        Unk = 0,
+                        GlobalCooldown_Activated_Time = activationTime,
+                        GlobalCooldown_ReadyAgain_Time = activationTime + 300,
+                    }
+                };
+                Console.WriteLine($"ActivateAbility {message.ActivatedAbilityId} at {message.ActivatedTime}");
+                character.Player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+            }
+
+            var initiator = character as IAptitudeTarget;
+            var shard = player.CharacterEntity.Shard;
+            var targets = new HashSet<IAptitudeTarget>();
+            shard.Abilities.HandleActivateAbility(shard, initiator, abilityId, activationTime, targets);
+        }
     }
 
     [MessageID((byte)Commands.ActivateAbility)]

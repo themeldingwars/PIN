@@ -183,9 +183,36 @@ public class BaseController : Base
         }
 
         var character = player.CharacterEntity;
-        var position = character.Position;
-        var entityMan = client.AssignedShard.EntityMan;
-        entityMan.SpawnVehicle(vehicleCalldownRequest.VehicleID, position, Quaternion.Identity, character);
+        var abilities = client.AssignedShard.Abilities;
+        abilities.HandleVehicleCalldownRequest(character.EntityId, vehicleCalldownRequest);
+    }
+
+    [MessageID((byte)Commands.DeployableCalldownRequest)]
+    public void DeployableCalldownRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var deployableCalldownRequest = packet.Unpack<DeployableCalldownRequest>();
+        if (deployableCalldownRequest == null)
+        {
+            return;
+        }
+    
+        var character = player.CharacterEntity;
+        var abilities = client.AssignedShard.Abilities;
+        abilities.HandleDeployableCalldownRequest(character.EntityId, deployableCalldownRequest);
+    }
+
+    [MessageID((byte)Commands.ResourceNodeBeaconCalldownRequest)]
+    public void ResourceNodeBeaconCalldownRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var thumperCalldownRequest = packet.Unpack<ResourceNodeBeaconCalldownRequest>();
+        if (thumperCalldownRequest == null)
+        {
+            return;
+        }
+    
+        var character = player.CharacterEntity;
+        var abilities = client.AssignedShard.Abilities;
+        abilities.HandleResourceNodeBeaconCalldownRequest(character.EntityId, thumperCalldownRequest);
     }
 
     [MessageID((byte)Commands.SetEffectsFlag)]

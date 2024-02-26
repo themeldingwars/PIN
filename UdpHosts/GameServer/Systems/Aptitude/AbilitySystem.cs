@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using AeroMessages.GSS.V66.Character.Command;
 using GameServer.Data.SDB;
 using GameServer.Enums;
 
@@ -10,6 +11,9 @@ public class AbilitySystem
 {
     public Factory Factory;
     private Shard Shard;
+    private Dictionary<ulong, VehicleCalldownRequest> PlayerVehicleCalldownRequests;
+    private Dictionary<ulong, DeployableCalldownRequest> PlayerDeployableCalldownRequests;
+    private Dictionary<ulong, ResourceNodeBeaconCalldownRequest> PlayerThumperCalldownRequests;
 
     private ulong LastUpdate = 0;
     private ulong UpdateIntervalMs = 20;
@@ -18,6 +22,9 @@ public class AbilitySystem
     {
         Shard = shard;
         Factory = new Factory();
+        PlayerVehicleCalldownRequests = new();
+        PlayerDeployableCalldownRequests = new();
+        PlayerThumperCalldownRequests = new();
     }
 
     public static float RegistryOp(float first, float second, Operand op)
@@ -137,19 +144,73 @@ public class AbilitySystem
         }
     }
 
-    public void HandleVehicleCalldownRequest()
+    public VehicleCalldownRequest TryConsumeVehicleCalldownRequest(ulong entityId)
     {
-        throw new NotImplementedException();
+        if (PlayerVehicleCalldownRequests.ContainsKey(entityId))
+        {
+            var result = PlayerVehicleCalldownRequests[entityId];
+            PlayerVehicleCalldownRequests.Remove(entityId);
+            return result;
+        }
+
+        return null;
     }
 
-    public void HandleDeployableCalldownRequest()
+    public DeployableCalldownRequest TryConsumeDeployableCalldownRequest(ulong entityId)
     {
-        throw new NotImplementedException();
+        if (PlayerDeployableCalldownRequests.ContainsKey(entityId))
+        {
+            var result = PlayerDeployableCalldownRequests[entityId];
+            PlayerDeployableCalldownRequests.Remove(entityId);
+            return result;
+        }
+
+        return null;
     }
 
-    public void HandleResourceNodeBeaconCalldownRequest()
+    public ResourceNodeBeaconCalldownRequest TryConsumeResourceNodeBeaconCalldownRequest(ulong entityId)
     {
-        throw new NotImplementedException();
+        if (PlayerThumperCalldownRequests.ContainsKey(entityId))
+        {
+            var result = PlayerThumperCalldownRequests[entityId];
+            PlayerThumperCalldownRequests.Remove(entityId);
+            return result;
+        }
+
+        return null;
+    }
+
+    public void HandleVehicleCalldownRequest(ulong entityId, VehicleCalldownRequest request)
+    {
+        if (PlayerVehicleCalldownRequests.ContainsKey(entityId))
+        {
+            Console.WriteLine($"Discarded an unconsumed vehicle calldown request");
+            PlayerVehicleCalldownRequests.Remove(entityId);
+        }
+        
+        PlayerVehicleCalldownRequests.Add(entityId, request);
+    }
+
+    public void HandleDeployableCalldownRequest(ulong entityId, DeployableCalldownRequest request)
+    {
+        if (PlayerDeployableCalldownRequests.ContainsKey(entityId))
+        {
+            Console.WriteLine($"Discarded an unconsumed deployable calldown request");
+            PlayerDeployableCalldownRequests.Remove(entityId);
+        }
+        
+        PlayerDeployableCalldownRequests.Add(entityId, request);
+    }
+
+    public void HandleResourceNodeBeaconCalldownRequest(ulong entityId, ResourceNodeBeaconCalldownRequest request)
+    {
+        if (PlayerThumperCalldownRequests.ContainsKey(entityId))
+        {
+            Console.WriteLine($"Discarded an unconsumed thumper calldown request");
+            PlayerThumperCalldownRequests.Remove(entityId);
+        }
+        
+        PlayerThumperCalldownRequests.Add(entityId, request);
     }
 
     public void HandleLocalProximityAbilitySuccess(IShard shard, IAptitudeTarget source, uint commandId, uint time, HashSet<IAptitudeTarget> targets)
