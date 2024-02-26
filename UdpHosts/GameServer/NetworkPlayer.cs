@@ -110,7 +110,6 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         foreach ((uint resource, uint quantity) in HardcodedCharacterData.FallbackInventoryResources)
         {
-            Console.WriteLine($"Add resource {resource} quant {quantity}");
             Inventory.AddResource(resource, quantity);
         }
 
