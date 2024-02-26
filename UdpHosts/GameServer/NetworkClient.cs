@@ -144,6 +144,11 @@ public class NetworkClient : INetworkClient
 
     public void Send(Memory<byte> packet)
     {
+        if (NetClientStatus == Status.Disconnecting || NetClientStatus == Status.Aborted)
+        {
+            return;
+        }
+
         NetLastActive = DateTime.Now;
 
         var t = new Memory<byte>(new byte[4 + packet.Length]);
