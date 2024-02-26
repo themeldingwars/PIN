@@ -242,7 +242,6 @@ public class EntityManager
         foreach (var entry in CustomDBInterface.GetZoneDeployables(448))
         {
             var deployable = entry.Value;
-            Console.WriteLine($"Spawning deployable {deployable.Id}");
             SpawnDeployable(deployable.Type, deployable.Position, deployable.Orientation);
         }
 
