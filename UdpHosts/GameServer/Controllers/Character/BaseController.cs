@@ -382,11 +382,19 @@ public class BaseController : Base
     public void SelectLoadout(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var query = packet.Unpack<SelectLoadout>();
-        var character = player.CharacterEntity;
-        var chassisId = HardcodedCharacterData.TempAvailableLoadouts.GetValueOrDefault(query.LoadoutId);
-        if (chassisId != 0)
+        var loadoutRefData = player.Inventory.GetLoadoutReferenceData(query.LoadoutId);
+        if (loadoutRefData != null)
         {
-            character.ApplyLoadout(new CharacterLoadout(chassisId, query.LoadoutId));
+            var loadout = new CharacterLoadout(loadoutRefData);
+            player.CharacterEntity.ApplyLoadout(loadout);
+
+            // Several UI components (like PaperdollSlotting) only refresh when ON_LEVEL_CHANGED fires.
+            // Since we dont yet implement progression we just force an update here.
+            if (player.CharacterEntity.Character_BaseController != null)
+            {   
+                player.CharacterEntity.Character_BaseController.LevelProp = HardcodedCharacterData.Level;
+                player.CharacterEntity.Character_BaseController.EffectiveLevelProp = HardcodedCharacterData.EffectiveLevel;
+            }
         }
     }
 

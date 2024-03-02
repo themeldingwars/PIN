@@ -103,79 +103,28 @@ public class CharacterLoadout
     public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>();
     public Dictionary<ushort, float> ItemAttributes = new Dictionary<ushort, float>();
 
-    public CharacterLoadout(uint chassisId, uint loadoutId)
-    {
-        LoadoutID = loadoutId;
-        VehicleID = 77087;
-        GliderID = 81423;
-        ChassisID = chassisId;
-        BackpackID = SDBUtils.GetChassisDefaultBackpack(ChassisID);
-
-        ChassisWarpaint = SDBUtils.GetChassisWarpaint(ChassisID, 0, 0, 0, 0);
-
-        // TEMP: Load some default equipment :)
-        bool forceFallback = false;
-        Dictionary<byte, CharCreateLoadoutSlots> defaultSlots = null;
-        if (loadoutId != 0)
-        {
-            // loadoutId provided, try loading that one 
-            defaultSlots = SDBUtils.GetDefaultLoadoutSlots(LoadoutID);
-        }
-
-        if (defaultSlots == null)
-        {
-            // Still no slots, try loading one that works for this chassis
-            defaultSlots = SDBUtils.GetChassisDefaultLoadoutSlots(ChassisID);
-        }
-
-        if (!forceFallback && defaultSlots != null)
-        {
-            foreach (LoadoutSlotType slot in defaultSlots.Keys)
-            {
-                if (LoadoutAbilitySlots.Contains(slot) || LoadoutChassisSlots.Contains(slot) || LoadoutWeaponSlots.Contains(slot))
-                {
-                    CharCreateLoadoutSlots record = defaultSlots.GetValueOrDefault((byte)slot);
-                    if (record.DefaultPveModule != 0)
-                    {
-                        SlottedItems.Add(slot, record.DefaultPveModule);
-                    }
-                    else if (record.DefaultPvpModule != 0)
-                    {
-                        SlottedItems.Add(slot, record.DefaultPvpModule);
-                    }
-                }
-            }
-        }
-        else
-        {
-            // Fallback to harcoded setup
-            SlottedItems.Add(LoadoutSlotType.Primary, 134616);
-            SlottedItems.Add(LoadoutSlotType.Secondary, 114316);
-            SlottedItems.Add(LoadoutSlotType.AbilityHKM, 113931);
-            SlottedItems.Add(LoadoutSlotType.Ability1, 143330);
-            SlottedItems.Add(LoadoutSlotType.Ability2, 136056);
-            SlottedItems.Add(LoadoutSlotType.Ability3, 113552);
-            SlottedItems.Add(LoadoutSlotType.GearTorso, 126575);
-            SlottedItems.Add(LoadoutSlotType.GearAuxWeapon, 129458);
-            SlottedItems.Add(LoadoutSlotType.GearMedicalSystem, 129056);
-            SlottedItems.Add(LoadoutSlotType.GearHead, 125845);
-            SlottedItems.Add(LoadoutSlotType.GearArms, 128036);
-            SlottedItems.Add(LoadoutSlotType.GearLegs, 128766);
-            SlottedItems.Add(LoadoutSlotType.GearReactor, 127306);
-            SlottedItems.Add(LoadoutSlotType.GearOS, 129202);
-            SlottedItems.Add(LoadoutSlotType.GearGadget1, 142078);
-            SlottedItems.Add(LoadoutSlotType.GearGadget2, 130419);
-        }
-
-        CalculateItemAttributes();
-    }
-
     public uint LoadoutID { get; set; }
     public uint VehicleID { get; set; }
     public uint GliderID { get; set; }
     public uint ChassisID { get; set; }
     public uint BackpackID { get; set; }
     public ChassisWarpaintResult ChassisWarpaint { get; set; }
+ 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CharacterLoadout"/> class.
+    /// </summary>
+    public CharacterLoadout()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CharacterLoadout"/> class.
+    /// </summary>
+    /// <param name="refData">Data to setup the loadout with</param>
+    public CharacterLoadout(LoadoutReferenceData refData)
+    {
+        InitFromLoadoutReferenceData(refData);
+    }
 
     public VisualsBlock GetChassisVisuals()
     {
@@ -256,7 +205,7 @@ public class CharacterLoadout
     public StatsData[] GetPrimaryWeaponAttributes()
     {
         var result = new Dictionary<ushort, float>();
-        var itemId = SlottedItems[LoadoutSlotType.Primary];
+        var itemId = SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary);
         if (itemId != 0)
         {
             var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
@@ -288,7 +237,7 @@ public class CharacterLoadout
     public StatsData[] GetSecondaryWeaponAttributes()
     {
         var result = new Dictionary<ushort, float>();
-        var itemId = SlottedItems[LoadoutSlotType.Secondary];
+        var itemId = SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary);
         if (itemId != 0)
         {
             var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
@@ -315,6 +264,24 @@ public class CharacterLoadout
             };
         })
         .ToArray();
+    }
+
+    private void InitFromLoadoutReferenceData(LoadoutReferenceData refData)
+    {
+        VehicleID = 77087;
+        GliderID = 81423;
+        LoadoutID = refData.LoadoutId;
+        ChassisID = refData.ChassisId;
+        BackpackID = SDBUtils.GetChassisDefaultBackpack(ChassisID);
+        ChassisWarpaint = SDBUtils.GetChassisWarpaint(ChassisID, 0, 0, 0, 0);
+
+        // Assume PvE
+        foreach (var (slot, type) in refData.SlottedItemsPvE)
+        {
+            SlottedItems.Add(slot, type);
+        }
+
+        CalculateItemAttributes();
     }
 
     private void CalculateItemAttributes()

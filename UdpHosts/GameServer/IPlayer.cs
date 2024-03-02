@@ -25,6 +25,7 @@ public interface IPlayer
     ulong CharacterId { get; }
     ulong EntityId => CharacterId & 0xffffffffffffff00; // Ignore last byte
     CharacterEntity CharacterEntity { get; }
+    CharacterInventory Inventory { get; set; }
     PlayerStatus Status { get; }
     Zone CurrentZone { get; }
     uint LastRequestedUpdate { get; set; }
