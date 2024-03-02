@@ -50,10 +50,10 @@ public class CreateItemServerCommand : ServerCommand
         {
             Item = new()
             {
-                LootSdbID = typeId,
-                Unk1 = (ushort)quantity,
+                SdbId = typeId,
+                Quantity = (ushort)quantity,
             },
-            Unk1 = 1,
+            RewardType = 1,
         };
         context.SourcePlayer.NetChannels[ChannelType.ReliableGss]
                    .SendIAero(msg, context.SourcePlayer.CharacterEntity.EntityId);
