@@ -19,6 +19,7 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.ResourceNode };
         NodeType = nodeType;
         BeaconType = beaconType;
+        Scoping = new ScopingComponent() { Global = true };
         InitFields();
         InitViews();
     }
