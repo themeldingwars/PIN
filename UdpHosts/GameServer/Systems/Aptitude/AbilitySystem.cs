@@ -88,7 +88,7 @@ public class AbilitySystem
     {
         if (effectId == 0)
         {
-             return;
+            return;
         }
 
         var applyContext = Context.CopyContext(context);

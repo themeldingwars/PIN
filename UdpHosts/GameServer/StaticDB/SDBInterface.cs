@@ -30,6 +30,7 @@ public class SDBInterface
     private static Dictionary<uint, RootItem> RootItem;
     private static Dictionary<uint, AbilityModule> AbilityModule;
     private static Dictionary<uint, Battleframe> Battleframe;
+    private static Dictionary<uint, CarryableObject> CarryableObject;
 
     // apt
     private static Dictionary<uint, BaseCommandDef> BaseCommandDef;
@@ -173,6 +174,7 @@ public class SDBInterface
         RootItem = loader.LoadRootItem();
         AbilityModule = loader.LoadAbilityModule();
         Battleframe = loader.LoadBattleframe();
+        CarryableObject = loader.LoadCarryableObject();
 
         // apt
         StatusEffectData = loader.LoadStatusEffectData();
@@ -324,6 +326,7 @@ public class SDBInterface
     public static RootItem GetRootItem(uint id) => RootItem.GetValueOrDefault(id);
     public static AbilityModule GetAbilityModule(uint id) => AbilityModule.GetValueOrDefault(id);
     public static Battleframe GetBattleframe(uint id) => Battleframe.GetValueOrDefault(id);
+    public static CarryableObject GetCarryableObject(uint id) => CarryableObject.GetValueOrDefault(id);
 
     // apt
     public static BaseCommandDef GetBaseCommandDef(uint id) => BaseCommandDef.GetValueOrDefault(id);

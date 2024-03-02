@@ -98,6 +98,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, CarryableObject> LoadCarryableObject()
+    {
+        return LoadStaticDB<CarryableObject>("dbitems::CarryableObject")
+        .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, BaseCommandDef> LoadBaseCommandDef()
     {
         return LoadStaticDB<BaseCommandDef>("apt::BaseCommandDef")

@@ -26,6 +26,7 @@ public interface ISDBLoader
     Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> LoadItemCharacterScalars();
     Dictionary<uint, RootItem> LoadRootItem();
     Dictionary<uint, Battleframe> LoadBattleframe();
+    Dictionary<uint, CarryableObject> LoadCarryableObject();
 
     // apt
     Dictionary<uint, BaseCommandDef> LoadBaseCommandDef();
