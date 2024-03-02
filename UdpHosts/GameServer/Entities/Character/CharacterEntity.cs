@@ -271,10 +271,11 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         // TODO: GetMonsterVisualOptions
         var monsterInfo = SDBInterface.GetMonster(typeId);
         var chassisWarpaint = SDBUtils.GetChassisWarpaint(monsterInfo.ChassisId, monsterInfo.FullbodyWarpaintPaletteId, monsterInfo.ArmorWarpaintPaletteId, monsterInfo.BodysuitWarpaintPaletteId, monsterInfo.GlowWarpaintPaletteId);
-        var chassisBackpackId = monsterInfo.BackpackId;
 
-        var loadout = new CharacterLoadout(monsterInfo.ChassisId, 0);
-        loadout.BackpackID = chassisBackpackId;
+        // TODO: Consider internalizing into the CharacterLoadout instead?
+        var loadout = new CharacterLoadout();
+        loadout.ChassisID = monsterInfo.ChassisId;
+        loadout.BackpackID = monsterInfo.BackpackId;
         loadout.ChassisWarpaint = chassisWarpaint;
         loadout.SlottedItems[LoadoutSlotType.Primary] = monsterInfo.Weapon1Id;
         loadout.SlottedItems[LoadoutSlotType.Secondary] = monsterInfo.Weapon2Id;
@@ -440,152 +441,6 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             },
             ArmyTag = HardcodedCharacterData.ArmyTag
         });
-
-        ApplyLoadout(new CharacterLoadout(info.CurrentBattleframeSDBId, HardcodedCharacterData.LookupTempAvailableLoadoutId(info.CurrentBattleframeSDBId)));
-
-        /*
-        CurrentEquipment = new EquipmentData
-        {
-            Chassis = new SlottedItem
-            {
-                SdbId = cd.Loadout.ChassisID,
-                SlotIndex = 0,
-                Flags = 0,
-                Unk2 = 0,
-                Modules = Array.Empty<SlottedModule>(),
-                Visuals = new VisualsBlock
-                {
-                    Decals = new VisualsDecalsBlock[]
-                    {
-                        new()
-                        {
-                            DecalId = 10000,
-                            Color = 4294967295,
-                            Usage = 255,
-                            Transform = new HalfVector4[]
-                            {
-                                new()
-                                {
-                                    X = new HalfFloat { Value = 10935 },
-                                    Y = new HalfFloat { Value = 9478 },
-                                    Z = new HalfFloat { Value = 0 },
-                                    W = new HalfFloat { Value = 8106 }
-                                },
-                                new()
-                                {
-                                    X = new HalfFloat { Value = 42272 },
-                                    Y = new HalfFloat { Value = 43680 },
-                                    Z = new HalfFloat { Value = 9380 },
-                                    W = new HalfFloat { Value = 43573 }
-                                },
-                                new()
-                                {
-                                    X = new HalfFloat { Value = 9592 },
-                                    Y = new HalfFloat { Value = 12012 },
-                                    Z = new HalfFloat { Value = 44736 },
-                                    W = new HalfFloat { Value = 15867 }
-                                }
-                            }
-                        }
-                    },
-                    Gradients = Array.Empty<uint>(),
-                    Colors = ((List<uint>)cd.ChassisVisuals.Colors).ToArray(),
-                    Palettes = new VisualsPaletteBlock[] { new() { PaletteId = 85163, PaletteType = 0 } },
-                    Patterns = new VisualsPatternBlock[]
-                    {
-                        new()
-                        {
-                            PatternId = 10022,
-                            TransformValues = new HalfVector4
-                            {
-                                X = new HalfFloat { Value = 0 },
-                                Y = new HalfFloat { Value = 16384 },
-                                Z = new HalfFloat { Value = 0 },
-                                W = new HalfFloat { Value = 0 }
-                            }
-                        }
-                    },
-                    OrnamentGroupIds = Array.Empty<uint>(),
-                    CziMapAssetIds = Array.Empty<uint>(),
-                    MorphWeights = Array.Empty<HalfFloat>(),
-                    Overlays = Array.Empty<VisualsOverlayBlock>()
-                }
-            },
-            Backpack = new SlottedItem
-            {
-                SdbId = cd.Loadout.BackpackID,
-                SlotIndex = 0,
-                Flags = 0,
-                Unk2 = 0,
-                Modules = Array.Empty<SlottedModule>(),
-                Visuals = new VisualsBlock
-                {
-                    Decals = Array.Empty<VisualsDecalsBlock>(),
-                    Gradients = Array.Empty<uint>(),
-                    Colors = Array.Empty<uint>(),
-                    Palettes = Array.Empty<VisualsPaletteBlock>(),
-                    Patterns = Array.Empty<VisualsPatternBlock>(),
-                    OrnamentGroupIds = Array.Empty<uint>(),
-                    CziMapAssetIds = Array.Empty<uint>(),
-                    MorphWeights = Array.Empty<HalfFloat>(),
-                    Overlays = Array.Empty<VisualsOverlayBlock>()
-                }
-            },
-            PrimaryWeapon = new SlottedWeapon
-            {
-                Item = new SlottedItem
-                {
-                    SdbId = cd.Loadout.PrimaryWeaponID,
-                    SlotIndex = 0,
-                    Flags = 0,
-                    Unk2 = 0,
-                    Modules = Array.Empty<SlottedModule>(),
-                    Visuals = new VisualsBlock
-                    {
-                        Decals = Array.Empty<VisualsDecalsBlock>(),
-                        Gradients = Array.Empty<uint>(),
-                        Colors = new uint[] { 0x322c0000, 0x543110a2, 0x65b42104 },
-                        Palettes = Array.Empty<VisualsPaletteBlock>(),
-                        Patterns = Array.Empty<VisualsPatternBlock>(),
-                        OrnamentGroupIds = Array.Empty<uint>(),
-                        CziMapAssetIds = Array.Empty<uint>(),
-                        MorphWeights = Array.Empty<HalfFloat>(),
-                        Overlays = Array.Empty<VisualsOverlayBlock>()
-                    }
-                },
-                Unk1 = 0,
-                Unk2 = 0
-            },
-            SecondaryWeapon = new SlottedWeapon
-            {
-                Item = new SlottedItem
-                {
-                    SdbId = cd.Loadout.SecondaryWeaponID,
-                    SlotIndex = 0,
-                    Flags = 0,
-                    Unk2 = 0,
-                    Modules = Array.Empty<SlottedModule>(),
-                    Visuals = new VisualsBlock
-                    {
-                        Decals = Array.Empty<VisualsDecalsBlock>(),
-                        Gradients = Array.Empty<uint>(),
-                        Colors = new uint[] { 0x322c0000, 0x543110a2, 0x65b42104 },
-                        Palettes = Array.Empty<VisualsPaletteBlock>(),
-                        Patterns = Array.Empty<VisualsPatternBlock>(),
-                        OrnamentGroupIds = Array.Empty<uint>(),
-                        CziMapAssetIds = Array.Empty<uint>(),
-                        MorphWeights = Array.Empty<HalfFloat>(),
-                        Overlays = Array.Empty<VisualsOverlayBlock>()
-                    }
-                },
-                Unk1 = 0,
-                Unk2 = 0
-            },
-            EndUnk1 = 0,
-            EndUnk2 = 0
-        };
-        Character_EquipmentView.CurrentEquipmentProp = CurrentEquipment;
-        */
     }
 
     public void ApplyLoadout(CharacterLoadout loadout)

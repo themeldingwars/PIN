@@ -61,8 +61,10 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             return;
         }
 
+        // Begin setting up player character
         CharacterEntity = new CharacterEntity(AssignedShard, guid);
 
+        // Try to get remote character data
         CharacterAndBattleframeVisuals remoteData = null;
         try
         {
@@ -73,15 +75,29 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             Console.WriteLine($"Could not get character over GRPC, will use fallback");
         }
 
+        // Load inventory so we get loadouts
+        Inventory = new CharacterInventory(AssignedShard, this, CharacterEntity);
+        Inventory.LoadHardcodedInventory();
+
+        // Use remote data or fallback to setup character
         bool useRemoteData = true;
+        uint loadoutId;
         if (remoteData != null && useRemoteData)
         {
             CharacterEntity.LoadRemote(remoteData);
+
+            // Todo: load inventory from db so we can use those loadouts
+            loadoutId = Inventory.GetLoadoutIdForChassis(remoteData.CharacterInfo.CurrentBattleframeSDBId);
         }
         else
         {
             CharacterEntity.Load(HardcodedCharacterData.FallbackData);
+            loadoutId = Inventory.GetLoadoutIdForChassis(76331);
         }
+
+        var loadoutRefData = Inventory.GetLoadoutReferenceData(loadoutId);
+        var loadout = new CharacterLoadout(loadoutRefData);
+        CharacterEntity.ApplyLoadout(loadout);
 
         CharacterEntity.SetControllingPlayer(this);
         CharacterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Spawning, AssignedShard.CurrentTime);
@@ -100,26 +116,12 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         CharacterEntity.SetPosition(pointOfInterestPosition);
         CharacterEntity.SetSpawnPose();
 
-        // Inventory
-        Inventory = new CharacterInventory(AssignedShard, this, CharacterEntity);
-
-        foreach(uint item in HardcodedCharacterData.FallbackInventoryItems)
-        {
-            Inventory.CreateItem(item);
-        }
-
-        foreach ((uint resource, uint quantity) in HardcodedCharacterData.FallbackInventoryResources)
-        {
-            Inventory.AddResource(resource, quantity);
-        }
-
         EnterZone(DataUtils.GetZone(zone));
     }
 
     public void EnterZoneAck()
     {
         AssignedShard.EntityMan.Add(CharacterEntity.EntityId, CharacterEntity);
-        AssignedShard.EntityMan.ScopeIn(this, CharacterEntity);
     }
 
     public void Respawn()
