@@ -853,7 +853,6 @@ public static class HardcodedCharacterData
                     CharCreateLoadoutSlots record = defaultSlots.GetValueOrDefault((byte)slot);
                     if (record.DefaultPveModule != 0)
                     {
-                        Console.WriteLine($"XA Chassis {chassisId} {slot} {record.DefaultPveModule}");
                         refData.SlottedItemsPvE.Add(slot, record.DefaultPveModule);
                     }
 

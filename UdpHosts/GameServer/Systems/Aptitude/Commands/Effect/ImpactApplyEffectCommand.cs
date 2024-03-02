@@ -27,6 +27,7 @@ public class ImpactApplyEffectCommand : ICommand
             effectContext.InitPosition = context.InitPosition;
         }
 
+        // TODO: Pass is a keyword associated with outcomes similiar to Fail. This might not mean to pass targets but rather to require targets/register/bonus in order to apply the effect
         if (Params.PassTargets == 1)
         {
             effectContext.Targets = context.Targets;
