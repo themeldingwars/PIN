@@ -160,6 +160,8 @@ public class Factory
                 return new AttemptToCalldownVehicleCommand(SDBInterface.GetAttemptToCalldownVehicleCommandDef(commandId));
             case CommandType.DeployableSpawn:
                 return new DeployableSpawnCommand(CustomDBInterface.GetDeployableSpawnCommandDef(commandId));
+            case CommandType.TargetInitiator:
+                return new TargetInitiatorCommand(SDBInterface.GetTargetInitiatorCommandDef(commandId));
             default:
                 break;
         }
