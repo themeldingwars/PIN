@@ -40,11 +40,14 @@ public class EntityManager
     private ulong ScopeInIntervalMs = 20;
     private ulong LastScopeCheck = 0;
     private ulong ScopeCheckIntervalMs = 5000;
+    private ulong LastLifetimeCheck = 0;
+    private ulong LifetimeCheckIntervalMs = 1000;
     private bool hasSpawnedTestEntities = false;
 
     private Dictionary<ulong, HashSet<INetworkPlayer>> ScopedPlayersByEntity = new Dictionary<ulong, HashSet<INetworkPlayer>>();
     
     private ConcurrentQueue<ScopeInRequest> QueuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
+    private ConcurrentDictionary<ulong, Lifetime> LifetimeByEntity = new ConcurrentDictionary<ulong, Lifetime>();
 
     public EntityManager(Shard shard)
     {
@@ -58,7 +61,7 @@ public class EntityManager
         .Count();
     }
 
-    public void SpawnCharacter(uint typeId, Vector3 position)
+    public CharacterEntity SpawnCharacter(uint typeId, Vector3 position)
     {
         var characterEntity = new CharacterEntity(Shard, Shard.GetNextGuid());
         characterEntity.LoadMonster(typeId);
@@ -66,9 +69,10 @@ public class EntityManager
         characterEntity.SetPosition(position);
         characterEntity.SetSpawnPose();
         Add(characterEntity.EntityId, characterEntity);
+        return characterEntity;
     }
 
-    public void SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, IEntity owner, bool autoMount = false)
+    public VehicleEntity SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, IEntity owner, bool autoMount = false)
     {
         var vehicleInfo = SDBUtils.GetDetailedVehicleInfo(typeId);
         var vehicleEntity = new VehicleEntity(Shard, Shard.GetNextGuid());
@@ -115,9 +119,11 @@ public class EntityManager
         {
             Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
         }
+
+        return vehicleEntity;
     }
 
-    public void SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation)
+    public DeployableEntity SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation)
     {
         var deployableInfo = SDBInterface.GetDeployable(typeId);
         var deployableEntity = new DeployableEntity(Shard, Shard.GetNextGuid(), typeId, 0);
@@ -180,33 +186,39 @@ public class EntityManager
             deployableInfo.BuildTimeMs + 100,
             Timeout.Infinite);
         }
+
+        return deployableEntity;
     }
 
-    public void SpawnMelding(string perimiterSetName, ActiveDataStruct activeData)
+    public MeldingEntity SpawnMelding(string perimiterSetName, ActiveDataStruct activeData)
     {
         var meldingEntity = new MeldingEntity(Shard, Shard.GetNextGuid(), perimiterSetName);
         meldingEntity.SetActiveData(activeData);
         Add(meldingEntity.EntityId, meldingEntity);
+        return meldingEntity;
     }
 
-    public void SpawnOutpost(Outpost outpost)
+    public OutpostEntity SpawnOutpost(Outpost outpost)
     {
         var outpostEntity = new OutpostEntity(Shard, Shard.GetNextGuid(), outpost);
         Add(outpostEntity.EntityId, outpostEntity);
+        return outpostEntity;
     }
 
-    public void SpawnThumper(uint nodeType, uint beaconType, Vector3 position)
+    public ThumperEntity SpawnThumper(uint nodeType, uint beaconType, Vector3 position)
     {
         var thumperEntity = new ThumperEntity(Shard, Shard.GetNextGuid(), nodeType, beaconType);
         thumperEntity.SetPosition(position);
         Add(thumperEntity.EntityId, thumperEntity);
+        return thumperEntity;
     }
 
-    public void SpawnCarryable(uint type, Vector3 position)
+    public CarryableEntity SpawnCarryable(uint type, Vector3 position)
     {
         var carryableEntity = new CarryableEntity(Shard, Shard.GetNextGuid(), type);
         carryableEntity.SetPosition(position);
         Add(carryableEntity.EntityId, carryableEntity);
+        return carryableEntity;
     }
 
     public void TempSpawnTestEntities()
@@ -269,6 +281,22 @@ public class EntityManager
         }
     }
 
+    public void SetRemainingLifetime(IEntity entity, uint timeMs)
+    {
+        Lifetime tracker;
+        if (LifetimeByEntity.ContainsKey(entity.EntityId))
+        {
+            tracker = LifetimeByEntity[entity.EntityId];
+        }
+        else
+        {
+            tracker = new Lifetime();
+        }
+
+        tracker.ExpireAt = Shard.CurrentTimeLong + timeMs;
+        LifetimeByEntity[entity.EntityId] = tracker;
+    }
+
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
         // Spawn test entities on first real tick
@@ -298,6 +326,19 @@ public class EntityManager
             foreach (var entity in Shard.Entities.Values)
             {
                 FlushChanges(entity);
+            }
+        }
+
+        // Check if any entities have ran out lifetime
+        if (currentTime > LastLifetimeCheck + LifetimeCheckIntervalMs)
+        {
+            LastLifetimeCheck = currentTime;
+            foreach ((ulong entityId, Lifetime tracker) in LifetimeByEntity)
+            {
+                if (currentTime > tracker.ExpireAt)
+                {
+                    Remove(entityId);
+                }
             }
         }
 
@@ -1300,5 +1341,10 @@ public class EntityManager
     {
         public INetworkPlayer Player;
         public IEntity Entity;
+    }
+
+    private class Lifetime
+    {
+        public ulong ExpireAt;
     }
 }

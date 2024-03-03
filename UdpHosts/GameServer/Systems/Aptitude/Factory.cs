@@ -158,6 +158,8 @@ public class Factory
                 return new ResourceNodeBeaconCalldownCommand(SDBInterface.GetResourceNodeBeaconCalldownCommandDef(commandId));
             case CommandType.AttemptToCalldownVehicle:
                 return new AttemptToCalldownVehicleCommand(SDBInterface.GetAttemptToCalldownVehicleCommandDef(commandId));
+            case CommandType.DeployableSpawn:
+                return new DeployableSpawnCommand(CustomDBInterface.GetDeployableSpawnCommandDef(commandId));
             default:
                 break;
         }

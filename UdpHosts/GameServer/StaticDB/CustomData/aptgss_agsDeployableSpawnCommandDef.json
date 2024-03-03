@@ -1,0 +1,1472 @@
+[
+    {
+        "id": 33351,
+        "comment": "Triggered by Ability 77 "
+    },
+    {
+        "id": 44447,
+        "comment": ""
+    },
+    {
+        "id": 54246,
+        "comment": "Triggered by Ability 192 "
+    },
+    {
+        "id": 68017,
+        "comment": "Triggered by Ability 44 "
+    },
+    {
+        "id": 72841,
+        "comment": ""
+    },
+    {
+        "id": 73649,
+        "comment": ""
+    },
+    {
+        "id": 73650,
+        "comment": ""
+    },
+    {
+        "id": 79392,
+        "comment": "Triggered by Ability 226 "
+    },
+    {
+        "id": 88448,
+        "comment": "Triggered by Ability 136 "
+    },
+    {
+        "id": 93121,
+        "comment": "Triggered by Effect 209  "
+    },
+    {
+        "id": 113522,
+        "comment": "Triggered by Ability 30748 "
+    },
+    {
+        "id": 130736,
+        "comment": "Triggered by Effect 875  "
+    },
+    {
+        "id": 130979,
+        "comment": "Triggered by Effect 878  "
+    },
+    {
+        "id": 132012,
+        "comment": "Triggered by Ability 30902 "
+    },
+    {
+        "id": 132016,
+        "comment": "Triggered by Ability 30908 "
+    },
+    {
+        "id": 132637,
+        "comment": "Triggered by Effect 892  "
+    },
+    {
+        "id": 133300,
+        "comment": "Triggered by Effect 905  "
+    },
+    {
+        "id": 134647,
+        "comment": "Triggered by Ability 30918 "
+    },
+    {
+        "id": 134667,
+        "comment": "Triggered by Ability 30916 "
+    },
+    {
+        "id": 136170,
+        "comment": "Triggered by Ability 30912 "
+    },
+    {
+        "id": 137146,
+        "comment": "Triggered by Effect 954  "
+    },
+    {
+        "id": 137347,
+        "comment": "Triggered by Effect 956  "
+    },
+    {
+        "id": 140627,
+        "comment": "Triggered by Effect 853  "
+    },
+    {
+        "id": 140632,
+        "comment": "Triggered by Effect 854  "
+    },
+    {
+        "id": 140861,
+        "comment": "Triggered by Effect 889  "
+    },
+    {
+        "id": 140866,
+        "comment": "Triggered by Effect 994  "
+    },
+    {
+        "id": 141252,
+        "comment": "Triggered by Ability 31288 "
+    },
+    {
+        "id": 142231,
+        "comment": ""
+    },
+    {
+        "id": 142250,
+        "comment": ""
+    },
+    {
+        "id": 142258,
+        "comment": ""
+    },
+    {
+        "id": 142399,
+        "comment": "Triggered by Effect 999  "
+    },
+    {
+        "id": 154178,
+        "comment": ""
+    },
+    {
+        "id": 155794,
+        "comment": "Triggered by Ability 33777 "
+    },
+    {
+        "id": 155795,
+        "comment": "Triggered by Ability 33778 "
+    },
+    {
+        "id": 157277,
+        "comment": "Triggered by Ability 33799 "
+    },
+    {
+        "id": 159433,
+        "comment": " through logic 159434 - Triggered by Ability 33828 "
+    },
+    {
+        "id": 160136,
+        "comment": " through logic 160138 - Triggered by Ability 33860 "
+    },
+    {
+        "id": 160137,
+        "comment": " through logic 160138 - Triggered by Ability 33860 "
+    },
+    {
+        "id": 163479,
+        "comment": "Triggered by Effect 1221  "
+    },
+    {
+        "id": 163837,
+        "comment": "Triggered by Effect 1354  "
+    },
+    {
+        "id": 190747,
+        "comment": "Triggered by Ability 34397 "
+    },
+    {
+        "id": 200421,
+        "comment": "Triggered by Ability 160 "
+    },
+    {
+        "id": 200514,
+        "comment": "Triggered by Ability 30077 "
+    },
+    {
+        "id": 200600,
+        "comment": "Triggered by Ability 34453 "
+    },
+    {
+        "id": 200802,
+        "comment": "Triggered by Ability 30302 "
+    },
+    {
+        "id": 200810,
+        "comment": "Triggered by Ability 30304 "
+    },
+    {
+        "id": 200838,
+        "comment": "Triggered by Ability 30753 "
+    },
+    {
+        "id": 201889,
+        "comment": ""
+    },
+    {
+        "id": 209731,
+        "comment": "Triggered by Effect 2121  "
+    },
+    {
+        "id": 227350,
+        "comment": ""
+    },
+    {
+        "id": 229994,
+        "comment": "Triggered by Ability 34390 "
+    },
+    {
+        "id": 232658,
+        "comment": ""
+    },
+    {
+        "id": 232752,
+        "comment": ""
+    },
+    {
+        "id": 233151,
+        "comment": " through logic 233153 - Triggered by Effect 2366  "
+    },
+    {
+        "id": 233790,
+        "comment": ""
+    },
+    {
+        "id": 240320,
+        "comment": "Triggered by Ability 34394 "
+    },
+    {
+        "id": 248538,
+        "comment": "Triggered by Ability 34780 "
+    },
+    {
+        "id": 248657,
+        "comment": "Triggered by Ability 34608 "
+    },
+    {
+        "id": 248667,
+        "comment": "Triggered by Ability 34616 "
+    },
+    {
+        "id": 248672,
+        "comment": "Triggered by Ability 34624 "
+    },
+    {
+        "id": 248677,
+        "comment": "Triggered by Ability 34627 "
+    },
+    {
+        "id": 253042,
+        "comment": ""
+    },
+    {
+        "id": 256888,
+        "comment": "Triggered by Ability 34726 "
+    },
+    {
+        "id": 256898,
+        "comment": "Triggered by Ability 30772 "
+    },
+    {
+        "id": 275822,
+        "comment": "Triggered by Ability 34930 "
+    },
+    {
+        "id": 279265,
+        "comment": "Triggered by Effect 2839  "
+    },
+    {
+        "id": 294257,
+        "comment": "Triggered by Ability 35033 "
+    },
+    {
+        "id": 296246,
+        "comment": "Triggered by Ability 35042 "
+    },
+    {
+        "id": 301148,
+        "comment": "Triggered by Ability 35046 "
+    },
+    {
+        "id": 308460,
+        "comment": ""
+    },
+    {
+        "id": 308525,
+        "comment": " through logic 308526 - Triggered by Ability 34664 "
+    },
+    {
+        "id": 309681,
+        "comment": "Triggered by Ability 35112 "
+    },
+    {
+        "id": 318879,
+        "comment": "Triggered by Ability 35157 "
+    },
+    {
+        "id": 321449,
+        "comment": "Triggered by Ability 35170 "
+    },
+    {
+        "id": 345398,
+        "comment": "Triggered by Ability 35037 "
+    },
+    {
+        "id": 345886,
+        "comment": "Triggered by Ability 35318 "
+    },
+    {
+        "id": 352311,
+        "comment": "Triggered by Effect 3577  "
+    },
+    {
+        "id": 356672,
+        "comment": ""
+    },
+    {
+        "id": 356791,
+        "comment": ""
+    },
+    {
+        "id": 356834,
+        "comment": ""
+    },
+    {
+        "id": 356844,
+        "comment": ""
+    },
+    {
+        "id": 356923,
+        "comment": " through logic 356924 - "
+    },
+    {
+        "id": 361441,
+        "comment": "Triggered by Ability 35493 "
+    },
+    {
+        "id": 367784,
+        "comment": "Triggered by Ability 35526 "
+    },
+    {
+        "id": 377716,
+        "comment": "Triggered by Ability 35603 "
+    },
+    {
+        "id": 383325,
+        "comment": "Triggered by Effect 3988  "
+    },
+    {
+        "id": 383343,
+        "comment": "Triggered by Effect 3989  "
+    },
+    {
+        "id": 385772,
+        "comment": "Triggered by Ability 35658 - Chosen Tortured Soul Spawner Deploy Impact\u0000 "
+    },
+    {
+        "id": 387697,
+        "comment": "Triggered by Ability 35674 "
+    },
+    {
+        "id": 403513,
+        "comment": ""
+    },
+    {
+        "id": 425468,
+        "comment": "Triggered by Ability 34807 - Gravity field - deploy\u0000 "
+    },
+    {
+        "id": 462144,
+        "comment": "Triggered by Ability 35638 - Tether Field - Create field\u0000 "
+    },
+    {
+        "id": 466702,
+        "comment": "Triggered by Ability 36066 "
+    },
+    {
+        "id": 483620,
+        "comment": " through logic 483634 - Triggered by Ability 36248 "
+    },
+    {
+        "id": 483622,
+        "comment": " through logic 483633 -  through logic 483634 - Triggered by Ability 36248 "
+    },
+    {
+        "id": 483624,
+        "comment": " through logic 483632 -  through logic 483633 -  through logic 483634 - Triggered by Ability 36248 "
+    },
+    {
+        "id": 483626,
+        "comment": " through logic 483631 -  through logic 483632 -  through logic 483633 -  through logic 483634 - Triggered by Ability 36248 "
+    },
+    {
+        "id": 483628,
+        "comment": " through logic 483630 -  through logic 483631 -  through logic 483632 -  through logic 483633 -  through logic 483634 - Triggered by Ability 36248 "
+    },
+    {
+        "id": 483629,
+        "comment": " through logic 483630 -  through logic 483631 -  through logic 483632 -  through logic 483633 -  through logic 483634 - Triggered by Ability 36248 "
+    },
+    {
+        "id": 495965,
+        "comment": ""
+    },
+    {
+        "id": 496207,
+        "comment": ""
+    },
+    {
+        "id": 506336,
+        "comment": "Triggered by Effect 5197  "
+    },
+    {
+        "id": 509843,
+        "comment": "Triggered by Effect 5177  "
+    },
+    {
+        "id": 512853,
+        "comment": "Triggered by Ability 36411 "
+    },
+    {
+        "id": 515272,
+        "comment": "Triggered by Ability 35666 "
+    },
+    {
+        "id": 515297,
+        "comment": "Triggered by Ability 34745 "
+    },
+    {
+        "id": 515300,
+        "comment": ""
+    },
+    {
+        "id": 515301,
+        "comment": ""
+    },
+    {
+        "id": 515311,
+        "comment": "Triggered by Ability 34614 "
+    },
+    {
+        "id": 515328,
+        "comment": "Triggered by Ability 34701 "
+    },
+    {
+        "id": 515332,
+        "comment": "Triggered by Ability 34767 "
+    },
+    {
+        "id": 524134,
+        "comment": "Triggered by Ability 36590 "
+    },
+    {
+        "id": 526582,
+        "comment": "Triggered by Ability 36604 "
+    },
+    {
+        "id": 526692,
+        "comment": "Triggered by Ability 36607 "
+    },
+    {
+        "id": 527106,
+        "comment": "Triggered by Ability 36612 "
+    },
+    {
+        "id": 530500,
+        "comment": "Triggered by Ability 36611 - Glider Updraft Grenade (tossed) - Impact\u0000 ",
+        "deployable_type_id": 1601
+    },
+    {
+        "id": 531515,
+        "comment": "Triggered by Ability 36663 "
+    },
+    {
+        "id": 540840,
+        "comment": "Triggered by Ability 36729 "
+    },
+    {
+        "id": 542744,
+        "comment": " through logic 542747 -  through logic 542748 - Triggered by Ability 36745 - SIN Hover Flare SHARED - Flare lands impact effect \u0000 ",
+        "deployable_type_id": 1643
+    },
+    {
+        "id": 542843,
+        "comment": " through logic 542846 -  through logic 542847 - Triggered by Ability 36749 - Disruption Hover Flare SHARED - Flare lands impact ability\u0000 ",
+        "deployable_type_id": 1645
+    },
+    {
+        "id": 559845,
+        "comment": "Triggered by Ability 36857 "
+    },
+    {
+        "id": 561923,
+        "comment": "Triggered by Ability 36859 "
+    },
+    {
+        "id": 565703,
+        "comment": "Triggered by Ability 36308 - Advanced Sonic Detonator Impact\u0000 "
+    },
+    {
+        "id": 565708,
+        "comment": "Triggered by Ability 34741 "
+    },
+    {
+        "id": 566439,
+        "comment": ""
+    },
+    {
+        "id": 567844,
+        "comment": ""
+    },
+    {
+        "id": 579841,
+        "comment": "Triggered by Ability 36967 - Accord Explosives Projectile Impact Ability\u0000 "
+    },
+    {
+        "id": 580478,
+        "comment": "Triggered by Ability 36973 - Fireworks Grenade (tossed) - Impact\u0000 ",
+        "deployable_type_id": 1768
+    },
+    {
+        "id": 590758,
+        "comment": "Triggered by Effect 6200  "
+    },
+    {
+        "id": 600483,
+        "comment": "Triggered by Ability 37129 - Invisible Crystite Meteor Landed Spawn Deployable Ability\u0000 "
+    },
+    {
+        "id": 618777,
+        "comment": "Triggered by Ability 34630 "
+    },
+    {
+        "id": 622734,
+        "comment": ""
+    },
+    {
+        "id": 623826,
+        "comment": "Triggered by Ability 37257 "
+    },
+    {
+        "id": 624045,
+        "comment": "Triggered by Ability 36841 - Dog Bait (tossed) - Impact\u0000 "
+    },
+    {
+        "id": 711483,
+        "comment": "Triggered by Ability 37562 - Magneto Mine Impact\u0000 "
+    },
+    {
+        "id": 715790,
+        "comment": "Triggered by Ability 37582 "
+    },
+    {
+        "id": 722772,
+        "comment": "Triggered by Ability 37605 "
+    },
+    {
+        "id": 724075,
+        "comment": "Triggered by Effect 7474  "
+    },
+    {
+        "id": 726876,
+        "comment": "Triggered by Effect 7548  "
+    },
+    {
+        "id": 727951,
+        "comment": "Triggered by Ability 37685 "
+    },
+    {
+        "id": 729813,
+        "comment": "Triggered by Ability 37679 - Place Victory Monument\u0000 "
+    },
+    {
+        "id": 736039,
+        "comment": "Triggered by Ability 37517 "
+    },
+    {
+        "id": 746086,
+        "comment": "Triggered by Effect 7867  "
+    },
+    {
+        "id": 768337,
+        "comment": " through logic 768343 - Triggered by Effect 7970  "
+    },
+    {
+        "id": 768342,
+        "comment": " through logic 768345 - Triggered by Effect 7970  "
+    },
+    {
+        "id": 788846,
+        "comment": "Triggered by Ability 37935 - [LIVE][HAZRES] Creature - Nest Biohazard Danger Frag - Impact\u0000 "
+    },
+    {
+        "id": 796278,
+        "comment": "Triggered by Ability 34652 "
+    },
+    {
+        "id": 803209,
+        "comment": "Triggered by Ability 34446 | Sonic Detonator",
+        "deployable_type_id": 524
+    },
+    {
+        "id": 804109,
+        "comment": " through logic 804115 -  through logic 804117 - Triggered by Effect 8026  "
+    },
+    {
+        "id": 804112,
+        "comment": " through logic 804117 - Triggered by Effect 8026  "
+    },
+    {
+        "id": 806750,
+        "comment": "Triggered by Ability 37933 - [LIVE][HAZRES] Creature - Nest Biohazard Sample Frag - Impact\u0000 "
+    },
+    {
+        "id": 821685,
+        "comment": "Triggered by Ability 35488 - Sentinel Pod - Impact\u0000 "
+    },
+    {
+        "id": 850163,
+        "comment": "Triggered by Effect 4786  "
+    },
+    {
+        "id": 855672,
+        "comment": "Triggered by Ability 38191 "
+    },
+    {
+        "id": 859512,
+        "comment": "Triggered by Ability 36614 - Crystite Meteor Landed Spawn Deployable Ability\u0000 "
+    },
+    {
+        "id": 860018,
+        "comment": "Triggered by Ability 38211 "
+    },
+    {
+        "id": 865459,
+        "comment": "Triggered by Ability 34769 "
+    },
+    {
+        "id": 869810,
+        "comment": "Triggered by Effect 8699  "
+    },
+    {
+        "id": 890080,
+        "comment": ""
+    },
+    {
+        "id": 899520,
+        "comment": "Triggered by Ability 34796 - New Quick-Deploy Supply Station Impact\u0000 "
+    },
+    {
+        "id": 901694,
+        "comment": "Triggered by Ability 38444 - Melding Arena Bomb - Impact\u0000 "
+    },
+    {
+        "id": 916701,
+        "comment": "Triggered by Ability 38555 - [DDSWARM] Rubble Impact Ability\u0000 "
+    },
+    {
+        "id": 916712,
+        "comment": "Triggered by Ability 38557 - Spawn Dead guy interacton point\u0000 from Deployable 2738 Copy of NPE ARES 2 - Dead body search\u0000 from Deployable 2739 Copy of NPE ARES 2 - Dead body search\u0000 from Deployable 2740  Copy of NPE ARES 2 - Dead body search\u0000 from Deployable 2741 Copy of NPE ARES 2 - Dead body search\u0000 from Deployable 3206 Accord Soldier\u0000 from Deployable 3437  "
+    },
+    {
+        "id": 917239,
+        "comment": "Triggered by Effect 6970  "
+    },
+    {
+        "id": 917251,
+        "comment": "Triggered by Effect 9146  "
+    },
+    {
+        "id": 934004,
+        "comment": "Triggered by Ability 38672 - Mini Energy Wall - Airburst\u0000 "
+    },
+    {
+        "id": 956828,
+        "comment": "Triggered by Effect 9689  "
+    },
+    {
+        "id": 960796,
+        "comment": "Triggered by Ability 38922 - Deploy Teleport Pad\u0000 "
+    },
+    {
+        "id": 966821,
+        "comment": "Triggered by Effect 9145  "
+    },
+    {
+        "id": 966989,
+        "comment": "Triggered by Effect 10088  "
+    },
+    {
+        "id": 967123,
+        "comment": "Triggered by Effect 10089  "
+    },
+    {
+        "id": 968856,
+        "comment": "Triggered by Ability 38710 "
+    },
+    {
+        "id": 970077,
+        "comment": "Triggered by Ability 39072 "
+    },
+    {
+        "id": 974167,
+        "comment": "Triggered by Effect 10147  "
+    },
+    {
+        "id": 979020,
+        "comment": "Triggered by Ability 39081 from Deployable 2985  "
+    },
+    {
+        "id": 986339,
+        "comment": "Triggered by Ability 39137 "
+    },
+    {
+        "id": 991782,
+        "comment": "Triggered by Ability 38198 - NPC - King Brontodon - Shockwave - Impact Ability\u0000 "
+    },
+    {
+        "id": 998973,
+        "comment": "Triggered by Ability 38872 - Chosen Reaver Melding Energy Impact Effect\u0000 "
+    },
+    {
+        "id": 1009229,
+        "comment": "Triggered by Ability 39209 - NPC - Razorwind Assassin Twin 01 - Proximity Mine - Impact\u0000 "
+    },
+    {
+        "id": 1011097,
+        "comment": "Triggered by Ability 39234 - NPC - Razorwind Assassin Twin 02 - Artillery Strike - Target Painted\u0000 "
+    },
+    {
+        "id": 1013805,
+        "comment": "Triggered by Effect 10498  "
+    },
+    {
+        "id": 1019675,
+        "comment": "Triggered by Effect 10591  "
+    },
+    {
+        "id": 1022466,
+        "comment": "Triggered by Effect 10636  "
+    },
+    {
+        "id": 1025371,
+        "comment": "Triggered by Effect 10720  "
+    },
+    {
+        "id": 1027925,
+        "comment": " through logic 1027932 - "
+    },
+    {
+        "id": 1029620,
+        "comment": "Triggered by Ability 39307 "
+    },
+    {
+        "id": 1034801,
+        "comment": ""
+    },
+    {
+        "id": 1034926,
+        "comment": "Triggered by Ability 39442 "
+    },
+    {
+        "id": 1048458,
+        "comment": "Triggered by Effect 10928  "
+    },
+    {
+        "id": 1052959,
+        "comment": "Triggered by Ability 39500 "
+    },
+    {
+        "id": 1070550,
+        "comment": "Triggered by Ability 39582 "
+    },
+    {
+        "id": 1070621,
+        "comment": "Triggered by Ability 39586 "
+    },
+    {
+        "id": 1077624,
+        "comment": "Triggered by Ability 39632 - Quick Deploy Thumper Cover Impact\u0000 "
+    },
+    {
+        "id": 1078420,
+        "comment": "Triggered by Ability 39449 - NPC - Kara Novan - Proximity Mine - Impact\u0000 "
+    },
+    {
+        "id": 1079217,
+        "comment": "Triggered by Ability 39641 "
+    },
+    {
+        "id": 1081553,
+        "comment": "Triggered by Effect 11250  "
+    },
+    {
+        "id": 1087794,
+        "comment": "Triggered by Ability 35568 - Artillery Strike - Target Painted\u0000 "
+    },
+    {
+        "id": 1101223,
+        "comment": "Triggered by Ability 39732 from Deployable 3472  "
+    },
+    {
+        "id": 1108591,
+        "comment": ""
+    },
+    {
+        "id": 1113747,
+        "comment": "Triggered by Effect 8206  "
+    },
+    {
+        "id": 1115857,
+        "comment": "Triggered by Effect 7176  "
+    },
+    {
+        "id": 1117560,
+        "comment": "Triggered by Effect 6558  "
+    },
+    {
+        "id": 1117960,
+        "comment": "Triggered by Ability 39789 - Pulse Generator Projectile Impact\u0000 "
+    },
+    {
+        "id": 1118338,
+        "comment": "Triggered by Effect 6092  "
+    },
+    {
+        "id": 1118489,
+        "comment": "Triggered by Effect 6009  "
+    },
+    {
+        "id": 1119470,
+        "comment": "Triggered by Ability 39791 "
+    },
+    {
+        "id": 1143254,
+        "comment": "Triggered by Effect 4581  | Taking a guess",
+        "deployable_type_id": 930
+    },
+    {
+        "id": 1144625,
+        "comment": "Triggered by Ability 39398 "
+    },
+    {
+        "id": 1145061,
+        "comment": "Triggered by Ability 35834 - DiamondWing Gliderpad\u0000 ",
+        "deployable_type_id": 1079,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147178,
+        "comment": "Triggered by Ability 35797 - 1-Use Angelwings Gliderpad\u0000 ",
+        "deployable_type_id": 1026,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147191,
+        "comment": "Triggered by Ability 35777 - AngelWings Gliderpad\u0000 ",
+        "deployable_type_id": 1026,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147277,
+        "comment": "Triggered by Ability 36017 - Adventurers' Gliderpad\u0000 ",
+        "deployable_type_id": 0,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147317,
+        "comment": "Triggered by Ability 32755 - 1-Use Glider\u0000 ",
+        "deployable_type_id": 0,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147396,
+        "comment": "Triggered by Ability 35845 - Crystalwing Glider Pad Calldown\u0000 ",
+        "deployable_type_id": 1087,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147424,
+        "comment": "Triggered by Ability 36286 - Sunset Gliderpad\u0000 ",
+        "deployable_type_id": 1291,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147537,
+        "comment": "Triggered by Ability 36373 - Sunrise Gliderpad\u0000 ",
+        "deployable_type_id": 1354,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147560,
+        "comment": "Triggered by Ability 36577 - Dusk Gliderpad\u0000 ",
+        "deployable_type_id": 1552,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147608,
+        "comment": "Triggered by Ability 36720 - Topaz Gliderpad\u0000 ",
+        "deployable_type_id": 1625,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147620,
+        "comment": "Triggered by Ability 36722 - VIP Boosted Gliderpad\u0000 ",
+        "deployable_type_id": 1626,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147664,
+        "comment": "Triggered by Ability 36724 - Emerald Gliderpad\u0000 ",
+        "deployable_type_id": 1627,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147760,
+        "comment": "Triggered by Ability 36726 - Royal Gliderpad\u0000 ",
+        "deployable_type_id": 1628,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147843,
+        "comment": "Triggered by Ability 36996 - Cobalt Phoenix Gliderpad\u0000 ",
+        "deployable_type_id": 1790,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147909,
+        "comment": "Triggered by Ability 37063 - Cherub Gliderpad\u0000 ",
+        "deployable_type_id": 1804,
+        "lifetime": 60000
+    },
+    {
+        "id": 1147956,
+        "comment": "Triggered by Ability 38003 - Icarus Gliderpad\u0000 ",
+        "deployable_type_id": 2454,
+        "lifetime": 60000
+    },
+    {
+        "id": 1148306,
+        "comment": "Triggered by Ability 39279 - Personal Gliderpad\u0000 ",
+        "deployable_type_id": 0,
+        "lifetime": 60000
+    },
+    {
+        "id": 1153898,
+        "comment": "Triggered by Ability 39901 - NPC Reaper Captain Anchor Impact Ability\u0000 "
+    },
+    {
+        "id": 1157063,
+        "comment": "Triggered by Ability 39907 - Test Glider Pad - Activation\u0000 "
+    },
+    {
+        "id": 1157468,
+        "comment": "Triggered by Effect 10871  "
+    },
+    {
+        "id": 1191915,
+        "comment": "Triggered by Ability 34754 - Remote Flashbang - Impact\u0000 "
+    },
+    {
+        "id": 1194946,
+        "comment": "Triggered by Effect 12291  "
+    },
+    {
+        "id": 1196685,
+        "comment": "Triggered by Ability 31432 "
+    },
+    {
+        "id": 1197170,
+        "comment": "Triggered by Effect 12311  "
+    },
+    {
+        "id": 1198768,
+        "comment": "Triggered by Ability 40124 from Deployable 3707  "
+    },
+    {
+        "id": 1204434,
+        "comment": "Triggered by Ability 39971 "
+    },
+    {
+        "id": 1204451,
+        "comment": "Triggered by Ability 39970 "
+    },
+    {
+        "id": 1204455,
+        "comment": "Triggered by Ability 39969 "
+    },
+    {
+        "id": 1204459,
+        "comment": "Triggered by Ability 39968 "
+    },
+    {
+        "id": 1207351,
+        "comment": ""
+    },
+    {
+        "id": 1218625,
+        "comment": " through logic 1218639 -  through logic 1218644 - Triggered by Ability 39407 - Quick Deploy Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1218627,
+        "comment": " through logic 1218638 -  through logic 1218644 - Triggered by Ability 39407 - Quick Deploy Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1218629,
+        "comment": " through logic 1218637 -  through logic 1218644 - Triggered by Ability 39407 - Quick Deploy Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1218631,
+        "comment": " through logic 1218636 -  through logic 1218644 - Triggered by Ability 39407 - Quick Deploy Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1218633,
+        "comment": " through logic 1218635 -  through logic 1218644 - Triggered by Ability 39407 - Quick Deploy Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1228705,
+        "comment": "Triggered by Effect 9052  "
+    },
+    {
+        "id": 1231021,
+        "comment": "Triggered by Ability 36078 - Overclocking Station - Impact\u0000 "
+    },
+    {
+        "id": 1231027,
+        "comment": "Triggered by Ability 35461 - Overclocking Station - Impact\u0000 "
+    },
+    {
+        "id": 1233506,
+        "comment": " through logic 1233519 -  through logic 1233525 - Triggered by Effect 5164  "
+    },
+    {
+        "id": 1233508,
+        "comment": " through logic 1233518 -  through logic 1233525 - Triggered by Effect 5164  "
+    },
+    {
+        "id": 1233510,
+        "comment": " through logic 1233517 -  through logic 1233525 - Triggered by Effect 5164  "
+    },
+    {
+        "id": 1233512,
+        "comment": " through logic 1233516 -  through logic 1233525 - Triggered by Effect 5164  "
+    },
+    {
+        "id": 1233514,
+        "comment": " through logic 1233515 -  through logic 1233525 - Triggered by Effect 5164  "
+    },
+    {
+        "id": 1238409,
+        "comment": "Triggered by Effect 12475  "
+    },
+    {
+        "id": 1244465,
+        "comment": "Triggered by Effect 12780  "
+    },
+    {
+        "id": 1244849,
+        "comment": "Triggered by Ability 40439 "
+    },
+    {
+        "id": 1247006,
+        "comment": "Triggered by Ability 40437 - PvP Immolation Oven Trap Impact\u0000 "
+    },
+    {
+        "id": 1254054,
+        "comment": " through logic 1254056 - Triggered by Ability 35356 - Power field - Impact\u0000 "
+    },
+    {
+        "id": 1254055,
+        "comment": " through logic 1254056 - Triggered by Ability 35356 - Power field - Impact\u0000 "
+    },
+    {
+        "id": 1257487,
+        "comment": "Triggered by Ability 40483 "
+    },
+    {
+        "id": 1265311,
+        "comment": "Triggered by Ability 40519 "
+    },
+    {
+        "id": 1266638,
+        "comment": ""
+    },
+    {
+        "id": 1274521,
+        "comment": "Triggered by Effect 12441  "
+    },
+    {
+        "id": 1279090,
+        "comment": "Triggered by Effect 12924  "
+    },
+    {
+        "id": 1286306,
+        "comment": " through logic 1286313 - Triggered by Ability 40615 "
+    },
+    {
+        "id": 1286655,
+        "comment": "Triggered by Ability 40619 "
+    },
+    {
+        "id": 1287994,
+        "comment": "Triggered by Ability 38084 "
+    },
+    {
+        "id": 1290343,
+        "comment": "Triggered by Ability 40645 "
+    },
+    {
+        "id": 1301293,
+        "comment": "Triggered by Effect 12971  "
+    },
+    {
+        "id": 1306373,
+        "comment": "Triggered by Ability 40705 "
+    },
+    {
+        "id": 1309385,
+        "comment": "Triggered by Ability 35178 - Quicksilver Gliderpad\u0000 ",
+        "deployable_type_id": 812,
+        "lifetime": 60000
+    },
+    {
+        "id": 1314891,
+        "comment": "Triggered by Ability 40754 - PvP Gravity field - deploy\u0000 "
+    },
+    {
+        "id": 1320337,
+        "comment": "Triggered by Ability 40771 - Biogoo Grenade - Impact\u0000 "
+    },
+    {
+        "id": 1323027,
+        "comment": "Triggered by Ability 40662 - Desecrated Ammo Impact\u0000 "
+    },
+    {
+        "id": 1332696,
+        "comment": "Triggered by Effect 13429  "
+    },
+    {
+        "id": 1332837,
+        "comment": " through logic 1332839 - Triggered by Ability 40849 - Giggler Mine Launcher Ammo Impact\u0000 "
+    },
+    {
+        "id": 1336689,
+        "comment": "Triggered by Ability 40894 "
+    },
+    {
+        "id": 1337307,
+        "comment": "Triggered by Ability 40900 - Big Kahuna Gliderpad\u0000 ",
+        "deployable_type_id": 3977,
+        "lifetime": 60000
+    },
+    {
+        "id": 1337374,
+        "comment": "Triggered by Effect 13510  "
+    },
+    {
+        "id": 1337673,
+        "comment": "Triggered by Ability 40902 - Head Honcho Gliderpad\u0000 ",
+        "deployable_type_id": 3978,
+        "lifetime": 60000
+    },
+    {
+        "id": 1338544,
+        "comment": "Triggered by Ability 40819 - NPC Mine Launcher Ammo Impact\u0000 "
+    },
+    {
+        "id": 1339615,
+        "comment": "Triggered by Ability 40913 "
+    },
+    {
+        "id": 1341339,
+        "comment": " through logic 1341343 -  through logic 1341346 -  through logic 1341347 - Triggered by Effect 13573  "
+    },
+    {
+        "id": 1341340,
+        "comment": " through logic 1341343 -  through logic 1341346 -  through logic 1341347 - Triggered by Effect 13573  "
+    },
+    {
+        "id": 1341342,
+        "comment": " through logic 1341346 -  through logic 1341347 - Triggered by Effect 13573  "
+    },
+    {
+        "id": 1341345,
+        "comment": " through logic 1341347 - Triggered by Effect 13573  "
+    },
+    {
+        "id": 1344052,
+        "comment": "Triggered by Ability 40941 - PvP Smoke Screen - Impact\u0000 "
+    },
+    {
+        "id": 1346287,
+        "comment": "Triggered by Effect 13646  "
+    },
+    {
+        "id": 1361188,
+        "comment": "Triggered by Ability 41069 - [Auxiliary] Proximity Mine - Impact\u0000 "
+    },
+    {
+        "id": 1375270,
+        "comment": "Triggered by Ability 41116 "
+    },
+    {
+        "id": 1378429,
+        "comment": "Triggered by Effect 10256  "
+    },
+    {
+        "id": 1386487,
+        "comment": "Triggered by Ability 41184 - PvP - MvG - General - Spawn Defense Vendor\u0000 "
+    },
+    {
+        "id": 1390075,
+        "comment": " through logic 1390081 - Triggered by Effect 14006  "
+    },
+    {
+        "id": 1391540,
+        "comment": " through logic 1391557 -  through logic 1391561 - Triggered by Ability 41209 "
+    },
+    {
+        "id": 1391542,
+        "comment": " through logic 1391556 -  through logic 1391561 - Triggered by Ability 41209 "
+    },
+    {
+        "id": 1391544,
+        "comment": " through logic 1391555 -  through logic 1391561 - Triggered by Ability 41209 "
+    },
+    {
+        "id": 1391546,
+        "comment": " through logic 1391554 -  through logic 1391561 - Triggered by Ability 41209 "
+    },
+    {
+        "id": 1391548,
+        "comment": " through logic 1391553 -  through logic 1391561 - Triggered by Ability 41209 "
+    },
+    {
+        "id": 1391550,
+        "comment": " through logic 1391552 -  through logic 1391561 - Triggered by Ability 41209 "
+    },
+    {
+        "id": 1395800,
+        "comment": " through logic 1395817 -  through logic 1395821 - Triggered by Ability 38408 - Gatling Alt Fire Deployed Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1395802,
+        "comment": " through logic 1395816 -  through logic 1395821 - Triggered by Ability 38408 - Gatling Alt Fire Deployed Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1395804,
+        "comment": " through logic 1395815 -  through logic 1395821 - Triggered by Ability 38408 - Gatling Alt Fire Deployed Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1395806,
+        "comment": " through logic 1395814 -  through logic 1395821 - Triggered by Ability 38408 - Gatling Alt Fire Deployed Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1395808,
+        "comment": " through logic 1395813 -  through logic 1395821 - Triggered by Ability 38408 - Gatling Alt Fire Deployed Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1395810,
+        "comment": " through logic 1395812 -  through logic 1395821 - Triggered by Ability 38408 - Gatling Alt Fire Deployed Forcefield Impact\u0000 "
+    },
+    {
+        "id": 1417703,
+        "comment": "Triggered by Ability 41289 - [DT Zone Event] Deploy Healing Genrator\u0000 "
+    },
+    {
+        "id": 1423918,
+        "comment": "Triggered by Ability 41369 "
+    },
+    {
+        "id": 1433726,
+        "comment": "Triggered by Ability 41398 - Baneclawn - Gravity well - deploy\u0000 "
+    },
+    {
+        "id": 1437038,
+        "comment": "Triggered by Effect 14404  "
+    },
+    {
+        "id": 1437624,
+        "comment": "Triggered by Ability 41437 "
+    },
+    {
+        "id": 1439820,
+        "comment": "Triggered by Ability 41451 "
+    },
+    {
+        "id": 1439904,
+        "comment": "Triggered by Effect 10325  "
+    },
+    {
+        "id": 1439918,
+        "comment": "Triggered by Effect 14440  "
+    },
+    {
+        "id": 1450317,
+        "comment": "Triggered by Ability 40944 - PvP Remote Flashbang - Impact\u0000 "
+    },
+    {
+        "id": 1451472,
+        "comment": "Triggered by Ability 41483 "
+    },
+    {
+        "id": 1459057,
+        "comment": "Triggered by Effect 14560  "
+    },
+    {
+        "id": 1459207,
+        "comment": "Triggered by Effect 14565  "
+    },
+    {
+        "id": 1467247,
+        "comment": "Triggered by Ability 41522 "
+    },
+    {
+        "id": 1471583,
+        "comment": "Triggered by Ability 41532 - PvP Quick-Deploy Supply Station Impact\u0000 "
+    },
+    {
+        "id": 1477805,
+        "comment": " through logic 1477810 - Triggered by Effect 2373  "
+    },
+    {
+        "id": 1481777,
+        "comment": "Triggered by Ability 41544 "
+    },
+    {
+        "id": 1483284,
+        "comment": "Triggered by Ability 41554 - [LIVE][NIAN] Summon Minion Impact\u0000 "
+    },
+    {
+        "id": 1488624,
+        "comment": "Triggered by Ability 41183 - PvP Teleport Beacon Impact\u0000 "
+    },
+    {
+        "id": 1489670,
+        "comment": "Triggered by Effect 14483  "
+    },
+    {
+        "id": 1491850,
+        "comment": " through logic 1491864 -  through logic 1491868 - Triggered by Ability 35231 - Energy Wall - Projectile Impact \u0000 "
+    },
+    {
+        "id": 1491852,
+        "comment": " through logic 1491863 -  through logic 1491868 - Triggered by Ability 35231 - Energy Wall - Projectile Impact \u0000 "
+    },
+    {
+        "id": 1491854,
+        "comment": " through logic 1491862 -  through logic 1491868 - Triggered by Ability 35231 - Energy Wall - Projectile Impact \u0000 "
+    },
+    {
+        "id": 1491856,
+        "comment": " through logic 1491861 -  through logic 1491868 - Triggered by Ability 35231 - Energy Wall - Projectile Impact \u0000 "
+    },
+    {
+        "id": 1491858,
+        "comment": " through logic 1491860 -  through logic 1491868 - Triggered by Ability 35231 - Energy Wall - Projectile Impact \u0000 "
+    },
+    {
+        "id": 1504230,
+        "comment": "Triggered by Ability 41684 "
+    },
+    {
+        "id": 1516047,
+        "comment": "Triggered by Ability 41728 - PvP SIN Beacon Impact\u0000 "
+    },
+    {
+        "id": 1519960,
+        "comment": "Triggered by Ability 41739 - PvP Artillery Strike - Target Painted\u0000 "
+    },
+    {
+        "id": 1520917,
+        "comment": "Triggered by Ability 41745 "
+    },
+    {
+        "id": 1523282,
+        "comment": "Triggered by Ability 41714 "
+    },
+    {
+        "id": 1523286,
+        "comment": "Triggered by Ability 41716 "
+    },
+    {
+        "id": 1523290,
+        "comment": "Triggered by Ability 41717 "
+    },
+    {
+        "id": 1523294,
+        "comment": "Triggered by Ability 41718 "
+    },
+    {
+        "id": 1523709,
+        "comment": "Triggered by Ability 41296 - Melding Nano Missile Impact\u0000 "
+    },
+    {
+        "id": 1524094,
+        "comment": "Triggered by Ability 41761 "
+    },
+    {
+        "id": 1526746,
+        "comment": "Triggered by Effect 14936  "
+    },
+    {
+        "id": 1540944,
+        "comment": "Triggered by Ability 41800 "
+    },
+    {
+        "id": 1543727,
+        "comment": " through logic 1543730 - Triggered by Effect 13400  "
+    },
+    {
+        "id": 1549228,
+        "comment": "Triggered by Ability 41812 "
+    },
+    {
+        "id": 1556948,
+        "comment": "Triggered by Effect 15019  "
+    },
+    {
+        "id": 1558662,
+        "comment": "Triggered by Ability 41830 "
+    },
+    {
+        "id": 1564026,
+        "comment": "Triggered by Ability 40617 - [DoD] Defense turret - Projectile impact\u0000 "
+    },
+    {
+        "id": 1571910,
+        "comment": "Triggered by Ability 39424 - David's Magic Quick-Deploy Supply Station Impact\u0000 "
+    },
+    {
+        "id": 1591184,
+        "comment": "Triggered by Effect 11911  "
+    },
+    {
+        "id": 1596002,
+        "comment": "Triggered by Effect 14861  "
+    },
+    {
+        "id": 1608828,
+        "comment": " through logic 1608834 - Triggered by Effect 14005  "
+    },
+    {
+        "id": 1615540,
+        "comment": "Triggered by Ability 34529 - \u0000 "
+    },
+    {
+        "id": 1616130,
+        "comment": "Triggered by Ability 41972 "
+    },
+    {
+        "id": 1617211,
+        "comment": "Triggered by Ability 40947 - \u0000 "
+    },
+    {
+        "id": 1617695,
+        "comment": "Triggered by Effect 15401  "
+    },
+    {
+        "id": 1619534,
+        "comment": " through logic 1619537 - Triggered by Effect 2842  "
+    },
+    {
+        "id": 1630422,
+        "comment": "Triggered by Ability 42026 "
+    },
+    {
+        "id": 1634363,
+        "comment": "Triggered by Ability 40118 - \u0000 "
+    },
+    {
+        "id": 1635343,
+        "comment": "Triggered by Ability 41514 - [Auxiliary] Grenade, Melding Crystal - Impact\u0000 "
+    }
+]
