@@ -10,6 +10,7 @@ public class CustomDBInterface
     private static Dictionary<uint, SetGliderParametersCommandDef> SetGliderParametersCommandDef;
     private static Dictionary<uint, ModifyPermissionCommandDef> ModifyPermissionCommandDef;
     private static Dictionary<uint, ImpactRemoveEffectCommandDef> ImpactRemoveEffectCommandDef;
+    private static Dictionary<uint, DeployableSpawnCommandDef> DeployableSpawnCommandDef;
 
     // custom
     private static Dictionary<uint, Dictionary<uint, Deployable>> Deployable;
@@ -25,6 +26,7 @@ public class CustomDBInterface
         SetGliderParametersCommandDef = loader.LoadSetGliderParametersCommandDef();
         ModifyPermissionCommandDef = loader.LoadModifyPermissionCommandDef();
         ImpactRemoveEffectCommandDef = loader.LoadImpactRemoveEffectCommandDef();
+        DeployableSpawnCommandDef = loader.LoadDeployableSpawnCommandDef();
 
         // custom
         Deployable = loader.LoadDeployable();
@@ -37,6 +39,7 @@ public class CustomDBInterface
     public static SetGliderParametersCommandDef GetSetGliderParametersCommandDef(uint id) => SetGliderParametersCommandDef.GetValueOrDefault(id);
     public static ModifyPermissionCommandDef GetModifyPermissionCommandDef(uint id) => ModifyPermissionCommandDef.GetValueOrDefault(id);
     public static ImpactRemoveEffectCommandDef GetImpactRemoveEffectCommandDef(uint id) => ImpactRemoveEffectCommandDef.GetValueOrDefault(id);
+    public static DeployableSpawnCommandDef GetDeployableSpawnCommandDef(uint id) => DeployableSpawnCommandDef.GetValueOrDefault(id);
 
     // custom
     public static Dictionary<uint, Deployable> GetZoneDeployables(uint zoneId) => Deployable.GetValueOrDefault(zoneId);

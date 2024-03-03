@@ -39,6 +39,12 @@ public class CustomDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, DeployableSpawnCommandDef> LoadDeployableSpawnCommandDef() 
+    {
+        return LoadJSON<DeployableSpawnCommandDef>("./StaticDB/CustomData/aptgss_agsDeployableSpawnCommandDef.json")
+        .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, Dictionary<uint, Deployable>> LoadDeployable() 
     {
         return LoadJSON<Deployable>("./StaticDB/CustomData/deployable.json")
