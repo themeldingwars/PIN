@@ -226,20 +226,8 @@ public class EntityManager
         // Aero
         SpawnCharacter(356, new Vector3(167.84642f, 262.20822f, 491.86758f));
 
-        if (false)
-        {
-            // NewYou
-            SpawnDeployable(676, new Vector3(177.37387f, 239.90964f, 491.86758f), new Quaternion(-4.0596834E-08f, -1.620471E-08f, -0.37071967f, 0.92874485f));
-
-            // Battleframe Station
-            SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
-
-            // Garage
-            SpawnDeployable(44, new Vector3(185.69464f, 247.1212f, 491.86783f), new Quaternion(1.6204714E-08f, -4.059684E-08f, 0.92874485f, 0.37071967f));
-
-            // Glider Pad
-            SpawnDeployable(372, new Vector3(164.84642f, 262.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
-        }
+        // Battleframe Station
+        SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
 
         // Thumper
         SpawnThumper(20, 33978, new Vector3(158.3f, 249.3f, 491.93f));

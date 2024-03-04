@@ -102,13 +102,6 @@ public class CharacterLoadout
 
     public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>();
     public Dictionary<ushort, float> ItemAttributes = new Dictionary<ushort, float>();
-
-    public uint LoadoutID { get; set; }
-    public uint VehicleID { get; set; }
-    public uint GliderID { get; set; }
-    public uint ChassisID { get; set; }
-    public uint BackpackID { get; set; }
-    public ChassisWarpaintResult ChassisWarpaint { get; set; }
  
     /// <summary>
     /// Initializes a new instance of the <see cref="CharacterLoadout"/> class.
@@ -125,6 +118,13 @@ public class CharacterLoadout
     {
         InitFromLoadoutReferenceData(refData);
     }
+
+    public uint LoadoutID { get; set; }
+    public uint VehicleID { get; set; }
+    public uint GliderID { get; set; }
+    public uint ChassisID { get; set; }
+    public uint BackpackID { get; set; }
+    public ChassisWarpaintResult ChassisWarpaint { get; set; }
 
     public VisualsBlock GetChassisVisuals()
     {
