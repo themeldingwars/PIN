@@ -3,6 +3,56 @@ option csharp_namespace = "GrpcGameServerAPIClient";
 package RIN;
 import "google/protobuf/timestamp.proto";
 
+message ArmyApplicationApproved {
+   uint64 CharacterGuid = 1;
+   string InitiatorName = 2;
+}
+message ArmyApplicationReceived {
+   repeated uint64 ArmyMemberGuids = 1 [packed = false];
+   string InitiatorName = 2;
+}
+message ArmyApplicationRejected {
+   uint64 CharacterGuid = 1;
+   string InitiatorName = 2;
+}
+message ArmyApplicationsUpdated {
+   repeated uint64 ArmyMemberGuids = 1 [packed = false];
+}
+message ArmyIdChanged {
+   uint64 ArmyGuid = 1;
+   uint64 CharacterGuid = 2;
+   bool IsOfficer = 3;
+   string ArmyTag = 4;
+}
+message ArmyInfoUpdated {
+   uint64 ArmyGuid = 1;
+}
+message ArmyInviteApproved {
+   uint64 ArmyGuid = 1;
+   string InitiatorName = 2;
+}
+message ArmyInviteReceived {
+   uint64 ArmyGuid = 1;
+   string ArmyName = 2;
+   uint64 CharacterGuid = 3;
+   uint64 Id = 4;
+   string Message = 5;
+   string InitiatorName = 6;
+}
+message ArmyInviteRejected {
+   repeated uint64 ArmyMemberGuids = 1 [packed = false];
+   string InitiatorName = 2;
+}
+message ArmyMembersUpdated {
+   uint64 ArmyGuid = 1;
+}
+message ArmyRanksUpdated {
+   uint64 ArmyGuid = 1;
+}
+message ArmyTagUpdated {
+   uint64 ArmyGuid = 1;
+   string ArmyTag = 2;
+}
 message BasicCharacterInfo {
    string Name = 1;
    uint32 Race = 2;
@@ -10,6 +60,9 @@ message BasicCharacterInfo {
    int32 TitleId = 4;
    int64 CurrentBattleframeId = 5;
    uint32 CurrentBattleframeSDBId = 6;
+   string ArmyTag = 7;
+   uint64 ArmyGuid = 8;
+   bool ArmyIsOfficer = 9;
 }
 message CharacterAndBattleframeVisuals {
    BasicCharacterInfo CharacterInfo = 1;
@@ -37,6 +90,29 @@ message CharacterVisuals {
    WebIdValueColorId facial_hair = 15;
    WebId glider = 16;
    WebId vehicle = 17;
+}
+message CharacterVisualsUpdated {
+   uint64 CharacterGuid = 1;
+   CharacterAndBattleframeVisuals CharacterAndBattleframeVisuals = 2;
+}
+message EmptyReq {
+}
+message Event {
+   oneof subtype {
+      ArmyApplicationApproved ArmyApplicationApproved = 1;
+      ArmyApplicationReceived ArmyApplicationReceived = 2;
+      ArmyApplicationRejected ArmyApplicationRejected = 3;
+      ArmyApplicationsUpdated ArmyApplicationsUpdated = 4;
+      ArmyIdChanged ArmyIdChanged = 5;
+      ArmyInfoUpdated ArmyInfoUpdated = 6;
+      ArmyInviteApproved ArmyInviteApproved = 7;
+      ArmyInviteReceived ArmyInviteReceived = 8;
+      ArmyInviteRejected ArmyInviteRejected = 9;
+      ArmyMembersUpdated ArmyMembersUpdated = 10;
+      ArmyRanksUpdated ArmyRanksUpdated = 11;
+      ArmyTagUpdated ArmyTagUpdated = 12;
+      CharacterVisualsUpdated CharacterVisualsUpdated = 13;
+   }
 }
 message PingReq {
    .google.protobuf.Timestamp SentTime = 1;
@@ -78,5 +154,6 @@ message WebIdValueColorId {
 }
 service GameServerAPI {
    rpc GetCharacterAndBattleframeVisuals (CharacterID) returns (CharacterAndBattleframeVisuals);
+   rpc Listen (EmptyReq) returns (stream Event);
    rpc Ping (PingReq) returns (PingResp);
 }

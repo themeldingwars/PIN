@@ -14,6 +14,7 @@ using Grpc.Net.Client;
 using GrpcGameServerAPIClient;
 using Serilog;
 using Shared.Udp;
+using System.Threading.Tasks;
 
 namespace GameServer;
 
@@ -52,6 +53,8 @@ internal class GameServer : PacketServer
         DataUtils.Init();
         Factory.Init();
         NewShard(ct);
+
+        _ = ListenGrpcAsync(ct);
     }
 
     protected override async void ServerRunThreadAsync(CancellationToken ct)
@@ -124,5 +127,21 @@ internal class GameServer : PacketServer
         shard.Run(ct);
 
         return shard;
+    }
+
+    private async Task ListenGrpcAsync(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                await GRPCService.ListenAsync(_clientMap);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Failed to connect to GRPC, retrying in 5 minutes");
+                await Task.Delay(TimeSpan.FromMinutes(5), ct);
+            }
+        }
     }
 }
