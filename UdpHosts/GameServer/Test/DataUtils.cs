@@ -59,6 +59,11 @@ public static class DataUtils
         return _zones.TryGetValue(id, out var zone) ? zone : _zones[448];
     }
 
+    public static string FormatArmyTag(string armyTag)
+    {
+        return string.IsNullOrEmpty(armyTag) ? string.Empty : "[" + armyTag + "]";
+    }
+
     private static void AddZone(uint id, string name, ulong timestamp, Vector3 spawn)
     {
         var zone = new Zone { ID = id, Name = name, Timestamp = timestamp, POIs = { { "origin", new Vector3(0.0f, 0.0f, 0.0f) }, { "spawn", spawn } } };

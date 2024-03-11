@@ -15,6 +15,7 @@ using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.dbstats;
 using GameServer.Enums;
+using GameServer.Test;
 using GrpcGameServerAPIClient;
 
 namespace GameServer.Entities.Character;
@@ -99,6 +100,8 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     public ulong CurrentPermissionsValue => GetCurrentPermissionsValue();
 
     public StaticInfoData StaticInfo { get; set; }
+    public ulong ArmyGUID { get; set; }
+    public byte ArmyIsOfficer { get; set; }
     public CharacterStateData CharacterState { get; set; }
     public HostilityInfoData HostilityInfo { get; set; }
     public MaxVital MaxShields { get; set; }
@@ -372,6 +375,9 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
                 Race = (byte)remoteData.CharacterInfo.Race,
                 TitleId = (ushort)remoteData.CharacterInfo.TitleId,
                 CurrentBattleframeSDBId = remoteData.CharacterInfo.CurrentBattleframeSDBId,
+                ArmyGuid = remoteData.CharacterInfo.ArmyGuid,
+                ArmyTag = remoteData.CharacterInfo.ArmyTag,
+                ArmyIsOfficer = remoteData.CharacterInfo.ArmyIsOfficer,
             },
             CharacterVisuals = new Data.BasicCharacterVisuals()
             {
@@ -439,8 +445,11 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
                 MorphWeights = Array.Empty<HalfFloat>(),
                 Overlays = Array.Empty<VisualsOverlayBlock>()
             },
-            ArmyTag = HardcodedCharacterData.ArmyTag
+            ArmyTag = DataUtils.FormatArmyTag(info.ArmyTag)
         });
+
+        SetArmyGUID(info.ArmyGuid);
+        SetArmyIsOfficer((byte)(info.ArmyIsOfficer ? 1 : 0));
     }
 
     public void ApplyLoadout(CharacterLoadout loadout)
@@ -691,6 +700,25 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         if (Character_BaseController != null)
         {
             Character_BaseController.StaticInfoProp = StaticInfo;
+        }
+    }
+
+    public void SetArmyGUID(ulong value)
+    {
+        ArmyGUID = value;
+        Character_ObserverView.ArmyGUIDProp = ArmyGUID;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.ArmyGUIDProp = ArmyGUID;
+        }
+    }
+
+    public void SetArmyIsOfficer(byte value)
+    {
+        ArmyIsOfficer = value;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.ArmyIsOfficerProp = ArmyIsOfficer;
         }
     }
 
@@ -1102,8 +1130,8 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             SinFlagsPrivateProp = 0,
             SinFactionsAcquiredByProp = null,
             SinTeamsAcquiredByProp = null,
-            ArmyGUIDProp = HardcodedCharacterData.ArmyGUID,
-            ArmyIsOfficerProp = 0,
+            ArmyGUIDProp = ArmyGUID,
+            ArmyIsOfficerProp = ArmyIsOfficer,
             EncounterPartyTupleProp = null,
             DockedParamsProp = DockedParams,
             LookAtTargetProp = null,

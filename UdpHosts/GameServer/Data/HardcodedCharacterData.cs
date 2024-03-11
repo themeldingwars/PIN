@@ -10,7 +10,7 @@ namespace GameServer.Data;
 
 public static class HardcodedCharacterData
 {
-    public static string ArmyTag = "[ARMY]";
+    public static string ArmyTag = "ARMY";
     public static ulong ArmyGUID = 1u;
     public static uint SelectedLoadout = 184538131;
     public static byte Level = 45;
@@ -27,6 +27,9 @@ public static class HardcodedCharacterData
             Race = (uint)CharacterRace.Human,
             TitleId = 135,
             CurrentBattleframeSDBId = 76331,
+            ArmyTag = ArmyTag,
+            ArmyGuid = ArmyGUID,
+            ArmyIsOfficer = true,
         },
         CharacterVisuals = new BasicCharacterVisuals()
         {
@@ -951,6 +954,9 @@ public class BasicCharacterInfo
     public uint Race { get; set; }
     public ushort TitleId { get; set; }
     public uint CurrentBattleframeSDBId { get; set; }
+    public string ArmyTag { get; set; }
+    public ulong ArmyGuid { get; set; }
+    public bool ArmyIsOfficer { get; set; }
 }
 
 public class BasicCharacterVisuals
