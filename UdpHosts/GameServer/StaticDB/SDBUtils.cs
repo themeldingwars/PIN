@@ -225,72 +225,70 @@ public class SDBUtils
             Turrets = new List<TurretComponentDef>(),
             Deployables = new List<DeployableComponentDef>(),
         };
+
         foreach (var baseComponent in baseComponents.Values)
         {
-            // We don't know how to identify the type, so we look each one up in every table of interest.
-            // Not sure if the sdb_guid somehow hints at where to find it
             var componentId = baseComponent.Id;
-            var scopingComponent = SDBInterface.GetScopingComponentDef(componentId);
-            var driverComponent = SDBInterface.GetDriverComponentDef(componentId);
-            var passengerComponent = SDBInterface.GetPassengerComponentDef(componentId);
-            var abilityComponent = SDBInterface.GetAbilityComponentDef(componentId);
-            var damageComponent = SDBInterface.GetDamageComponentDef(componentId);
-            var statusEffectComponent = SDBInterface.GetStatusEffectComponentDef(componentId);
-            var turretComponent = SDBInterface.GetTurretComponentDef(componentId);
-            var deployableComponent = SDBInterface.GetDeployableComponentDef(componentId);
-            var spawnPointComponent = SDBInterface.GetSpawnPointComponentDef(componentId);
 
-            if (scopingComponent != null)
+            var componentType = (ComponentType)baseComponent.SdbGuid;
+            switch (componentType)
             {
-                result.ScopeRange = scopingComponent.ScopeRange;
-                result.SpawnHeight = scopingComponent.SpawnHeight;
-                result.SpawnAbility = scopingComponent.SpawnAbility;
-                result.DespawnAbility = scopingComponent.DespawnAbility;
-            }
+                case ComponentType.Scoping:
+                    var scopingComponent = SDBInterface.GetScopingComponentDef(componentId);
+                    result.ScopeRange = scopingComponent.ScopeRange;
+                    result.SpawnHeight = scopingComponent.SpawnHeight;
+                    result.SpawnAbility = scopingComponent.SpawnAbility;
+                    result.DespawnAbility = scopingComponent.DespawnAbility;
+                    break;
 
-            if (driverComponent != null)
-            {
-                result.HasDriverSeat = true;
-                result.DriverPosture = driverComponent.Posture;
-            }
+                case ComponentType.Driver:
+                    var driverComponent = SDBInterface.GetDriverComponentDef(componentId);
+                    result.HasDriverSeat = true;
+                    result.DriverPosture = driverComponent.Posture;
+                    break;
 
-            if (passengerComponent != null)
-            {
-                result.MaxPassengers = passengerComponent.MaxPassengers;
-                result.PassengerPosture = passengerComponent.Posture;
-                result.HasActivePassenger = passengerComponent.ActivePassenger == 1;
-            }
+                case ComponentType.Passenger:
+                    var passengerComponent = SDBInterface.GetPassengerComponentDef(componentId);
+                    result.MaxPassengers = passengerComponent.MaxPassengers;
+                    result.PassengerPosture = passengerComponent.Posture;
+                    result.HasActivePassenger = passengerComponent.ActivePassenger == 1;
+                    break;
 
-            if (abilityComponent != null)
-            {
-                result.Abilities.Add(abilityComponent);
-            }
+                case ComponentType.Ability:
+                    var abilityComponent = SDBInterface.GetAbilityComponentDef(componentId);
+                    result.Abilities.Add(abilityComponent);
+                    break;
 
-            if (damageComponent != null)
-            {
-                result.DeathAbility = damageComponent.DeathAbility;
-                result.MaxHitPoints = damageComponent.MaxHitPoints;
-                result.DamageResponse = damageComponent.DamageResponse;
-            }
+                case ComponentType.Damage:
+                    var damageComponent = SDBInterface.GetDamageComponentDef(componentId);
+                    result.DeathAbility = damageComponent.DeathAbility;
+                    result.MaxHitPoints = damageComponent.MaxHitPoints;
+                    result.DamageResponse = damageComponent.DamageResponse;
+                    break;
 
-            if (statusEffectComponent != null)
-            {
-                result.StatusFxId = statusEffectComponent.StatusFxId;
-            }
+                case ComponentType.StatusEffect:
+                    var statusEffectComponent = SDBInterface.GetStatusEffectComponentDef(componentId);
+                    result.StatusFxId = statusEffectComponent.StatusFxId;
+                    break;
 
-            if (turretComponent != null)
-            {
-                result.Turrets.Add(turretComponent);
-            }
+                case ComponentType.Turret:
+                    var turretComponent = SDBInterface.GetTurretComponentDef(componentId);
+                    result.Turrets.Add(turretComponent);
+                    break;
 
-            if (deployableComponent != null)
-            {
-                result.Deployables.Add(deployableComponent);
-            }
+                case ComponentType.Deployable:
+                    var deployableComponent = SDBInterface.GetDeployableComponentDef(componentId);
+                    result.Deployables.Add(deployableComponent);
+                    break;
 
-            if (spawnPointComponent != null)
-            {
-                // TODO: Probably for allowing spawning into the vehicle
+                case ComponentType.SpawnPoint:
+                    // TODO: Probably for allowing spawning into the vehicle
+                    // var spawnPointComponent = SDBInterface.GetSpawnPointComponentDef(componentId);
+                    break;
+
+                default:
+                    // Console.WriteLine($"Unhandled vehicle component, id: {componentId}, type: {componentType}");
+                    break;
             }
         }
 
