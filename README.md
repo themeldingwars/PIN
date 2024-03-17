@@ -16,7 +16,7 @@ https://user-images.githubusercontent.com/920861/134824107-03e9f99c-b420-47c7-b7
 4. Download the [latest PIN release](https://github.com/themeldingwars/PIN/releases/latest)
 5. Make a backup copy of the original `FirefallClient.exe` in `Firefall\system\bin`
 6. Replace the `FirefallClient.exe` with the patched `FirefallClient.exe` from the PIN release
-7. Make sure the [.NET 6 Runtime](https://dotnet.microsoft.com/download/dotnet/6.0) is installed
+7. Make sure the [.NET 8 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) is installed
 8. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
 9. Start all three applications:
    - GameServer
@@ -44,29 +44,26 @@ PlayIntroMovie = false
 
 ### Features
 
-- Loading into any of the existing zone
-- Basic character movement, including jetpacks
-- Primary and secondary weapon usage
-  - **Note:** In about one third of the cases, the weapons can't be used, try a relog in those cases
-- One partially working ability that breaks the camera position
-- Sound effects, ambient and music
-- The map can be opened
+- Loading into any zone (WebHostManager)
+- Basic character movement, including jetpacks and gliders
+- Switch between battleframes with preconfigured loadouts
+- Customize character appearance in NewYou (RIN.WebAPI)
+- Call down vehicles and some deployables
 
 ### Limitations
 
-- Weapons don't always work
-- Jetpacks are missing all visual effects
+- There is no combat, projectile or damage simulation
 - Most of the UI doesn't work properly
-- No gliders
-- No abilities
-- No call downs
-- No NPCs of any sort
-- No Melding
+- Most abilities are not fully working
+- Vehicles only have physics if a player is driving it (client-side)
+- No AI
+- No Encounters
+- No PvP
 
 ## Development
 
 1. Install Visual Studio or JetBrains Rider
-   - Include the [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) component or install it separately
+   - Include the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) component or install it separately
 2. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
 3. Build the solution
 4. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
