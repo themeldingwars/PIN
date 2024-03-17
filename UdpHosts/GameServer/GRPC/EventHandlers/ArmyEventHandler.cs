@@ -1,11 +1,11 @@
-﻿using AeroMessages.GSS.V66.Character.Event;
-using GameServer.Test;
-using Google.Protobuf.Collections;
-using GrpcGameServerAPIClient;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AeroMessages.GSS.V66.Character.Event;
+using GameServer.Test;
+using Google.Protobuf.Collections;
+using GrpcGameServerAPIClient;
 
 namespace GameServer.GRPC.EventHandlers;
 
@@ -175,6 +175,7 @@ public static class ArmyEventHandler
                          player.CharacterId);
     }
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
     private record ArmyMessage
     {
         public string      message_type { get; init; }
@@ -194,4 +195,5 @@ public static class ArmyEventHandler
         public ulong  id      { get; init; }
         public string message { get; init; }
     }
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 }
