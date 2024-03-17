@@ -1,9 +1,9 @@
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using GameServer.GRPC.EventHandlers;
 using Grpc.Core;
 using Grpc.Net.Client;
 using GrpcGameServerAPIClient;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
 
 namespace GameServer.GRPC;
 

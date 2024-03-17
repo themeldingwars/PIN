@@ -1,6 +1,6 @@
-﻿using GrpcGameServerAPIClient;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using GrpcGameServerAPIClient;
 
 namespace GameServer.GRPC.EventHandlers;
 

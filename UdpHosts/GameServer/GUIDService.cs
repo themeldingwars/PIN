@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GameServer.Data;
 
@@ -7,6 +7,7 @@ public static class GuidService
     private const byte MainServerId = 31;
     private static uint MainCounter = 0;
 
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Firefall-Guid-System#type-typecode")]
     public enum AdditionalTypes : byte
     {
         Instance = 0xFB,
