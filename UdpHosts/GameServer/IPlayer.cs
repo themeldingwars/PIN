@@ -28,6 +28,7 @@ public interface IPlayer
     CharacterInventory Inventory { get; set; }
     PlayerStatus Status { get; }
     Zone CurrentZone { get; }
+    uint ConnectedAt { get; }
     uint LastRequestedUpdate { get; set; }
     uint RequestedClientTime { get; set; }
     bool FirstUpdateRequested { get; set; }
@@ -49,4 +50,5 @@ public interface IPlayer
     void Respawn();
     void Jump();
     void Tick(double deltaTime, ulong currentTime, CancellationToken ct);
+    uint FindClosestAvailableOutpost(Zone zone, uint targetOutpostId);
 }

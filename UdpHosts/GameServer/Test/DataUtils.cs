@@ -14,7 +14,7 @@ public static class DataUtils
 
         AddZone(12, "Nothing", 1461290341326u, new Vector3(-9.92f, 0.53f, 0.0f));
         AddZone(162, "Diamond Head", 1461290341098u, new Vector3(-718.07f, 735.62f, 103.0f));
-        AddZone(448, "New Eden", 1461290346895u, new Vector3(176.65f, 250.13f, 491.94f));
+        AddZone(448, "New Eden", 1461290346895u, new Vector3(176.65f, 250.13f, 491.94f), 17);
         _zones[448].POIs.Add("watchtower", new Vector3(176.65f, 250.13f, 491.94f));
         _zones[448].POIs.Add("jacuzzi", new Vector3(-532.0f, -469.0f, 473.0f));
         AddZone(805, "Epicenter Melding Tornado Pocket", 1461290355101u, new Vector3(-112.39f, 60.02f, 536.0f));
@@ -64,9 +64,10 @@ public static class DataUtils
         return string.IsNullOrEmpty(armyTag) ? string.Empty : "[" + armyTag + "]";
     }
 
-    private static void AddZone(uint id, string name, ulong timestamp, Vector3 spawn)
+    private static void AddZone(uint id, string name, ulong timestamp, Vector3 spawn, uint defaultOutpostId = 0)
     {
-        var zone = new Zone { ID = id, Name = name, Timestamp = timestamp, POIs = { { "origin", new Vector3(0.0f, 0.0f, 0.0f) }, { "spawn", spawn } } };
+        var zone = new Zone { ID = id, Name = name, Timestamp = timestamp, POIs = { { "origin", new Vector3(0.0f, 0.0f, 0.0f) }, { "spawn", spawn } },
+                                DefaultOutpostId = defaultOutpostId };
         _zones.AddOrUpdate(zone.ID, zone, (_, nc) => nc);
     }
 }

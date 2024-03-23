@@ -957,6 +957,7 @@ public class BasicCharacterInfo
     public string ArmyTag { get; set; }
     public ulong ArmyGuid { get; set; }
     public bool ArmyIsOfficer { get; set; }
+    public uint TimePlayed { get; set; }
 }
 
 public class BasicCharacterVisuals

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using GameServer.Aptitude;
 using GameServer.Entities;
+using GameServer.Entities.Outpost;
 using Shared.Udp;
 
 namespace GameServer;
@@ -12,6 +13,7 @@ public interface IShard : IPacketSender
     ulong InstanceId { get; }
     IDictionary<uint, INetworkPlayer> Clients { get; }
     IDictionary<ulong, IEntity> Entities { get; }
+    IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; }
     PhysicsEngine Physics { get; }
     AIEngine AI { get; }
     MovementRelay Movement { get; }
