@@ -9,7 +9,7 @@ public record Outpost
 
     public uint OutpostName { get; set; }
     public Vector3 Position { get; set; }
-    public List<SpawnPoint> SpawnPoints { get; set; } = [];
+    public List<SpawnPoint> SpawnPoints { get; set; } = new();
     public uint LevelBandId { get; set; }
     public byte SinUnlockIndex { get; set; }
     public int TeleportCost { get; set; }

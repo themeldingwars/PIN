@@ -66,8 +66,12 @@ public static class DataUtils
 
     private static void AddZone(uint id, string name, ulong timestamp, Vector3 spawn, uint defaultOutpostId = 0)
     {
-        var zone = new Zone { ID = id, Name = name, Timestamp = timestamp, POIs = { { "origin", new Vector3(0.0f, 0.0f, 0.0f) }, { "spawn", spawn } },
-                                DefaultOutpostId = defaultOutpostId };
+        var zone = new Zone
+        {
+            ID = id, Name = name, Timestamp = timestamp,
+            POIs = { { "origin", new Vector3(0.0f, 0.0f, 0.0f) }, { "spawn", spawn } },
+            DefaultOutpostId = defaultOutpostId
+        };
         _zones.AddOrUpdate(zone.ID, zone, (_, nc) => nc);
     }
 }

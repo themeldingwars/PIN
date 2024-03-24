@@ -5,7 +5,7 @@ namespace GameServer.Data;
 
 public class Zone
 {
-    private static readonly HashSet<uint> OpenWorldZones = [162, 448, 1030];
+    private static readonly HashSet<uint> OpenWorldZones = new() { 162, 448, 1030 };
 
     public Zone()
     {

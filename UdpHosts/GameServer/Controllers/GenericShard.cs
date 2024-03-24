@@ -120,8 +120,11 @@ public class GenericShard : Base
             }
         }
 
-        _ = GRPCService.SaveCharacterSessionDataAsync(player.CharacterId + 0xFE, zone.ID, closestOutpostId,
-                (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() - player.ConnectedAt);
+        _ = GRPCService.SaveCharacterSessionDataAsync(
+              player.CharacterId + 0xFE,
+              zone.ID,
+              closestOutpostId,
+              (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() - player.ConnectedAt);
     }
 
     [MessageID((byte)Commands.RequestEncounterInfo)]

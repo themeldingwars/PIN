@@ -29,7 +29,7 @@ public class OutpostEntity : BaseEntity
 
     public SpawnPoint RandomSpawnPoint => SpawnPoints[Rng.Next(SpawnPoints.Count)];
     public bool IsCapturedByHostiles => Faction.HostileFactionIds.Contains(Outpost_ObserverView.FactionIdProp);
-    private List<SpawnPoint> SpawnPoints { get; set; } = [];
+    private List<SpawnPoint> SpawnPoints { get; set; } = new();
 
     private void InitFields()
     {
@@ -70,7 +70,7 @@ public class OutpostEntity : BaseEntity
     {
         if (record.SpawnPoints.Count == 0)
         {
-            SpawnPoints = [ new SpawnPoint { Position = record.Position } ];
+            SpawnPoints = new List<SpawnPoint> { new() { Position = record.Position } };
         }
         else
         {
