@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Outpost.View;
+using GameServer.Data;
 using GameServer.Data.SDB.Records.customdata;
-using GameServer.Data.SDB.Records.dbcharacter;
 
 namespace GameServer.Entities.Outpost;
 
@@ -28,7 +28,7 @@ public class OutpostEntity : BaseEntity
     public ScopeBubbleInfoData ScopeBubbleInfo { get; set; }
 
     public SpawnPoint RandomSpawnPoint => SpawnPoints[Rng.Next(SpawnPoints.Count)];
-    public bool IsCapturedByHostiles => Faction.HostileFactionIds.Contains(Outpost_ObserverView.FactionIdProp);
+    public bool IsCapturedByHostiles => HardcodedCharacterData.HostileFactionIds.Contains(Outpost_ObserverView.FactionIdProp);
     private List<SpawnPoint> SpawnPoints { get; set; } = new();
 
     private void InitFields()

@@ -1,10 +1,6 @@
-using System.Collections.Generic;
-
 namespace GameServer.Data.SDB.Records.dbcharacter;
 public record class Faction
 {
-    public static readonly HashSet<uint> HostileFactionIds = new() { 2, 3, 5, 6, 7, 8, 17, 22, 42, 43, 45, 46, 47, 48 };
-
     public uint LocalizedNameId { get; set; }
     public int StartingReputation { get; set; }
     public string InternalName { get; set; }
