@@ -13,6 +13,7 @@ using GameServer.Aptitude;
 using GameServer.Controllers;
 using GameServer.Data;
 using GameServer.Data.SDB;
+using GameServer.Data.SDB.Records.customdata;
 using GameServer.Data.SDB.Records.dbstats;
 using GameServer.Enums;
 using GameServer.Test;
@@ -103,6 +104,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     public ulong ArmyGUID { get; set; }
     public byte ArmyIsOfficer { get; set; }
     public CharacterStateData CharacterState { get; set; }
+    public uint TimePlayed { get; set; }
     public HostilityInfoData HostilityInfo { get; set; }
     public MaxVital MaxShields { get; set; }
     public MaxVital MaxHealth { get; set; }
@@ -378,6 +380,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
                 ArmyGuid = remoteData.CharacterInfo.ArmyGuid,
                 ArmyTag = remoteData.CharacterInfo.ArmyTag,
                 ArmyIsOfficer = remoteData.CharacterInfo.ArmyIsOfficer,
+                TimePlayed = remoteData.CharacterInfo.TimePlayed,
             },
             CharacterVisuals = new Data.BasicCharacterVisuals()
             {
@@ -448,6 +451,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             ArmyTag = DataUtils.FormatArmyTag(info.ArmyTag)
         });
 
+        SetTimePlayed(info.TimePlayed);
         SetArmyGUID(info.ArmyGuid);
         SetArmyIsOfficer((byte)(info.ArmyIsOfficer ? 1 : 0));
     }
@@ -703,6 +707,15 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         }
     }
 
+    public void SetTimePlayed(uint value)
+    {
+        TimePlayed = value;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.TimePlayedProp = TimePlayed;
+        }
+    }
+
     public void SetArmyGUID(ulong value)
     {
         ArmyGUID = value;
@@ -843,6 +856,14 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     public void SetRotation(Quaternion newRotation)
     {
         Rotation = newRotation;
+        RefreshMovementView();
+    }
+
+    public void PositionAtSpawnPoint(SpawnPoint spawnPoint)
+    {
+        Position = spawnPoint.Position;
+        Rotation = spawnPoint.Orientation;
+        AimDirection = spawnPoint.AimDirection;
         RefreshMovementView();
     }
 
@@ -1097,7 +1118,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     {
         Character_BaseController = new BaseController
         {
-            TimePlayedProp = 0,
+            TimePlayedProp = TimePlayed,
             CurrentWeightProp = 0,
             EncumberedWeightProp = 255,
             AuthorizedTerminalProp = AuthorizedTerminal,

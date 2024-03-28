@@ -63,6 +63,9 @@ message BasicCharacterInfo {
    string ArmyTag = 7;
    uint64 ArmyGuid = 8;
    bool ArmyIsOfficer = 9;
+   uint32 LastZoneId = 10;
+   uint32 LastOutpostId = 11;
+   uint32 TimePlayed = 12;
 }
 message CharacterAndBattleframeVisuals {
    BasicCharacterInfo CharacterInfo = 1;
@@ -95,7 +98,7 @@ message CharacterVisualsUpdated {
    uint64 CharacterGuid = 1;
    CharacterAndBattleframeVisuals CharacterAndBattleframeVisuals = 2;
 }
-message EmptyReq {
+message Empty {
 }
 message Event {
    oneof subtype {
@@ -113,6 +116,12 @@ message Event {
       ArmyTagUpdated ArmyTagUpdated = 12;
       CharacterVisualsUpdated CharacterVisualsUpdated = 13;
    }
+}
+message GameSessionData {
+   uint64 CharacterId = 1;
+   uint32 ZoneId = 2;
+   uint32 OutpostId = 3;
+   uint32 TimePlayed = 4;
 }
 message PingReq {
    .google.protobuf.Timestamp SentTime = 1;
@@ -154,6 +163,7 @@ message WebIdValueColorId {
 }
 service GameServerAPI {
    rpc GetCharacterAndBattleframeVisuals (CharacterID) returns (CharacterAndBattleframeVisuals);
-   rpc Listen (EmptyReq) returns (stream Event);
+   rpc Listen (Empty) returns (stream Event);
    rpc Ping (PingReq) returns (PingResp);
+   rpc SaveCharacterGameSessionData (GameSessionData) returns (Empty);
 }

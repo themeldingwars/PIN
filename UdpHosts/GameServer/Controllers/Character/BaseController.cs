@@ -11,6 +11,7 @@ using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Character.View;
 using GameServer.Data;
 using GameServer.Data.SDB;
+using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities.Character;
 using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS.Character;
@@ -329,7 +330,7 @@ public class BaseController : Base
         var query = packet.Unpack<RequestTeleport>();
 
         // TODO: Raycast for z
-        var targetPosition = new Vector3(query.PosX, query.PosY, 500);
+        var spawnPoint = new SpawnPoint { Position = new Vector3(query.PosX, query.PosY, 500) };
 
         // Workaround by looking for Z coordinate in Outposts since that's the primary way players send this message
         var zoneId = player.CurrentZone.ID;
@@ -337,13 +338,13 @@ public class BaseController : Base
         {
             if (Math.Round(outpost.Position.X) == Math.Round(query.PosX) && Math.Round(outpost.Position.Y) == Math.Round(query.PosY))
             {
-                targetPosition.Z = outpost.Position.Z;
+                spawnPoint = client.AssignedShard.Outposts[zoneId][outpost.Id].RandomSpawnPoint;
                 break;
             }
         }
 
         // Instantly transport character to target location
-        character.SetPosition(targetPosition);
+        character.PositionAtSpawnPoint(spawnPoint);
         var forcedMove = new ForcedMovement
         {
             Data = new ForcedMovementData
@@ -351,7 +352,7 @@ public class BaseController : Base
                 Type = 1,
                 Unk1 = 0,
                 HaveUnk2 = 0,
-                Params1 = new ForcedMovementType1Params { Position = targetPosition, Direction = character.AimDirection, Velocity = Vector3.Zero, Time = character.Shard.CurrentTime + 1 }
+                Params1 = new ForcedMovementType1Params { Position = spawnPoint.Position, Direction = character.AimDirection, Velocity = Vector3.Zero, Time = character.Shard.CurrentTime + 1 }
             },
             ShortTime = character.Shard.CurrentShortTime
         };

@@ -202,6 +202,14 @@ public class EntityManager
     {
         var outpostEntity = new OutpostEntity(Shard, Shard.GetNextGuid(), outpost);
         Add(outpostEntity.EntityId, outpostEntity);
+
+        if (!Shard.Outposts.TryGetValue(outpost.ZoneId, out var zoneOutposts))
+        {
+            zoneOutposts = new ConcurrentDictionary<uint, OutpostEntity>();
+            Shard.Outposts[outpost.ZoneId] = zoneOutposts;
+        }
+
+        zoneOutposts[outpost.Id] = outpostEntity;
         return outpostEntity;
     }
 

@@ -1,13 +1,17 @@
 using System;
-using System.Numerics;
+using System.Collections.Generic;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Outpost.View;
+using GameServer.Data;
+using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Entities.Outpost;
 
 public class OutpostEntity : BaseEntity
 {
+    private static readonly Random Rng = new();
+
     public OutpostEntity(IShard shard, ulong eid, Data.SDB.Records.customdata.Outpost record)
         : base(shard, eid)
     {
@@ -15,12 +19,17 @@ public class OutpostEntity : BaseEntity
         Scoping = new ScopingComponent() { Global = true };
         InitFields();
         InitViews(record);
+        AddSpawnPoints(record);
     }
 
     public ObserverView Outpost_ObserverView { get; set; }
 
     public ulong EncounterId { get; set; }
     public ScopeBubbleInfoData ScopeBubbleInfo { get; set; }
+
+    public SpawnPoint RandomSpawnPoint => SpawnPoints[Rng.Next(SpawnPoints.Count)];
+    public bool IsCapturedByHostiles => HardcodedCharacterData.HostileFactionIds.Contains(Outpost_ObserverView.FactionIdProp);
+    private List<SpawnPoint> SpawnPoints { get; set; } = new();
 
     private void InitFields()
     {
@@ -55,5 +64,17 @@ public class OutpostEntity : BaseEntity
             EncounterIdProp = new EntityId { Backing = EncounterId },
             ScopeBubbleInfoProp = ScopeBubbleInfo
         };
+    }
+
+    private void AddSpawnPoints(Data.SDB.Records.customdata.Outpost record)
+    {
+        if (record.SpawnPoints.Count == 0)
+        {
+            SpawnPoints = new List<SpawnPoint> { new() { Position = record.Position } };
+        }
+        else
+        {
+            SpawnPoints = record.SpawnPoints;
+        }
     }
 }
