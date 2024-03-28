@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using GameServer.Aptitude;
 using GameServer.Data;
 using GameServer.Entities;
+using GameServer.Entities.Outpost;
 using Shared.Common;
 using Shared.Udp;
 
@@ -25,6 +26,7 @@ public class Shard : IShard
     {
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
         Entities = new ConcurrentDictionary<ulong, IEntity>();
+        Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
         Physics = new PhysicsEngine(gameTickRate);
         AI = new AIEngine();
         Movement = new MovementRelay(this);
@@ -40,6 +42,7 @@ public class Shard : IShard
 
     public DateTime StartTime => DateTimeExtensions.Epoch.AddSeconds(_startTime);
     public IDictionary<ulong, IEntity> Entities { get; protected set; }
+    public IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; protected set; }
     public IDictionary<uint, INetworkPlayer> Clients { get; }
     public PhysicsEngine Physics { get; }
     public AIEngine AI { get; }

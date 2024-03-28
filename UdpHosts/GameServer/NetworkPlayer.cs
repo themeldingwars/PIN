@@ -9,6 +9,7 @@ using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.Matrix.V25;
 using GameServer.Data;
+using GameServer.Data.SDB.Records.customdata;
 using GameServer.GRPC;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
@@ -27,6 +28,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     {
         CharacterEntity = null;
         Status = IPlayer.PlayerStatus.Connecting;
+        ConnectedAt = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
     public ulong PlayerId { get; private set; }
@@ -34,11 +36,13 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public CharacterEntity CharacterEntity { get; private set; }
     public IPlayer.PlayerStatus Status { get; private set; }
     public Zone CurrentZone { get; private set; }
+    public uint CurrentOutpostId { get; private set; }
     public uint LastRequestedUpdate { get; set; }
     public uint RequestedClientTime { get; set; }
     public bool FirstUpdateRequested { get; set; }
     public ulong SteamUserId { get; set; }
     public CharacterInventory Inventory { get; set; }
+    public uint ConnectedAt { get; }
 
     public void Init(IShard shard)
     {
@@ -107,16 +111,26 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         var wel = new WelcomeToTheMatrix { PlayerID = PlayerId, Unk1 = Array.Empty<byte>(), Unk2 = Array.Empty<byte>() };
         NetChannels[ChannelType.Matrix].SendIAero(wel);
 
-        var zone = (uint)(characterId & 0x000000000000ffff);
+        Zone zone;
+        uint zoneId;
+        uint outpostId;
 
-        Logger.Verbose("Zone {0}", zone);
+        if (remoteData != null)
+        {
+            zoneId = remoteData.CharacterInfo.LastZoneId;
+            zone = DataUtils.GetZone(zoneId);
+            outpostId = FindClosestAvailableOutpost(zone, remoteData.CharacterInfo.LastOutpostId);
+        }
+        else
+        {
+            zoneId = (uint)(characterId & 0x000000000000ffff);
+            zone = DataUtils.GetZone(zoneId);
+            outpostId = zone.DefaultOutpostId;
+        }
 
-        // Ensure character entity is placed at the respawn point
-        var pointOfInterestPosition = DataUtils.GetZone(zone).POIs["spawn"];
-        CharacterEntity.SetPosition(pointOfInterestPosition);
-        CharacterEntity.SetSpawnPose();
+        Logger.Verbose("Zone {0} Outpost {1}", zoneId, outpostId);
 
-        EnterZone(DataUtils.GetZone(zone));
+        EnterZone(zone, outpostId);
     }
 
     public void EnterZoneAck()
@@ -126,8 +140,12 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
     public void Respawn()
     {
-        var pointOfInterestPosition = DataUtils.GetZone(CurrentZone.ID).POIs["spawn"];
-        CharacterEntity.SetPosition(pointOfInterestPosition);
+        var outpostId = FindClosestAvailableOutpost(CurrentZone, CurrentOutpostId);
+        var spawnPoint = outpostId == 0 ?
+                             new SpawnPoint { Position = CurrentZone.POIs["spawn"] }
+                             : AssignedShard.Outposts[CurrentZone.ID][outpostId].RandomSpawnPoint;
+
+        CharacterEntity.PositionAtSpawnPoint(spawnPoint);
         CharacterEntity.SetSpawnTime(AssignedShard.CurrentTime);
         var forcedMove = new ForcedMovement
         {
@@ -136,7 +154,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                 Type = 1,
                 Unk1 = 0,
                 HaveUnk2 = 0,
-                Params1 = new ForcedMovementType1Params { Position = pointOfInterestPosition, Direction = CharacterEntity.AimDirection, Velocity = Vector3.Zero, Time = AssignedShard.CurrentTime + 1 }
+                Params1 = new ForcedMovementType1Params { Position = spawnPoint.Position, Direction = CharacterEntity.AimDirection, Velocity = Vector3.Zero, Time = AssignedShard.CurrentTime + 1 }
             },
             ShortTime = AssignedShard.CurrentShortTime
         };
@@ -228,10 +246,55 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         }
     }
 
-    private void EnterZone(Zone z)
+    public uint FindClosestAvailableOutpost(Zone zone, uint targetOutpostId = 0)
     {
+        if (targetOutpostId == 0)
+        {
+            return zone.DefaultOutpostId;
+        }
+
+        var targetOutpost = AssignedShard.Outposts[zone.ID][targetOutpostId];
+
+        if (!targetOutpost.IsCapturedByHostiles)
+        {
+            return targetOutpostId;
+        }
+
+        Vector3 sourcePosition = targetOutpost.Outpost_ObserverView.PositionProp;
+
+        var minDistance = Vector3.DistanceSquared(sourcePosition, zone.POIs["spawn"]);
+        var closestOutpostId = zone.DefaultOutpostId;
+
+        foreach (var outpost in AssignedShard.Outposts[zone.ID])
+        {
+            if (outpost.Value.IsCapturedByHostiles)
+            {
+                continue;
+            }
+
+            var distance = Vector3.DistanceSquared(sourcePosition, outpost.Value.Outpost_ObserverView.PositionProp);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closestOutpostId = outpost.Key;
+            }
+        }
+
+        return closestOutpostId;
+    }
+
+    private void EnterZone(Zone z, uint outpostId = 0)
+    {
+        var spawnPoint = outpostId == 0
+                             ? new SpawnPoint { Position = z.POIs["spawn"] }
+                             : AssignedShard.Outposts[z.ID][outpostId].RandomSpawnPoint;
+
+        // Ensure character entity is placed at the respawn point
+        CharacterEntity.PositionAtSpawnPoint(spawnPoint);
+        CharacterEntity.SetSpawnPose();
+
         CurrentZone = z;
-        CharacterEntity.Position = CurrentZone.POIs["spawn"];
+        CurrentOutpostId = outpostId;
 
         var msg = new EnterZone
         {

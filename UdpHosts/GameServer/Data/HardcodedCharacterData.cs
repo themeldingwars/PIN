@@ -17,6 +17,7 @@ public static class HardcodedCharacterData
     public static byte EffectiveLevel = 45;
     public static uint MaxHealth = 19192;
     public static uint GeneratedLoadoutCounter = 20001;
+    public static HashSet<uint> HostileFactionIds = new() { 2, 3, 5, 6, 7, 8, 17, 22, 42, 43, 45, 46, 47, 48 };
 
     public static BasicCharacterData FallbackData = new BasicCharacterData()
     {
@@ -957,6 +958,7 @@ public class BasicCharacterInfo
     public string ArmyTag { get; set; }
     public ulong ArmyGuid { get; set; }
     public bool ArmyIsOfficer { get; set; }
+    public uint TimePlayed { get; set; }
 }
 
 public class BasicCharacterVisuals

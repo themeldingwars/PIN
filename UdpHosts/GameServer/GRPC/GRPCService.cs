@@ -28,9 +28,20 @@ public static class GRPCService
         return await _client.GetCharacterAndBattleframeVisualsAsync(new CharacterID { ID = characterId });
     }
 
+    public static async Task<Empty> SaveCharacterSessionDataAsync(ulong characterId, uint zoneId, uint outpostId, uint timePlayed)
+    {
+        return await _client.SaveCharacterGameSessionDataAsync(new GameSessionData()
+        {
+            CharacterId = characterId,
+            ZoneId = zoneId,
+            OutpostId = outpostId,
+            TimePlayed = timePlayed
+        });
+    }
+
     public static async Task ListenAsync(ConcurrentDictionary<uint, INetworkPlayer> clientMap)
     {
-        using var listen = _client.Listen(new EmptyReq());
+        using var listen = _client.Listen(new Empty());
 
         var reader =
             Task.Run(async () =>

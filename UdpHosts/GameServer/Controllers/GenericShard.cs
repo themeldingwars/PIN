@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Numerics;
 using AeroMessages.Control;
 using AeroMessages.GSS.V66.Generic;
 using GameServer.Aptitude;
@@ -7,6 +8,7 @@ using GameServer.Entities;
 using GameServer.Enums;
 using GameServer.Enums.GSS.Generic;
 using GameServer.Extensions;
+using GameServer.GRPC;
 using GameServer.Packets;
 using Serilog;
 
@@ -91,6 +93,38 @@ public class GenericShard : Base
     {
         var resp = new CloseConnection { Unk = new byte[] { 0, 0, 0, 0 } };
         client.NetChannels[ChannelType.Control].SendIAero(resp);
+
+        var zone = player.CurrentZone;
+
+        if (!zone.IsOpenWorld)
+        {
+            return;
+        }
+
+        var playerPosition = player.CharacterEntity.Position;
+
+        var minDistance = Vector3.DistanceSquared(playerPosition, zone.POIs["spawn"]);
+        var closestOutpostId = zone.DefaultOutpostId;
+
+        if (client.AssignedShard.Outposts.TryGetValue(zone.ID, out var outposts))
+        {
+            foreach (var outpost in outposts)
+            {
+                var distance = Vector3.DistanceSquared(playerPosition, outpost.Value.Outpost_ObserverView.PositionProp);
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestOutpostId = outpost.Key;
+                }
+            }
+        }
+
+        _ = GRPCService.SaveCharacterSessionDataAsync(
+              player.CharacterId + 0xFE,
+              zone.ID,
+              closestOutpostId,
+              (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() - player.ConnectedAt);
     }
 
     [MessageID((byte)Commands.RequestEncounterInfo)]
