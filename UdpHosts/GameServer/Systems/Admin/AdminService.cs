@@ -57,7 +57,7 @@ public class AdminService
         else
         {
             Console.WriteLine($"Unknown command: {commandName}");
-            sourcePlayer?.SendDebugChat("Unknown command: {commandName}");
+            sourcePlayer?.SendDebugChat($"Unknown command: {commandName}");
         }
     }
 
