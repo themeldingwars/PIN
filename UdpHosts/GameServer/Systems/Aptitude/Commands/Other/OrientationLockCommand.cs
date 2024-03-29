@@ -37,7 +37,7 @@ public class OrientationLockCommand : ICommand
             var character = target as Entities.Character.CharacterEntity;
             if (character.IsPlayerControlled)
             {
-                Console.WriteLine("OrientationLockCommand Sending ForcedMovementCancelled");
+                Console.WriteLine($"OrientationLockCommand Sending ForcedMovementCancelled {Params.Id}");
                 var player = character.Player;
                 var message = new ForcedMovementCancelled
                 {

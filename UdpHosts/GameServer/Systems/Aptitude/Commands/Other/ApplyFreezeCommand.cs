@@ -37,7 +37,7 @@ public class ApplyFreezeCommand : ICommand
             var character = target as Entities.Character.CharacterEntity;
             if (character.IsPlayerControlled)
             {
-                Console.WriteLine("ApplyFreezeCommand Sending ForcedMovementCancelled");
+                Console.WriteLine($"ApplyFreezeCommand Sending ForcedMovementCancelled {Params.Id}");
                 var player = character.Player;
                 var message = new ForcedMovementCancelled
                 {
