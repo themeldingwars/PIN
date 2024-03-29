@@ -1035,6 +1035,12 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         Shard.EntityMan.FlushChanges(this);
     }
 
+    public void SetCombatFlags(CombatFlagsData value)
+    {
+        Character_CombatController.CombatFlagsProp = value;
+        Character_CombatView.CombatFlagsProp = value;
+    }
+
     private void InitFields()
     {
         Position = new Vector3();
