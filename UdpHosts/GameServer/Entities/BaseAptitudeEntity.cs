@@ -39,10 +39,15 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
                     firstFreeIndex = i;
                 }
             }
-            else if (ActiveEffects[i].Effect.Id == effect.Id && effect.MaxStackCount < ActiveEffects[i].Stacks)
+            
+            if (ActiveEffects[i]?.Effect.Id == effect.Id)
             {
                 // TODO: What to do?
-                ActiveEffects[i].Stacks += 1;
+                if (effect.MaxStackCount < ActiveEffects[i].Stacks)
+                { 
+                    ActiveEffects[i].Stacks += 1;
+                }
+
                 return ActiveEffects[i];
             }
         }
