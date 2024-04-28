@@ -1449,7 +1449,6 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
         Player.CharacterEntity.CurrentLoadout.GliderID = sdb_id;
         Player.NetChannels[ChannelType.ReliableGss].SendIAero(Character_ObserverView, this.EntityId);
-        Console.WriteLine(Character_ObserverView.StaticInfoProp.LoadoutGlider);
         ApplyLoadout(CurrentLoadout);
     }
 

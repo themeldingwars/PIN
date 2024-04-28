@@ -434,7 +434,6 @@ public class BaseController : Base
     {
         var request = packet.Unpack<SlotVisualRequest>();
         
-        _logger.Debug($"{{0}}, {{1}}, {{2}}, {{3}}",request.LoadoutId, request.ItemSdbId, request.SlotIdx1, request.SlotIdx2);
         player.CharacterEntity.EquipVisualBySdbId(request.LoadoutId, (LoadoutVisualType) request.SlotIdx1, (LoadoutSlotType) request.SlotIdx2, request.ItemSdbId);
         
         var response = new SlotVisualResponse()
@@ -446,5 +445,6 @@ public class BaseController : Base
                        };
         
         client.NetChannels[ChannelType.ReliableGss].SendIAero(response, entityId);
+        client.NetChannels[ChannelType.ReliableGss].SendIAero(player.CharacterEntity.Character_ObserverView, entityId);
     }
 }

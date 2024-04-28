@@ -443,16 +443,32 @@ public class CharacterInventory
         }
         else
         {
-            Console.WriteLine("Doesn't Exist. Adding!");
             _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = loadoutVisuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual }).ToArray();
         }
         EquipItemByGUID((int) loadoutId, slot, item.GUID);
+
+        switch (slot)
+        {
+            case LoadoutSlotType.Glider:
+                Console.WriteLine("Setting Glider");
+                _character.SetStaticInfo(_character.StaticInfo with
+                                         {
+                                             LoadoutGlider = sdb_id,
+                                         });
+                break;
+            case LoadoutSlotType.Vehicle:
+                _character.SetStaticInfo(_character.StaticInfo with
+                                         {
+                                             LoadoutVehicle = sdb_id,
+                                         });
+                break;
+        }
         // Ideally, the game would remove/hide the item from your inventory, but when I do that (and recreate the removed item)
         // the targeted slot becomes empty.
         //
         // _items.Remove(guid);
         // var itemToStore = CreateItem(currentItem);
-        
+
         //SendFullInventory(); 
     }
 }

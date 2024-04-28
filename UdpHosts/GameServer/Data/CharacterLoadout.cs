@@ -101,6 +101,8 @@ public class CharacterLoadout
         { AbilitySlotType.AbilityHKM, LoadoutSlotType.AbilityHKM },
         { AbilitySlotType.AbilityAux, LoadoutSlotType.GearAuxWeapon },
         { AbilitySlotType.AbilityMedical, LoadoutSlotType.GearMedicalSystem },
+        { AbilitySlotType.AbilityCalldownVehicle, LoadoutSlotType.Vehicle },
+        { AbilitySlotType.AbilityCalldownGlider, LoadoutSlotType.Glider }
     };
 
     public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>(); 
