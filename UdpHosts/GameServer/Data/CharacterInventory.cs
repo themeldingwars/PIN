@@ -1,3 +1,5 @@
+using AeroMessages.GSS.V66.Character;
+using AeroMessages.GSS.V66.Character.Controller;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +8,7 @@ using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.dbcharacter;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
 
 namespace GameServer.Data;
 
@@ -84,7 +87,7 @@ public class CharacterInventory
         var refData = new LoadoutReferenceData()
         {
             LoadoutId = loadoutId,
-            ChassisId = loadout.ChassisID,
+            ChassisId = loadout.ChassisID
         };
 
         var pveConfig = loadout.LoadoutConfigs[0];
@@ -367,5 +370,89 @@ public class CharacterInventory
         }
 
         return (byte)result;
+    }
+
+    public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
+    {
+        //var currentItem = _character.CurrentLoadout.SlottedItems[slot]; // SdbId
+        
+        if (guid != 0)
+        {
+            var item = _items[guid];
+            _character.CurrentLoadout.SlottedItems[slot] = item.SdbId;
+        }
+        else
+        {
+            _character.CurrentLoadout.SlottedItems[slot] = 0;
+        }
+        
+        var loadoutItems = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items; //PvE Loadout
+
+        if (loadoutItems.Any(i => i.SlotIndex == (byte)slot))
+        {
+            for (int i = 0; i < loadoutItems.Length; i++)
+            {
+                if (loadoutItems[i].SlotIndex == (byte) slot)
+                {
+                    loadoutItems[i].ItemGUID = guid;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = loadoutItems.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
+        }
+
+        switch (slot)
+        {
+            case LoadoutSlotType.Glider:
+                _character.StaticInfo = _character.StaticInfo with { LoadoutGlider = _items[guid].SdbId };
+                break;
+            case LoadoutSlotType.Vehicle:
+                _character.StaticInfo = _character.StaticInfo with { LoadoutVehicle = _items[guid].SdbId };
+                break;
+        }
+
+        // Ideally, the game would remove/hide the item from your inventory, but when I do that (and recreate the removed item)
+        // the targeted slot becomes empty.
+        //
+        // _items.Remove(guid);
+        // var itemToStore = CreateItem(currentItem);
+        
+        SendFullInventory(); 
+    }
+    
+    public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
+    {
+        //var currentItem = _character.CurrentLoadout.SlottedItems[slot]; // SdbId
+        var item = _items.First(e => e.Value.SdbId == sdb_id).Value;//CreateItem(sdb_id);
+        
+        var loadoutVisuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals; //PvE Loadout
+
+        if (loadoutVisuals.Any(i => i.VisualType == visual))
+        {
+            for (int i = 0; i < loadoutVisuals.Length; i++)
+            {
+                if (loadoutVisuals[i].VisualType == visual)
+                {
+                    loadoutVisuals[i].ItemSdbId = sdb_id;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine("Doesn't Exist. Adding!");
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = loadoutVisuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual }).ToArray();
+        }
+        EquipItemByGUID((int) loadoutId, slot, item.GUID);
+        // Ideally, the game would remove/hide the item from your inventory, but when I do that (and recreate the removed item)
+        // the targeted slot becomes empty.
+        //
+        // _items.Remove(guid);
+        // var itemToStore = CreateItem(currentItem);
+        
+        //SendFullInventory(); 
     }
 }

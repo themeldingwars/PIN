@@ -13,7 +13,7 @@ using GameServer.Enums.Visuals;
 namespace GameServer.Data;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Self explanatory")]
-public enum LoadoutSlotType
+public enum LoadoutSlotType : byte
 {
     Primary = 1,
     Secondary = 2,
@@ -22,6 +22,7 @@ public enum LoadoutSlotType
     Ability2 = 8,
     Ability3 = 9,
     Backpack = 11,
+   
     GearTorso = 116,
     GearAuxWeapon = 122,
     GearMedicalSystem = 123,
@@ -31,7 +32,9 @@ public enum LoadoutSlotType
     GearReactor = 128,
     GearOS = 129,
     GearGadget1 = 130,
-    GearGadget2 = 137
+    GearGadget2 = 137,
+    Vehicle = 157,
+    Glider = 158,
 }
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Self explanatory")]
@@ -100,7 +103,7 @@ public class CharacterLoadout
         { AbilitySlotType.AbilityMedical, LoadoutSlotType.GearMedicalSystem },
     };
 
-    public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>();
+    public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>(); 
     public Dictionary<ushort, float> ItemAttributes = new Dictionary<ushort, float>();
  
     /// <summary>

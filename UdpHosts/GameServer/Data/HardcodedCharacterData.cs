@@ -879,7 +879,7 @@ public static class HardcodedCharacterData
             FrameLoadoutId = loadoutId,
             ChassisID = sourceData.ChassisId,
             LoadoutName = $"Loadout {loadoutId}",
-            LoadoutType = "battleframe",
+            LoadoutType = "battleframe"
         };
 
         var chassisGuid = inventory.CreateItem(sourceData.ChassisId);
@@ -908,9 +908,28 @@ public static class HardcodedCharacterData
             var guid = inventory.CreateItem(typeId);
             pveItems.Add(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot });
         }
-
+        
         pveConfig.Items = pveItems.ToArray();
-
+        pveConfig.Visuals =
+        [
+            new()
+            {
+                ItemSdbId = 0,
+                VisualType = LoadoutConfig_Visual.LoadoutVisualType.Glider,
+                Data1 = 0,
+                Data2 = 0,
+                Transform = []
+            },
+            new()
+            {
+                ItemSdbId = 0,
+                VisualType = LoadoutConfig_Visual.LoadoutVisualType.Vehicle,
+                Data1 = 0,
+                Data2 = 0,
+                Transform = []
+            }
+        ];
+        
         var pvpConfig = new LoadoutConfig()
         {
             ConfigID = 1,
@@ -924,6 +943,7 @@ public static class HardcodedCharacterData
             HaveExtraData = 0
         };
 
+       
         var pvpItems = new List<LoadoutConfig_Item>();
         foreach (var (slot, typeId) in sourceData.SlottedItemsPvP)
         {
@@ -937,7 +957,25 @@ public static class HardcodedCharacterData
         }
 
         pvpConfig.Items = pvpItems.ToArray();
-
+        pvpConfig.Visuals =
+        [
+            new()
+            {
+                ItemSdbId = 0,
+                VisualType = LoadoutConfig_Visual.LoadoutVisualType.Glider,
+                Data1 = 0,
+                Data2 = 0,
+                Transform = []
+            },
+            new()
+            {
+                ItemSdbId = 0,
+                VisualType = LoadoutConfig_Visual.LoadoutVisualType.Vehicle,
+                Data1 = 0,
+                Data2 = 0,
+                Transform = []
+            }
+        ];
         loadout.LoadoutConfigs = 
         [
             pveConfig,

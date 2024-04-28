@@ -18,6 +18,9 @@ using GameServer.Data.SDB.Records.dbstats;
 using GameServer.Enums;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
+
 
 namespace GameServer.Entities.Character;
 
@@ -475,7 +478,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         var chassis = new SlottedItem
         {
             SdbId = loadout.ChassisID,
-            SlotIndex = 0,
+            SlotIndex = (byte) LoadoutSlotType.GearTorso,
             Flags = 0,
             Unk2 = 0,
             Modules = loadout.GetChassisModules(),
@@ -484,7 +487,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         var backpack = new SlottedItem
         {
             SdbId = loadout.BackpackID,
-            SlotIndex = 0,
+            SlotIndex = (byte) LoadoutSlotType.GearReactor,
             Flags = 0,
             Unk2 = 0,
             Modules = loadout.GetBackpackModules(),
@@ -495,7 +498,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             Item = new SlottedItem
             {
                 SdbId = loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary),
-                SlotIndex = 0,
+                SlotIndex = (byte) LoadoutSlotType.Primary,
                 Flags = 0,
                 Unk2 = 0,
                 Modules = Array.Empty<SlottedModule>(),
@@ -520,7 +523,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             Item = new SlottedItem
             {
                 SdbId = loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary),
-                SlotIndex = 0,
+                SlotIndex = (byte) LoadoutSlotType.Secondary,
                 Flags = 0,
                 Unk2 = 0,
                 Modules = Array.Empty<SlottedModule>(),
@@ -965,6 +968,14 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, data, null);
     }
 
+    public void SetEnemy()
+    {
+        HostilityInfo = new HostilityInfoData()
+                        {
+                           Flags = HostilityInfoData.HostilityFlags.Faction, FactionId = 1
+                       };
+        Character_ObserverView.HostilityInfoProp = HostilityInfo;
+    }
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
         Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}");
@@ -1423,6 +1434,23 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         }
 
         return result;
+    }
+
+    public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
+    {
+        Player.Inventory.EquipItemByGUID(loadoutId, slot, guid);
+        ApplyLoadout(CurrentLoadout);
+        
+    }
+    
+    public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)
+    {
+        
+        Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
+        Player.CharacterEntity.CurrentLoadout.GliderID = sdb_id;
+        Player.NetChannels[ChannelType.ReliableGss].SendIAero(Character_ObserverView, this.EntityId);
+        Console.WriteLine(Character_ObserverView.StaticInfoProp.LoadoutGlider);
+        ApplyLoadout(CurrentLoadout);
     }
 
     public class ActiveStatModifier
