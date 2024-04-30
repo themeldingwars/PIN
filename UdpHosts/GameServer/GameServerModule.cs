@@ -1,4 +1,6 @@
-﻿using Autofac;
+﻿using System;
+using System.Configuration;
+using Autofac;
 using FauFau.Formats;
 using Serilog;
 using Shared.Common;
@@ -26,6 +28,29 @@ public class GameServerModule : Module
     {
         builder.Register(ctx =>
         {
+            var settings = new GameServerSettings();
+
+            if (ConfigurationManager.AppSettings["Port"] != null)
+            {
+                settings.Port = ushort.Parse(ConfigurationManager.AppSettings["Port"]);
+            }
+
+            if (ConfigurationManager.AppSettings["GrpcChannelAddress"] != null)
+            {
+                settings.GrpcChannelAddress = ConfigurationManager.AppSettings["GrpcChannelAddress"];
+            }
+
+            if (ConfigurationManager.AppSettings["StaticDBPath"] != null)
+            {
+                settings.StaticDBPath = ConfigurationManager.AppSettings["StaticDBPath"];
+            }
+
+            return settings;
+        })
+        .As<GameServerSettings>().SingleInstance();
+
+        builder.Register(ctx =>
+        {
             var loggerConfig = new LoggerConfiguration()
             .ReadFrom.AppSettings()
             .WriteTo.Console(theme: SerilogTheme.Custom);
@@ -44,7 +69,8 @@ public class GameServerModule : Module
         builder.Register(ctx =>
         {
             var settings = ctx.Resolve<GameServerSettings>();
-
+            
+            Console.WriteLine($"Opening SDB from {settings.StaticDBPath}");
             StaticDB sdb = new StaticDB();
             sdb.Read(settings.StaticDBPath);
 
