@@ -25,5 +25,5 @@ public class GameServerSettings
     /// <summary>
     ///    File path to the clientdb.sd2 located in system\db\ of the Firefall installation
     /// </summary>
-    public string StaticDBPath { get; set; } = @"E:\MeldingWars\bin.db.ini\production\prod\prod-1962.0\system\db\clientdb.sd2";
+    public string StaticDBPath { get; set; } = @"C:\Program Files\Steam\steamapps\common\Firefall\system\db\clientdb.sd2";
 }

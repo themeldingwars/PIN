@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,9 +40,13 @@ internal class GameServer : PacketServer
         _nextShardId = 1;
         _serverId = GenerateServerId();
 
-        Logger.Information("Loading SDB");
+        Logger.Information("Reading from SDB");
         SDBInterface.Init(sdb);
+
+        Logger.Information("Reading custom data");
         CustomDBInterface.Init();
+
+        Logger.Information("Initializing GRPC");
         GRPCService.Init(serverSettings.GrpcChannelAddress);
     }
 
