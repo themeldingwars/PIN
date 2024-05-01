@@ -817,7 +817,7 @@ public class StaticDBLoader : ISDBLoader
                 }
                 else if (backupIndex != -1)
                 {
-                    propInfo.SetValue(entry, row[index], null);
+                    propInfo.SetValue(entry, row[backupIndex], null);
                 }
                 else
                 {
