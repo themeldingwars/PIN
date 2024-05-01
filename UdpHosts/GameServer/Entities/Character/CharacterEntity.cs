@@ -478,7 +478,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         var chassis = new SlottedItem
         {
             SdbId = loadout.ChassisID,
-            SlotIndex = (byte) LoadoutSlotType.GearTorso,
+            SlotIndex = 255,
             Flags = 0,
             Unk2 = 0,
             Modules = loadout.GetChassisModules(),
@@ -487,7 +487,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         var backpack = new SlottedItem
         {
             SdbId = loadout.BackpackID,
-            SlotIndex = (byte) LoadoutSlotType.GearReactor,
+            SlotIndex = 255,
             Flags = 0,
             Unk2 = 0,
             Modules = loadout.GetBackpackModules(),
@@ -498,7 +498,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             Item = new SlottedItem
             {
                 SdbId = loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary),
-                SlotIndex = (byte) LoadoutSlotType.Primary,
+                SlotIndex = 255,
                 Flags = 0,
                 Unk2 = 0,
                 Modules = Array.Empty<SlottedModule>(),
@@ -523,7 +523,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             Item = new SlottedItem
             {
                 SdbId = loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary),
-                SlotIndex = (byte) LoadoutSlotType.Secondary,
+                SlotIndex = 255,
                 Flags = 0,
                 Unk2 = 0,
                 Modules = Array.Empty<SlottedModule>(),
@@ -967,15 +967,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
         Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, data, null);
     }
-
-    public void SetEnemy()
-    {
-        HostilityInfo = new HostilityInfoData()
-                        {
-                           Flags = HostilityInfoData.HostilityFlags.Faction, FactionId = 1
-                       };
-        Character_ObserverView.HostilityInfoProp = HostilityInfo;
-    }
+    
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
         Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}");
@@ -1448,7 +1440,6 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         
         Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
         Player.CharacterEntity.CurrentLoadout.GliderID = sdb_id;
-        Player.NetChannels[ChannelType.ReliableGss].SendIAero(Character_ObserverView, this.EntityId);
         ApplyLoadout(CurrentLoadout);
     }
 

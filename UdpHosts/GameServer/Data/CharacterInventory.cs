@@ -425,7 +425,6 @@ public class CharacterInventory
     
     public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
     {
-        //var currentItem = _character.CurrentLoadout.SlottedItems[slot]; // SdbId
         var item = _items.First(e => e.Value.SdbId == sdb_id).Value;//CreateItem(sdb_id);
         
         var loadoutVisuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals; //PvE Loadout
@@ -443,14 +442,13 @@ public class CharacterInventory
         }
         else
         {
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = loadoutVisuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual }).ToArray();
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = loadoutVisuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = []}).ToArray();
         }
         EquipItemByGUID((int) loadoutId, slot, item.GUID);
 
         switch (slot)
         {
             case LoadoutSlotType.Glider:
-                Console.WriteLine("Setting Glider");
                 _character.SetStaticInfo(_character.StaticInfo with
                                          {
                                              LoadoutGlider = sdb_id,
