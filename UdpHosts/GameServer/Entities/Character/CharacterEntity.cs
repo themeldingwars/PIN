@@ -271,6 +271,11 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
 
+    public override string ToString()
+    {
+        return IsPlayerControlled ? StaticInfo.DisplayName : base.ToString();
+    }
+
     public void LoadMonster(uint typeId)
     {
         // TODO: GetMonsterVisualOptions
