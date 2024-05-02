@@ -345,7 +345,6 @@ public class CharacterInventory
                          SecondResources = Array.Empty<Resource>()
                      };
 
-        Console.WriteLine(itemChanges.Select(e => e.DynamicFlags).ToArray());
         _player.NetChannels[ChannelType.ReliableGss].SendIAero(update, _character.EntityId);
     }
     
