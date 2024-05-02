@@ -374,99 +374,72 @@ public class CharacterInventory
 
     public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
     {
-        //var currentItem = _character.CurrentLoadout.SlottedItems[slot]; // SdbId
+        // Unequip old Item (if any)
+        if (_loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Any((e) => e.SlotIndex == (byte)slot))
+        {
+            // Set Item to unequipped
+            var oldItemGUID = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.First((e) => e.SlotIndex == (byte) slot).ItemGUID;
+            var oldItem = _items[oldItemGUID];
+            oldItem.DynamicFlags = (byte) ((oldItem.DynamicFlags) ^ (byte)ItemDynamicFlags.IsEquipped);
+            _items[oldItemGUID] = oldItem;
+            
+            // Update CurrentLoadout
+            _character.CurrentLoadout.SlottedItems[slot] = 0;
+            
+            // Update LoadoutConfigs
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items
+                .Where(e => e.SlotIndex != (byte)slot).ToArray();
+        }
         
+        // Equip new item (if any)
         if (guid != 0)
         {
+            // Update Item to Equipped
             var item = _items[guid];
+            item.DynamicFlags = (byte) (item.DynamicFlags | (byte) ItemDynamicFlags.IsEquipped);
+            _items[guid] = item;
+            
+            // Update CurrentLoadout
             _character.CurrentLoadout.SlottedItems[slot] = item.SdbId;
-        }
-        else
-        {
-            _character.CurrentLoadout.SlottedItems[slot] = 0;
+
+            // Update LoadoutConfig
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
         }
         
-        var loadoutItems = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items; //PvE Loadout
-
-        if (loadoutItems.Any(i => i.SlotIndex == (byte)slot))
-        {
-            for (int i = 0; i < loadoutItems.Length; i++)
-            {
-                if (loadoutItems[i].SlotIndex == (byte) slot)
-                {
-                    loadoutItems[i].ItemGUID = guid;
-                    break;
-                }
-            }
-        }
-        else
-        {
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = loadoutItems.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
-        }
-
+        // Update StaticInfo when visuals are changed
+        var equippedSdbId = (guid != 0) ? _items[guid].SdbId : 0;
         switch (slot)
         {
             case LoadoutSlotType.Glider:
-                _character.StaticInfo = _character.StaticInfo with { LoadoutGlider = _items[guid].SdbId };
+                _character.SetStaticInfo(_character.StaticInfo with { LoadoutGlider = equippedSdbId });
                 break;
             case LoadoutSlotType.Vehicle:
-                _character.StaticInfo = _character.StaticInfo with { LoadoutVehicle = _items[guid].SdbId };
+                _character.SetStaticInfo(_character.StaticInfo with { LoadoutVehicle = equippedSdbId });
                 break;
         }
-
-        // Ideally, the game would remove/hide the item from your inventory, but when I do that (and recreate the removed item)
-        // the targeted slot becomes empty.
-        //
-        // _items.Remove(guid);
-        // var itemToStore = CreateItem(currentItem);
-        
         SendFullInventory(); 
     }
     
     public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
     {
-        var item = _items.First(e => e.Value.SdbId == sdb_id).Value;//CreateItem(sdb_id);
+        // Unequip old item (if any)
+        if (_loadouts[loadoutId].LoadoutConfigs[0].Visuals.Any(i => i.VisualType == visual))
+        {
+            // Update Visuals
+            _loadouts[loadoutId].LoadoutConfigs[0].Visuals = _loadouts[loadoutId].LoadoutConfigs[0].Visuals
+                .Where(e => e.VisualType != visual).ToArray();
+        }
         
-        var loadoutVisuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals; //PvE Loadout
-
-        if (loadoutVisuals.Any(i => i.VisualType == visual))
+        // Equip new item (if any)
+        if (sdb_id != 0)
         {
-            for (int i = 0; i < loadoutVisuals.Length; i++)
-            {
-                if (loadoutVisuals[i].VisualType == visual)
-                {
-                    loadoutVisuals[i].ItemSdbId = sdb_id;
-                    break;
-                }
-            }
+            // Update Visuals
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = []}).ToArray();
+            var item = _items.First(e => e.Value.SdbId == sdb_id).Value;
+            
         }
-        else
-        {
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = loadoutVisuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = []}).ToArray();
-        }
-        EquipItemByGUID((int) loadoutId, slot, item.GUID);
 
-        switch (slot)
-        {
-            case LoadoutSlotType.Glider:
-                _character.SetStaticInfo(_character.StaticInfo with
-                                         {
-                                             LoadoutGlider = sdb_id,
-                                         });
-                break;
-            case LoadoutSlotType.Vehicle:
-                _character.SetStaticInfo(_character.StaticInfo with
-                                         {
-                                             LoadoutVehicle = sdb_id,
-                                         });
-                break;
-        }
-        // Ideally, the game would remove/hide the item from your inventory, but when I do that (and recreate the removed item)
-        // the targeted slot becomes empty.
-        //
-        // _items.Remove(guid);
-        // var itemToStore = CreateItem(currentItem);
-
-        //SendFullInventory(); 
+        var equippedGUID = (sdb_id != 0) ? _items.First(e => e.Value.SdbId == sdb_id).Value.GUID : 0;
+        EquipItemByGUID((int) loadoutId, slot, equippedGUID);
     }
 }
