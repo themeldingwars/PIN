@@ -310,6 +310,45 @@ public class CharacterInventory
         _player.NetChannels[ChannelType.ReliableGss].SendIAero(update, _character.EntityId);
     }
 
+    public void SendEquipmentChanges(ulong oldItemGuid, ulong newItemGuid)
+    {
+        if (!EnablePartialUpdates)
+        {
+            return;
+        }
+        
+        var itemChanges = new Item[] {};
+        if (oldItemGuid != 0)
+        {
+            var oldItem = _items[oldItemGuid];
+            itemChanges = itemChanges.Append(oldItem).ToArray();
+        }
+        if (newItemGuid != 0)
+        {
+            var newItem = _items[newItemGuid];
+            itemChanges = itemChanges.Append(newItem).ToArray();
+        }
+        
+        var update = new InventoryUpdate()
+                     {
+                         ClearExistingData = 0,
+                         ItemsPart1Length = (byte) itemChanges.Length,
+                         ItemsPart1 = itemChanges,
+                         ItemsPart2Length = 0,
+                         ItemsPart2 = Array.Empty<Item>(),
+                         ItemsPart3Length = 0,
+                         ItemsPart3 = Array.Empty<Item>(),
+                         Resources = Array.Empty<Resource>(),
+                         Loadouts = _loadouts.Values.ToArray(),
+                         Unk = 1,
+                         SecondItems = Array.Empty<Item>(),
+                         SecondResources = Array.Empty<Resource>()
+                     };
+
+        Console.WriteLine(itemChanges.Select(e => e.DynamicFlags).ToArray());
+        _player.NetChannels[ChannelType.ReliableGss].SendIAero(update, _character.EntityId);
+    }
+    
     private byte GetInventoryTypeByItemTypeId(uint sdbId)
     {
         var itemInfo = SDBInterface.GetRootItem(sdbId);
@@ -374,11 +413,15 @@ public class CharacterInventory
 
     public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
     {
+        ulong changedOldItemGUID = 0;
+        ulong changedNewItemGUID = guid;
+        
         // Unequip old Item (if any)
         if (_loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Any((e) => e.SlotIndex == (byte)slot))
         {
             // Set Item to unequipped
             var oldItemGUID = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.First((e) => e.SlotIndex == (byte) slot).ItemGUID;
+            changedOldItemGUID = oldItemGUID;
             var oldItem = _items[oldItemGUID];
             oldItem.DynamicFlags = (byte) ((oldItem.DynamicFlags) ^ (byte)ItemDynamicFlags.IsEquipped);
             _items[oldItemGUID] = oldItem;
@@ -417,7 +460,7 @@ public class CharacterInventory
                 _character.SetStaticInfo(_character.StaticInfo with { LoadoutVehicle = equippedSdbId });
                 break;
         }
-        SendFullInventory(); 
+        SendEquipmentChanges(changedOldItemGUID, changedNewItemGUID);
     }
     
     public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
