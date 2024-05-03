@@ -28,7 +28,7 @@ public class Chain
 
         if (debug)
         {
-            Console.WriteLine($"Executing Chain {Id} ({context.ExecutionHint}), Self {context.Self}, Initiator {context.Initiator}, Target {context.Targets.FirstOrDefault()}");
+            Console.WriteLine($"Executing Chain {Id} ({context.ExecutionHint}), Self: {context.Self}, Initiator: {context.Initiator}, Target: {context.Targets.FirstOrDefault()?.ToString() ?? "none"}");
         }
 
         if (method == ExecutionMethod.AndChain)
@@ -38,7 +38,8 @@ public class Chain
             {
                 if (debug)
                 {
-                    Console.WriteLine($"Chain {Id} - Executing Command {command}");
+                    var hasMoreInfo = command.ToString() != command.GetType().ToString();
+                    Console.WriteLine($"Chain {Id} - Executing {(hasMoreInfo ? command : command.GetType().Name)}");
                 }
 
                 bool commandSuccess = command.Execute(context);
@@ -58,7 +59,8 @@ public class Chain
             {
                 if (debug)
                 {
-                    Console.WriteLine($"Chain {Id} - Executing Command {command}");
+                    var hasMoreInfo = command.ToString() != command.GetType().ToString();
+                    Console.WriteLine($"Chain {Id} - Executing {(hasMoreInfo ? command : command.GetType().Name)}");
                 }
 
                 bool commandSuccess = command.Execute(context);

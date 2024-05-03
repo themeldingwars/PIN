@@ -18,6 +18,6 @@ public class CustomPlaceholderCommand : ICommand
 
     public override string ToString()
     {
-        return $"PLACEHOLDER ({Label})";
+        return $"PLACEHOLDER ({Label}, ID {Id})";
     }
 }

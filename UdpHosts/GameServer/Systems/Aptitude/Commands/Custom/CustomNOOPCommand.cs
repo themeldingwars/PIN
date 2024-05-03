@@ -18,6 +18,6 @@ public class CustomNOOPCommand : ICommand
 
     public override string ToString()
     {
-        return $"NO-OP (Client {Label})";
+        return $"NO-OP (Client {Label}, ID {Id})";
     }
 }

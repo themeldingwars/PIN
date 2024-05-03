@@ -27,6 +27,11 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
     public List<EffectState> GetActiveEffects() => ActiveEffects.ToList<EffectState>();
 
+    public override string ToString()
+    {
+        return $"{GetType().Name} ({EntityId})";
+    }
+
     public EffectState AddEffect(Effect effect, Context context)
     {
         byte firstFreeIndex = InvalidIndex;
