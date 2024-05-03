@@ -18,6 +18,7 @@ using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
+using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
 
 namespace GameServer.Controllers.Character;
 
@@ -406,5 +407,44 @@ public class BaseController : Base
         var character = player.CharacterEntity;
         var shard = player.CharacterEntity.Shard;
         shard.Chat.CharacterPerformTextChat(client, character, query);
+    }
+
+    [MessageID((byte)Commands.SlotGearRequest)]
+    public void SlotGearRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<SlotGearRequest>();
+        
+        player.CharacterEntity.EquipItemByGUID(request.LoadoutId, (LoadoutSlotType) request.SlotIdx, request.ItemGUID);
+
+        var response = new SlotGearResponse()
+                       {
+                           ItemGUID = request.ItemGUID,
+                           SlotIdx = request.SlotIdx,
+                           LoadoutId = request.LoadoutId,
+                           Unk1 = request.Unk,
+                           Result = 1,
+                       };
+        
+        client.NetChannels[ChannelType.ReliableGss].SendIAero(response, entityId);
+        client.NetChannels[ChannelType.ReliableGss].SendIAero(player.CharacterEntity.Character_EquipmentView, entityId);
+    }
+    
+    [MessageID((byte)Commands.SlotVisualRequest)]
+    public void SlotVisualRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<SlotVisualRequest>();
+        
+        player.CharacterEntity.EquipVisualBySdbId(request.LoadoutId, (LoadoutVisualType) request.SlotIdx1, (LoadoutSlotType) request.SlotIdx2, request.ItemSdbId);
+        
+        var response = new SlotVisualResponse()
+                       {
+                           ConfigId = 1,
+                           SlotIdx = request.SlotIdx2,
+                           LoadoutId = (int) request.LoadoutId,
+                           Result = 1,
+                       };
+        
+        client.NetChannels[ChannelType.ReliableGss].SendIAero(response, entityId);
+        client.NetChannels[ChannelType.ReliableGss].SendIAero(player.CharacterEntity.Character_ObserverView, entityId);
     }
 }
