@@ -879,7 +879,7 @@ public static class HardcodedCharacterData
             FrameLoadoutId = loadoutId,
             ChassisID = sourceData.ChassisId,
             LoadoutName = $"Loadout {loadoutId}",
-            LoadoutType = "battleframe",
+            LoadoutType = "battleframe"
         };
 
         var chassisGuid = inventory.CreateItem(sourceData.ChassisId);
@@ -908,9 +908,9 @@ public static class HardcodedCharacterData
             var guid = inventory.CreateItem(typeId);
             pveItems.Add(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot });
         }
-
+        
         pveConfig.Items = pveItems.ToArray();
-
+        
         var pvpConfig = new LoadoutConfig()
         {
             ConfigID = 1,
@@ -923,7 +923,7 @@ public static class HardcodedCharacterData
             PerkRespecLockRemainingSeconds = 0,
             HaveExtraData = 0
         };
-
+        
         var pvpItems = new List<LoadoutConfig_Item>();
         foreach (var (slot, typeId) in sourceData.SlottedItemsPvP)
         {
@@ -937,7 +937,7 @@ public static class HardcodedCharacterData
         }
 
         pvpConfig.Items = pvpItems.ToArray();
-
+        
         loadout.LoadoutConfigs = 
         [
             pveConfig,
