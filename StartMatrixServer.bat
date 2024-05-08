@@ -1,1 +1,1 @@
-start /D UdpHosts\MatrixServer\bin\Debug\net6.0 UdpHosts\MatrixServer\bin\Debug\net6.0\MatrixServer.exe
+start /D UdpHosts\MatrixServer\bin\Debug\net8.0 UdpHosts\MatrixServer\bin\Debug\net8.0\MatrixServer.exe
