@@ -4,6 +4,7 @@ using System.Threading;
 using GameServer.Aptitude;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
+using GameServer.Physics;
 using Shared.Udp;
 
 namespace GameServer;

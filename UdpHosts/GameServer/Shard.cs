@@ -9,6 +9,7 @@ using GameServer.Aptitude;
 using GameServer.Data;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
+using GameServer.Physics;
 using Shared.Common;
 using Shared.Udp;
 
@@ -27,7 +28,7 @@ public class Shard : IShard
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
         Entities = new ConcurrentDictionary<ulong, IEntity>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
-        Physics = new PhysicsEngine(gameTickRate);
+        Physics = new PhysicsEngine();
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
