@@ -26,6 +26,7 @@ internal class GameServer : PacketServer
     private readonly ConcurrentDictionary<ulong, IShard> _shards;
 
     private readonly ulong _serverId;
+    private GameServerSettings  _settings;
 
     private byte _nextShardId;
 
@@ -39,6 +40,8 @@ internal class GameServer : PacketServer
 
         _nextShardId = 1;
         _serverId = GenerateServerId();
+
+        _settings = serverSettings;
 
         Logger.Information("Reading from SDB");
         SDBInterface.Init(sdb);
@@ -124,7 +127,7 @@ internal class GameServer : PacketServer
     private IShard NewShard(CancellationToken ct)
     {
         var id = _serverId | (uint)(_nextShardId++ << 8) | (byte)Enums.GSS.Controllers.GenericShard;
-        var shard = _shards.AddOrUpdate(id, new Shard(GameTickRate, id, this), (_, old) => old);
+        var shard = _shards.AddOrUpdate(id, new Shard(GameTickRate, id, _settings.ZoneId, this), (_, old) => old);
 
         shard.Run(ct);
 

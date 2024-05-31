@@ -22,6 +22,7 @@ public interface IShard : IPacketSender
     AbilitySystem Abilities { get; }
     ChatService Chat { get; }
     AdminService Admin { get; }
+    uint ZoneId { get; }
 
     int CurrentPlayers => Clients.Count;
 

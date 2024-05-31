@@ -300,7 +300,7 @@ public class EntityManager
         {
             hasSpawnedTestEntities = true;
             TempSpawnTestEntities();
-            SpawnZoneEntities(448);
+            SpawnZoneEntities(Shard.ZoneId);
         }
 
         // Process queued scope-ins

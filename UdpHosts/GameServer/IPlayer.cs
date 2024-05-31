@@ -51,4 +51,5 @@ public interface IPlayer
     void Jump();
     void Tick(double deltaTime, ulong currentTime, CancellationToken ct);
     uint FindClosestAvailableOutpost(Zone zone, uint targetOutpostId);
+    void TestRayCast();
 }

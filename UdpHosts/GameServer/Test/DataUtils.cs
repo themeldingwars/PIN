@@ -28,7 +28,7 @@ public static class DataUtils
         AddZone(1093, "OP02_Operation_High_Tide", 1461290397267u, new Vector3(-811.53f, -749.51f, 45.4f));
         AddZone(1100, "M01_Mission_01_Everything_Is_Shadow", 1461290405259u, new Vector3(38.9f, 7.55f, 12.2f));
         AddZone(1104, "M02_Mission_02_Bathsheba", 1461290412668u, new Vector3(-222.88f, -25.55f, 401.4f));
-        AddZone(1003, "M03EMission_03_Crash_Down", 1461290373898u, new Vector3(2.49f, -139.21f, 93.4f));
+        AddZone(1003, "M03EMission_03_Crash_Down", 1423253380039u, new Vector3(2.49f, -139.21f, 93.4f));
         AddZone(1102, "M04_Mission_04_Razorwind", 1461290409497u, new Vector3(567.44f, -265.96f, 402.2f));
         AddZone(1117, "M05_Mission_05_No_Exit", 1461290428811u, new Vector3(-7.04f, 40.15f, 124.1f));
         AddZone(1113, "M06_Mission_06_Safe_House", 1461290423131u, new Vector3(-55.0f, 14.5f, 124.0f));

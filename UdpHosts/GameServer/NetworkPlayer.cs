@@ -117,9 +117,9 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         if (remoteData != null)
         {
-            zoneId = remoteData.CharacterInfo.LastZoneId;
+            zoneId = AssignedShard.ZoneId; // remoteData.CharacterInfo.LastZoneId;
             zone = DataUtils.GetZone(zoneId);
-            outpostId = FindClosestAvailableOutpost(zone, remoteData.CharacterInfo.LastOutpostId);
+            outpostId = remoteData.CharacterInfo.LastZoneId == zoneId ? FindClosestAvailableOutpost(zone, remoteData.CharacterInfo.LastOutpostId) : 0;
         }
         else
         {
@@ -276,6 +276,13 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         }
 
         return closestOutpostId;
+    }
+
+    public void TestRayCast()
+    {
+        var pos = CharacterEntity.Position;
+        var dir = CharacterEntity.AimDirection;
+        AssignedShard.Physics.CreateTestRayCast(pos, dir);
     }
 
     private void EnterZone(Zone z, uint outpostId = 0)

@@ -372,3 +372,6 @@ FodyWeavers.xsd
 
 # VSCode Shared Configuration Files
 .vscode/
+
+# Temp
+*.gtchunk.cg.json

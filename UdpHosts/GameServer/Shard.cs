@@ -23,12 +23,12 @@ public class Shard : IShard
     private double _lastNetTick;
     private ushort _lastEntityRefId;
 
-    public Shard(double gameTickRate, ulong instanceId, IPacketSender sender)
+    public Shard(double gameTickRate, ulong instanceId, uint zoneId, IPacketSender sender)
     {
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
         Entities = new ConcurrentDictionary<ulong, IEntity>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
-        Physics = new PhysicsEngine();
+        Physics = new PhysicsEngine(zoneId);
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
@@ -36,6 +36,7 @@ public class Shard : IShard
         Chat = new ChatService(this);
         Admin = new AdminService(this);
         InstanceId = instanceId;
+        ZoneId = zoneId;
         Sender = sender;
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
         _lastEntityRefId = 0;
@@ -53,6 +54,7 @@ public class Shard : IShard
     public ChatService Chat { get; }
     public AdminService Admin { get; }
     public ulong InstanceId { get; }
+    public uint ZoneId { get; private set; }
     public ulong CurrentTimeLong { get; private set; }
     public uint CurrentTime => unchecked((uint)CurrentTimeLong);
     public ushort CurrentShortTime => unchecked((ushort)CurrentTime);

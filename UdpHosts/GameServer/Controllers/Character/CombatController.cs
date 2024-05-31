@@ -42,6 +42,8 @@ public class CombatController : Base
     {
         var fireWeaponProjectile = packet.Unpack<FireWeaponProjectile>();
         
+        player.TestRayCast();
+
         var weaponProjectileFired = new WeaponProjectileFired
         {
             ShortTime = (ushort)fireWeaponProjectile.Time,

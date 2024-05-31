@@ -26,4 +26,9 @@ public class GameServerSettings
     ///    File path to the clientdb.sd2 located in system\db\ of the Firefall installation
     /// </summary>
     public string StaticDBPath { get; set; } = @"C:\Program Files\Steam\steamapps\common\Firefall\system\db\clientdb.sd2";
+
+    /// <summary>
+    ///    ZoneId to load
+    /// </summary>
+    public uint ZoneId { get; set; } = 1003;
 }
