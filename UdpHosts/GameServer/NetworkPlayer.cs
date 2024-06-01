@@ -282,7 +282,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     {
         var pos = CharacterEntity.Position;
         var dir = CharacterEntity.AimDirection;
-        AssignedShard.Physics.CreateTestRayCast(pos, dir);
+        AssignedShard.Physics.CreateTestFireRayCast(CharacterEntity, dir);
     }
 
     private void EnterZone(Zone z, uint outpostId = 0)

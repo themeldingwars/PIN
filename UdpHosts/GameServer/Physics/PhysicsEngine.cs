@@ -2,11 +2,13 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using AeroMessages.GSS.V66.Character.Event;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using GameServer.Entities.Character;
 
 namespace GameServer.Physics;
 
@@ -14,8 +16,14 @@ public class PhysicsEngine
 {    
     public const float TargetTimestepDuration = 50; // 1 / 20f
 
-    public PhysicsEngine(uint zoneId)
+    private Shard Shard;
+
+    private TypedIndex DefaultCharacterShape;
+
+    public PhysicsEngine(Shard shard)
     {
+        Shard = shard;
+
         BufferPool = new BufferPool();
 
         // var targetThreadCount = int.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
@@ -23,8 +31,10 @@ public class PhysicsEngine
         ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
 
         Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new Vector3(0, 0, -8)), new SolveDescription(8, 1));
+        
+        DefaultCharacterShape = Simulation.Shapes.Add(new Capsule(0.5f, 1));
 
-        new ZoneLoader.ZoneLoader(Simulation, BufferPool).LoadCollision(zoneId);
+        new ZoneLoader.ZoneLoader(Simulation, BufferPool).LoadCollision(shard.ZoneId);
     }
 
     public Simulation Simulation { get; protected set; }
@@ -42,6 +52,19 @@ public class PhysicsEngine
         }
     }
 
+    public BodyHandle CreateKineticEntity(CharacterEntity entity)
+    {
+        var pose = new RigidPose { Position = entity.Position, Orientation = entity.Rotation };
+        return Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, DefaultCharacterShape, -1));
+    }
+
+    public void UpdateEntity(CharacterEntity entity)
+    {
+        ref var currentPose = ref Simulation.Bodies[entity.BodyHandle].Pose;
+        currentPose.Position = entity.Position;
+        currentPose.Orientation = entity.Rotation;
+    }
+
     public BodyDescription CreateTestBall(Vector3 pos)
     {
         var bulletShape = new Sphere(3f);
@@ -57,15 +80,134 @@ public class PhysicsEngine
 
         var hitHandler = default(RayHitHandler);
         hitHandler.T = float.MaxValue;
+        
         Simulation.RayCast(pos, dir, float.MaxValue, ref hitHandler);
         if (hitHandler.T < float.MaxValue)
-        {
-            // && hitHandler.HitCollidable.Mobility == CollidableMobility.Dynamic
-            Console.WriteLine($"HitHandler T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {Simulation.Statics.GetStaticReference(hitHandler.HitCollidable.StaticHandle).Pose.Position}");
+        {   
+            var posEst = pos + (dir * hitHandler.T);
+            Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {posEst}");
+            if (hitHandler.HitCollidable.Mobility == CollidableMobility.Static)
+            {
+                Console.WriteLine($"Static Origin At {Simulation.Statics.GetStaticReference(hitHandler.HitCollidable.StaticHandle).Pose.Position}");
+            }
         }
         else
         {
             Console.WriteLine($"Nothing hit");
+        }
+    }
+
+    public void SendDebugProjectileSpawn(CharacterEntity source, uint traceId, Vector3 origin, Vector3 direction, float speed)
+    {
+        var rayVector = direction * speed;
+        var msg = new TookDebugWeaponHit
+        {
+            Data = new()
+            {
+                Time = Shard.CurrentTime,
+                TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Spawn,
+                Unk2_TraceId = traceId,
+                Position = origin,
+                Direction = rayVector,
+            }
+        };
+        if (source.IsPlayerControlled)
+        {
+            Console.WriteLine($"SendDebugProjectileSpawn");
+            source.Player.NetChannels[ChannelType.ReliableGss].SendIAero(msg, source.EntityId);
+        }
+    }
+
+    public void SendDebugProjectileImpact(CharacterEntity source, uint traceId, Vector3 position)
+    {
+        var msg = new TookDebugWeaponHit
+        {
+            Data = new()
+            {
+                Time = Shard.CurrentTime,
+                TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Impact,
+                Unk2_TraceId = traceId,
+                Position = position,
+                Direction = Vector3.UnitZ,
+            }
+        };
+        if (source.IsPlayerControlled)
+        {
+            Console.WriteLine($"SendDebugProjectileImpact");
+            source.Player.NetChannels[ChannelType.ReliableGss].SendIAero(msg, source.EntityId);
+        }
+    }
+
+    public void CreateTestFireRayCast(CharacterEntity source, Vector3 direction)
+    {
+        var projectileOffset = new Vector3(0.2f, 0.1f, 0f);
+        var projectileBase = new Vector3(0f, 0f, 1.62f);
+        var muzzleOffset = projectileBase + projectileOffset;
+        var invQ = QuaternionEx.Inverse(source.Rotation);
+        var origin = source.Position + QuaternionEx.Transform(muzzleOffset, invQ);
+        
+        uint traceId = 11111;
+        var speed = 500f;
+        var maxRange = 500f;
+        var hitHandler = default(RayHitHandlerFire);
+        hitHandler.T = maxRange;
+        hitHandler.AvoidSourceBody = true;
+        hitHandler.SourceBody = source.BodyHandle;
+
+        SendDebugProjectileSpawn(source, traceId, origin, direction, speed);
+        Simulation.RayCast(origin, direction, float.MaxValue, ref hitHandler);
+        if (hitHandler.T < maxRange)
+        {   
+            var hitPosition = origin + (direction * hitHandler.T);
+            Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {hitPosition}");
+
+            SendDebugProjectileImpact(source, traceId, hitPosition);
+        }
+        else
+        {
+            Console.WriteLine($"Nothing hit");
+        }
+    }
+
+    public struct RayHitHandlerFire : IRayHitHandler
+    {
+        public float T;
+        public CollidableReference HitCollidable;
+        public bool AvoidSourceBody;
+        public BodyHandle SourceBody;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AllowTest(CollidableReference collidable)
+        {
+            if (AvoidSourceBody && collidable.Mobility != CollidableMobility.Static && collidable.BodyHandle.Equals(SourceBody))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AllowTest(CollidableReference collidable, int childIndex)
+        {
+            if (AvoidSourceBody && collidable.Mobility != CollidableMobility.Static && collidable.BodyHandle.Equals(SourceBody))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
+        {
+            // We are only interested in the earliest hit. This callback is executing within the traversal, so modifying maximumT informs the traversal
+            // that it can skip any AABBs which are more distant than the new maximumT.
+            maximumT = t;
+
+            // Cache the earliest impact.
+            T = t;
+            HitCollidable = collidable;
         }
     }
 

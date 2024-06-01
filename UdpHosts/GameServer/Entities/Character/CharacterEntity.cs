@@ -36,6 +36,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 
         InitFields();
         InitViews();
+        InitBody();
     }
 
     public BaseController Character_BaseController { get; set; }
@@ -1402,6 +1403,11 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         };
     }
 
+    private void InitBody()
+    {
+        BodyHandle = Shard.Physics.CreateKineticEntity(this);
+    }
+
     private void RefreshMovementView()
     {
         Character_MovementView.MovementProp = new MovementData
@@ -1412,6 +1418,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             MovementState = (ushort)MovementState,
             Time = Shard.CurrentTime
         };
+        Shard.Physics.UpdateEntity(this);
     }
 
     private void RefreshAllStatusEffects()

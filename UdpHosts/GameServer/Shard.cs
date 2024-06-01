@@ -28,7 +28,7 @@ public class Shard : IShard
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
         Entities = new ConcurrentDictionary<ulong, IEntity>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
-        Physics = new PhysicsEngine(zoneId);
+        Physics = new PhysicsEngine(this);
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);

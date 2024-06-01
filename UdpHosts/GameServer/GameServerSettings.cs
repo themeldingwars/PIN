@@ -31,4 +31,9 @@ public class GameServerSettings
     ///    ZoneId to load
     /// </summary>
     public uint ZoneId { get; set; } = 1003;
+
+    /// <summary>
+    ///    Load collision world
+    /// </summary>
+    public bool LoadCollisionWorld { get; set; } = false;
 }
