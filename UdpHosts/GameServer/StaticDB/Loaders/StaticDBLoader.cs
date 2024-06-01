@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static FauFau.Formats.StaticDB;
 using Shared.Common;
+using System.Reflection;
 
 public class StaticDBLoader : ISDBLoader
 {
@@ -1262,8 +1263,7 @@ public class StaticDBLoader : ISDBLoader
         foreach(Row row in table.Rows)
         {
             T entry = new T();
-            var propInfoList = entry.GetType().GetProperties().ToList();
-            foreach(var propInfo in propInfoList)
+            foreach (var propInfo in entry.GetType().GetProperties())
             {
                 string convertedName = Policy.ConvertName(propInfo.Name);
                 int index = table.GetColumnIndexByName(convertedName);

@@ -24,10 +24,11 @@ public class ZoneLoader
         PropertyNameCaseInsensitive = true
     };
 
-    public ZoneLoader(Simulation simulation, BufferPool pool)
+    public ZoneLoader(Simulation simulation, BufferPool pool, ThreadDispatcher dispatcher)
     {
         Simulation = simulation;
         BufferPool = pool;
+        ThreadDispatcher = dispatcher;
 
         SerializerOptions.Converters.Add(new TagfileObjectJsonConverter());
         SerializerOptions.Converters.Add(new Vector4Converter());
@@ -37,56 +38,72 @@ public class ZoneLoader
 
     public Simulation Simulation { get; protected set; }
     public BufferPool BufferPool { get; private set; }
+    public ThreadDispatcher ThreadDispatcher { get; private set; }
 
     public void LoadCollision(uint zoneId)
     {
+        Stopwatch stopWatch = new Stopwatch();
+        stopWatch.Start();
         var chunks = GetZoneChunkMap();
         foreach (var chunk in chunks)
         {
             LoadChunkJSON(chunk.Origin, chunk.Path);
         }
 
-        Console.WriteLine($"ZoneLoader Finished Loading Collision");
+        stopWatch.Stop();
+        TimeSpan ts = stopWatch.Elapsed;
+        string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+            ts.Hours,
+            ts.Minutes,
+            ts.Seconds,
+            ts.Milliseconds / 10);
+        
+        Console.WriteLine($"ZoneLoader LoadCollision Finished in {elapsedTime}");
     }
 
     private void LoadChunkJSON(Vector3 origin, string path)
     {
         Console.WriteLine($"ZoneLoader Loading {path}");
-        string jsonString = File.ReadAllText(path);
 
+        Stopwatch stopWatch = new Stopwatch();
+        stopWatch.Start();
+
+        string jsonString = File.ReadAllText(path);
         var content = JsonSerializer.Deserialize<ChunkCGContent>(jsonString, SerializerOptions);
+
+        stopWatch.Stop();
+        TimeSpan ts1 = stopWatch.Elapsed;
+        string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+            ts1.Hours,
+            ts1.Minutes,
+            ts1.Seconds,
+            ts1.Milliseconds / 10);
+        Console.WriteLine($"ZoneLoader LoadChunkJSON Deserialized in {elapsedTime}");
+        stopWatch.Restart();
 
         foreach (var subChunk in content.SubChunks) 
         {
-            foreach (var layer in new List<LayerContent>()
-            { 
-                subChunk.Cg,
-
-                // subChunk.Cg2,
-                // subChunk.Cg3
-            })
+            var myLayer = subChunk.Cg;
+            var root = subChunk.Cg.GetTagfileObject("#0001");
+            var statics = ProcessChunkObject(root, ref myLayer);
+            for (int i = 0; i < statics.Length; i++)
             {
-                if (layer == null)
-                {
-                    continue;
-                }
-
-                var myLayer = layer;
-                var root = layer.GetTagfileObject("#0001");
-                var statics = ProcessChunkObject(root, ref myLayer);
-
-                statics = statics.Select((StaticDescription stat) =>
-                {
-                    stat.Pose.Position += origin;
-                    return stat;
-                }).ToArray();
-
-                foreach(var stat in statics)
-                {
-                    Simulation.Statics.Add(stat);
-                }
+                var stat = statics[i];
+                stat.Pose.Position += origin;
+                Simulation.Statics.Add(stat);
             }
+
+            // TODO: Consider subChunk.Cg2, subChunk.Cg3
         }
+
+        stopWatch.Stop();
+        TimeSpan ts2 = stopWatch.Elapsed;
+        string elapsedTime2 = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+            ts2.Hours,
+            ts2.Minutes,
+            ts2.Seconds,
+            ts2.Milliseconds / 10);
+        Console.WriteLine($"ZoneLoader LoadChunkJSON Processed in {elapsedTime2}");
     }
 
     private List<ChunkRef> GetZoneChunkMap()
@@ -103,29 +120,9 @@ public class ZoneLoader
 
     private StaticDescription[] ProcessChunkObject(BaseTagfileObject obj, ref LayerContent layer)
     {
-        // Containers
         switch (obj)
         {
-            case HkpListShapeObject list:
-                return ProcessContainer(list, ref layer);
-            case HkpMoppBvTreeShapeObject moppBvTree:
-                return ProcessContainer(moppBvTree, ref layer);
-        }
-
-        // Modifiers
-        switch (obj)
-        {
-            case HkpConvexTranslateShapeObject convexTranslate:
-                return ProcessModifier(convexTranslate, ref layer);
-            case HkpTransformShapeObject transform:
-                return ProcessModifier(transform, ref layer);
-            case HkpConvexTransformShapeObject convexTransform:
-                return ProcessModifier(convexTransform, ref layer);
-        }
-
-        // Shapes
-        switch (obj)
-        {
+            // Shapes
             case HkpBoxShapeObject box:
                 return ProcessShape(box, ref layer);
             case HkpSphereShapeObject sphere:
@@ -141,6 +138,20 @@ public class ZoneLoader
             case HkpConvexVerticesShapeObject convexVertices:
                 return ProcessShape(convexVertices, ref layer);
             */
+
+            // Containers
+            case HkpListShapeObject list:
+                return ProcessContainer(list, ref layer);
+            case HkpMoppBvTreeShapeObject moppBvTree:
+                return ProcessContainer(moppBvTree, ref layer);
+            
+            // Modifiers
+            case HkpConvexTranslateShapeObject convexTranslate:
+                return ProcessModifier(convexTranslate, ref layer);
+            case HkpTransformShapeObject transform:
+                return ProcessModifier(transform, ref layer);
+            case HkpConvexTransformShapeObject convexTransform:
+                return ProcessModifier(convexTransform, ref layer);
         }
 
         // Console.WriteLine($"Failed to ProcessChunkObject with {obj}");
@@ -327,7 +338,7 @@ public class ZoneLoader
             var scale = new Vector3(transform[2][0], transform[2][1], transform[2][2]);
             var pos = new Vector3(transform[0][0], transform[0][1], transform[0][2]);
 
-            var mesh = BepuData.LoadMeshContent(meshContent, BufferPool, scale);
+            var mesh = BepuData.LoadMeshContent(meshContent, BufferPool, scale, ThreadDispatcher);
             
             var pose = RigidPose.Identity;
             pose.Orientation = rot;
