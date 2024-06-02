@@ -32,7 +32,7 @@ public class PhysicsEngine
 
         Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new Vector3(0, 0, -8)), new SolveDescription(8, 1));
         
-        DefaultCharacterShape = Simulation.Shapes.Add(new Capsule(0.5f, 1));
+        DefaultCharacterShape = Simulation.Shapes.Add(new Sphere(0.9f)); // Simulation.Shapes.Add(new Capsule(0.5f, 1.8f));
 
         new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(shard.ZoneId);
     }
@@ -62,7 +62,10 @@ public class PhysicsEngine
     {
         ref var currentPose = ref Simulation.Bodies[entity.BodyHandle].Pose;
         currentPose.Position = entity.Position;
+        currentPose.Position.Z += 0.9f;
         currentPose.Orientation = entity.Rotation;
+
+        // QuaternionEx.Add(QuaternionEx.CreateFromAxisAngle(Vector3.UnitZ, 90f), entity.Rotation, out currentPose.Orientation);
     }
 
     public BodyDescription CreateTestBall(Vector3 pos)
@@ -118,7 +121,7 @@ public class PhysicsEngine
         }
     }
 
-    public void SendDebugProjectileImpact(CharacterEntity source, uint traceId, Vector3 position)
+    public void SendDebugProjectileImpact(CharacterEntity source, uint traceId, Vector3 position, Vector3 normal)
     {
         var msg = new TookDebugWeaponHit
         {
@@ -128,12 +131,41 @@ public class PhysicsEngine
                 TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Impact,
                 Unk2_TraceId = traceId,
                 Position = position,
-                Direction = Vector3.UnitZ,
+                Direction = normal,
             }
         };
         if (source.IsPlayerControlled)
         {
             Console.WriteLine($"SendDebugProjectileImpact");
+            source.Player.NetChannels[ChannelType.ReliableGss].SendIAero(msg, source.EntityId);
+        }
+    }
+
+    public void SendDebugProjectilePoseHit(CharacterEntity source, uint traceId, Vector3 markerOrigin, Vector3 poseOrigin)
+    {
+        var msg = new TookDebugWeaponHit
+        {
+            Data = new()
+            {
+                Time = Shard.CurrentTime,
+                TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Posefile_Hit,
+                Unk2_TraceId = traceId,
+                Position = markerOrigin,
+                Direction = new Vector3(0.225f, 0.974f, 0),
+                HaveUnk8 = 1,
+                Unk8 = new AeroMessages.GSS.V66.TookDebugWeaponHitRelatedData {
+                    Target = source.AeroEntityId,
+                    Unk2 = poseOrigin,
+                    Unk3 = Quaternion.Identity,
+                    Unk4 = 0,
+                    Unk5 = 0xFF,
+                },
+                HaveUnk9 = 0,
+            }
+        };
+        if (source.IsPlayerControlled)
+        {
+            Console.WriteLine($"SendDebugProjectilePoseHit");
             source.Player.NetChannels[ChannelType.ReliableGss].SendIAero(msg, source.EntityId);
         }
     }
@@ -161,7 +193,15 @@ public class PhysicsEngine
             var hitPosition = origin + (direction * hitHandler.T);
             Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {hitPosition}");
 
-            SendDebugProjectileImpact(source, traceId, hitPosition);
+            SendDebugProjectileImpact(source, traceId, hitPosition, hitHandler.Normal);
+
+            if (hitHandler.HitCollidable.Mobility == CollidableMobility.Kinematic)
+            {
+                var bodyPosition = Simulation.Bodies[hitHandler.HitCollidable.BodyHandle].Pose.Position;
+                bodyPosition.Z -= 0.9f;
+                SendDebugProjectilePoseHit(source, traceId, hitPosition, bodyPosition);
+            }
+
         }
         else
         {
@@ -175,6 +215,7 @@ public class PhysicsEngine
         public CollidableReference HitCollidable;
         public bool AvoidSourceBody;
         public BodyHandle SourceBody;
+        public Vector3 Normal;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AllowTest(CollidableReference collidable)
@@ -208,6 +249,7 @@ public class PhysicsEngine
             // Cache the earliest impact.
             T = t;
             HitCollidable = collidable;
+            Normal = normal;
         }
     }
 
