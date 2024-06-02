@@ -40,7 +40,7 @@ public class MovementRelay
             {
                 ShortTime = input.ShortTime,
                 MovementType = MovementDataType.PosRotState,
-                MovementUnk3 = 0, // ToDo: Find out why this has to be 0; What does it control?
+                WaterLevelAndDesc = poseData.WaterLevelAndDesc,
                 PosRotState = new MovementPosRotState
                             {
                                 Pos = character.Position,
@@ -101,7 +101,7 @@ public class MovementRelay
                 {
                     ShortTime = client.AssignedShard.CurrentShortTime,
                     MovementType = MovementDataType.PosRotState,
-                    MovementUnk3 = 0,
+                    WaterLevelAndDesc = 0,
                     PosRotState = new MovementPosRotState()
                     {
                         Pos = input.Position,
