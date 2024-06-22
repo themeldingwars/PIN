@@ -819,6 +819,11 @@ public class StaticDBLoader : ISDBLoader
                 {
                     propInfo.SetValue(entry, row[backupIndex], null);
                 }
+                else if (propInfo.Name == "DamageType")
+                {
+                    // Appears in InflictDamageCommandDef and HealDamageCommandDef
+                    propInfo.SetValue(entry, row[table.GetColumnIndexByName("damageType")], null);
+                }
                 else
                 {
                     warningsSet.Add($"Could not find column for {propInfo.Name} (converted to {convertedName}) in {tableName}");

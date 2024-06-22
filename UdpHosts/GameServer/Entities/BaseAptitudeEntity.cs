@@ -48,7 +48,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
             if (ActiveEffects[i]?.Effect.Id == effect.Id)
             {
                 // TODO: What to do?
-                if (effect.MaxStackCount < ActiveEffects[i].Stacks)
+                if (ActiveEffects[i].Stacks < effect.MaxStackCount)
                 { 
                     ActiveEffects[i].Stacks += 1;
                 }
