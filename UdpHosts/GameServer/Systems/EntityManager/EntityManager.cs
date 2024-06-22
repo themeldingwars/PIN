@@ -117,7 +117,7 @@ public class EntityManager
 
         if (vehicleEntity.SpawnAbility != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
+            Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility, Shard.CurrentTime, new AptitudeTargets());
         }
 
         return vehicleEntity;
@@ -154,14 +154,14 @@ public class EntityManager
 
         if (deployableInfo.SpawnAbilityid != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
+            Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid, Shard.CurrentTime, new AptitudeTargets());
         }
 
         if (deployableInfo.ConstructedAbilityid != 0)
         {
             new System.Threading.Timer(state =>
             {
-                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
+                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid, Shard.CurrentTime, new AptitudeTargets());
                 if (state != null)
                 {
                     ((System.Threading.Timer)state).Dispose();
@@ -176,7 +176,7 @@ public class EntityManager
         {
             new System.Threading.Timer(state =>
             {
-                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.PoweredOnAbility, Shard.CurrentTime, new HashSet<IAptitudeTarget>());
+                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.PoweredOnAbility, Shard.CurrentTime, new AptitudeTargets());
                 if (state != null)
                 {
                     ((System.Threading.Timer)state).Dispose();

@@ -12,7 +12,8 @@ public class Context
         Initiator = initiator;
         Self = initiator;
         Abilities = shard.Abilities;
-        Targets = new HashSet<IAptitudeTarget>();
+        Targets = new AptitudeTargets();
+        FormerTargets = new AptitudeTargets();
         InitPosition = Vector3.Zero;
     }
 
@@ -23,8 +24,8 @@ public class Context
     public AbilitySystem Abilities { get; set; }
     public IAptitudeTarget Self { get; set; }
     public IAptitudeTarget Initiator { get; set; }
-    public HashSet<IAptitudeTarget> Targets { get; set; }
-    public HashSet<IAptitudeTarget> FormerTargets { get; set; }
+    public AptitudeTargets Targets { get; set; }
+    public AptitudeTargets FormerTargets { get; set; }
     public float Register { get; set; }
     public int Bonus { get; set; }
     public uint InitTime { get; set; }

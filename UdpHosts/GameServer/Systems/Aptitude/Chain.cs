@@ -28,7 +28,8 @@ public class Chain
 
         if (debug)
         {
-            Console.WriteLine($"Executing Chain {Id} ({context.ExecutionHint}), Self: {context.Self}, Initiator: {context.Initiator}, Target: {context.Targets.FirstOrDefault()?.ToString() ?? "none"}");
+            context.Targets.TryPeek(out var res);
+            Console.WriteLine($"Executing Chain {Id} ({context.ExecutionHint}), Self: {context.Self}, Initiator: {context.Initiator}, Target: {res?.ToString() ?? "none"}");
         }
 
         if (method == ExecutionMethod.AndChain)
