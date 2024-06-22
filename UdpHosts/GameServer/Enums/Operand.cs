@@ -2,13 +2,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GameServer.Enums;
 
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "TODO")]
+[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Based on FUN_00bc1130")]
 public enum Operand : byte
 {
     ASSIGN = 0,
-    ADDITIVE = 1,
-    MULTIPLICATIVE = 2,
-    PERK_DAMAGE_SCALAR = 3, // Uncertain
-    DIVIDE_FIRST_BY_SECOND = 4, // Uncertain
-    DIVIDE_SECOND_BY_FIRST = 5, // Uncertain
+    ADD = 1,
+    MULTIPLY = 2,
+    EXPONENTIATE = 3,
+    SUBTRACT = 4,
+    DIVIDE = 5,
+    // Add and multiply appear twice in a switch inside client
+    ADD_ALT = 6,
+    MULTIPLY_ALT = 7,
+    MINIMUM = 8,
+    MAXIMUM = 9,
 }

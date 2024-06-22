@@ -33,19 +33,27 @@ public class AbilitySystem
         {
             case Operand.ASSIGN:
                 return second;
-            case Operand.ADDITIVE:
-                return first + second;
-            case Operand.MULTIPLICATIVE:
-                return first * second;
-            case Operand.PERK_DAMAGE_SCALAR:
-                Console.WriteLine($"Uncertain RegistryOp {op}");
-                return first * second; // TODO: Uncertain
-            case Operand.DIVIDE_FIRST_BY_SECOND:
-                Console.WriteLine($"Uncertain RegistryOp {op}");
-                return first / second;
-            case Operand.DIVIDE_SECOND_BY_FIRST:
-                Console.WriteLine($"Uncertain RegistryOp {op}");
+            case Operand.ADD:
+            case Operand.ADD_ALT:
+                return second + first;
+            case Operand.MULTIPLY:
+            case Operand.MULTIPLY_ALT:
+                return second * first;
+            case Operand.EXPONENTIATE:
+                Console.WriteLine($"Uncertain RegistryOp {op}. {second} ^ {first} = {(float)Math.Pow(second, first)}");
+                return (float)Math.Pow(second, first);
+            case Operand.SUBTRACT:
+                Console.WriteLine($"Uncertain RegistryOp {op}. {second} - {first} = {second - first}");
+                return second - first;
+            case Operand.DIVIDE:
+                Console.WriteLine($"Uncertain RegistryOp {op}. {second} / {first} = {second / first}");
                 return second / first;
+            case Operand.MINIMUM:
+                Console.WriteLine($"Uncertain RegistryOp {op}. Min({second}, {first}) = {((first <= second) ? first : second)}");
+                return (first <= second) ? first : second;
+            case Operand.MAXIMUM:
+                Console.WriteLine($"Uncertain RegistryOp {op}. Max({second}, {first}) = {((first >= second) ? first : second)}");
+                return (first >= second) ? first : second;
             default:
                 Console.WriteLine($"Unknown RegistryOp {op}");
                 return second;
