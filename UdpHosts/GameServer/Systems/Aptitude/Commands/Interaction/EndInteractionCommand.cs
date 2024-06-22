@@ -30,14 +30,14 @@ public class EndInteractionCommand : ICommand
                 }
             }
 
-            var interactionEntity = context.Targets.First();
+            var interactionEntity = context.Targets.Peek();
             var hack = interactionEntity as BaseEntity;
             var abilityId = hack.Interaction.CompletedAbilityId;
             if (abilityId != 0)
             {
-                context.Shard.Abilities.HandleActivateAbility(context.Shard, actingEntity, abilityId, context.Shard.CurrentTime, new HashSet<IAptitudeTarget>() { interactionEntity });
+                context.Shard.Abilities.HandleActivateAbility(context.Shard, actingEntity, abilityId, context.Shard.CurrentTime, new AptitudeTargets(interactionEntity));
             }
-            
+
             var interactionType = hack.Interaction.Type;
             if (interactionType == InteractionType.Vehicle)
             {

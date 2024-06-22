@@ -1,0 +1,18 @@
+using GameServer.Data.SDB.Records.aptfs;
+
+namespace GameServer.Aptitude;
+
+public class RequireEquippedItemCommand : ICommand
+{
+    private RequireEquippedItemCommandDef Params;
+
+    public RequireEquippedItemCommand(RequireEquippedItemCommandDef par)
+    {
+        Params = par;
+    }
+
+    public bool Execute(Context context)
+    {
+        return true;
+    }
+}

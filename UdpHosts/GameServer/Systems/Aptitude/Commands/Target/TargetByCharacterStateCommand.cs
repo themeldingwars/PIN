@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using GameServer.Data.SDB.Records.aptfs;
 using static AeroMessages.GSS.V66.Character.CharacterStateData;
 
@@ -16,7 +15,7 @@ public class TargetByCharacterStateCommand : ICommand
     public bool Execute(Context context)
     {
         var previousTargets = context.Targets;
-        var newTargets = new HashSet<IAptitudeTarget>();
+        var newTargets = new AptitudeTargets();
         foreach (IAptitudeTarget target in previousTargets)
         {
             if (target.GetType() == typeof(Entities.Character.CharacterEntity))
@@ -27,31 +26,31 @@ public class TargetByCharacterStateCommand : ICommand
 
                 if (Params.Respawning == 1 && characterState == CharacterStatus.Respawning)
                 {
-                    newTargets.Add(target);
+                    newTargets.Push(target);
                 }
                 else if (Params.Incapacitated == 1 && characterState == CharacterStatus.Incapacitated)
                 {
-                    newTargets.Add(target);
+                    newTargets.Push(target);
                 }
                 else if (Params.Traumatized == 1 && characterState == CharacterStatus.Traumatized)
                 {
-                    newTargets.Add(target);
+                    newTargets.Push(target);
                 }
                 else if (Params.Ghost == 1 && characterState == CharacterStatus.Ghost)
                 {
-                    newTargets.Add(target);
+                    newTargets.Push(target);
                 }
                 else if (Params.Living == 1 && characterState == CharacterStatus.Living)
                 {
-                    newTargets.Add(target);
+                    newTargets.Push(target);
                 }
                 else if (Params.Dead == 1 && characterState == CharacterStatus.Dead)
                 {
-                    newTargets.Add(target);
+                    newTargets.Push(target);
                 }
                 else if (Params.Spawning == 1 && characterState == CharacterStatus.Spawning)
                 {
-                    newTargets.Add(target);
+                    newTargets.Push(target);
                 }
             }
         }

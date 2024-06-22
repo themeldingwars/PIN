@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
@@ -14,20 +13,23 @@ public class TargetByObjectTypeCommand : ICommand
 
     // TODO: Handle Params.Projectile
     // TODO: Handle Params.Tinyobject
-    // TODO: Handle Params.Vehicle
     public bool Execute(Context context)
     {
         var previousTargets = context.Targets;
-        var newTargets = new HashSet<IAptitudeTarget>();
+        var newTargets = new AptitudeTargets();
         foreach (IAptitudeTarget target in previousTargets)
         {
             if (Params.Character == 1 && target.GetType() == typeof(Entities.Character.CharacterEntity))
             {
-                newTargets.Add(target);
+                newTargets.Push(target);
             }
             else if (Params.Deployable == 1 && target.GetType() == typeof(Entities.Deployable.DeployableEntity))
             {
-                newTargets.Add(target);
+                newTargets.Push(target);
+            }
+            else if (Params.Vehicle == 1 && target.GetType() == typeof(Entities.Vehicle.VehicleEntity))
+            {
+                newTargets.Push(target);
             }
         }
 

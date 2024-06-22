@@ -1,0 +1,20 @@
+[
+  {
+    "id": 488276,
+    "comment": "Triggered by Ability 36263; Disposable Jetball",
+    "carryable_type_id": 40,
+    "lifetime": 0
+  },
+  {
+    "id": 914069,
+    "comment": ""
+  },
+  {
+    "id": 1068947,
+    "comment": "Triggered by Ability 39561"
+  },
+  {
+    "id": 1119309,
+    "comment": "Triggered by Ability 39793"
+  }
+]

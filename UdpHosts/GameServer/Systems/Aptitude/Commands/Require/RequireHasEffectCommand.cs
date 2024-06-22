@@ -1,4 +1,5 @@
 using GameServer.Data.SDB.Records.aptfs;
+using System;
 
 namespace GameServer.Aptitude;
 
@@ -13,6 +14,7 @@ public class RequireHasEffectCommand : ICommand
 
     public bool Execute(Context context)
     {
+        // Console.WriteLine($"EffectID: {Params.EffectId}");
         bool result = false;
 
         // TODO: Handle Params.SameInitiator

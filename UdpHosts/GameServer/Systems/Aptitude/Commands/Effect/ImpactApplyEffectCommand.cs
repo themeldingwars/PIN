@@ -28,9 +28,17 @@ public class ImpactApplyEffectCommand : ICommand
         }
 
         // TODO: Pass is a keyword associated with outcomes similiar to Fail. This might not mean to pass targets but rather to require targets/register/bonus in order to apply the effect
+
         if (Params.PassTargets == 1)
         {
-            effectContext.Targets = context.Targets;
+            if (Params.UseFormer == 1)
+            {
+                effectContext.Targets = context.FormerTargets;
+            }
+            else
+            {
+                effectContext.Targets = context.Targets;
+            }
         }
 
         if (Params.PassRegister == 1)
@@ -43,7 +51,6 @@ public class ImpactApplyEffectCommand : ICommand
             effectContext.Bonus = context.Bonus;
         }
 
-        // TODO: Handle Params.UseFormer, sounds targeting related
         if (Params.OverrideInitiator == 1)
         {
             // TODO: With who?
@@ -51,13 +58,27 @@ public class ImpactApplyEffectCommand : ICommand
         }
         else if (Params.OverrideInitiatorWithTarget == 1)
         {
-            if (context.Targets.Count > 0)
+            if (Params.UseFormer == 1)
             {
-                effectContext.Initiator = context.Targets.First(); // Eh?
+                if (context.FormerTargets.TryPeek(out var initiator))
+                {
+                    effectContext.Initiator = initiator;
+                }
+                else
+                {
+                    Console.WriteLine($"ApplyEffect {Params.Id} (effect {Params.EffectId}) specifies OverrideInitiatorWithTarget but there are no targets");
+                }
             }
             else
             {
-                Console.WriteLine($"ApplyEffect {Params.Id} (effect {Params.EffectId}) specifies OverrideInitiatorWithTarget but there are no targets");
+                if (context.Targets.TryPeek(out var initiator))
+                {
+                    effectContext.Initiator = initiator;
+                }
+                else
+                {
+                    Console.WriteLine($"ApplyEffect {Params.Id} (effect {Params.EffectId}) specifies OverrideInitiatorWithTarget but there are no targets");
+                }
             }
         }
 
@@ -72,7 +93,7 @@ public class ImpactApplyEffectCommand : ICommand
             {
                 context.Actives.Add(this, new RemoveOnRollbackCommandActiveContext()
                 {
-                    Targets = new() { context.Self }
+                    Targets = new(context.Self)
                 });
             }
 
@@ -110,5 +131,5 @@ public class ImpactApplyEffectCommand : ICommand
 
 public class RemoveOnRollbackCommandActiveContext : ICommandActiveContext
 {
-    public HashSet<IAptitudeTarget> Targets { get; set; }
+    public AptitudeTargets Targets { get; set; }
 }
