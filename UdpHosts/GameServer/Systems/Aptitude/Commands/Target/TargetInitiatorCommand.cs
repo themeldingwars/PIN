@@ -18,7 +18,7 @@ public class TargetInitiatorCommand : ICommand
         // Console.WriteLine($"TargetSelfCommand Pre Target {context.Targets.FirstOrDefault()}");
 
         // TODO: FormerTargets ?
-        context.Targets.Add(context.Initiator);
+        context.Targets.Push(context.Initiator);
 
         // Console.WriteLine($"TargetSelfCommand Post Target {context.Targets.FirstOrDefault()}");
         return true;

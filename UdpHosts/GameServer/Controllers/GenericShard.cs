@@ -68,9 +68,9 @@ public class GenericShard : Base
             }
         })
         .Select(entityId => (IAptitudeTarget)shard.Entities[entityId.Backing & 0xffffffffffffff00])
-        .ToHashSet<IAptitudeTarget>();
+        .ToArray();
 
-        abilities.HandleLocalProximityAbilitySuccess(shard, source, message.ClientProximityCommandId, message.Time, targets);
+        abilities.HandleLocalProximityAbilitySuccess(shard, source, message.ClientProximityCommandId, message.Time, new AptitudeTargets(targets));
     }
 
     [MessageID((byte)Commands.RemoteProximityAbilitySuccess)]

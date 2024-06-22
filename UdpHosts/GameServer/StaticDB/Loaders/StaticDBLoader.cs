@@ -176,10 +176,23 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, StagedActivationCommandDef> LoadStagedActivationCommandDef()
+    {
+        return LoadStaticDB<StagedActivationCommandDef>("apt::StagedActivationCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, StatusEffectData> LoadStatusEffectData()
     {
         return LoadStaticDB<StatusEffectData>("apt::StatusEffectData")
         .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, HashSet<uint>> LoadStatusEffectTags()
+    {
+        return LoadStaticDB<StatusEffectTags>("apt::StatusEffectTags")
+               .GroupBy(row => row.TagtypeId)
+            .ToDictionary(group => group.Key, group => group.Select(item => item.StatusfxId).ToHashSet());
     }
 
     public Dictionary<uint, TargetPBAECommandDef> LoadTargetPBAECommandDef()
@@ -212,6 +225,36 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, TargetSwapCommandDef> LoadTargetSwapCommandDef()
+    {
+        return LoadStaticDB<TargetSwapCommandDef>("apt::TargetSwapCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetStackEmptyCommandDef> LoadTargetStackEmptyCommandDef()
+    {
+        return LoadStaticDB<TargetStackEmptyCommandDef>("apt::TargetStackEmptyCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PeekTargetsCommandDef> LoadPeekTargetsCommandDef()
+    {
+        return LoadStaticDB<PeekTargetsCommandDef>("apt::PeekTargetsCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PopTargetsCommandDef> LoadPopTargetsCommandDef()
+    {
+        return LoadStaticDB<PopTargetsCommandDef>("apt::PopTargetsCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PushTargetsCommandDef> LoadPushTargetsCommandDef()
+    {
+        return LoadStaticDB<PushTargetsCommandDef>("apt::PushTargetsCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, TargetFriendliesCommandDef> LoadTargetFriendliesCommandDef()
     {
         return LoadStaticDB<TargetFriendliesCommandDef>("aptfs::TargetFriendliesCommandDef")
@@ -222,6 +265,12 @@ public class StaticDBLoader : ISDBLoader
     {
         return LoadStaticDB<TargetByEffectCommandDef>("aptfs::TargetByEffectCommandDef")
         .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetByEffectTagCommandDef> LoadTargetByEffectTagCommandDef()
+    {
+        return LoadStaticDB<TargetByEffectTagCommandDef>("aptfs::TargetByEffectTagCommandDef")
+            .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, TargetOwnerCommandDef> LoadTargetOwnerCommandDef()
@@ -258,6 +307,12 @@ public class StaticDBLoader : ISDBLoader
     {
         return LoadStaticDB<ForcePushCommandDef>("aptfs::ForcePushCommandDef")
         .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, RequestBattleFrameListCommandDef> LoadRequestBattleFrameListCommandDef()
+    {
+        return LoadStaticDB<RequestBattleFrameListCommandDef>("aptfs::RequestBattleFrameListCommandDef")
+            .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, ApplyImpulseCommandDef> LoadApplyImpulseCommandDef()
@@ -795,6 +850,402 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, TargetSingleCommandDef> LoadTargetSingleCommandDef()
+    {
+        return LoadStaticDB<TargetSingleCommandDef>("apt::TargetSingleCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TimeCooldownCommandDef> LoadTimeCooldownCommandDef()
+    {
+        return LoadStaticDB<TimeCooldownCommandDef>("apt::TimeCooldownCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TimedActivationCommandDef> LoadTimedActivationCommandDef()
+    {
+        return LoadStaticDB<TimedActivationCommandDef>("apt::TimedActivationCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PassiveInitiationCommandDef> LoadPassiveInitiationCommandDef()
+    {
+        return LoadStaticDB<PassiveInitiationCommandDef>("apt::PassiveInitiationCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetInteractivesCommandDef> LoadTargetInteractivesCommandDef()
+    {
+        return LoadStaticDB<TargetInteractivesCommandDef>("aptfs::TargetInteractivesCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ImpactMarkInteractivesCommandDef> LoadImpactMarkInteractivesCommandDef()
+    {
+        return LoadStaticDB<ImpactMarkInteractivesCommandDef>("aptfs::ImpactMarkInteractivesCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetPreviousCommandDef> LoadTargetPreviousCommandDef()
+    {
+        return LoadStaticDB<TargetPreviousCommandDef>("apt::TargetPreviousCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, HasTargetsDurationCommandDef> LoadHasTargetsDurationCommandDef()
+    {
+        return LoadStaticDB<HasTargetsDurationCommandDef>("aptfs::HasTargetsDurationCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, UpdateYieldCommandDef> LoadUpdateYieldCommandDef()
+    {
+        return LoadStaticDB<UpdateYieldCommandDef>("apt::UpdateYieldCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, RopePullCommandDef> LoadRopePullCommandDef()
+    {
+        return LoadStaticDB<RopePullCommandDef>("aptfs::RopePullCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, SetTargetOffsetCommandDef> LoadSetTargetOffsetCommandDef()
+    {
+        return LoadStaticDB<SetTargetOffsetCommandDef>("aptfs::SetTargetOffsetCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, HealDamageCommandDef> LoadHealDamageCommandDef()
+    {
+        return LoadStaticDB<HealDamageCommandDef>("aptfs::HealDamageCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, BullrushCommandDef> LoadBullrushCommandDef()
+    {
+        return LoadStaticDB<BullrushCommandDef>("aptfs::BullrushCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, EnergyToDamageCommandDef> LoadEnergyToDamageCommandDef()
+    {
+        return LoadStaticDB<EnergyToDamageCommandDef>("aptfs::EnergyToDamageCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, BattleFrameDurationCommandDef> LoadBattleFrameDurationCommandDef()
+    {
+        return LoadStaticDB<BattleFrameDurationCommandDef>("aptfs::BattleFrameDurationCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ShootingDurationCommandDef> LoadShootingDurationCommandDef()
+    {
+        return LoadStaticDB<ShootingDurationCommandDef>("aptfs::ShootingDurationCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, SwitchWeaponCommandDef> LoadSwitchWeaponCommandDef()
+    {
+        return LoadStaticDB<SwitchWeaponCommandDef>("aptfs::SwitchWeaponCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, StatRequirementCommandDef> LoadStatRequirementCommandDef()
+    {
+        return LoadStaticDB<StatRequirementCommandDef>("aptfs::StatRequirementCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ConsumeEnergyCommandDef> LoadConsumeEnergyCommandDef()
+    {
+        return LoadStaticDB<ConsumeEnergyCommandDef>("aptfs::ConsumeEnergyCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetClassTypeCommandDef> LoadTargetClassTypeCommandDef()
+    {
+        return LoadStaticDB<TargetClassTypeCommandDef>("aptfs::TargetClassTypeCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetDifferenceCommandDef> LoadTargetDifferenceCommandDef()
+    {
+        return LoadStaticDB<TargetDifferenceCommandDef>("apt::TargetDifferenceCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ClimbLedgeCommandDef> LoadClimbLedgeCommandDef()
+    {
+        return LoadStaticDB<ClimbLedgeCommandDef>("aptfs::ClimbLedgeCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, AimRangeDurationCommandDef> LoadAimRangeDurationCommandDef()
+    {
+        return LoadStaticDB<AimRangeDurationCommandDef>("apt::AimRangeDurationCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, CopyInitiationPositionCommandDef> LoadCopyInitiationPositionCommandDef()
+    {
+        return LoadStaticDB<CopyInitiationPositionCommandDef>("aptfs::CopyInitiationPositionCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, SlotAmmoCommandDef> LoadSlotAmmoCommandDef()
+    {
+        return LoadStaticDB<SlotAmmoCommandDef>("aptfs::SlotAmmoCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, AddPhysicsCommandDef> LoadAddPhysicsCommandDef()
+    {
+        return LoadStaticDB<AddPhysicsCommandDef>("aptfs::AddPhysicsCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetCurrentVehicleCommandDef> LoadTargetCurrentVehicleCommandDef()
+    {
+        return LoadStaticDB<TargetCurrentVehicleCommandDef>("aptfs::TargetCurrentVehicleCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetPassengersCommandDef> LoadTargetPassengersCommandDef()
+    {
+        return LoadStaticDB<TargetPassengersCommandDef>("aptfs::TargetPassengersCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetSquadmatesCommandDef> LoadTargetSquadmatesCommandDef()
+    {
+        return LoadStaticDB<TargetSquadmatesCommandDef>("aptfs::TargetSquadmatesCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetTrimCommandDef> LoadTargetTrimCommandDef()
+    {
+        return LoadStaticDB<TargetTrimCommandDef>("apt::TargetTrimCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, SetWeaponDamageCommandDef> LoadSetWeaponDamageCommandDef()
+    {
+        return LoadStaticDB<SetWeaponDamageCommandDef>("aptfs::SetWeaponDamageCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ConsumeEnergyOverTimeCommandDef> LoadConsumeEnergyOverTimeCommandDef()
+    {
+        return LoadStaticDB<ConsumeEnergyOverTimeCommandDef>("aptfs::ConsumeEnergyOverTimeCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, RequestAbilitySelectionCommandDef> LoadRequestAbilitySelectionCommandDef()
+    {
+        return LoadStaticDB<RequestAbilitySelectionCommandDef>("aptfs::RequestAbilitySelectionCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, BonusGreaterThanCommandDef> LoadBonusGreaterThanCommandDef()
+    {
+        return LoadStaticDB<BonusGreaterThanCommandDef>("apt::BonusGreaterThanCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, BombardmentCommandDef> LoadBombardmentCommandDef()
+    {
+        return LoadStaticDB<BombardmentCommandDef>("aptfs::BombardmentCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, SetProjectileTargetCommandDef> LoadSetProjectileTargetCommandDef()
+    {
+        return LoadStaticDB<SetProjectileTargetCommandDef>("aptfs::SetProjectileTargetCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, UpdateWaitCommandDef> LoadUpdateWaitCommandDef()
+    {
+        return LoadStaticDB<UpdateWaitCommandDef>("apt::UpdateWaitCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PushRegisterCommandDef> LoadPushRegisterCommandDef()
+    {
+        return LoadStaticDB<PushRegisterCommandDef>("apt::PushRegisterCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PopRegisterCommandDef> LoadPopRegisterCommandDef()
+    {
+        return LoadStaticDB<PopRegisterCommandDef>("apt::PopRegisterCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PeekRegisterCommandDef> LoadPeekRegisterCommandDef()
+    {
+        return LoadStaticDB<PeekRegisterCommandDef>("apt::PeekRegisterCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, MovementSlideCommandDef> LoadMovementSlideCommandDef()
+    {
+        return LoadStaticDB<MovementSlideCommandDef>("aptfs::MovementSlideCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetFromStatusEffectCommandDef> LoadTargetFromStatusEffectCommandDef()
+    {
+        return LoadStaticDB<TargetFromStatusEffectCommandDef>("aptfs::TargetFromStatusEffectCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetByDamageResponseCommandDef> LoadTargetByDamageResponseCommandDef()
+    {
+        return LoadStaticDB<TargetByDamageResponseCommandDef>("aptfs::TargetByDamageResponseCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ForcedMovementDurationCommandDef> LoadForcedMovementDurationCommandDef()
+    {
+        return LoadStaticDB<ForcedMovementDurationCommandDef>("aptfs::ForcedMovementDurationCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, FireUiEventCommandDef> LoadFireUiEventCommandDef()
+    {
+        return LoadStaticDB<FireUiEventCommandDef>("aptfs::FireUiEventCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, UiNamedVariableCommandDef> LoadUiNamedVariableCommandDef()
+    {
+        return LoadStaticDB<UiNamedVariableCommandDef>("aptfs::UiNamedVariableCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, DetonateProjectilesCommandDef> LoadDetonateProjectilesCommandDef()
+    {
+        return LoadStaticDB<DetonateProjectilesCommandDef>("aptfs::DetonateProjectilesCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, SetWeaponDamageTypeCommandDef> LoadSetWeaponDamageTypeCommandDef()
+    {
+        return LoadStaticDB<SetWeaponDamageTypeCommandDef>("aptfs::SetWeaponDamageTypeCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetFilterMovestateCommandDef> LoadTargetFilterMovestateCommandDef()
+    {
+        return LoadStaticDB<TargetFilterMovestateCommandDef>("aptfs::TargetFilterMovestateCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetByHostilityCommandDef> LoadTargetByHostilityCommandDef()
+    {
+        return LoadStaticDB<TargetByHostilityCommandDef>("aptfs::TargetByHostilityCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ConsumeSuperChargeCommandDef> LoadConsumeSuperChargeCommandDef()
+    {
+        return LoadStaticDB<ConsumeSuperChargeCommandDef>("aptfs::ConsumeSuperChargeCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetByHealthCommandDef> LoadTargetByHealthCommandDef()
+    {
+        return LoadStaticDB<TargetByHealthCommandDef>("aptfs::TargetByHealthCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, RegisterMovementEffectCommandDef> LoadRegisterMovementEffectCommandDef()
+    {
+        return LoadStaticDB<RegisterMovementEffectCommandDef>("aptfs::RegisterMovementEffectCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, UpdateWaitAndFireOnceCommandDef> LoadUpdateWaitAndFireOnceCommandDef()
+    {
+        return LoadStaticDB<UpdateWaitAndFireOnceCommandDef>("apt::UpdateWaitAndFireOnceCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ApplyAmmoRiderCommandDef> LoadApplyAmmoRiderCommandDef()
+    {
+        return LoadStaticDB<ApplyAmmoRiderCommandDef>("aptfs::ApplyAmmoRiderCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetFilterByRangeCommandDef> LoadTargetFilterByRangeCommandDef()
+    {
+        return LoadStaticDB<TargetFilterByRangeCommandDef>("aptfs::TargetFilterByRangeCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, OverrideCollisionCommandDef> LoadOverrideCollisionCommandDef()
+    {
+        return LoadStaticDB<OverrideCollisionCommandDef>("aptfs::OverrideCollisionCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, RegisterLoadScaleCommandDef> LoadRegisterLoadScaleCommandDef()
+    {
+        return LoadStaticDB<RegisterLoadScaleCommandDef>("apt::RegisterLoadScaleCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, MovementFacingCommandDef> LoadMovementFacingCommandDef()
+    {
+        return LoadStaticDB<MovementFacingCommandDef>("aptfs::MovementFacingCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TargetFilterBySinAcquiredCommandDef> LoadTargetFilterBySinAcquiredCommandDef()
+    {
+        return LoadStaticDB<TargetFilterBySinAcquiredCommandDef>("aptfs::TargetFilterBySinAcquiredCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, MovementTetherCommandDef> LoadMovementTetherCommandDef()
+    {
+        return LoadStaticDB<MovementTetherCommandDef>("aptfs::MovementTetherCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, RegisterLoadFromWeaponCommandDef> LoadRegisterLoadFromWeaponCommandDef()
+    {
+        return LoadStaticDB<RegisterLoadFromWeaponCommandDef>("aptfs::RegisterLoadFromWeaponCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ApplyClientStatusEffectCommandDef> LoadApplyClientStatusEffectCommandDef()
+    {
+        return LoadStaticDB<ApplyClientStatusEffectCommandDef>("aptfs::ApplyClientStatusEffectCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, RemoveClientStatusEffectCommandDef> LoadRemoveClientStatusEffectCommandDef()
+    {
+        return LoadStaticDB<RemoveClientStatusEffectCommandDef>("aptfs::RemoveClientStatusEffectCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, DisableChatBubbleCommandDef> LoadDisableChatBubbleCommandDef()
+    {
+        return LoadStaticDB<DisableChatBubbleCommandDef>("aptfs::DisableChatBubbleCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, DisableHealthAndIconCommandDef> LoadDisableHealthAndIconCommandDef()
+    {
+        return LoadStaticDB<DisableHealthAndIconCommandDef>("aptfs::DisableHealthAndIconCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
     private static T[] LoadStaticDB<T>(string tableName)
     where T : class, new()
     {
@@ -818,6 +1269,11 @@ public class StaticDBLoader : ISDBLoader
                 else if (backupIndex != -1)
                 {
                     propInfo.SetValue(entry, row[backupIndex], null);
+                }
+                else if (propInfo.Name == "DamageType")
+                {
+                    // Appears in InflictDamageCommandDef and HealDamageCommandDef
+                    propInfo.SetValue(entry, row[table.GetColumnIndexByName("damageType")], null);
                 }
                 else
                 {

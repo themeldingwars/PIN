@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1029083,
+    "comment": "Effect 10752",
+    "faction_id": 0,
+    "amount": 0
+  },
+  {
+    "id": 1363854,
+    "comment": "Ability 41076, Kisuton",
+    "faction_id": 11,
+    "amount": 0
+  },
+  {
+    "id": 1363881,
+    "comment": "Ability 41077, Omnidyne",
+    "faction_id": 10,
+    "amount": 0
+  },
+  {
+    "id": 1363911,
+    "comment": "Ability 41075, Astrek",
+    "faction_id": 12,
+    "amount": 0
+  }
+]

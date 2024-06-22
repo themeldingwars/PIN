@@ -24,7 +24,7 @@ public class AuthorizeTerminalCommand : ICommand
             return false;
         }
 
-        var terminal = context.Targets.First();
+        var terminal = context.Targets.Peek();
 
         if (target.GetType() == typeof(Entities.Character.CharacterEntity))
         {

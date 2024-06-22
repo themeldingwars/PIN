@@ -18,11 +18,14 @@ public class LogicOrCommand : ICommand
 
         var prevExecutionHint = context.ExecutionHint;
         context.ExecutionHint = ExecutionHint.Logic;
-        bool resultA = chainA.Execute(context);
-        bool resultB = chainB.Execute(context);
-        context.ExecutionHint = prevExecutionHint;
+        bool result = chainA.Execute(context);
 
-        bool result = resultA || resultB;
+        if (result == false)
+        {
+            result = chainB.Execute(context);
+        }
+
+        context.ExecutionHint = prevExecutionHint;
 
         return result;
     }

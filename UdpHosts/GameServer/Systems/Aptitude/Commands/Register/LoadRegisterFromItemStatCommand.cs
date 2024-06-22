@@ -25,7 +25,7 @@ public class LoadRegisterFromItemStatCommand : ICommand
         {
             if (context.Targets.Count > 0)
             {
-                target = context.Targets.First();
+                target = context.Targets.Peek();
             }
             else
             {
