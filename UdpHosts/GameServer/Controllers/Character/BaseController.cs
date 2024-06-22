@@ -414,7 +414,7 @@ public class BaseController : Base
     {
         var request = packet.Unpack<SlotGearRequest>();
         
-        player.CharacterEntity.EquipItemByGUID(request.LoadoutId, (LoadoutSlotType) request.SlotIdx, request.ItemGUID);
+        player.CharacterEntity.EquipItemByGUID(request.LoadoutId, (LoadoutSlotType)request.SlotIdx, request.ItemGUID);
 
         var response = new SlotGearResponse()
                        {
@@ -434,13 +434,13 @@ public class BaseController : Base
     {
         var request = packet.Unpack<SlotVisualRequest>();
         
-        player.CharacterEntity.EquipVisualBySdbId(request.LoadoutId, (LoadoutVisualType) request.SlotIdx1, (LoadoutSlotType) request.SlotIdx2, request.ItemSdbId);
+        player.CharacterEntity.EquipVisualBySdbId(request.LoadoutId, (LoadoutVisualType)request.SlotIdx1, (LoadoutSlotType)request.SlotIdx2, request.ItemSdbId);
         
         var response = new SlotVisualResponse()
                        {
                            ConfigId = 1,
                            SlotIdx = request.SlotIdx2,
-                           LoadoutId = (int) request.LoadoutId,
+                           LoadoutId = (int)request.LoadoutId,
                            Result = 1,
                        };
         

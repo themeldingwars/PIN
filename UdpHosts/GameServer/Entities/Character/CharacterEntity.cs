@@ -5,22 +5,16 @@ using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
-using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Controller;
-using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Character.View;
 using GameServer.Aptitude;
-using GameServer.Controllers;
 using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
-using GameServer.Data.SDB.Records.dbstats;
 using GameServer.Enums;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
-
 
 namespace GameServer.Entities.Character;
 
@@ -1049,6 +1043,19 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         Character_CombatView.CombatFlagsProp = value;
     }
 
+    public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
+    {
+        Player.Inventory.EquipItemByGUID(loadoutId, slot, guid);
+        ApplyLoadout(CurrentLoadout);
+    }
+    
+    public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)
+    {
+        Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
+        Player.CharacterEntity.CurrentLoadout.GliderID = sdb_id;
+        ApplyLoadout(CurrentLoadout);
+    }
+
     private void InitFields()
     {
         Position = new Vector3();
@@ -1435,23 +1442,8 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
                 result += (ulong)pair.Key;
             }
         }
-
+        
         return result;
-    }
-
-    public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
-    {
-        Player.Inventory.EquipItemByGUID(loadoutId, slot, guid);
-        ApplyLoadout(CurrentLoadout);
-        
-    }
-    
-    public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)
-    {
-        
-        Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
-        Player.CharacterEntity.CurrentLoadout.GliderID = sdb_id;
-        ApplyLoadout(CurrentLoadout);
     }
 
     public class ActiveStatModifier

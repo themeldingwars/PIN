@@ -14,7 +14,6 @@ public class TargetFromStatusEffectCommand : ICommand
     public bool Execute(Context context)
     {
         // todo aptitude
-
         if (Params.AlsoInitiator == 1)
         {
             context.Targets.Push(context.Initiator);

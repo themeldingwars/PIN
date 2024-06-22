@@ -1,11 +1,9 @@
-using AeroMessages.GSS.V66.Character;
-using AeroMessages.GSS.V66.Character.Controller;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.dbcharacter;
 using GameServer.Entities.Character;
 using GameServer.Enums;
 using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
@@ -317,12 +315,16 @@ public class CharacterInventory
             return;
         }
         
-        var itemChanges = new Item[] {};
+        var itemChanges = new Item[]
+        {
+        };
+
         if (oldItemGuid != 0)
         {
             var oldItem = _items[oldItemGuid];
             itemChanges = itemChanges.Append(oldItem).ToArray();
         }
+
         if (newItemGuid != 0)
         {
             var newItem = _items[newItemGuid];
@@ -332,7 +334,7 @@ public class CharacterInventory
         var update = new InventoryUpdate()
                      {
                          ClearExistingData = 0,
-                         ItemsPart1Length = (byte) itemChanges.Length,
+                         ItemsPart1Length = (byte)itemChanges.Length,
                          ItemsPart1 = itemChanges,
                          ItemsPart2Length = 0,
                          ItemsPart2 = Array.Empty<Item>(),
@@ -346,6 +348,81 @@ public class CharacterInventory
                      };
 
         _player.NetChannels[ChannelType.ReliableGss].SendIAero(update, _character.EntityId);
+    }
+
+    public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
+    {
+        ulong changedOldItemGUID = 0;
+        ulong changedNewItemGUID = guid;
+        
+        // Unequip old Item (if any)
+        if (_loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Any((e) => e.SlotIndex == (byte)slot))
+        {
+            // Set Item to unequipped
+            var oldItemGUID = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.First((e) => e.SlotIndex == (byte)slot).ItemGUID;
+            changedOldItemGUID = oldItemGUID;
+            var oldItem = _items[oldItemGUID];
+            oldItem.DynamicFlags = (byte)(oldItem.DynamicFlags ^ (byte)ItemDynamicFlags.IsEquipped);
+            _items[oldItemGUID] = oldItem;
+            
+            // Update CurrentLoadout
+            _character.CurrentLoadout.SlottedItems[slot] = 0;
+            
+            // Update LoadoutConfigs
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items
+                .Where(e => e.SlotIndex != (byte)slot).ToArray();
+        }
+        
+        // Equip new item (if any)
+        if (guid != 0)
+        {
+            // Update Item to Equipped
+            var item = _items[guid];
+            item.DynamicFlags = (byte)(item.DynamicFlags | (byte)ItemDynamicFlags.IsEquipped);
+            _items[guid] = item;
+            
+            // Update CurrentLoadout
+            _character.CurrentLoadout.SlottedItems[slot] = item.SdbId;
+
+            // Update LoadoutConfig
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
+        }
+        
+        // Update StaticInfo when visuals are changed
+        var equippedSdbId = (guid != 0) ? _items[guid].SdbId : 0;
+        switch (slot)
+        {
+            case LoadoutSlotType.Glider:
+                _character.SetStaticInfo(_character.StaticInfo with { LoadoutGlider = equippedSdbId });
+                break;
+            case LoadoutSlotType.Vehicle:
+                _character.SetStaticInfo(_character.StaticInfo with { LoadoutVehicle = equippedSdbId });
+                break;
+        }
+
+        SendEquipmentChanges(changedOldItemGUID, changedNewItemGUID);
+    }
+    
+    public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
+    {
+        // Unequip old item (if any)
+        if (_loadouts[loadoutId].LoadoutConfigs[0].Visuals.Any(i => i.VisualType == visual))
+        {
+            // Update Visuals
+            _loadouts[loadoutId].LoadoutConfigs[0].Visuals = _loadouts[loadoutId].LoadoutConfigs[0].Visuals
+                .Where(e => e.VisualType != visual).ToArray();
+        }
+        
+        // Equip new item (if any)
+        if (sdb_id != 0)
+        {
+            // Update Visuals
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = []}).ToArray();
+            var item = _items.First(e => e.Value.SdbId == sdb_id).Value;
+        }
+
+        var equippedGUID = (sdb_id != 0) ? _items.First(e => e.Value.SdbId == sdb_id).Value.GUID : 0;
+        EquipItemByGUID((int)loadoutId, slot, equippedGUID);
     }
     
     private byte GetInventoryTypeByItemTypeId(uint sdbId)
@@ -408,80 +485,5 @@ public class CharacterInventory
         }
 
         return (byte)result;
-    }
-
-    public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
-    {
-        ulong changedOldItemGUID = 0;
-        ulong changedNewItemGUID = guid;
-        
-        // Unequip old Item (if any)
-        if (_loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Any((e) => e.SlotIndex == (byte)slot))
-        {
-            // Set Item to unequipped
-            var oldItemGUID = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.First((e) => e.SlotIndex == (byte) slot).ItemGUID;
-            changedOldItemGUID = oldItemGUID;
-            var oldItem = _items[oldItemGUID];
-            oldItem.DynamicFlags = (byte) ((oldItem.DynamicFlags) ^ (byte)ItemDynamicFlags.IsEquipped);
-            _items[oldItemGUID] = oldItem;
-            
-            // Update CurrentLoadout
-            _character.CurrentLoadout.SlottedItems[slot] = 0;
-            
-            // Update LoadoutConfigs
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items
-                .Where(e => e.SlotIndex != (byte)slot).ToArray();
-        }
-        
-        // Equip new item (if any)
-        if (guid != 0)
-        {
-            // Update Item to Equipped
-            var item = _items[guid];
-            item.DynamicFlags = (byte) (item.DynamicFlags | (byte) ItemDynamicFlags.IsEquipped);
-            _items[guid] = item;
-            
-            // Update CurrentLoadout
-            _character.CurrentLoadout.SlottedItems[slot] = item.SdbId;
-
-            // Update LoadoutConfig
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
-        }
-        
-        // Update StaticInfo when visuals are changed
-        var equippedSdbId = (guid != 0) ? _items[guid].SdbId : 0;
-        switch (slot)
-        {
-            case LoadoutSlotType.Glider:
-                _character.SetStaticInfo(_character.StaticInfo with { LoadoutGlider = equippedSdbId });
-                break;
-            case LoadoutSlotType.Vehicle:
-                _character.SetStaticInfo(_character.StaticInfo with { LoadoutVehicle = equippedSdbId });
-                break;
-        }
-        SendEquipmentChanges(changedOldItemGUID, changedNewItemGUID);
-    }
-    
-    public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
-    {
-        // Unequip old item (if any)
-        if (_loadouts[loadoutId].LoadoutConfigs[0].Visuals.Any(i => i.VisualType == visual))
-        {
-            // Update Visuals
-            _loadouts[loadoutId].LoadoutConfigs[0].Visuals = _loadouts[loadoutId].LoadoutConfigs[0].Visuals
-                .Where(e => e.VisualType != visual).ToArray();
-        }
-        
-        // Equip new item (if any)
-        if (sdb_id != 0)
-        {
-            // Update Visuals
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = []}).ToArray();
-            var item = _items.First(e => e.Value.SdbId == sdb_id).Value;
-            
-        }
-
-        var equippedGUID = (sdb_id != 0) ? _items.First(e => e.Value.SdbId == sdb_id).Value.GUID : 0;
-        EquipItemByGUID((int) loadoutId, slot, equippedGUID);
     }
 }

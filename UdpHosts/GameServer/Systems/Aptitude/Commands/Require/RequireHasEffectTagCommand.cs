@@ -21,7 +21,6 @@ public class RequireHasEffectTagCommand : ICommand
 
         if (context.Targets.Count > 0)
         {
-
             uint matchCounter = 0;
             foreach (IAptitudeTarget target in context.Targets)
             {

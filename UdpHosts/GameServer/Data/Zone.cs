@@ -15,7 +15,6 @@ public class Zone
     };
     public static readonly HashSet<uint> OtherZones = new() { 12 };
 
-
     public Zone()
     {
         POIs = new Dictionary<string, Vector3>();

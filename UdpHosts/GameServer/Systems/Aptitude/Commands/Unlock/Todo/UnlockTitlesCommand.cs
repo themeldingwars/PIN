@@ -19,7 +19,6 @@ public class UnlockTitlesCommand : ICommand
         }
 
         // todo aptitude: unlock title
-
         return true;
     }
 }

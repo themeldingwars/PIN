@@ -14,7 +14,6 @@ public class DestroyAbilityObjectCommand : ICommand
     public bool Execute(Context context)
     {
         // context.Shard.EntityMan.Remove(...);
-
         return true;
     }
 }

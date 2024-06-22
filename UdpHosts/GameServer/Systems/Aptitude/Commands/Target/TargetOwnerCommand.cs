@@ -14,7 +14,6 @@ public class TargetOwnerCommand : ICommand
     public bool Execute(Context context)
     {
         // todo aptitude: handle owner
-
         if (Params.FailNone == 1)
         {
             return false;

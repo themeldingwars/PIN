@@ -1,5 +1,4 @@
 ﻿using GameServer.Data.SDB;
-using System.Collections.Generic;
 using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;

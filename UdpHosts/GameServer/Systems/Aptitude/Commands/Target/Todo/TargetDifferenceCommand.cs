@@ -14,7 +14,6 @@ public class TargetDifferenceCommand : ICommand
     public bool Execute(Context context)
     {
         // todo aptitude: target difference
-
         if (Params.ReplaceFormer == 1)
         {
             context.FormerTargets = context.Targets;

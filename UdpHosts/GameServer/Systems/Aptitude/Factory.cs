@@ -66,6 +66,7 @@ public class Factory
         return chain;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1515:Single-line comment should be preceded by blank line", Justification = "Disregard here so we don't create unneccessary grouping")]
     public ICommand LoadCommand(uint commandId, uint typeId)
     {
         var commandTypeRec = SDBInterface.GetCommandType(typeId);

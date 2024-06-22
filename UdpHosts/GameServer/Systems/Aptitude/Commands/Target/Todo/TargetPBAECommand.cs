@@ -24,7 +24,6 @@ public class TargetPBAECommand : ICommand
         // Params.IgnoreWalls
         // Params.ScaleQuerySize
         // Params.UseBodyPosition
-
         float radius = AbilitySystem.RegistryOp(context.Register, Params.Radius, (Operand)Params.RadiusRegop);
 
         if (Params.Filter == 1)
