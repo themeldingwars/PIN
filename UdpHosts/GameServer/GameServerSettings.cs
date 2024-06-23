@@ -30,10 +30,15 @@ public class GameServerSettings
     /// <summary>
     ///    ZoneId to load
     /// </summary>
-    public uint ZoneId { get; set; } = 1003;
+    public uint ZoneId { get; set; } = 162;
 
     /// <summary>
     ///    Load collision world
     /// </summary>
-    public bool LoadCollisionWorld { get; set; } = false;
+    public bool LoadCollisionWorld { get; set; } = true;
+
+    /// <summary>
+    ///    File path to maps
+    /// </summary>
+    public string MapsPath { get; set; } = string.Empty;
 }

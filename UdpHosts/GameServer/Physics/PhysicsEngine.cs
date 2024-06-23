@@ -9,32 +9,36 @@ using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using GameServer.Entities.Character;
+using Serilog;
 
 namespace GameServer.Physics;
 
 public class PhysicsEngine
 {    
-    public const float TargetTimestepDuration = 50; // 1 / 20f
+    public const float TargetTimestepDuration = 50; // (1/20f)
 
-    private Shard Shard;
-
-    private TypedIndex DefaultCharacterShape;
+    private Shard _shard;
+    private ILogger _logger;
+    private TypedIndex _defaultCharacterShape;
 
     public PhysicsEngine(Shard shard)
     {
-        Shard = shard;
+        _shard = shard;
+        _logger = shard.Logger;
 
+        // Determine number of threads to use
+        var targetThreadCount = int.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
+
+        // Setup BepuPhysics
         BufferPool = new BufferPool();
-
-        // var targetThreadCount = int.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
-        var targetThreadCount = 2;
         ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
-
         Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new Vector3(0, 0, -8)), new SolveDescription(8, 1));
         
-        DefaultCharacterShape = Simulation.Shapes.Add(new Sphere(0.9f)); // Simulation.Shapes.Add(new Capsule(0.5f, 1.8f));
-
-        new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(shard.ZoneId);
+        // Default shapes
+        _defaultCharacterShape = Simulation.Shapes.Add(new Sphere(0.9f));
+        
+        // Load zone
+        new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(_shard.Settings.MapsPath, _shard.ZoneId);
     }
 
     public Simulation Simulation { get; protected set; }
@@ -55,7 +59,7 @@ public class PhysicsEngine
     public BodyHandle CreateKineticEntity(CharacterEntity entity)
     {
         var pose = new RigidPose { Position = entity.Position, Orientation = entity.Rotation };
-        return Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, DefaultCharacterShape, -1));
+        return Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, _defaultCharacterShape, -1));
     }
 
     public void UpdateEntity(CharacterEntity entity)
@@ -107,7 +111,7 @@ public class PhysicsEngine
         {
             Data = new()
             {
-                Time = Shard.CurrentTime,
+                Time = _shard.CurrentTime,
                 TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Spawn,
                 Unk2_TraceId = traceId,
                 Position = origin,
@@ -127,7 +131,7 @@ public class PhysicsEngine
         {
             Data = new()
             {
-                Time = Shard.CurrentTime,
+                Time = _shard.CurrentTime,
                 TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Impact,
                 Unk2_TraceId = traceId,
                 Position = position,
@@ -147,7 +151,7 @@ public class PhysicsEngine
         {
             Data = new()
             {
-                Time = Shard.CurrentTime,
+                Time = _shard.CurrentTime,
                 TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Posefile_Hit,
                 Unk2_TraceId = traceId,
                 Position = markerOrigin,
@@ -201,7 +205,6 @@ public class PhysicsEngine
                 bodyPosition.Z -= 0.9f;
                 SendDebugProjectilePoseHit(source, traceId, hitPosition, bodyPosition);
             }
-
         }
         else
         {

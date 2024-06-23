@@ -25,15 +25,7 @@ public class ENWFData
         public JsonObject Data;
     }
 
-    public struct SubChunkContent
-    {
-        public string Name;
-        public LayerContent Cg;
-        public LayerContent Cg2; // May be null
-        public LayerContent Cg3; // May be null
-    }
-
-    public class LayerContent
+    public class ENWFLayer
     {
         public ulong Id;
         public uint NumPhysicsMatIds;
@@ -61,12 +53,6 @@ public class ENWFData
             Console.WriteLine($"Failed to find TagfileObject with query {query}");
             return null;
         }
-    }
-
-    public class ChunkCGContent
-    {
-        public string Name;
-        public SubChunkContent[] SubChunks;
     }
 
     public class BaseTagfileObject

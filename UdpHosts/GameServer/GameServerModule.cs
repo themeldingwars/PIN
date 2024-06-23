@@ -2,6 +2,7 @@
 using System.Configuration;
 using Autofac;
 using FauFau.Formats;
+using GameServer.Physics.ZoneLoader;
 using Serilog;
 using Shared.Common;
 
@@ -43,6 +44,11 @@ public class GameServerModule : Module
             if (ConfigurationManager.AppSettings["StaticDBPath"] != null)
             {
                 settings.StaticDBPath = ConfigurationManager.AppSettings["StaticDBPath"];
+            }
+
+            if (ConfigurationManager.AppSettings["MapsPath"] != null)
+            {
+                settings.MapsPath = ConfigurationManager.AppSettings["MapsPath"];
             }
 
             return settings;

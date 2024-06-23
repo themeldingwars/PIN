@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
-using System.Configuration;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ using GameServer.Controllers;
 using GameServer.Data.SDB;
 using GameServer.GRPC;
 using GameServer.Test;
+using Serilog;
 using Serilog;
 using Shared.Udp;
 
@@ -127,7 +127,7 @@ internal class GameServer : PacketServer
     private IShard NewShard(CancellationToken ct)
     {
         var id = _serverId | (uint)(_nextShardId++ << 8) | (byte)Enums.GSS.Controllers.GenericShard;
-        var shard = _shards.AddOrUpdate(id, new Shard(GameTickRate, id, _settings.ZoneId, this), (_, old) => old);
+        var shard = _shards.AddOrUpdate(id, new Shard(GameTickRate, id, _settings, this, Logger), (_, old) => old);
 
         shard.Run(ct);
 

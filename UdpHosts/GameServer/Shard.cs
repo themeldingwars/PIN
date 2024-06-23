@@ -10,6 +10,8 @@ using GameServer.Data;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
+using Microsoft.Extensions.Logging;
+using Serilog;
 using Shared.Common;
 using Shared.Udp;
 
@@ -23,8 +25,14 @@ public class Shard : IShard
     private double _lastNetTick;
     private ushort _lastEntityRefId;
 
-    public Shard(double gameTickRate, ulong instanceId, uint zoneId, IPacketSender sender)
+    public Shard(double gameTickRate, ulong instanceId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
     {
+        _lastEntityRefId = 0;
+        InstanceId = instanceId;
+        Settings = settings;
+        ZoneId = settings.ZoneId;
+        Sender = sender;
+        Logger = logger;
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
         Entities = new ConcurrentDictionary<ulong, IEntity>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
@@ -35,11 +43,7 @@ public class Shard : IShard
         EntityMan = new EntityManager(this);
         Chat = new ChatService(this);
         Admin = new AdminService(this);
-        InstanceId = instanceId;
-        ZoneId = zoneId;
-        Sender = sender;
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
-        _lastEntityRefId = 0;
     }
 
     public DateTime StartTime => DateTimeExtensions.Epoch.AddSeconds(_startTime);
@@ -59,6 +63,8 @@ public class Shard : IShard
     public uint CurrentTime => unchecked((uint)CurrentTimeLong);
     public ushort CurrentShortTime => unchecked((ushort)CurrentTime);
     public IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
+    public Serilog.ILogger Logger { get; }
+    public GameServerSettings Settings { get; }
     private IPacketSender Sender { get; }
 
     public void Run(CancellationToken ct)

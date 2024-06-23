@@ -18,7 +18,7 @@ namespace GameServer.Physics.ZoneLoader;
 
 public class ZoneLoader
 {
-    private readonly JsonSerializerOptions SerializerOptions = new()
+    private readonly JsonSerializerOptions _serializerOptions = new()
     {
         IncludeFields = true,
         PropertyNameCaseInsensitive = true
@@ -30,24 +30,33 @@ public class ZoneLoader
         BufferPool = pool;
         ThreadDispatcher = dispatcher;
 
-        SerializerOptions.Converters.Add(new TagfileObjectJsonConverter());
-        SerializerOptions.Converters.Add(new Vector4Converter());
-        SerializerOptions.Converters.Add(new Vector3Converter());
-        SerializerOptions.Converters.Add(new StringBooleanConverter());
+        _serializerOptions.Converters.Add(new TagfileObjectJsonConverter());
+        _serializerOptions.Converters.Add(new Vector4Converter());
+        _serializerOptions.Converters.Add(new Vector3Converter());
+        _serializerOptions.Converters.Add(new StringBooleanConverter());
     }
 
     public Simulation Simulation { get; protected set; }
     public BufferPool BufferPool { get; private set; }
     public ThreadDispatcher ThreadDispatcher { get; private set; }
 
-    public void LoadCollision(uint zoneId)
+    public void LoadCollision(string mapsPath, uint zoneId)
     {
         Stopwatch stopWatch = new Stopwatch();
         stopWatch.Start();
-        var chunks = GetZoneChunkMap();
-        foreach (var chunk in chunks)
+
+        var zoneFilePath = $"{mapsPath}\\{zoneId}.pinzone.json";
+        PinZone zoneData = LoadZoneJSON(zoneFilePath);
+        if (zoneData == null)
         {
-            LoadChunkJSON(chunk.Origin, chunk.Path);
+            Console.WriteLine($"Everything went to shit and we did not load the zone");
+        }
+
+        Console.WriteLine($"Loading {zoneData.Chunks.Length} chunks");
+        foreach (var chunk in zoneData.Chunks)
+        {
+            var chunkFilePath = $"{mapsPath}\\chunks\\{chunk.Name}.pinchunk.json";
+            LoadChunkJSON(chunk.Origin, chunkFilePath);
         }
 
         stopWatch.Stop();
@@ -61,64 +70,73 @@ public class ZoneLoader
         Console.WriteLine($"ZoneLoader LoadCollision Finished in {elapsedTime}");
     }
 
+    private PinZone LoadZoneJSON(string path)
+    {
+        Console.WriteLine($"ZoneLoader LoadZoneJSON {path}");
+        try
+        {
+            string json = File.ReadAllText(path);
+            return JsonSerializer.Deserialize<PinZone>(json, _serializerOptions);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"ZoneLoader LoadZoneJSON Failed: {e}");
+            return null;
+        }
+    }
+
     private void LoadChunkJSON(Vector3 origin, string path)
     {
-        Console.WriteLine($"ZoneLoader Loading {path}");
-
-        Stopwatch stopWatch = new Stopwatch();
-        stopWatch.Start();
-
-        string jsonString = File.ReadAllText(path);
-        var content = JsonSerializer.Deserialize<ChunkCGContent>(jsonString, SerializerOptions);
-
-        stopWatch.Stop();
-        TimeSpan ts1 = stopWatch.Elapsed;
-        string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-            ts1.Hours,
-            ts1.Minutes,
-            ts1.Seconds,
-            ts1.Milliseconds / 10);
-        Console.WriteLine($"ZoneLoader LoadChunkJSON Deserialized in {elapsedTime}");
-        stopWatch.Restart();
-
-        foreach (var subChunk in content.SubChunks) 
+        Console.WriteLine($"ZoneLoader LoadChunkJSON {path}");
+        try
         {
-            var myLayer = subChunk.Cg;
-            var root = subChunk.Cg.GetTagfileObject("#0001");
-            var statics = ProcessChunkObject(root, ref myLayer);
-            for (int i = 0; i < statics.Length; i++)
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+
+            string json = File.ReadAllText(path);
+            PinChunk chunk = JsonSerializer.Deserialize<PinChunk>(json, _serializerOptions);
+
+            stopWatch.Stop();
+            TimeSpan ts1 = stopWatch.Elapsed;
+            string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                ts1.Hours,
+                ts1.Minutes,
+                ts1.Seconds,
+                ts1.Milliseconds / 10);
+            Console.WriteLine($"ZoneLoader LoadChunkJSON Deserialized in {elapsedTime}");
+            stopWatch.Restart();
+
+            foreach (PinChunkSubChunk subChunk in chunk.SubChunks) 
             {
-                var stat = statics[i];
-                stat.Pose.Position += origin;
-                Simulation.Statics.Add(stat);
+                var myLayer = subChunk.Cg;
+                var root = subChunk.Cg.GetTagfileObject("#0001");
+                var statics = ProcessChunkObject(root, ref myLayer);
+                for (int i = 0; i < statics.Length; i++)
+                {
+                    var stat = statics[i];
+                    stat.Pose.Position += origin;
+                    Simulation.Statics.Add(stat);
+                }
+
+                // TODO: Process subChunk.Cg2, subChunk.Cg3
             }
 
-            // TODO: Consider subChunk.Cg2, subChunk.Cg3
+            stopWatch.Stop();
+            TimeSpan ts2 = stopWatch.Elapsed;
+            string elapsedTime2 = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                ts2.Hours,
+                ts2.Minutes,
+                ts2.Seconds,
+                ts2.Milliseconds / 10);
+            Console.WriteLine($"ZoneLoader LoadChunkJSON Processed in {elapsedTime2}");
         }
-
-        stopWatch.Stop();
-        TimeSpan ts2 = stopWatch.Elapsed;
-        string elapsedTime2 = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-            ts2.Hours,
-            ts2.Minutes,
-            ts2.Seconds,
-            ts2.Milliseconds / 10);
-        Console.WriteLine($"ZoneLoader LoadChunkJSON Processed in {elapsedTime2}");
-    }
-
-    private List<ChunkRef> GetZoneChunkMap()
-    {
-        var list = new List<ChunkRef>
+        catch (Exception e)
         {
-            new ChunkRef { Origin = new Vector3(-256, -256, 0), Path = @"./chunkcg/1_0237_0893.gtchunk.cg.json" },
-            new ChunkRef { Origin = new Vector3(256, -256, 0), Path = @"./chunkcg/1_0238_0893.gtchunk.cg.json" },
-            new ChunkRef { Origin = new Vector3(-256, 256, 0), Path = @"./chunkcg/1_0237_0894.gtchunk.cg.json" },
-            new ChunkRef { Origin = new Vector3(256, 256, 0), Path = @"./chunkcg/1_0238_0894.gtchunk.cg.json" }
-        };
-        return list;
+            Console.WriteLine($"ZoneLoader LoadChunkJSON Failed: {e}");
+        }
     }
 
-    private StaticDescription[] ProcessChunkObject(BaseTagfileObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessChunkObject(BaseTagfileObject obj, ref ENWFLayer layer)
     {
         switch (obj)
         {
@@ -158,7 +176,7 @@ public class ZoneLoader
         throw new NotImplementedException($"ProcessChunkObject could not process an object {obj}");
     }
 
-    private StaticDescription[] ProcessContainer(HkpListShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessContainer(HkpListShapeObject obj, ref ENWFLayer layer)
     {
         List<StaticDescription> result = new();
 
@@ -179,13 +197,13 @@ public class ZoneLoader
         return result.ToArray();
     }
 
-    private StaticDescription[] ProcessContainer(HkpMoppBvTreeShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessContainer(HkpMoppBvTreeShapeObject obj, ref ENWFLayer layer)
     {
         var childObj = layer.GetTagfileObject(obj.Child);
         return ProcessChunkObject(childObj, ref layer);
     }
 
-    private StaticDescription[] ProcessModifier(HkpConvexTranslateShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessModifier(HkpConvexTranslateShapeObject obj, ref ENWFLayer layer)
     {
         var childShapeObj = layer.GetTagfileObject(obj.ChildShape);
         var childShapeStaticArr = ProcessChunkObject(childShapeObj, ref layer);
@@ -199,7 +217,7 @@ public class ZoneLoader
         }).ToArray();
     }
 
-    private StaticDescription[] ProcessModifier(HkpTransformShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessModifier(HkpTransformShapeObject obj, ref ENWFLayer layer)
     {
         var childShapeObj = layer.GetTagfileObject(obj.ChildShape);
         var childShapeStaticArr = ProcessChunkObject(childShapeObj, ref layer);
@@ -215,7 +233,7 @@ public class ZoneLoader
         }).ToArray();
     }
 
-    private StaticDescription[] ProcessModifier(HkpConvexTransformShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessModifier(HkpConvexTransformShapeObject obj, ref ENWFLayer layer)
     {
         var childShapeObj = layer.GetTagfileObject(obj.ChildShape);
         var childShapeStaticArr = ProcessChunkObject(childShapeObj, ref layer);
@@ -248,21 +266,21 @@ public class ZoneLoader
         }).ToArray();
     }
 
-    private StaticDescription[] ProcessShape(HkpBoxShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessShape(HkpBoxShapeObject obj, ref ENWFLayer layer)
     {
         var box = new Box(obj.HalfExtents[0] * 2, obj.HalfExtents[1] * 2, obj.HalfExtents[2] * 2);
         var stat = new StaticDescription(RigidPose.Identity,  Simulation.Shapes.Add(box));
         return[stat];
     }
 
-    private StaticDescription[] ProcessShape(HkpSphereShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessShape(HkpSphereShapeObject obj, ref ENWFLayer layer)
     {
         var sphere = new Sphere(obj.Radius);
         var stat = new StaticDescription(RigidPose.Identity,  Simulation.Shapes.Add(sphere));
         return[stat];
     }
 
-    private StaticDescription[] ProcessShape(HkpCapsuleShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessShape(HkpCapsuleShapeObject obj, ref ENWFLayer layer)
     {
         var top = new Vector3(obj.VertexA[0], obj.VertexA[1], obj.VertexA[2]);
         var bot = new Vector3(obj.VertexB[0], obj.VertexB[1], obj.VertexB[2]);
@@ -292,7 +310,7 @@ public class ZoneLoader
         return[stat];
     }
 
-    private StaticDescription[] ProcessShape(HkpCylinderShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessShape(HkpCylinderShapeObject obj, ref ENWFLayer layer)
     {
         var top = new Vector3(obj.VertexA[0], obj.VertexA[1], obj.VertexA[2]);
         var bot = new Vector3(obj.VertexB[0], obj.VertexB[1], obj.VertexB[2]);
@@ -312,7 +330,7 @@ public class ZoneLoader
         return[stat];
     }
 
-    private StaticDescription[] ProcessShape(HkpExtendedMeshShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessShape(HkpExtendedMeshShapeObject obj, ref ENWFLayer layer)
     {
         List<StaticDescription> result = new();
 
@@ -368,16 +386,40 @@ public class ZoneLoader
         return result.ToArray();
     }
 
-    private StaticDescription[] ProcessShape(HkpConvexVerticesShapeObject obj, ref LayerContent layer)
+    private StaticDescription[] ProcessShape(HkpConvexVerticesShapeObject obj, ref ENWFLayer layer)
     {
         // TODO: ConvexVertices
         // return null;
         throw new NotImplementedException("Fix Pls");
     }
 
-    public struct ChunkRef
+    private class PinZone
     {
+        public string Name;
+
+        // public ulong Timestamp
+        // public uint GeneratedAt;
+        public PinZoneChunk[] Chunks;
+        public ENWFLayer[] Imports;
+    }
+
+    private class PinZoneChunk
+    {
+        public string Name;
         public Vector3 Origin;
-        public string Path;
+    }
+
+    private class PinChunk
+    {
+        public string Name;
+        public PinChunkSubChunk[] SubChunks;
+    }
+
+    private class PinChunkSubChunk
+    {
+        public string Name;
+        public ENWFLayer Cg;
+        public ENWFLayer Cg2 = null;
+        public ENWFLayer Cg3 = null;
     }
 }

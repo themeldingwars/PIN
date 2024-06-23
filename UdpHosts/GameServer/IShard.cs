@@ -5,6 +5,7 @@ using GameServer.Aptitude;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
+using Serilog;
 using Shared.Udp;
 
 namespace GameServer;
@@ -23,6 +24,7 @@ public interface IShard : IPacketSender
     ChatService Chat { get; }
     AdminService Admin { get; }
     uint ZoneId { get; }
+    ILogger Logger { get; }
 
     int CurrentPlayers => Clients.Count;
 
