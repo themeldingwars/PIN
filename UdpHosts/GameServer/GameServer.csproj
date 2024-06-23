@@ -35,7 +35,7 @@
   <ItemGroup>
     <ContentWithTargetPath Include="StaticDB\CustomData\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>StaticDB\CustomData\%(Filename)%(Extension)</TargetPath>
+      <TargetPath>StaticDB\CustomData\%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
     </ContentWithTargetPath>
   </ItemGroup>
 
