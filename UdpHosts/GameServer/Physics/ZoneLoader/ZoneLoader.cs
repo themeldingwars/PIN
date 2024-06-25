@@ -227,6 +227,18 @@ public class ZoneLoader
 
         return childShapeStaticArr.Select((StaticDescription childShapeStatic) =>
         {
+            if (childShapeStatic.Shape.Type == Mesh.Id)
+            {
+                /*
+                Spent a day testing before landing on this fix, hopefully it lasts...
+                The issue occurs when hkpExtendedMeshShape triangle subpart has translation, and then somewhere in the lineage there is a parent hkpTransformShape to position the whole shape in the world.
+                Calling Recenter was the only thing that seemed to help, I suspect there may be some relation to these meshes having scaling as well.
+                However, we still have other hkpExtendedMeshShapes with triangle subparts and translation that are not supposed to be repositioned, so I landed on calling it before we reposition it with the transform.
+                */
+                ref var mesh = ref Simulation.Shapes.GetShape<Mesh>(childShapeStatic.Shape.Index);
+                mesh.Recenter(-childShapeStatic.Pose.Position);
+            }
+
             childShapeStatic.Pose.Orientation = rot;
             childShapeStatic.Pose.Position = pos;
             return childShapeStatic;
