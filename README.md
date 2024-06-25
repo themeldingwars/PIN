@@ -66,13 +66,14 @@ PlayIntroMovie = false
    - Include the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) component or install it separately
 2. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
 3. Build the solution
-4. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
-5. Start multiple targets at once
+4. Edit the `GameServer.dll.config` produced by the build in `UdpHosts\GameServer\bin\Release\net8.0` to ensure that `StaticDBPath` is correct.
+5. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
+6. Start multiple targets at once
    - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, GameServer and MatrixServer
    - Rider: Create a `Compound` target that starts WebHostManager, GameServer and MatrixServer
-6. Edit the `firefall.ini` located in `steamapps\common\Firefall`
-7. Add content from above
-8. Start Firefall
+7. Edit the `firefall.ini` located in `steamapps\common\Firefall`
+8. Add content from above
+9. Start Firefall
 
 ### Web Hosts
 
