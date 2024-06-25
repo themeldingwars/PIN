@@ -417,7 +417,7 @@ public class CharacterInventory
         if (sdb_id != 0)
         {
             // Update Visuals
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = []}).ToArray();
+            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = Array.Empty<float>() }).ToArray();
             var item = _items.First(e => e.Value.SdbId == sdb_id).Value;
         }
 
