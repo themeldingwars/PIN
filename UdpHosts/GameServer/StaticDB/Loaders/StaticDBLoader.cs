@@ -1283,6 +1283,12 @@ public class StaticDBLoader : ISDBLoader
             .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, Ammo> LoadAmmo()
+    {
+        return LoadStaticDB<Ammo>("dbitems::Ammo")
+            .ToDictionary(row => row.Id);
+    }
+
     private static T[] LoadStaticDB<T>(string tableName)
     where T : class, new()
     {

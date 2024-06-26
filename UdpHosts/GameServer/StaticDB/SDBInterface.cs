@@ -36,6 +36,7 @@ public class SDBInterface
     private static Dictionary<uint, WeaponTemplateModifiers> WeaponTemplateModifiers;
     private static Dictionary<uint, WeaponScope> WeaponScope;
     private static Dictionary<uint, WeaponUnderbarrel> WeaponUnderbarrel;
+    private static Dictionary<uint, Ammo> Ammo;
 
     // apt
     private static Dictionary<uint, BaseCommandDef> BaseCommandDef;
@@ -261,6 +262,7 @@ public class SDBInterface
         WeaponTemplateModifiers = loader.LoadWeaponTemplateModifiers();
         WeaponScope = loader.LoadWeaponScope();
         WeaponUnderbarrel = loader.LoadWeaponUnderbarrel();
+        Ammo = loader.LoadAmmo();
 
         // apt
         StatusEffectData = loader.LoadStatusEffectData();
@@ -494,6 +496,7 @@ public class SDBInterface
     public static WeaponTemplateModifiers GetWeaponTemplateModifiers(uint id) => WeaponTemplateModifiers.GetValueOrDefault(id);
     public static WeaponScope GetWeaponScope(uint id) => WeaponScope.GetValueOrDefault(id);
     public static WeaponUnderbarrel GetWeaponUnderbarrel(uint id) => WeaponUnderbarrel.GetValueOrDefault(id);
+    public static Ammo GetAmmo(uint id) => Ammo.GetValueOrDefault(id);
 
     // apt
     public static BaseCommandDef GetBaseCommandDef(uint id) => BaseCommandDef.GetValueOrDefault(id);
