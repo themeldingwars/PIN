@@ -31,6 +31,11 @@ public class SDBInterface
     private static Dictionary<uint, AbilityModule> AbilityModule;
     private static Dictionary<uint, Battleframe> Battleframe;
     private static Dictionary<uint, CarryableObject> CarryableObject;
+    private static Dictionary<uint, Weapons> Weapons;
+    private static Dictionary<uint, WeaponTemplates> WeaponTemplates;
+    private static Dictionary<uint, WeaponTemplateModifiers> WeaponTemplateModifiers;
+    private static Dictionary<uint, WeaponScope> WeaponScope;
+    private static Dictionary<uint, WeaponUnderbarrel> WeaponUnderbarrel;
 
     // apt
     private static Dictionary<uint, BaseCommandDef> BaseCommandDef;
@@ -251,6 +256,11 @@ public class SDBInterface
         AbilityModule = loader.LoadAbilityModule();
         Battleframe = loader.LoadBattleframe();
         CarryableObject = loader.LoadCarryableObject();
+        Weapons = loader.LoadWeapons();
+        WeaponTemplates = loader.LoadWeaponTemplates();
+        WeaponTemplateModifiers = loader.LoadWeaponTemplateModifiers();
+        WeaponScope = loader.LoadWeaponScope();
+        WeaponUnderbarrel = loader.LoadWeaponUnderbarrel();
 
         // apt
         StatusEffectData = loader.LoadStatusEffectData();
@@ -479,6 +489,11 @@ public class SDBInterface
     public static AbilityModule GetAbilityModule(uint id) => AbilityModule.GetValueOrDefault(id);
     public static Battleframe GetBattleframe(uint id) => Battleframe.GetValueOrDefault(id);
     public static CarryableObject GetCarryableObject(uint id) => CarryableObject.GetValueOrDefault(id);
+    public static Weapons GetWeapon(uint id) => Weapons.GetValueOrDefault(id);
+    public static WeaponTemplates GetWeaponTemplate(uint id) => WeaponTemplates.GetValueOrDefault(id);
+    public static WeaponTemplateModifiers GetWeaponTemplateModifiers(uint id) => WeaponTemplateModifiers.GetValueOrDefault(id);
+    public static WeaponScope GetWeaponScope(uint id) => WeaponScope.GetValueOrDefault(id);
+    public static WeaponUnderbarrel GetWeaponUnderbarrel(uint id) => WeaponUnderbarrel.GetValueOrDefault(id);
 
     // apt
     public static BaseCommandDef GetBaseCommandDef(uint id) => BaseCommandDef.GetValueOrDefault(id);

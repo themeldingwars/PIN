@@ -1253,6 +1253,36 @@ public class StaticDBLoader : ISDBLoader
             .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, Weapons> LoadWeapons()
+    {
+        return LoadStaticDB<Weapons>("dbitems::Weapons")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, WeaponTemplates> LoadWeaponTemplates()
+    {
+        return LoadStaticDB<WeaponTemplates>("dbitems::WeaponTemplates")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, WeaponTemplateModifiers> LoadWeaponTemplateModifiers()
+    {
+        return LoadStaticDB<WeaponTemplateModifiers>("dbitems::WeaponTemplateModifiers")
+            .ToDictionary(row => row.WeaponId);
+    }
+
+    public Dictionary<uint, WeaponScope> LoadWeaponScope()
+    {
+        return LoadStaticDB<WeaponScope>("dbitems::WeaponScope")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, WeaponUnderbarrel> LoadWeaponUnderbarrel()
+    {
+        return LoadStaticDB<WeaponUnderbarrel>("dbitems::WeaponUnderbarrel")
+            .ToDictionary(row => row.Id);
+    }
+
     private static T[] LoadStaticDB<T>(string tableName)
     where T : class, new()
     {

@@ -15,14 +15,14 @@ public record class WeaponTemplates
     public float RunSlideRampMult { get; set; }
     public float Agility { get; set; }
     public float MaleScale { get; set; }
-    public uint MinDamage { get; set; }
+    public int MinDamage { get; set; }
     public float HitshakeMult { get; set; }
     public uint MsPerBurst { get; set; }
     public uint MsChargeupMax { get; set; }
     public uint JitterRampTime { get; set; }
     public float SpreadRampExponent { get; set; }
     public float RunPerslideMult { get; set; }
-    public uint DamagePerRound { get; set; }
+    public int DamagePerRound { get; set; }
     public float MinSlideFrac { get; set; }
     public uint DefaultUnderbarrelId { get; set; }
     public float RisePerBurst { get; set; }
