@@ -30,7 +30,7 @@ public class GameServerSettings
     /// <summary>
     ///    ZoneId to load
     /// </summary>
-    public uint ZoneId { get; set; } = 162;
+    public uint ZoneId { get; set; } = 1003;
 
     /// <summary>
     ///    Load collision world

@@ -7,17 +7,19 @@ using BepuUtilities;
 using GameServer.Data.SDB;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using GameServer.Enums;
 
 namespace GameServer;
 
 public class WeaponSim
 {
     private Shard _shard;
-    private Dictionary<ulong, WeaponSimState> _weaponSimState;
+    private readonly Dictionary<ulong, WeaponSimState> _weaponSimState;
 
     public WeaponSim(Shard shard)
     {
         _shard = shard;
+        _weaponSimState = new();
     }
 
     public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir)
@@ -27,7 +29,7 @@ public class WeaponSim
         _weaponSimState[entity.EntityId] = weaponSimState;
 
         // Weapon
-        uint weaponId = 0;
+        uint weaponId;
         switch (entity.WeaponIndex.Index)
         {
             case 2:
@@ -49,6 +51,24 @@ public class WeaponSim
         }
 
         var weaponDetails = SDBUtils.GetDetailedWeaponInfo(weaponId);
+        var weaponAttributes = SDBInterface.GetItemAttributeRange(weaponId);
+
+        float weaponAttributeSpread = 0f;
+        float weaponAttributeRateOfFire = 1f;
+        try {
+            weaponAttributeSpread = weaponAttributes[(ushort)ItemAttributeId.WeaponSpread].Base; // FIXME: Should be calculated on the source
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to get WeaponSpread Attribute");
+        }
+        try {
+            weaponAttributeRateOfFire = weaponAttributes[(ushort)ItemAttributeId.RateOfFire].Base; // FIXME: Should be calculated on the source
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to get RateOfFire Attribute");
+        }
         
         var weapon = weaponDetails.Main;
         if (weaponDetails.Alt != null && entity.FireMode_0.Mode != 0)
@@ -56,18 +76,17 @@ public class WeaponSim
             weapon = weaponDetails.Alt;
         }
 
-        Console.WriteLine($"Selected weapon {weapon}");
+        Console.WriteLine($"Selected weapon {weapon.DebugName}");
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
 
         // Muzzle Origin
-        // TODO: Make this more accurate, has some issues currently
-        var projectileOffset = new Vector3(0.2f, 0.1f, 0f);
-        var projectileBase = new Vector3(0f, 0f, 1.62f);
-        var muzzleOffset = projectileBase + projectileOffset;
-        var invQ = QuaternionEx.Inverse(entity.Rotation);
-        var origin = entity.Position + QuaternionEx.Transform(muzzleOffset, invQ);
+        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
+        var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(entity.Rotation)); // Match the characters orientation
+        var muzzleOffset = new Vector3(localAimDir.X, localAimDir.Y, localAimDir.Z) * 0.1f; // Offset like a sphere based on aim
+        var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
+        var origin = entity.Position + muzzleOffsetWorld; // Translate to character
 
         // Determine number of rounds to fire with this proj
         // If weapon has burst duration, we expect to receive multiple proj calls and only fire 1.
@@ -78,7 +97,6 @@ public class WeaponSim
         }
 
         // Calculate spreadPct
-        float weaponAttriSpread = 1.5f; // TODO
         float spreadValue, spreadFactor;
         if (weapon.SpreadRampTime > 0)
         {
@@ -92,13 +110,13 @@ public class WeaponSim
             spreadValue = weapon.MinSpread + ((weapon.MaxSpread - weapon.MinSpread) * rampTimeFactor);
 
             // Calcualte spread based on spread value
-            spreadFactor = weaponAttriSpread / weapon.MaxSpread;
+            spreadFactor = weaponAttributeSpread / weapon.MaxSpread;
         }
         else
         {
             // TODO: How should this work when there is no ramp time?
             spreadValue = weapon.MinSpread;
-            spreadFactor = weaponAttriSpread / weapon.MaxSpread;
+            spreadFactor = weaponAttributeSpread / weapon.MaxSpread;
         }
 
         float spreadPct = spreadValue * spreadFactor;
@@ -136,8 +154,7 @@ public class WeaponSim
             }
             else
             {
-                uint weaponAttriRof = 0; // TODO
-                weaponSimState.Ramp = Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + weaponAttriRof);
+                weaponSimState.Ramp = Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + (uint)weaponAttributeRateOfFire);
             }
         }
         else

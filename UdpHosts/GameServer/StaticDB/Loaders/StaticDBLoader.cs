@@ -1304,23 +1304,30 @@ public class StaticDBLoader : ISDBLoader
                 string convertedName = Policy.ConvertName(propInfo.Name);
                 int index = table.GetColumnIndexByName(convertedName);
                 int backupIndex = table.GetColumnIndexByName(propInfo.Name);
-                if (index != -1)
-                {
-                    propInfo.SetValue(entry, row[index], null);
+                try {
+                    if (index != -1)
+                    {
+                        propInfo.SetValue(entry, row[index], null);
+                    }
+                    else if (backupIndex != -1)
+                    {
+                        propInfo.SetValue(entry, row[backupIndex], null);
+                    }
+                    else if (propInfo.Name == "DamageType")
+                    {
+                        // Appears in InflictDamageCommandDef and HealDamageCommandDef
+                        propInfo.SetValue(entry, row[table.GetColumnIndexByName("damageType")], null);
+                    }
+                    else
+                    {
+                        warningsSet.Add($"Could not find column for {propInfo.Name} (converted to {convertedName}) in {tableName}");
+                    }
                 }
-                else if (backupIndex != -1)
+                catch (Exception ex)
                 {
-                    propInfo.SetValue(entry, row[backupIndex], null);
+                    Console.WriteLine($"Exception when loading {tableName}, {propInfo.Name}: {ex.Message}");
                 }
-                else if (propInfo.Name == "DamageType")
-                {
-                    // Appears in InflictDamageCommandDef and HealDamageCommandDef
-                    propInfo.SetValue(entry, row[table.GetColumnIndexByName("damageType")], null);
-                }
-                else
-                {
-                    warningsSet.Add($"Could not find column for {propInfo.Name} (converted to {convertedName}) in {tableName}");
-                }
+                
             }
 
             list.Add(entry);

@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 
 namespace GameServer;
@@ -12,10 +13,11 @@ public static partial class PRNG
     public static uint Trace(uint time, byte bullet)
     {
         uint mod = time + bullet;
-        byte u = (byte)(bullet ^ (uint)(((ulong)bullet * 0x797a8d77) >> 32));
-        uint v = mod ^ (uint)(((ulong)mod * 0x797a8d77) >> 32);
+        byte u = (byte)(bullet ^ (uint)((ulong)bullet * 0x797a8d77 >> 32));
+        uint v = mod ^ (uint)((ulong)mod * 0x797a8d77 >> 32);
+
         byte a = Table[u];
-        byte b = Table[v ^ 0xFF];
+        byte b = Table[v & 0xFF];
         byte c = Table[v >> 24];
         byte d = Table[v >> 8 & 0xFF];
         byte e = Table[v >> 16 & 0xFF];

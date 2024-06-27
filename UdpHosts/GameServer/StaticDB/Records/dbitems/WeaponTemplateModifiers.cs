@@ -133,7 +133,7 @@ public record class WeaponTemplateModifiers
     public sbyte BurstbonusPerTarget { get; set; }
     public sbyte MinAmmoPerBurst { get; set; }
     public sbyte AnimChargeType { get; set; }
-    public sbyte? UiReticleName { get; set; }
+    public byte? UiReticleName { get; set; }
     public sbyte? SlotIndex { get; set; }
     public sbyte MaxTargets { get; set; }
     public sbyte FireType { get; set; }

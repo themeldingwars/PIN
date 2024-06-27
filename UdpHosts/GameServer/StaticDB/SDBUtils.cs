@@ -355,80 +355,80 @@ public class SDBUtils
             DebugName = $"{(isUnderbarrel ? "Underbarrel" : "Main")} {weaponSdbId} (Type {weaponTypeId} - {template.Name})",
             
             // Components
-            ScopeId = WeaponTemplateOverrider(template.DefaultScopeId, modifiers.DefaultScopeId),
-            UnderbarrelId = WeaponTemplateOverrider(template.DefaultUnderbarrelId, modifiers.DefaultUnderbarrelId),
-            AmmoId = WeaponTemplateOverrider(template.DefaultAmmoId, modifiers.DefaultAmmoId),
+            ScopeId = WeaponTemplateOverrider(template.DefaultScopeId, modifiers?.DefaultScopeId),
+            UnderbarrelId = WeaponTemplateOverrider(template.DefaultUnderbarrelId, modifiers?.DefaultUnderbarrelId),
+            AmmoId = WeaponTemplateOverrider(template.DefaultAmmoId, modifiers?.DefaultAmmoId),
 
             // Properties
-            WeaponFlags = WeaponTemplateModifier(template.WeaponFlags, modifiers.WeaponFlags),
-            FireType = WeaponTemplateModifier(template.FireType, modifiers.FireType),
-            Range = WeaponTemplateModifier(template.Range, modifiers.Range, modifiers.RangeMult),
-            EquipEnterMs = WeaponTemplateModifier(template.EquipEnterMs, modifiers.EquipEnterMs),
-            EquipExitMs = WeaponTemplateModifier(template.EquipExitMs, modifiers.EquipExitMs),
-            SlotIndex = WeaponTemplateOverrider(template.SlotIndex, (byte?)modifiers.SlotIndex), // Not sure why the modifier table has this as sbyte, but 0 and no negative values are seen, so assuming we should not subtract and simply cast to byte.
+            WeaponFlags = WeaponTemplateModifier(template.WeaponFlags, modifiers?.WeaponFlags),
+            FireType = WeaponTemplateModifier(template.FireType, modifiers?.FireType),
+            Range = WeaponTemplateModifier(template.Range, modifiers?.Range, modifiers?.RangeMult),
+            EquipEnterMs = WeaponTemplateModifier(template.EquipEnterMs, modifiers?.EquipEnterMs),
+            EquipExitMs = WeaponTemplateModifier(template.EquipExitMs, modifiers?.EquipExitMs),
+            SlotIndex = WeaponTemplateOverrider(template.SlotIndex, (byte?)modifiers?.SlotIndex), // Not sure why the modifier table has this as sbyte, but 0 and no negative values are seen, so assuming we should not subtract and simply cast to byte.
 
             // Abilities
-            MeleeAbility = WeaponTemplateOverrider(template.MeleeAbilityId, modifiers.MeleeAbilityId),
-            AttackAbility = WeaponTemplateOverrider(template.AttackAbilityId, modifiers.AttackAbilityId),
-            OverchargeAbility = WeaponTemplateOverrider(template.OverchargeAbility, modifiers.OverchargeAbility),
-            BurstAbility = WeaponTemplateOverrider(template.BurstAbilityId, modifiers.BurstAbilityId),
-            ReloadAbility = WeaponTemplateOverrider(template.ReloadAbility, modifiers.ReloadAbility),
-            EmptyAbility = WeaponTemplateOverrider(template.ClipEmptyAbility, modifiers.ClipEmptyAbility),
+            MeleeAbility = WeaponTemplateOverrider(template.MeleeAbilityId, modifiers?.MeleeAbilityId),
+            AttackAbility = WeaponTemplateOverrider(template.AttackAbilityId, modifiers?.AttackAbilityId),
+            OverchargeAbility = WeaponTemplateOverrider(template.OverchargeAbility, modifiers?.OverchargeAbility),
+            BurstAbility = WeaponTemplateOverrider(template.BurstAbilityId, modifiers?.BurstAbilityId),
+            ReloadAbility = WeaponTemplateOverrider(template.ReloadAbility, modifiers?.ReloadAbility),
+            EmptyAbility = WeaponTemplateOverrider(template.ClipEmptyAbility, modifiers?.ClipEmptyAbility),
 
             // Ammo, Clip, Reload
-            BaseClipSize = WeaponTemplateModifier(template.BaseClipSize, modifiers.BaseClipSize, modifiers.BaseClipSizeMult),
-            MaxAmmo = WeaponTemplateModifier(template.MaxAmmo, modifiers.MaxAmmo, modifiers.MaxAmmoMult),
-            AmmoPerBurst = WeaponTemplateModifier(template.AmmoPerBurst, modifiers.AmmoPerBurst),
-            MinAmmoPerBurst = WeaponTemplateModifier(template.MinAmmoPerBurst, modifiers.MinAmmoPerBurst),
-            RoundsPerBurst = WeaponTemplateModifier(template.RoundsPerBurst, modifiers.RoundsPerBurst, modifiers.RoundsPerBurstMult),
-            MinRoundsPerBurst = WeaponTemplateModifier(template.MinRoundsPerBurst, modifiers.MinRoundsPerBurst, modifiers.MinRoundsPerBurstMult),
-            RoundReload = WeaponTemplateModifier(template.RoundReload, modifiers.RoundReload),
-            ClipRegenMs = WeaponTemplateModifier(template.ClipRegenMs, modifiers.ClipRegenMs, modifiers.ClipRegenMsMult),
-            ReloadTime = WeaponTemplateModifier(template.ReloadTime, modifiers.ReloadTime, modifiers.ReloadTimeMult),
-            ReloadPenalty = WeaponTemplateModifier(template.ReloadPenalty, modifiers.ReloadPenalty, modifiers.ReloadPenaltyMult),
+            BaseClipSize = WeaponTemplateModifier(template.BaseClipSize, modifiers?.BaseClipSize, modifiers?.BaseClipSizeMult),
+            MaxAmmo = WeaponTemplateModifier(template.MaxAmmo, modifiers?.MaxAmmo, modifiers?.MaxAmmoMult),
+            AmmoPerBurst = WeaponTemplateModifier(template.AmmoPerBurst, modifiers?.AmmoPerBurst),
+            MinAmmoPerBurst = WeaponTemplateModifier(template.MinAmmoPerBurst, modifiers?.MinAmmoPerBurst),
+            RoundsPerBurst = WeaponTemplateModifier(template.RoundsPerBurst, modifiers?.RoundsPerBurst, modifiers?.RoundsPerBurstMult),
+            MinRoundsPerBurst = WeaponTemplateModifier(template.MinRoundsPerBurst, modifiers?.MinRoundsPerBurst, modifiers?.MinRoundsPerBurstMult),
+            RoundReload = WeaponTemplateModifier(template.RoundReload, modifiers?.RoundReload),
+            ClipRegenMs = WeaponTemplateModifier(template.ClipRegenMs, modifiers?.ClipRegenMs, modifiers?.ClipRegenMsMult),
+            ReloadTime = WeaponTemplateModifier(template.ReloadTime, modifiers?.ReloadTime, modifiers?.ReloadTimeMult),
+            ReloadPenalty = WeaponTemplateModifier(template.ReloadPenalty, modifiers?.ReloadPenalty, modifiers?.ReloadPenaltyMult),
 
             // Targets
-            MaxTargets = WeaponTemplateModifier(template.MaxTargets, modifiers.MaxTargets),
-            BurstBonusPerTarget = WeaponTemplateModifier(template.BurstbonusPerTarget, modifiers.BurstbonusPerTarget), 
-            TargetingRange = WeaponTemplateModifier(template.TargetingRange, modifiers.TargetingRange, modifiers.TargetingRangeMult),
+            MaxTargets = WeaponTemplateModifier(template.MaxTargets, modifiers?.MaxTargets),
+            BurstBonusPerTarget = WeaponTemplateModifier(template.BurstbonusPerTarget, modifiers?.BurstbonusPerTarget), 
+            TargetingRange = WeaponTemplateModifier(template.TargetingRange, modifiers?.TargetingRange, modifiers?.TargetingRangeMult),
             
             // Burst
-            MsPerBurst = WeaponTemplateModifier(template.MsPerBurst, modifiers.MsPerBurst, modifiers.MsPerBurstMult),
-            MsBurstDuration = WeaponTemplateModifier(template.MsBurstDuration, modifiers.MsBurstDuration),
+            MsPerBurst = WeaponTemplateModifier(template.MsPerBurst, modifiers?.MsPerBurst, modifiers?.MsPerBurstMult),
+            MsBurstDuration = WeaponTemplateModifier(template.MsBurstDuration, modifiers?.MsBurstDuration),
 
             // Chargeup
-            MsChargeUp = WeaponTemplateModifier(template.MsChargeup, modifiers.MsChargeup, modifiers.MsChargeupMult),
-            MsChargeUpMax = WeaponTemplateModifier(template.MsChargeupMax, modifiers.MsChargeupMax, modifiers.MsChargeupMaxMult),
-            MsChargeUpMin = WeaponTemplateModifier(template.MsChargeupMin, modifiers.MsChargeupMin, modifiers.MsChargeupMinMult),
+            MsChargeUp = WeaponTemplateModifier(template.MsChargeup, modifiers?.MsChargeup, modifiers?.MsChargeupMult),
+            MsChargeUpMax = WeaponTemplateModifier(template.MsChargeupMax, modifiers?.MsChargeupMax, modifiers?.MsChargeupMaxMult),
+            MsChargeUpMin = WeaponTemplateModifier(template.MsChargeupMin, modifiers?.MsChargeupMin, modifiers?.MsChargeupMinMult),
 
             // Overcharge
-            MsOverchargeDelay = WeaponTemplateModifier(template.MsOverchargeDelay, modifiers.MsOverchargeDelay),
+            MsOverchargeDelay = WeaponTemplateModifier(template.MsOverchargeDelay, modifiers?.MsOverchargeDelay),
 
             // Damage
-            MinDamage = WeaponTemplateModifier(template.MinDamage, modifiers.MinDamage, modifiers.MinDamageMult),
-            DamagePerRound = WeaponTemplateModifier(template.DamagePerRound, modifiers.DamagePerRound, modifiers.DamagePerRoundMult),
-            HeadshotMult = WeaponTemplateModifier(template.HeadshotMult, modifiers.HeadshotMult, modifiers.HeadshotMultMult),
+            MinDamage = WeaponTemplateModifier(template.MinDamage, modifiers?.MinDamage, modifiers?.MinDamageMult),
+            DamagePerRound = WeaponTemplateModifier(template.DamagePerRound, modifiers?.DamagePerRound, modifiers?.DamagePerRoundMult),
+            HeadshotMult = WeaponTemplateModifier(template.HeadshotMult, modifiers?.HeadshotMult, modifiers?.HeadshotMultMult),
 
             // Spread
-            MinSpread = WeaponTemplateModifier(template.MinSpread, modifiers.MinSpread, modifiers.MinSpreadMult), // min_spread_frac
-            MaxSpread = WeaponTemplateModifier(template.MaxSpread, modifiers.MaxSpread, modifiers.MaxSpreadMult), // max_spread_frac
-            StartingSpread = WeaponTemplateModifier(template.StartingSpread, modifiers.StartingSpread, modifiers.StartingSpreadMult),
-            SpreadPerBurst = WeaponTemplateModifier(template.SpreadPerBurst, modifiers.SpreadPerBurst, modifiers.SpreadPerBurstMult),
-            SpreadRampExponent = WeaponTemplateModifier(template.SpreadRampExponent, modifiers.SpreadRampExponent),
-            SpreadRampTime = WeaponTemplateModifier(template.SpreadRampTime, modifiers.SpreadRampTime),
-            RunMinSpread = WeaponTemplateModifier(template.RunMinspreadAdd, modifiers.RunMinspreadAdd),
-            JumpMinSpread = WeaponTemplateModifier(template.JumpMinspreadAdd, modifiers.JumpMinspreadAdd),
-            MsSpreadReturnDelay = WeaponTemplateModifier(template.MsSpreadReturnDelay, modifiers.MsSpreadReturnDelay),
-            MsSpreadReturn = WeaponTemplateModifier(template.MsSpreadReturn, modifiers.MsSpreadReturn),
-            NoSpreadChance = WeaponTemplateModifier(template.NoSpreadChance, modifiers.NoSpreadChance, modifiers.NoSpreadChanceMult),
+            MinSpread = WeaponTemplateModifier(template.MinSpread, modifiers?.MinSpread, modifiers?.MinSpreadMult), // min_spread_frac
+            MaxSpread = WeaponTemplateModifier(template.MaxSpread, modifiers?.MaxSpread, modifiers?.MaxSpreadMult), // max_spread_frac
+            StartingSpread = WeaponTemplateModifier(template.StartingSpread, modifiers?.StartingSpread, modifiers?.StartingSpreadMult),
+            SpreadPerBurst = WeaponTemplateModifier(template.SpreadPerBurst, modifiers?.SpreadPerBurst, modifiers?.SpreadPerBurstMult),
+            SpreadRampExponent = WeaponTemplateModifier(template.SpreadRampExponent, modifiers?.SpreadRampExponent),
+            SpreadRampTime = WeaponTemplateModifier(template.SpreadRampTime, modifiers?.SpreadRampTime),
+            RunMinSpread = WeaponTemplateModifier(template.RunMinspreadAdd, modifiers?.RunMinspreadAdd),
+            JumpMinSpread = WeaponTemplateModifier(template.JumpMinspreadAdd, modifiers?.JumpMinspreadAdd),
+            MsSpreadReturnDelay = WeaponTemplateModifier(template.MsSpreadReturnDelay, modifiers?.MsSpreadReturnDelay),
+            MsSpreadReturn = WeaponTemplateModifier(template.MsSpreadReturn, modifiers?.MsSpreadReturn),
+            NoSpreadChance = WeaponTemplateModifier(template.NoSpreadChance, modifiers?.NoSpreadChance, modifiers?.NoSpreadChanceMult),
 
             // "Agility"
-            Agility = WeaponTemplateModifier(template.Agility, modifiers.Agility),
-            MsAgilityReturn = WeaponTemplateModifier(template.MsAgilityReturn, modifiers.MsAgilityReturn),
-            MsAgilityReturnDelay = WeaponTemplateModifier(template.MsAgilityReturnDelay, modifiers.MsAgilityReturnDelay),
+            Agility = WeaponTemplateModifier(template.Agility, modifiers?.Agility),
+            MsAgilityReturn = WeaponTemplateModifier(template.MsAgilityReturn, modifiers?.MsAgilityReturn),
+            MsAgilityReturnDelay = WeaponTemplateModifier(template.MsAgilityReturnDelay, modifiers?.MsAgilityReturnDelay),
 
             // ?
-            MsReturn = WeaponTemplateModifier(template.MsReturn, modifiers.MsReturn),
+            MsReturn = WeaponTemplateModifier(template.MsReturn, modifiers?.MsReturn),
         };
 
         return result;
@@ -470,34 +470,34 @@ public class SDBUtils
         }
     }
 
-    private static sbyte WeaponTemplateModifier(sbyte baseValue, sbyte? modifierValue, float multiplierValue = 1)
+    private static sbyte WeaponTemplateModifier(sbyte baseValue, sbyte? modifierValue, float? multiplierValue = 1)
     {
-        return (sbyte)((baseValue + (modifierValue ?? 0)) * multiplierValue);
+        return (sbyte)((baseValue + (modifierValue ?? 0)) * multiplierValue ?? 1);
     }
 
-    private static byte WeaponTemplateModifier(byte baseValue, sbyte? modifierValue, float multiplierValue = 1)
+    private static byte WeaponTemplateModifier(byte baseValue, sbyte? modifierValue, float? multiplierValue = 1)
     {
-        return (byte)((baseValue + (modifierValue ?? 0)) * multiplierValue);
+        return (byte)((baseValue + (modifierValue ?? 0)) * multiplierValue ?? 1);
     }
 
-    private static uint WeaponTemplateModifier(uint baseValue, int? modifierValue, float multiplierValue = 1)
+    private static uint WeaponTemplateModifier(uint baseValue, int? modifierValue, float? multiplierValue = 1)
     {
-        return (uint)((baseValue + (modifierValue ?? 0)) * multiplierValue);
+        return (uint)((baseValue + (modifierValue ?? 0)) * multiplierValue ?? 1);
     }
 
-    private static int WeaponTemplateModifier(int baseValue, int? modifierValue, float multiplierValue = 1)
+    private static int WeaponTemplateModifier(int baseValue, int? modifierValue, float? multiplierValue = 1)
     {
-        return (int)((baseValue + (modifierValue ?? 0)) * multiplierValue);
+        return (int)((baseValue + (modifierValue ?? 0)) * multiplierValue ?? 1);
     }
 
-    private static ushort WeaponTemplateModifier(ushort baseValue, short? modifierValue, float multiplierValue = 1)
+    private static ushort WeaponTemplateModifier(ushort baseValue, short? modifierValue, float? multiplierValue = 1)
     {
-        return (ushort)((baseValue + (modifierValue ?? 0)) * multiplierValue);
+        return (ushort)((baseValue + (modifierValue ?? 0)) * multiplierValue ?? 1);
     }
 
-    private static float WeaponTemplateModifier(float baseValue, float? modifierValue, float multiplierValue = 1)
+    private static float WeaponTemplateModifier(float baseValue, float? modifierValue, float? multiplierValue = 1)
     {
-        return (baseValue + (modifierValue ?? 0)) * multiplierValue;
+        return (float)((baseValue + (modifierValue ?? 0)) * multiplierValue ?? 1);
     }
 }
 

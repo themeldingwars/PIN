@@ -61,7 +61,7 @@ public record class Ammo
     public uint Id { get; set; }
     public float ImpactFxScale { get; set; }
     public uint ParticleMaterialEffectId { get; set; }
-    public ushort PeriodTouchPfxMs { get; set; }
+    public uint PeriodTouchPfxMs { get; set; }
     public ushort ImpactRadiusStat { get; set; }
     public ushort ProjectileSpeedStat { get; set; }
     public ushort MaxRadiusStat { get; set; }
