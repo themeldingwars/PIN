@@ -1,0 +1,187 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Threading;
+using BepuUtilities;
+using GameServer.Data.SDB;
+using GameServer.Entities;
+using GameServer.Entities.Character;
+
+namespace GameServer;
+
+public class WeaponSim
+{
+    private Shard _shard;
+    private Dictionary<ulong, WeaponSimState> _weaponSimState;
+
+    public WeaponSim(Shard shard)
+    {
+        _shard = shard;
+    }
+
+    public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir)
+    {
+        // Weapon Sim State
+        var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState()); // TODO: Handle switching weapons reset
+        _weaponSimState[entity.EntityId] = weaponSimState;
+
+        // Weapon
+        uint weaponId = 0;
+        switch (entity.WeaponIndex.Index)
+        {
+            case 2:
+                weaponId = entity.CurrentLoadout.SlottedItems.GetValueOrDefault(Data.LoadoutSlotType.Secondary);
+                break;
+            case 1:
+                weaponId = entity.CurrentLoadout.SlottedItems.GetValueOrDefault(Data.LoadoutSlotType.Primary);
+                break;
+            case 0:
+            default:
+                Console.WriteLine($"Will not fire projectile because invalid selected weapon index {entity.WeaponIndex.Index}");
+                return;
+        }
+
+        if (weaponId == 0)
+        {
+            Console.WriteLine($"Will not fire projectile because failed to get selected weapon id from loadout");
+            return;
+        }
+
+        var weaponDetails = SDBUtils.GetDetailedWeaponInfo(weaponId);
+        
+        var weapon = weaponDetails.Main;
+        if (weaponDetails.Alt != null && entity.FireMode_0.Mode != 0)
+        {
+            weapon = weaponDetails.Alt;
+        }
+
+        Console.WriteLine($"Selected weapon {weapon}");
+
+        // Ammo
+        var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
+
+        // Muzzle Origin
+        // TODO: Make this more accurate, has some issues currently
+        var projectileOffset = new Vector3(0.2f, 0.1f, 0f);
+        var projectileBase = new Vector3(0f, 0f, 1.62f);
+        var muzzleOffset = projectileBase + projectileOffset;
+        var invQ = QuaternionEx.Inverse(entity.Rotation);
+        var origin = entity.Position + QuaternionEx.Transform(muzzleOffset, invQ);
+
+        // Determine number of rounds to fire with this proj
+        // If weapon has burst duration, we expect to receive multiple proj calls and only fire 1.
+        byte roundsToFire = 1;
+        if (weapon.MsBurstDuration == 0 && weapon.RoundsPerBurst > 1)
+        {
+            roundsToFire = weapon.RoundsPerBurst;
+        }
+
+        // Calculate spreadPct
+        float weaponAttriSpread = 1.5f; // TODO
+        float spreadValue, spreadFactor;
+        if (weapon.SpreadRampTime > 0)
+        {
+            uint elapsedTime = time - weaponSimState.LastBurstTime; // The time elapsed since we last fired
+            uint returnedTime = Math.Min(Math.Max(0, elapsedTime - weapon.MsSpreadReturnDelay), weapon.MsSpreadReturn); // Subtract delay and account for up to the full return time
+            float ratioToReturn = returnedTime / weapon.MsSpreadReturn; // Get how much progress was made
+            weaponSimState.Ramp = (uint)(weaponSimState.Ramp * (1f - ratioToReturn)); // Reduce the accumulated time to the remaining amount
+
+            // Calculate spread value based on ramp time
+            float rampTimeFactor = weaponSimState.Ramp / weapon.SpreadRampTime;
+            spreadValue = weapon.MinSpread + ((weapon.MaxSpread - weapon.MinSpread) * rampTimeFactor);
+
+            // Calcualte spread based on spread value
+            spreadFactor = weaponAttriSpread / weapon.MaxSpread;
+        }
+        else
+        {
+            // TODO: How should this work when there is no ramp time?
+            spreadValue = weapon.MinSpread;
+            spreadFactor = weaponAttriSpread / weapon.MaxSpread;
+        }
+
+        float spreadPct = spreadValue * spreadFactor;
+        if (entity.IsAirborne)
+        {
+            spreadPct += weapon.JumpMinSpread;
+        }
+        else if (entity.IsMoving)
+        {
+            spreadPct += weapon.RunMinSpread;
+        }
+
+        // Fire rounds
+        for (byte round = 0; round < roundsToFire; round++)
+        {
+            Vector3 aimForward = localAimDir; // entity.AimDirection;
+            Vector3 aimRight = Vector3.Normalize(Vector3.Cross(aimForward, Vector3.UnitZ));
+            Vector3 aimUp = Vector3.Normalize(Vector3.Cross(aimRight, aimForward));
+            Vector3 lastSpreadDirection = weaponSimState.LastSpreadDirection;
+            uint lastSpreadTime = weaponSimState.LastSpreadTime;
+            PRNG.Spread(time, weapon.SlotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 direction);
+            uint trace = PRNG.Trace(time, round);
+            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo);
+            weaponSimState.LastSpreadDirection = direction;
+            weaponSimState.LastSpreadTime = time;
+        }
+
+        if (time - weaponSimState.LastBurstTime < weapon.MsSpreadReturnDelay + weapon.MsSpreadReturn)
+        {
+            // FIXME: Just make getters
+            if (entity.Character_CombatView.WeaponBurstFiredProp > entity.Character_CombatView.WeaponBurstEndedProp)
+            {
+                uint fireTime = time - entity.Character_CombatView.WeaponBurstFiredProp;
+                weaponSimState.Ramp = Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + fireTime);
+            }
+            else
+            {
+                uint weaponAttriRof = 0; // TODO
+                weaponSimState.Ramp = Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + weaponAttriRof);
+            }
+        }
+        else
+        {
+            weaponSimState.Ramp = weapon.MsPerBurst;
+        }
+
+        weaponSimState.LastBurstTime = time;
+    }
+
+    /*
+    public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
+    {
+        var players = GetWeaponSimPlayers();
+        var entities = GetWeaponSimEntities();
+        foreach (var entity in entities)
+        {
+            ProcessEntity(entity as CharacterEntity);
+        }
+    }
+
+    private void ProcessEntity(CharacterEntity entity)
+    {
+        var aimForward = entity.AimDirection;
+        // Get active weapon
+        // Get active fire mode
+    }
+
+    private IEnumerable<INetworkPlayer> GetWeaponSimPlayers()
+    {
+        return _shard.Clients.Values.Where((client) => (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected));
+    }
+
+    private IEnumerable<IEntity> GetWeaponSimEntities()
+    {
+        return _shard.Entities.Values.Where((entity) => entity is CharacterEntity);
+    }
+    */
+
+    public class WeaponSimState
+    {
+        public Vector3 LastSpreadDirection;
+        public uint LastSpreadTime;
+        public uint LastBurstTime;
+        public uint Ramp;
+    }
+}

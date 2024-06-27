@@ -21,6 +21,8 @@ public interface IShard : IPacketSender
     MovementRelay Movement { get; }
     EntityManager EntityMan { get; }
     AbilitySystem Abilities { get; }
+    ProjectileSim ProjectileSim { get; }
+    WeaponSim WeaponSim { get; }
     ChatService Chat { get; }
     AdminService Admin { get; }
     uint ZoneId { get; }

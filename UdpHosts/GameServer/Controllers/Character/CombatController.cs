@@ -42,7 +42,7 @@ public class CombatController : Base
     {
         var fireWeaponProjectile = packet.Unpack<FireWeaponProjectile>();
         
-        player.TestRayCast();
+        player.HandleFireWeaponProjectile(fireWeaponProjectile.Time, fireWeaponProjectile.AimDirection);
 
         var weaponProjectileFired = new WeaponProjectileFired
         {

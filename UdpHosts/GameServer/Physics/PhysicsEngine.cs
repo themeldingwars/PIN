@@ -174,6 +174,39 @@ public class PhysicsEngine
         }
     }
 
+    public void ProjectileRayCast(Vector3 origin, Vector3 direction, CharacterEntity source, uint trace)
+    {
+        var speed = 500f;
+        var maxRange = 500f;
+        
+        SendDebugProjectileSpawn(source, trace, origin, direction, speed);
+
+        var hitHandler = default(RayHitHandlerFire);
+        hitHandler.T = maxRange;
+        hitHandler.AvoidSourceBody = true;
+        hitHandler.SourceBody = source.BodyHandle;
+
+        Simulation.RayCast(origin, direction, float.MaxValue, ref hitHandler);
+        if (hitHandler.T < maxRange)
+        {   
+            var hitPosition = origin + (direction * hitHandler.T);
+            Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {hitPosition}");
+
+            SendDebugProjectileImpact(source, trace, hitPosition, hitHandler.Normal);
+
+            if (hitHandler.HitCollidable.Mobility == CollidableMobility.Kinematic)
+            {
+                var bodyPosition = Simulation.Bodies[hitHandler.HitCollidable.BodyHandle].Pose.Position;
+                bodyPosition.Z -= 0.9f;
+                SendDebugProjectilePoseHit(source, trace, hitPosition, bodyPosition);
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Nothing hit");
+        }
+    }
+
     public void CreateTestFireRayCast(CharacterEntity source, Vector3 direction)
     {
         var projectileOffset = new Vector3(0.2f, 0.1f, 0f);

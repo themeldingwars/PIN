@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Threading;
 using GameServer.Data;
 using CharacterEntity = GameServer.Entities.Character.CharacterEntity;
@@ -52,4 +53,5 @@ public interface IPlayer
     void Tick(double deltaTime, ulong currentTime, CancellationToken ct);
     uint FindClosestAvailableOutpost(Zone zone, uint targetOutpostId);
     void TestRayCast();
+    void HandleFireWeaponProjectile(uint time, Vector3 aim);
 }

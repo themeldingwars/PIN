@@ -285,6 +285,11 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         AssignedShard.Physics.CreateTestFireRayCast(CharacterEntity, dir);
     }
 
+    public void HandleFireWeaponProjectile(uint time, Vector3 aim)
+    {
+        AssignedShard.WeaponSim.OnFireWeaponProjectile(CharacterEntity, time, aim);
+    }
+
     private void EnterZone(Zone z, uint outpostId = 0)
     {
         var spawnPoint = outpostId == 0

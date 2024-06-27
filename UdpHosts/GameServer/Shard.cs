@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GameServer.Aptitude;
 using GameServer.Data;
+using GameServer.Data.SDB.Records.dbitems;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
@@ -41,6 +42,8 @@ public class Shard : IShard
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
         EntityMan = new EntityManager(this);
+        WeaponSim = new WeaponSim(this);
+        ProjectileSim = new ProjectileSim(this);
         Chat = new ChatService(this);
         Admin = new AdminService(this);
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
@@ -55,6 +58,8 @@ public class Shard : IShard
     public MovementRelay Movement { get; }
     public EntityManager EntityMan { get; }
     public AbilitySystem Abilities { get; }
+    public ProjectileSim ProjectileSim { get; }
+    public WeaponSim WeaponSim { get; }
     public ChatService Chat { get; }
     public AdminService Admin { get; }
     public ulong InstanceId { get; }
