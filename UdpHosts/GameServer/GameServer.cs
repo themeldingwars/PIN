@@ -11,7 +11,6 @@ using GameServer.Data.SDB;
 using GameServer.GRPC;
 using GameServer.Test;
 using Serilog;
-using Serilog;
 using Shared.Udp;
 
 namespace GameServer;

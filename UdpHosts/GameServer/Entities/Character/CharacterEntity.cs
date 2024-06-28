@@ -1060,6 +1060,73 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         ApplyLoadout(CurrentLoadout);
     }
 
+    public class ActiveWeaponDetails
+    {
+        public WeaponTemplateResult Weapon;
+        public uint WeaponId;
+        public float Spread;
+        public float RateOfFire;
+    }
+
+    public ActiveWeaponDetails? GetActiveWeaponDetails()
+    {
+        // Weapon
+        uint weaponId;
+        switch (WeaponIndex.Index)
+        {
+            case 2:
+                weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(Data.LoadoutSlotType.Secondary);
+                break;
+            case 1:
+                weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(Data.LoadoutSlotType.Primary);
+                break;
+            case 0:
+            default:
+                Console.WriteLine($"GetActiveWeaponDetails fails because invalid selected weapon index {WeaponIndex.Index}");
+                return null;
+        }
+
+        if (weaponId == 0)
+        {
+            Console.WriteLine($"GetActiveWeaponDetails failed to get selected weapon id from loadout");
+            return null;
+        }
+
+        var weaponDetails = SDBUtils.GetDetailedWeaponInfo(weaponId);
+        var weaponAttributes = SDBInterface.GetItemAttributeRange(weaponId);
+
+        float weaponAttributeSpread = 0f;
+        float weaponAttributeRateOfFire = 1f;
+        try {
+            weaponAttributeSpread = weaponAttributes[(ushort)ItemAttributeId.WeaponSpread].Base; // FIXME: Should be calculated on the source
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to get WeaponSpread Attribute");
+        }
+        try {
+            weaponAttributeRateOfFire = weaponAttributes[(ushort)ItemAttributeId.RateOfFire].Base; // FIXME: Should be calculated on the source
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to get RateOfFire Attribute");
+        }
+        
+        var weapon = weaponDetails.Main;
+        if (weaponDetails.Alt != null && FireMode_0.Mode != 0)
+        {
+            weapon = weaponDetails.Alt;
+        }
+
+        return new ActiveWeaponDetails()
+        {
+            Weapon = weapon,
+            WeaponId = weaponId,
+            Spread = weaponAttributeSpread,
+            RateOfFire = weaponAttributeRateOfFire,
+        };
+    }
+
     private void InitFields()
     {
         Position = new Vector3();

@@ -8,6 +8,7 @@ using GameServer.Data.SDB;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using static GameServer.Entities.Character.CharacterEntity;
 
 namespace GameServer;
 
@@ -24,30 +25,20 @@ public class WeaponSim
 
     public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir)
     {
-        // Weapon Sim State
-        var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState()); // TODO: Handle switching weapons reset
-        
         // Weapon
-        uint weaponId;
-        switch (entity.WeaponIndex.Index)
+        var activeWeaponDetails = entity.GetActiveWeaponDetails();
+        if (activeWeaponDetails == null)
         {
-            case 2:
-                weaponId = entity.CurrentLoadout.SlottedItems.GetValueOrDefault(Data.LoadoutSlotType.Secondary);
-                break;
-            case 1:
-                weaponId = entity.CurrentLoadout.SlottedItems.GetValueOrDefault(Data.LoadoutSlotType.Primary);
-                break;
-            case 0:
-            default:
-                Console.WriteLine($"Will not fire projectile because invalid selected weapon index {entity.WeaponIndex.Index}");
-                return;
-        }
-
-        if (weaponId == 0)
-        {
-            Console.WriteLine($"Will not fire projectile because failed to get selected weapon id from loadout");
+            Console.WriteLine($"Will not fire projectile because failed to get active weapon from the entity");
             return;
         }
+        var weapon = activeWeaponDetails.Weapon;
+        var weaponId = activeWeaponDetails.WeaponId;
+        var weaponAttributeSpread = activeWeaponDetails.Spread;
+        var weaponAttributeRateOfFire = activeWeaponDetails.RateOfFire;
+
+        // Weapon Sim State
+        var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState()); // TODO: Handle switching weapons reset
 
         if (weaponSimState.LastWeaponId == 0)
         {
@@ -60,47 +51,13 @@ public class WeaponSim
             weaponSimState.LastWeaponId = weaponId;
         }
 
-        var weaponDetails = SDBUtils.GetDetailedWeaponInfo(weaponId);
-        var weaponAttributes = SDBInterface.GetItemAttributeRange(weaponId);
-
-        float weaponAttributeSpread = 0f;
-        float weaponAttributeRateOfFire = 1f;
-        try {
-            weaponAttributeSpread = weaponAttributes[(ushort)ItemAttributeId.WeaponSpread].Base; // FIXME: Should be calculated on the source
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to get WeaponSpread Attribute");
-        }
-        try {
-            weaponAttributeRateOfFire = weaponAttributes[(ushort)ItemAttributeId.RateOfFire].Base; // FIXME: Should be calculated on the source
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to get RateOfFire Attribute");
-        }
-        
-        var weapon = weaponDetails.Main;
-        if (weaponDetails.Alt != null && entity.FireMode_0.Mode != 0)
-        {
-            weapon = weaponDetails.Alt;
-        }
-
         Console.WriteLine($"Selected weapon {weapon.DebugName} and attribute spread {weaponAttributeSpread}");
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
-
-        // Muzzle Origin
-        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character\
-        if (entity.IsCrouching)
-        {
-            muzzleBase.Z = 1.08f;
-        }
-        var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(entity.Rotation)); // Match the characters orientation
-        var muzzleOffset = new Vector3(localAimDir.X, localAimDir.Y, localAimDir.Z) * 0.1f; // Offset like a sphere based on aim
-        var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
-        var origin = entity.Position + muzzleOffsetWorld; // Translate to character
+        
+        // Projectile origin
+        var origin = GetProjectileOrigin(entity, localAimDir);
 
         // Determine number of rounds to fire with this proj
         // If weapon has burst duration, we expect to receive multiple proj calls and only fire 1.
@@ -182,6 +139,21 @@ public class WeaponSim
         weaponSimState.LastBurstTime = time;
         _weaponSimState[entity.EntityId] = weaponSimState;
     }
+
+    private Vector3 GetProjectileOrigin(CharacterEntity entity, Vector3 aimDirection)
+    {
+        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
+        if (entity.IsCrouching)
+        {
+            muzzleBase.Z = 1.08f;
+        }
+        var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(entity.Rotation)); // Match the characters orientation
+        var muzzleOffset = new Vector3(aimDirection.X, aimDirection.Y, aimDirection.Z) * 0.1f; // Offset like a sphere based on aim
+        var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
+        var origin = entity.Position + muzzleOffsetWorld; // Translate to character
+        return origin;
+    }
+
 
     /*
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
