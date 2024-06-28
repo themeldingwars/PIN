@@ -352,7 +352,7 @@ public class SDBUtils
         WeaponTemplateResult result = new WeaponTemplateResult()
         {
             // Debug
-            DebugName = $"{(isUnderbarrel ? "Underbarrel" : "Main")} {weaponSdbId} (Type {weaponTypeId} - {template.Name})",
+            DebugName = $"{(isUnderbarrel ? "Underbarrel" : "Main")} {weaponSdbId} (Type {weaponTypeId} - {template.Name.TrimEnd('\0')})",
             
             // Components
             ScopeId = WeaponTemplateOverrider(template.DefaultScopeId, modifiers?.DefaultScopeId),

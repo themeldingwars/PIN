@@ -34,8 +34,8 @@ public static partial class PRNG
             return;
         }
 
-        float adjustedSpreadPct = (float)(spreadPct * 0.01);
-        bool ignoreMagnitudeCheck = (((time - lastSpreadTime - 1000U) >> 0x1F) & 1) == 0;
+        float adjustedSpreadPct = spreadPct * 0.01f;
+        bool ignoreMagnitudeCheck = (((time - lastSpreadTime - 1000u) >> 0x1F) & 1) == 0;
         float spreadVarianceMagnitude = _slMinSpreadVariance * _slMinSpreadVariance * adjustedSpreadPct * adjustedSpreadPct;
         float v1, v2;
         byte retry = 0;
@@ -92,12 +92,15 @@ public static partial class PRNG
 
     private static uint GetUVar(uint input)
     {
-        return (uint)(((ulong)input * 0x797a8d77) >> 0x20) ^ input;
+        return (uint)((ulong)input * 0x797a8d77 >> 0x20) ^ input;
     }
 
     private static float GetV(uint uVar, int iVar)
     {
         uint d = Table[uVar >> 0x10 & 0xFF];
-        return (float)(((float)(double)((iVar << 8) | d) * 2.328306e-10 * 2.0) - 1.0);
+        
+        return (float)((double)((iVar << 8) | d)) * 2.328306e-10f * 2.0f - 1.0f;
+
+        // return (float)(((float)(double)((iVar << 8) | d) * 2.328306e-10 * 2.0) - 1.0);
     }
 }

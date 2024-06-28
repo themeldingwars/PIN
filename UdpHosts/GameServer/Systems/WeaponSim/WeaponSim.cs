@@ -26,8 +26,7 @@ public class WeaponSim
     {
         // Weapon Sim State
         var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState()); // TODO: Handle switching weapons reset
-        _weaponSimState[entity.EntityId] = weaponSimState;
-
+        
         // Weapon
         uint weaponId;
         switch (entity.WeaponIndex.Index)
@@ -48,6 +47,17 @@ public class WeaponSim
         {
             Console.WriteLine($"Will not fire projectile because failed to get selected weapon id from loadout");
             return;
+        }
+
+        if (weaponSimState.LastWeaponId == 0)
+        {
+            weaponSimState.LastWeaponId = weaponId;
+        }
+        else if (weaponSimState.LastWeaponId != weaponId)
+        {
+            // Drop state if we swapped weapon   
+            weaponSimState = new WeaponSimState();
+            weaponSimState.LastWeaponId = weaponId;
         }
 
         var weaponDetails = SDBUtils.GetDetailedWeaponInfo(weaponId);
@@ -76,13 +86,17 @@ public class WeaponSim
             weapon = weaponDetails.Alt;
         }
 
-        Console.WriteLine($"Selected weapon {weapon.DebugName}");
+        Console.WriteLine($"Selected weapon {weapon.DebugName} and attribute spread {weaponAttributeSpread}");
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
 
         // Muzzle Origin
-        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
+        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character\
+        if (entity.IsCrouching)
+        {
+            muzzleBase.Z = 1.08f;
+        }
         var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(entity.Rotation)); // Match the characters orientation
         var muzzleOffset = new Vector3(localAimDir.X, localAimDir.Y, localAimDir.Z) * 0.1f; // Offset like a sphere based on aim
         var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
@@ -129,6 +143,9 @@ public class WeaponSim
             spreadPct += weapon.RunMinSpread;
         }
 
+        spreadPct = 2.25f; // TEMP:
+        Console.WriteLine($"Firing with spreadPct {spreadPct}");
+
         // Fire rounds
         for (byte round = 0; round < roundsToFire; round++)
         {
@@ -163,6 +180,7 @@ public class WeaponSim
         }
 
         weaponSimState.LastBurstTime = time;
+        _weaponSimState[entity.EntityId] = weaponSimState;
     }
 
     /*
@@ -200,5 +218,6 @@ public class WeaponSim
         public uint LastSpreadTime;
         public uint LastBurstTime;
         public uint Ramp;
+        public uint LastWeaponId;
     }
 }

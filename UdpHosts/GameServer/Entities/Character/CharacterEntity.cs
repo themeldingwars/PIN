@@ -61,6 +61,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     public short TimeSinceLastJump { get; set; }
     public bool IsAirborne { get; set; }
     public bool IsMoving { get => MovementStateContainer.Sprint || MovementStateContainer.Movement; }
+    public bool IsCrouching { get => MovementStateContainer.Crouch; }
 
     public Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> CurrentPermissions { get; set; } = new Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool>()
     {
