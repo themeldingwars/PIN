@@ -10,6 +10,35 @@ public static partial class PRNG
 {
     private static readonly float _slMinSpreadVariance = 0.699999988079f; // 0x3f333333
 
+    public static void TestSpread()
+    {
+        Vector3 final = new Vector3(-997.872070f, -57.570068f, 39.467823f);
+        Vector3 dir = new Vector3(-0.997563f, -0.057552f, 0.039456f);
+        Vector3 aim = new Vector3(-0.9987106323242188f, -0.03268186002969742f, 0.03884787857532501f);
+        float speed = 1000f;
+        uint time = 32404587;
+        float spreadPct = 3.025f;
+        byte slotIndex = 2;
+        byte round = 0;
+
+        Vector3 aimForward = aim;
+        Vector3 aimRight = Vector3.Normalize(Vector3.Cross(aimForward, Vector3.UnitZ));
+        Vector3 aimUp = Vector3.Normalize(Vector3.Cross(aimRight, aimForward));
+        Vector3 lastSpreadDirection = Vector3.Zero; //new Vector3(-0.997563f, -0.057552f, 0.039456f);
+        uint lastSpreadTime = time;
+        PRNG.Spread(time, slotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 result);
+        result = Vector3.Normalize(result);
+
+        Vector3 finalResult = new Vector3(aim.X, aim.Y, aim.Z) + (result*speed);
+        Console.WriteLine($"RES Generated ({result.X}, {result.Y}, {result.Z})");
+        Console.WriteLine($"RES Expected ({dir.X}, {dir.Y}, {dir.Z})");
+
+        Console.WriteLine($"FIN Generated ({finalResult.X}, {finalResult.Y}, {finalResult.Z})");
+        Console.WriteLine($"FIN Expected ({final.X}, {final.Y}, {final.Z})");
+
+        throw new Exception("Check");
+    }
+
     public static uint Trace(uint time, byte bullet)
     {
         uint mod = time + bullet;
@@ -69,6 +98,7 @@ public static partial class PRNG
             uint uVar2 = GetUVar(modulator - 0x3df);
             int iVar1 = GetIVar(uVar1);
             int iVar2 = GetIVar(uVar2);
+            
             v1 = GetV(uVar1, iVar1);
             v2 = GetV(uVar2, iVar2);
             if ((v2 * v2) + (v1 * v1) < 1.0)
@@ -98,9 +128,6 @@ public static partial class PRNG
     private static float GetV(uint uVar, int iVar)
     {
         uint d = Table[uVar >> 0x10 & 0xFF];
-        
-        return (float)((double)((iVar << 8) | d)) * 2.328306e-10f * 2.0f - 1.0f;
-
-        // return (float)(((float)(double)((iVar << 8) | d) * 2.328306e-10 * 2.0) - 1.0);
+        return (float)(((double)(((uint)iVar << 8) | d)) * 2.328306e-10 * 2.0 - 1.0);
     }
 }
