@@ -23,6 +23,7 @@ public interface ISDBLoader
     Dictionary<uint, AttributeCategory> LoadAttributeCategory();
     Dictionary<uint, AttributeDefinition> LoadAttributeDefinition();
     Dictionary<KeyValuePair<uint, ushort>, AttributeRange> LoadAttributeRange();
+    Dictionary<KeyValuePair<uint, ushort>, ItemModuleScalars> LoadItemModuleScalars();
     Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> LoadItemCharacterScalars();
     Dictionary<uint, RootItem> LoadRootItem();
     Dictionary<uint, Battleframe> LoadBattleframe();

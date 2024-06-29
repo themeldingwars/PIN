@@ -26,6 +26,7 @@ public class SDBInterface
     private static Dictionary<uint, AttributeCategory> AttributeCategory;
     private static Dictionary<uint, AttributeDefinition> AttributeDefinition;
     private static Dictionary<KeyValuePair<uint, ushort>, AttributeRange> AttributeRange;
+    private static Dictionary<KeyValuePair<uint, ushort>, ItemModuleScalars> ItemModuleScalars;
     private static Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> ItemCharacterScalars;
     private static Dictionary<uint, RootItem> RootItem;
     private static Dictionary<uint, AbilityModule> AbilityModule;
@@ -252,6 +253,7 @@ public class SDBInterface
         AttributeCategory = loader.LoadAttributeCategory();
         AttributeDefinition = loader.LoadAttributeDefinition();
         AttributeRange = loader.LoadAttributeRange();
+        ItemModuleScalars = loader.LoadItemModuleScalars();
         ItemCharacterScalars = loader.LoadItemCharacterScalars();
         RootItem = loader.LoadRootItem();
         AbilityModule = loader.LoadAbilityModule();
@@ -469,8 +471,8 @@ public class SDBInterface
     .Where(value => value.FrameId == frameId)
     .ToArray();
 
+    public static AttributeCategory GetAttributeCategory(uint id) => AttributeCategory.GetValueOrDefault(id);
     public static AttributeDefinition GetAttributeDefinition(uint id) => AttributeDefinition.GetValueOrDefault(id);
-
     public static Dictionary<ushort, AttributeRange> GetItemAttributeRange(uint itemId)
     {
         return AttributeRange
@@ -478,6 +480,23 @@ public class SDBInterface
         .Select(pair => new KeyValuePair<ushort, AttributeRange>(pair.Key.Value, pair.Value))
         .ToDictionary();
     }
+    
+    public static Dictionary<ushort, (float, float)> GetItemModuleScalars(uint itemId)
+    {
+        return ItemModuleScalars
+        .Where(pair => pair.Key.Key.Equals(itemId))
+        .Select(pair => new KeyValuePair<ushort, (float value, float perLevel)>(pair.Value.AttributeCategory, (pair.Value.Value, pair.Value.PerLevel)))
+        .ToDictionary();
+    }
+
+    public static Dictionary<ushort, (float, float)> GetItemCharacterScalars(uint itemId)
+    {
+        return ItemCharacterScalars
+        .Where(pair => pair.Key.Key.Equals(itemId))
+        .Select(pair => new KeyValuePair<ushort, (float value, float perLevel)>(pair.Value.AttributeCategory, (pair.Value.Value, pair.Value.PerLevel)))
+        .ToDictionary();
+    }
+
 
     public static Dictionary<byte, CharCreateLoadoutSlots> GetCharCreateLoadoutSlots(uint id) => CharCreateLoadoutSlots.GetValueOrDefault(id);
     public static Deployable GetDeployable(uint id) => Deployable.GetValueOrDefault(id);

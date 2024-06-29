@@ -75,6 +75,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(group => group.Key, group => group.Last());
     }
     
+    public Dictionary<KeyValuePair<uint, ushort>, ItemModuleScalars> LoadItemModuleScalars() 
+    {
+        return LoadStaticDB<ItemModuleScalars>("dbitems::ItemModuleScalars")
+        .ToDictionary(row => new KeyValuePair<uint, ushort>(row.ItemId, row.AttributeCategory));
+    }
+
     public Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> LoadItemCharacterScalars() 
     {
         return LoadStaticDB<ItemCharacterScalars>("dbitems::ItemCharacterScalars")
