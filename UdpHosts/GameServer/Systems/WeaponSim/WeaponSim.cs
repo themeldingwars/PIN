@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using BepuUtilities;
+using FauFau.Util;
 using GameServer.Data.SDB;
 using GameServer.Entities;
 using GameServer.Entities.Character;
@@ -20,7 +21,7 @@ public class WeaponSim
     public WeaponSim(Shard shard)
     {
         _shard = shard;
-        _weaponSimState = new();
+        _weaponSimState = [];
     }
 
     public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir)
@@ -38,8 +39,7 @@ public class WeaponSim
         var weaponAttributeRateOfFire = activeWeaponDetails.RateOfFire;
 
         // Weapon Sim State
-        var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState()); // TODO: Handle switching weapons reset
-
+        var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState());
         if (weaponSimState.LastWeaponId == 0)
         {
             weaponSimState.LastWeaponId = weaponId;
@@ -47,8 +47,10 @@ public class WeaponSim
         else if (weaponSimState.LastWeaponId != weaponId)
         {
             // Drop state if we swapped weapon   
-            weaponSimState = new WeaponSimState();
-            weaponSimState.LastWeaponId = weaponId;
+            weaponSimState = new WeaponSimState
+            {
+                LastWeaponId = weaponId
+            };
         }
 
         Console.WriteLine($"Selected weapon {weapon.DebugName} and attribute spread {weaponAttributeSpread}");
@@ -68,11 +70,55 @@ public class WeaponSim
         }
 
         // Calculate spreadPct
+        float spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponAttributeSpread, time);
+        Console.WriteLine($"Firing with spreadPct {spreadPct}");
+
+        // Fire rounds
+        for (byte round = 0; round < roundsToFire; round++)
+        {
+            Vector3 aimForward = localAimDir; // entity.AimDirection;
+            Vector3 aimRight = Vector3.Normalize(Vector3.Cross(aimForward, Vector3.UnitZ));
+            Vector3 aimUp = Vector3.Normalize(Vector3.Cross(aimRight, aimForward));
+            Vector3 lastSpreadDirection = weaponSimState.LastSpreadDirection;
+            uint lastSpreadTime = weaponSimState.LastSpreadTime;
+            PRNG.Spread(time, weapon.SlotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 direction);
+            uint trace = PRNG.Trace(time, round);
+            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo);
+            weaponSimState.LastSpreadDirection = direction;
+            weaponSimState.LastSpreadTime = time;
+        }
+
+        // Update spread ramp
+        if (time - weaponSimState.LastBurstTime < weapon.MsSpreadReturnDelay + weapon.MsSpreadReturn)
+        {
+            // FIXME: Just make getters
+            if (entity.Character_CombatView.WeaponBurstFiredProp > entity.Character_CombatView.WeaponBurstEndedProp)
+            {
+                uint fireTime = time - entity.Character_CombatView.WeaponBurstFiredProp;
+                weaponSimState.Ramp = System.Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + fireTime);
+            }
+            else
+            {
+                weaponSimState.Ramp = System.Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + (uint)weaponAttributeRateOfFire);
+            }
+        }
+        else
+        {
+            weaponSimState.Ramp = weapon.MsPerBurst;
+        }
+
+        weaponSimState.LastBurstTime = time;
+        _weaponSimState[entity.EntityId] = weaponSimState;
+    }
+
+    private float GetCurrentSpreadPct(CharacterEntity entity, WeaponTemplateResult weapon, WeaponSimState weaponSimState, float weaponAttributeSpread, uint time)
+    {
+        // NOTE: Consider this whole thing a sham, needs further RE.
         float spreadValue, spreadFactor;
         if (weapon.SpreadRampTime > 0)
         {
             uint elapsedTime = time - weaponSimState.LastBurstTime; // The time elapsed since we last fired
-            uint returnedTime = Math.Min(Math.Max(0, elapsedTime - weapon.MsSpreadReturnDelay), weapon.MsSpreadReturn); // Subtract delay and account for up to the full return time
+            uint returnedTime = System.Math.Min(System.Math.Max(0, elapsedTime - weapon.MsSpreadReturnDelay), weapon.MsSpreadReturn); // Subtract delay and account for up to the full return time
             float ratioToReturn = returnedTime / weapon.MsSpreadReturn; // Get how much progress was made
             weaponSimState.Ramp = (uint)(weaponSimState.Ramp * (1f - ratioToReturn)); // Reduce the accumulated time to the remaining amount
 
@@ -100,44 +146,7 @@ public class WeaponSim
             spreadPct += weapon.RunMinSpread;
         }
 
-        spreadPct = 2.25f; // TEMP:
-        Console.WriteLine($"Firing with spreadPct {spreadPct}");
-
-        // Fire rounds
-        for (byte round = 0; round < roundsToFire; round++)
-        {
-            Vector3 aimForward = localAimDir; // entity.AimDirection;
-            Vector3 aimRight = Vector3.Normalize(Vector3.Cross(aimForward, Vector3.UnitZ));
-            Vector3 aimUp = Vector3.Normalize(Vector3.Cross(aimRight, aimForward));
-            Vector3 lastSpreadDirection = weaponSimState.LastSpreadDirection;
-            uint lastSpreadTime = weaponSimState.LastSpreadTime;
-            PRNG.Spread(time, weapon.SlotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 direction);
-            uint trace = PRNG.Trace(time, round);
-            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo);
-            weaponSimState.LastSpreadDirection = direction;
-            weaponSimState.LastSpreadTime = time;
-        }
-
-        if (time - weaponSimState.LastBurstTime < weapon.MsSpreadReturnDelay + weapon.MsSpreadReturn)
-        {
-            // FIXME: Just make getters
-            if (entity.Character_CombatView.WeaponBurstFiredProp > entity.Character_CombatView.WeaponBurstEndedProp)
-            {
-                uint fireTime = time - entity.Character_CombatView.WeaponBurstFiredProp;
-                weaponSimState.Ramp = Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + fireTime);
-            }
-            else
-            {
-                weaponSimState.Ramp = Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + (uint)weaponAttributeRateOfFire);
-            }
-        }
-        else
-        {
-            weaponSimState.Ramp = weapon.MsPerBurst;
-        }
-
-        weaponSimState.LastBurstTime = time;
-        _weaponSimState[entity.EntityId] = weaponSimState;
+        return spreadPct;
     }
 
     private Vector3 GetProjectileOrigin(CharacterEntity entity, Vector3 aimDirection)
