@@ -128,6 +128,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, ImpactToggleEffectCommandDef> LoadImpactToggleEffectCommandDef()
+    {
+        return LoadStaticDB<ImpactToggleEffectCommandDef>("apt::ImpactToggleEffectCommandDef")
+            .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, ConditionalBranchCommandDef> LoadConditionalBranchCommandDef()
     {
         return LoadStaticDB<ConditionalBranchCommandDef>("apt::ConditionalBranchCommandDef")

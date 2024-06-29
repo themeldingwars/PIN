@@ -259,6 +259,7 @@ public class SDBInterface
         CommandType = loader.LoadCommandType();
         AbilityData = loader.LoadAbilityData();
         ImpactApplyEffectCommandDef = loader.LoadImpactApplyEffectCommandDef();
+        ImpactToggleEffectCommandDef = loader.LoadImpactToggleEffectCommandDef();
         WhileLoopCommandDef = loader.LoadWhileLoopCommandDef();
         LogicNegateCommandDef = loader.LoadLogicNegateCommandDef();
         LogicOrCommandDef = loader.LoadLogicOrCommandDef();
