@@ -108,14 +108,17 @@ public class ZoneLoader
 
             foreach (PinChunkSubChunk subChunk in chunk.SubChunks) 
             {
-                var myLayer = subChunk.Cg;
-                var root = subChunk.Cg.GetTagfileObject("#0001");
-                var statics = ProcessChunkObject(root, ref myLayer);
-                for (int i = 0; i < statics.Length; i++)
+                if (subChunk.Cg != null)
                 {
-                    var stat = statics[i];
-                    stat.Pose.Position += origin;
-                    Simulation.Statics.Add(stat);
+                    var myLayer = subChunk.Cg;
+                    var root = subChunk.Cg.GetTagfileObject("#0001");
+                    var statics = ProcessChunkObject(root, ref myLayer);
+                    for (int i = 0; i < statics.Length; i++)
+                    {
+                        var stat = statics[i];
+                        stat.Pose.Position += origin;
+                        Simulation.Statics.Add(stat);
+                    }
                 }
 
                 // TODO: Process subChunk.Cg2, subChunk.Cg3
@@ -129,6 +132,7 @@ public class ZoneLoader
                 ts2.Seconds,
                 ts2.Milliseconds / 10);
             Console.WriteLine($"ZoneLoader LoadChunkJSON Processed in {elapsedTime2}");
+            Console.WriteLine($"ZoneLoader Total Statics {Simulation.Statics.Count}");
         }
         catch (Exception e)
         {
