@@ -13,6 +13,7 @@ using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities.Character;
+using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
@@ -363,20 +364,55 @@ public class BaseController : Base
     [MessageID((byte)Commands.ExitAttachmentRequest)]
     public void ExitAttachmentRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-        var query = packet.Unpack<ExitAttachmentRequest>();
-        var character = player.CharacterEntity;
-        if (character.AttachedToEntity != null)
+        if (player.CharacterEntity.AttachedToEntity == null)
         {
-            var hack = character.AttachedToEntity as VehicleEntity;
-            hack.RemoveOccupant(character);
-            character.ClearAttachedTo();
+            return;
+        }
 
-            var response = new ExitingAttachment()
+        var character = player.CharacterEntity;
+
+        if (character.AttachedToEntity is VehicleEntity vehicle)
+        {
+            vehicle.RemoveOccupant(character);
+        }
+        else if (character.AttachedToEntity is TurretEntity turret)
+        {
+            if (turret.Parent is VehicleEntity parentVehicle)
             {
-                Direction = new Vector3(-0.5f, -0.5f, -0.47f)
-            };
+                parentVehicle.RemoveOccupant(character);
+            }
+            else
+            {
+                turret.SetControllingPlayer(null);
+            }
+        }
 
-            client.NetChannels[ChannelType.ReliableGss].SendIAero(response, character.EntityId);
+        character.ClearAttachedTo();
+
+        var response = new ExitingAttachment() { Direction = new Vector3(-0.5f, -0.5f, -0.47f) };
+
+        client.NetChannels[ChannelType.ReliableGss].SendIAero(response, character.EntityId);
+    }
+
+    [MessageID((byte)Commands.SeatChangeRequest)]
+    public void SeatChangeRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        if (player.CharacterEntity.AttachedToEntity == null)
+        {
+            return;
+        }
+
+        var query = packet.Unpack<SeatChangeRequest>();
+
+        var character = player.CharacterEntity;
+
+        if (character.AttachedToEntity is VehicleEntity vehicle)
+        {
+            vehicle.ChangeOccupantSeat(character, query.RequestedSeatIndex);
+        }
+        else if (character.AttachedToEntity is TurretEntity { Parent: VehicleEntity parentVehicle })
+        {
+            parentVehicle.ChangeOccupantSeat(character, query.RequestedSeatIndex);
         }
     }
 
