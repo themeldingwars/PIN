@@ -217,6 +217,7 @@ public class SDBUtils
             MaxPassengers = 0,
             PassengerPosture = 0,
             HasActivePassenger = false,
+            SkipOnePassenger = false,
             Abilities = new List<AbilityComponentDef>(),
             DeathAbility = 0,
             MaxHitPoints = 100,
@@ -252,6 +253,7 @@ public class SDBUtils
                     result.MaxPassengers = passengerComponent.MaxPassengers;
                     result.PassengerPosture = passengerComponent.Posture;
                     result.HasActivePassenger = passengerComponent.ActivePassenger == 1;
+                    result.SkipOnePassenger = passengerComponent.LeadingZero == 1;
                     break;
 
                 case ComponentType.Ability:
@@ -310,6 +312,7 @@ public class VehicleInfoResult
     public uint MaxPassengers;
     public byte PassengerPosture;
     public bool HasActivePassenger;
+    public bool SkipOnePassenger;
     public List<AbilityComponentDef> Abilities;
     public uint DeathAbility;
     public float MaxHitPoints;

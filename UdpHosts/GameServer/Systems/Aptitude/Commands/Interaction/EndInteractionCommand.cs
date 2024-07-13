@@ -5,6 +5,8 @@ using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.apt;
 using GameServer.Entities;
+using GameServer.Entities.Character;
+using GameServer.Entities.Deployable;
 
 namespace GameServer.Aptitude;
 
@@ -39,33 +41,21 @@ public class EndInteractionCommand : ICommand
             }
 
             var interactionType = hack.Interaction.Type;
-            if (interactionType == InteractionType.Vehicle)
+
+            if (hack is DeployableEntity { Turret: not null } deployable)
+            {
+                var character = actingEntity as CharacterEntity;
+
+                deployable.Turret.SetControllingPlayer(character.Player);
+            }
+            else if (interactionType == InteractionType.Vehicle)
             {
                 if (actingEntity.GetType() == typeof(Entities.Character.CharacterEntity) && interactionEntity.GetType() == typeof(Entities.Vehicle.VehicleEntity))
                 {
                     var character = actingEntity as Entities.Character.CharacterEntity;
                     var vehicle = interactionEntity as Entities.Vehicle.VehicleEntity;
 
-                    var occupiedSeat = vehicle.AddOccupant(character);
-                    if (occupiedSeat != null)
-                    {
-                        character.SetAttachedTo(new AttachedToData()
-                        {
-                            Id1 = vehicle.AeroEntityId,
-                            Id2 = vehicle.AeroEntityId,
-                            Role = (AttachedToData.AttachmentRoleType)occupiedSeat.Role,
-                            Unk2 = 3, // posture?
-                            Unk3 = 1,
-                        }, vehicle);
-
-                        // Force scope in of vehicle so that controllers are sent down
-                        if (character.IsPlayerControlled && occupiedSeat.Role == Entities.Vehicle.AttachmentRole.Driver)
-                        {
-                            var player = character.Player;
-                            var entityMan = player.AssignedShard.EntityMan;
-                            entityMan.ScopeIn(player, vehicle);
-                        }
-                    }
+                    vehicle.AddOccupant(character);
                 }
             }
 

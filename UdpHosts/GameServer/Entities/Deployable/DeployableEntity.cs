@@ -7,6 +7,7 @@ using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Deployable;
 using AeroMessages.GSS.V66.Deployable.View;
 using GameServer.Aptitude;
+using GameServer.Entities.Turret;
 
 namespace GameServer.Entities.Deployable;
 
@@ -32,6 +33,7 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public Vector3 AimPosition => Position;
     public Vector3 AimDirection { get; set; }
     public HostilityInfoData HostilityInfo { get; set; }
+    public TurretEntity Turret { get; set; }
 
     public uint ConstructedTime { get; set; }
     public uint Type { get; set; }

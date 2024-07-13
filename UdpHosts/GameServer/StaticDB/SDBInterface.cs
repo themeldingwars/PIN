@@ -18,6 +18,7 @@ public class SDBInterface
     private static Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> CharCreateLoadoutSlots;
     private static Dictionary<uint, Deployable> Deployable;
     private static Dictionary<uint, Monster> Monster;
+    private static Dictionary<uint, Turret> Turret;
 
     // dbvisualrecords
     private static Dictionary<uint, WarpaintPalette> WarpaintPalettes;
@@ -238,6 +239,7 @@ public class SDBInterface
         CharCreateLoadoutSlots = loader.LoadCharCreateLoadoutSlots();
         Deployable = loader.LoadDeployable();
         Monster = loader.LoadMonster();
+        Turret = loader.LoadTurret();
 
         // dbvisualrecords
         WarpaintPalettes = loader.LoadWarpaintPalettes();
@@ -470,6 +472,7 @@ public class SDBInterface
     public static Dictionary<byte, CharCreateLoadoutSlots> GetCharCreateLoadoutSlots(uint id) => CharCreateLoadoutSlots.GetValueOrDefault(id);
     public static Deployable GetDeployable(uint id) => Deployable.GetValueOrDefault(id);
     public static Monster GetMonster(uint id) => Monster.GetValueOrDefault(id);
+    public static Turret GetTurret(uint id) => Turret.GetValueOrDefault(id);
 
     // dbvisaulrecords
     public static WarpaintPalette GetWarpaintPalette(uint id) => WarpaintPalettes.GetValueOrDefault(id);
