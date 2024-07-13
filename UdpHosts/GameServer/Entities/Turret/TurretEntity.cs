@@ -36,7 +36,6 @@ public class TurretEntity : BaseEntity
 
     public void SetControllingPlayer(INetworkPlayer player)
     {
-
         if (player == null)
         {
             Turret_ObserverView.GunnerIdProp = new EntityId() { Backing = 0 };

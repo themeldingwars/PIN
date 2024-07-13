@@ -21,7 +21,6 @@ public class BaseController : Base
     [MessageID((byte)Commands.PoseUpdate)]
     public void PoseUpdate(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-
         var poseUpdate = packet.Unpack<PoseUpdate>();
         var turret = client.AssignedShard.Entities[entityId & 0xffffffffffffff00] as TurretEntity;
 
@@ -38,7 +37,6 @@ public class BaseController : Base
     [MessageID((byte)Commands.FireBurst)]
     public void FireBurst(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-
         var fireBurst = packet.Unpack<FireBurst>();
         var turret = client.AssignedShard.Entities[entityId & 0xffffffffffffff00] as TurretEntity;
 
@@ -48,7 +46,6 @@ public class BaseController : Base
     [MessageID((byte)Commands.FireEnd)]
     public void FireEnd(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
-
         var fireEnd = packet.Unpack<FireEnd>();
         var turret = client.AssignedShard.Entities[entityId & 0xffffffffffffff00] as TurretEntity;
 
