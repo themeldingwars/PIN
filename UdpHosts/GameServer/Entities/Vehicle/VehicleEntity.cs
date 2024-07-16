@@ -560,7 +560,6 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Turret)
         {
             Turrets[seatConfig.TurretIndex].SetControllingPlayer(character.Player);
-            Shard.EntityMan.ScopeIn(character.Player, Turrets[seatConfig.TurretIndex]);
 
             return;
         }
@@ -622,7 +621,6 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Turret)
         {
             Turrets[seatConfig.TurretIndex].SetControllingPlayer(character.Player);
-            Shard.EntityMan.ScopeIn(character.Player, Turrets[seatConfig.TurretIndex]);
 
             return;
         }
