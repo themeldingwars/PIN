@@ -19,6 +19,7 @@ public class TurretEntity : BaseEntity
         Parent = parent;
         ParentChildIndex = parentChildIndex;
         Posture = posture;
+        Position = parent.Position;
         InitControllers();
         InitViews();
     }

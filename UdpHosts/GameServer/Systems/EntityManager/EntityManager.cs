@@ -77,6 +77,7 @@ public class EntityManager
     {
         var vehicleInfo = SDBUtils.GetDetailedVehicleInfo(typeId);
         var vehicleEntity = new VehicleEntity(Shard, Shard.GetNextGuid());
+        vehicleEntity.Position = position;
         vehicleEntity.Load(vehicleInfo);
         position.Z += vehicleInfo.SpawnHeight;
         vehicleEntity.SetSpawnPose(new AeroMessages.GSS.V66.Vehicle.Controller.SpawnPoseData()
