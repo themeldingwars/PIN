@@ -19,6 +19,9 @@ public class TurretEntity : BaseEntity
         Parent = parent;
         ParentChildIndex = parentChildIndex;
         Posture = posture;
+
+        // BaseEntity has the Position prop and other systems may wish to use that
+        // when processing this entity, EntityManagers scoping in/out logic is one such system.
         Position = parent.Position;
         InitControllers();
         InitViews();

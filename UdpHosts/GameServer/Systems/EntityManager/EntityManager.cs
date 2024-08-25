@@ -174,24 +174,36 @@ public class EntityManager
             Timeout.Infinite);
         }
 
+        if (deployableInfo.TurretType != 0)
+        {
+            deployableEntity.Turret = SpawnTurret(deployableInfo.TurretType, deployableEntity);
+        }
+
         if (deployableInfo.PoweredOnAbility != 0)
         {
+            var poweredOnAbility = deployableInfo.PoweredOnAbility;
+
+            if (deployableEntity.Turret != null)
+            {
+                if (poweredOnAbility == 34214)
+                {
+                    // Fixes AA and Heavy Flak Turrets, taken from Anti-Armor Turret id 3823
+                    poweredOnAbility = 40497;
+                }
+            }
+
             new System.Threading.Timer(state =>
             {
-                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.PoweredOnAbility, Shard.CurrentTime, new AptitudeTargets());
+                Console.WriteLine($"deployable: Executing ability {deployableInfo.PoweredOnAbility}");
+                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility, Shard.CurrentTime, new AptitudeTargets());
                 if (state != null)
                 {
                     ((System.Threading.Timer)state).Dispose();
                 }
             },
             null,
-            deployableInfo.BuildTimeMs + 100,
+            deployableInfo.BuildTimeMs,
             Timeout.Infinite);
-        }
-
-        if (deployableInfo.TurretType != 0)
-        {
-            deployableEntity.Turret = SpawnTurret(deployableInfo.TurretType, deployableEntity);
         }
 
         return deployableEntity;
@@ -386,6 +398,11 @@ public class EntityManager
                     if (entity == player.CharacterEntity)
                     {
                         // Players local character should probably always be scoped in
+                        shouldBeScoped = true;
+                    }
+                    else if (entity == player.CharacterEntity.AttachedToEntity)
+                    {
+                        // If players local character is attached to something, don't scope that out
                         shouldBeScoped = true;
                     }
                     else if (entity.IsGlobalScope())
