@@ -81,7 +81,7 @@ public class ZoneLoader
         }
         catch (Exception e)
         {
-            Console.WriteLine($"ZoneLoader LoadZoneJSON Failed: {e}");
+            Console.WriteLine($"ZoneLoader LoadZoneJSON Failed: {e.Message} ({e.GetType().Name})");
             return null;
         }
     }
@@ -137,7 +137,7 @@ public class ZoneLoader
         }
         catch (Exception e)
         {
-            Console.WriteLine($"ZoneLoader LoadChunkJSON Failed: {e}");
+            Console.WriteLine($"ZoneLoader LoadChunkJSON Failed: {e.Message} ({e.GetType().Name})");
         }
     }
 
