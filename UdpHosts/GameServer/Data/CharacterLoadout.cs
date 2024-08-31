@@ -107,6 +107,8 @@ public class CharacterLoadout
 
     public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>(); 
     public Dictionary<ushort, float> ItemAttributes = new Dictionary<ushort, float>();
+    public Dictionary<ushort, float> ItemModuleScalars = new Dictionary<ushort, float>();
+    public Dictionary<ushort, float> ItemCharacterScalars = new Dictionary<ushort, float>();
  
     /// <summary>
     /// Initializes a new instance of the <see cref="CharacterLoadout"/> class.
@@ -271,6 +273,34 @@ public class CharacterLoadout
         .ToArray();
     }
 
+    public StatsData[] GetItemCharacterScalars()
+    {
+        return ItemCharacterScalars
+        .Select((pair) =>
+        {
+            return new StatsData()
+            {
+                Id = pair.Key,
+                Value = pair.Value
+            };
+        })
+        .ToArray();
+    }
+
+    public StatsData[] GetItemModuleScalars()
+    {
+        return ItemModuleScalars
+        .Select((pair) =>
+        {
+            return new StatsData()
+            {
+                Id = pair.Key,
+                Value = pair.Value
+            };
+        })
+        .ToArray();
+    }
+
     private void InitFromLoadoutReferenceData(LoadoutReferenceData refData)
     {
         VehicleID = 77087;
@@ -291,7 +321,7 @@ public class CharacterLoadout
 
     private void CalculateItemAttributes()
     {
-        var result = new Dictionary<ushort, float>()
+        var attributes = new Dictionary<ushort, float>()
         {
             // Base stats that should probably be collected elsewhere
             { 5, 75 }, // Jet Energy Recharge
@@ -304,6 +334,13 @@ public class CharacterLoadout
             { 1451, 100 }, // Power Rating
             { 1377, 130 }, // Sprint Speed
         };
+        var moduleScalars = new Dictionary<ushort, float>()
+        {
+            { 10003, 0.15f }
+        };
+        var characterScalars = new Dictionary<ushort, float>()
+        {
+        };
 
         foreach (var pair in SlottedItems)
         {
@@ -312,18 +349,56 @@ public class CharacterLoadout
                 var itemAttributes = SDBInterface.GetItemAttributeRange(pair.Value);
                 foreach (var range in itemAttributes.Values)
                 {
-                    if (result.ContainsKey(range.AttributeId))
+                    if (attributes.ContainsKey(range.AttributeId))
                     {
-                        result[range.AttributeId] += range.Base;
+                        attributes[range.AttributeId] += range.Base;
                     }
                     else
                     {
-                        result.Add(range.AttributeId, range.Base);
+                        attributes.Add(range.AttributeId, range.Base);
+                    }
+                }
+
+                var itemCharacterScalars = SDBInterface.GetItemCharacterScalars(pair.Value);
+                foreach ((ushort attributeCategoryId, (float value, float perLevel)) in itemCharacterScalars)
+                {
+                    var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
+                    if (!characterScalars.ContainsKey(attributeCategoryId))
+                    {
+                        characterScalars.Add(attributeCategoryId, 0.0f);
+                    }
+                    if (attributeCategory.IsScalar == 1)
+                    {
+                        characterScalars[attributeCategoryId] += characterScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
+                    }
+                    else
+                    {
+                        characterScalars[attributeCategoryId] += value - 1;
+                    }
+                }
+
+                var itemModuleScalars = SDBInterface.GetItemModuleScalars(pair.Value);
+                foreach ((ushort attributeCategoryId, (float value, float perLevel)) in itemModuleScalars)
+                {
+                    var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
+                    if (!moduleScalars.ContainsKey(attributeCategoryId))
+                    {
+                        moduleScalars.Add(attributeCategoryId, 0.0f);
+                    }
+                    if (attributeCategory.IsScalar == 1)
+                    {
+                        moduleScalars[attributeCategoryId] += moduleScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
+                    }
+                    else
+                    {
+                        moduleScalars[attributeCategoryId] += value - 1;
                     }
                 }
             }
         }
 
-        ItemAttributes = result;
+        ItemAttributes = attributes;
+        ItemCharacterScalars = characterScalars;
+        ItemModuleScalars = moduleScalars;
     }
 }

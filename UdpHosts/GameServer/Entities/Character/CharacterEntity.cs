@@ -465,6 +465,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     public void ApplyLoadout(CharacterLoadout loadout)
     {
         CurrentLoadout = loadout;
+
         var emptyVisuals = new VisualsBlock
         {
             Decals = Array.Empty<VisualsDecalsBlock>(),
@@ -525,7 +526,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             Item = new SlottedItem
             {
-                SdbId = loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary),
+                SdbId = loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary, 0u),
                 SlotIndex = 255,
                 Flags = 0,
                 Unk2 = 0,
@@ -557,6 +558,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             EndUnk2 = 0
         });
 
+        
         SetCharacterStats(new CharacterStatsData
         {
             ItemAttributes = loadout.GetItemAttributes(),
@@ -565,8 +567,8 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             Unk2 = 0,
             WeaponB = loadout.GetSecondaryWeaponAttributes(),
             Unk3 = 0,
-            AttributeCategories1 = Array.Empty<StatsData>(),
-            AttributeCategories2 = Array.Empty<StatsData>()
+            AttributeCategories1 = loadout.GetItemModuleScalars(), // TODO: Compare with capture
+            AttributeCategories2 = loadout.GetItemCharacterScalars()
         });
 
         SelectedLoadout = loadout.LoadoutID;
