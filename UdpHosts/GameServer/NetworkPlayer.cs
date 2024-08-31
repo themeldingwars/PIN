@@ -236,11 +236,6 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                 break;
             case IPlayer.PlayerStatus.Playing:
                 {
-                    if (AssignedShard.CurrentTime - _lastKeyFrame > 0.5)
-                    {
-                        // NetChannels[ChannelType.ReliableGss].SendGSSClass(Test.GSS.Character.BaseController.KeyFrame.Test(this, this), this.InstanceID, msgEnumType: typeof(Enums.GSS.Character.Events));
-                    }
-
                     break;
                 }
         }
