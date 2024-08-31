@@ -824,7 +824,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(turret.Turret_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(turret.Turret_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -1064,7 +1064,7 @@ public class EntityManager
 
             if (haveObserver)
             {
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(OutpostEntity))
