@@ -85,7 +85,7 @@ public static class ArmyEventHandler
 
         var msg = new ReceivedWebUIMessage() { Message = json };
 
-        player.NetChannels[ChannelType.ReliableGss].SendIAero(msg, player.CharacterId);
+        player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, player.CharacterId);
     }
 
     public static void HandleEvent(ArmyInviteRejected e, IDictionary<uint, INetworkPlayer> clients)
@@ -171,7 +171,7 @@ public static class ArmyEventHandler
         var armyMessage = new ArmyMessage { message_type = messageType, initiator = initiatorName };
 
         player.NetChannels[ChannelType.ReliableGss]
-              .SendIAero(new ReceivedWebUIMessage() { Message = JsonSerializer.Serialize(armyMessage, SerializerOptions) },
+              .SendMessage(new ReceivedWebUIMessage() { Message = JsonSerializer.Serialize(armyMessage, SerializerOptions) },
                          player.CharacterId);
     }
 

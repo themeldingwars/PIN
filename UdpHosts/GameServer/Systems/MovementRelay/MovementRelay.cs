@@ -55,7 +55,7 @@ public class MovementRelay
             },
             NextShortTime = unchecked((ushort)(input.ShortTime + 90)) // This value has to be in the future, nobody cares why.
         };
-        client.NetChannels[ChannelType.UnreliableGss].SendIAero(confirmedPose, character.EntityId, 0, typeof(Enums.GSS.Character.Events));
+        client.NetChannels[ChannelType.UnreliableGss].SendMessage(confirmedPose, character.EntityId);
 
         // Forward update to remote clients
         var currentPose = new CurrentPoseUpdate
@@ -77,10 +77,10 @@ public class MovementRelay
             {
                 if (sendJumpActioned)
                 {
-                    remoteClient.NetChannels[ChannelType.UnreliableGss].SendIAero(new JumpActioned { ShortTime = input.ShortTime }, character.EntityId);
+                    remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(new JumpActioned { ShortTime = input.ShortTime }, character.EntityId);
                 }
     
-                remoteClient.NetChannels[ChannelType.UnreliableGss].SendIAero(currentPose, character.EntityId);
+                remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(currentPose, character.EntityId);
             }
         }
     }

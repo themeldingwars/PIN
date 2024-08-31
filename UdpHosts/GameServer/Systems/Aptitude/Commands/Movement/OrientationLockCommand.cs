@@ -44,7 +44,7 @@ public class OrientationLockCommand : ICommand
                     CommandId = Params.Id,
                     ShortTime = context.Shard.CurrentShortTime,
                 };
-                player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
             }
         }
     }

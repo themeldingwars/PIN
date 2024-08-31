@@ -28,7 +28,7 @@ public class EndInteractionCommand : ICommand
                 if (character.IsPlayerControlled)
                 {
                     var message = new InteractionCompleted { Percent = 100 };
-                    character.Player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+                    character.Player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
                 }
             }
 

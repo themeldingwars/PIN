@@ -124,7 +124,7 @@ public class NetworkClient : INetworkClient
                         DebugReportArgType = string.Empty,
                         DebugReportArgData = string.Empty,
                     };
-                    NetChannels[ChannelType.UnreliableGss].SendIAero(response, AssignedShard.InstanceId);
+                    NetChannels[ChannelType.UnreliableGss].SendMessage(response, AssignedShard.InstanceId);
                 }
             }
             else
@@ -137,7 +137,7 @@ public class NetworkClient : INetworkClient
                     DebugReportArgType = string.Empty,
                     DebugReportArgData = string.Empty,
                 };
-                NetChannels[ChannelType.UnreliableGss].SendIAero(response, AssignedShard.InstanceId);
+                NetChannels[ChannelType.UnreliableGss].SendMessage(response, AssignedShard.InstanceId);
             }
         }
     }
@@ -174,11 +174,11 @@ public class NetworkClient : INetworkClient
 
         if (forChannel == ChannelType.Matrix)
         {
-            NetChannels[ChannelType.Control].SendIAero(new MatrixAck { AckForNum = forNum, NextSeqNum = nextNum });
+            NetChannels[ChannelType.Control].SendMessage(new MatrixAck { AckForNum = forNum, NextSeqNum = nextNum });
         }
         else if (forChannel == ChannelType.ReliableGss)
         {
-            NetChannels[ChannelType.Control].SendIAero(new GSSAck { AckForNum = forNum, NextSeqNum = nextNum });
+            NetChannels[ChannelType.Control].SendMessage(new GSSAck { AckForNum = forNum, NextSeqNum = nextNum });
         }
     }
 
@@ -237,7 +237,7 @@ public class NetworkClient : INetworkClient
 
                 break;
             case MatrixPacketType.ClientStatus:
-                NetChannels[ChannelType.Matrix].SendIAero(new MatrixStatus
+                NetChannels[ChannelType.Matrix].SendMessage(new MatrixStatus
                 {
                     MatrixBytesPerSecond = 0,
                     GameShapedBytes = 0,
@@ -283,7 +283,7 @@ public class NetworkClient : INetworkClient
                 break;
             case ControlPacketType.TimeSyncRequest:
                 var timeSyncRequestPackage = packet.Unpack<TimeSyncRequest>();
-                NetChannels[ChannelType.Control].SendIAero(new TimeSyncResponse()
+                NetChannels[ChannelType.Control].SendMessage(new TimeSyncResponse()
                 {
                     ClientTime = timeSyncRequestPackage.ClientTime,
                     ServerTime = unchecked(AssignedShard.CurrentTimeLong * 1000)

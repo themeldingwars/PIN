@@ -41,7 +41,7 @@ public class TeleportServerCommand : ServerCommand
                 },
                 ShortTime = character.Shard.CurrentShortTime
             };
-            context.SourcePlayer.NetChannels[ChannelType.ReliableGss].SendIAero(forcedMove, character.EntityId);
+            context.SourcePlayer.NetChannels[ChannelType.ReliableGss].SendMessage(forcedMove, character.EntityId);
         }
         else
         {

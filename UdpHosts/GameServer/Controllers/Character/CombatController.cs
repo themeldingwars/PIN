@@ -155,7 +155,7 @@ public class CombatController : Base
                     }
                 };
                 Console.WriteLine($"ActivateAbility {message.ActivatedAbilityId} at {message.ActivatedTime}");
-                character.Player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+                character.Player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
             }
 
             var initiator = character as IAptitudeTarget;
@@ -269,7 +269,7 @@ public class CombatController : Base
                     }
                 };
                 Console.WriteLine($"ActivateAbility {message.ActivatedAbilityId} at {message.ActivatedTime}");
-                character.Player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+                character.Player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
             }
 
             var initiator = character as IAptitudeTarget;
