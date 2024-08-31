@@ -38,7 +38,9 @@ public class PhysicsEngine
         _defaultCharacterShape = Simulation.Shapes.Add(new Sphere(0.9f));
         
         // Load zone
-        new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(_shard.Settings.MapsPath, _shard.ZoneId);
+        if (false) {
+            new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(_shard.Settings.MapsPath, _shard.ZoneId);
+        }
     }
 
     public Simulation Simulation { get; protected set; }

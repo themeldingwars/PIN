@@ -35,11 +35,7 @@ public class ENWFData
         public uint NumIndiceBlocks;
         public IndiceBlockContent[] IndiceBlocks;
         public uint NumMatItems;
-
-        // TODO: MatItems
         public uint NumMoppBlocks;
-
-        // TODO: MoppBlocks
         public List<BaseTagfileObject> TagfileObjects;
 
         public BaseTagfileObject GetTagfileObject(string query)
