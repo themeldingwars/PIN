@@ -122,7 +122,7 @@ public class PhysicsEngine
         };
         if (source.IsPlayerControlled)
         {
-            Console.WriteLine($"SendDebugProjectileSpawn");
+            // Console.WriteLine($"SendDebugProjectileSpawn");
             source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);
         }
     }
@@ -142,7 +142,7 @@ public class PhysicsEngine
         };
         if (source.IsPlayerControlled)
         {
-            Console.WriteLine($"SendDebugProjectileImpact");
+            // Console.WriteLine($"SendDebugProjectileImpact");
             source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);
         }
     }
@@ -171,7 +171,7 @@ public class PhysicsEngine
         };
         if (source.IsPlayerControlled)
         {
-            Console.WriteLine($"SendDebugProjectilePoseHit");
+            // Console.WriteLine($"SendDebugProjectilePoseHit");
             source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);
         }
     }
