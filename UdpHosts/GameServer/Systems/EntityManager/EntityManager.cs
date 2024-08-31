@@ -26,6 +26,7 @@ using GameServer.Entities.Melding;
 using GameServer.Entities.MeldingBubble;
 using GameServer.Entities.Outpost;
 using GameServer.Entities.Thumper;
+using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS;
 using GameServer.Extensions;
@@ -80,6 +81,7 @@ public class EntityManager
     {
         var vehicleInfo = SDBUtils.GetDetailedVehicleInfo(typeId);
         var vehicleEntity = new VehicleEntity(Shard, Shard.GetNextGuid());
+        vehicleEntity.Position = position;
         vehicleEntity.Load(vehicleInfo);
         position.Z += vehicleInfo.SpawnHeight;
         vehicleEntity.SetSpawnPose(new AeroMessages.GSS.V66.Vehicle.Controller.SpawnPoseData()
@@ -176,22 +178,53 @@ public class EntityManager
             Timeout.Infinite);
         }
 
+        if (deployableInfo.TurretType != 0)
+        {
+            deployableEntity.Turret = SpawnTurret(deployableInfo.TurretType, deployableEntity);
+        }
+
         if (deployableInfo.PoweredOnAbility != 0)
         {
+            var poweredOnAbility = deployableInfo.PoweredOnAbility;
+
+            if (deployableEntity.Turret != null)
+            {
+                if (poweredOnAbility == 34214)
+                {
+                    // Fixes AA and Heavy Flak Turrets, taken from Anti-Armor Turret id 3823
+                    poweredOnAbility = 40497;
+                }
+            }
+
             new System.Threading.Timer(state =>
             {
-                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.PoweredOnAbility, Shard.CurrentTime, new AptitudeTargets());
+                Console.WriteLine($"deployable: Executing ability {deployableInfo.PoweredOnAbility}");
+                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility, Shard.CurrentTime, new AptitudeTargets());
                 if (state != null)
                 {
                     ((System.Threading.Timer)state).Dispose();
                 }
             },
             null,
-            deployableInfo.BuildTimeMs + 100,
+            deployableInfo.BuildTimeMs,
             Timeout.Infinite);
         }
 
         return deployableEntity;
+    }
+
+    public TurretEntity SpawnTurret(uint typeId, BaseEntity parent, byte parentChildIndex = 0, byte posture = 0)
+    {
+        if (posture == 0)
+        {
+            posture = SDBInterface.GetTurret(typeId).Posture;
+        }
+
+        var turretEntity = new TurretEntity(Shard, Shard.GetNextGuid(), typeId, parent, parentChildIndex, posture);
+
+        Add(turretEntity.EntityId, turretEntity);
+
+        return turretEntity;
     }
 
     public MeldingEntity SpawnMelding(string perimiterSetName, ActiveDataStruct activeData)
@@ -369,6 +402,11 @@ public class EntityManager
                     if (entity == player.CharacterEntity)
                     {
                         // Players local character should probably always be scoped in
+                        shouldBeScoped = true;
+                    }
+                    else if (entity == player.CharacterEntity.AttachedToEntity)
+                    {
+                        // If players local character is attached to something, don't scope that out
                         shouldBeScoped = true;
                     }
                     else if (entity.IsGlobalScope())
@@ -761,9 +799,48 @@ public class EntityManager
                 }
 
                 break;
+            case TurretEntity turret:
+                bool isTurretController = turret.IsPlayerControlled && turret.ControllingPlayer == player;
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.Turret_BaseController:
+                        if (isTurretController && turret.Turret_BaseController != null)
+                        {
+                            uint ourChecksum = turret.Turret_BaseController.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(turret.Turret_BaseController, entity.EntityId, player.PlayerId);
+                            }
+                        }
 
-            // TODO: Turret
-            // --
+                        break;
+                    case Enums.GSS.Controllers.Turret_ObserverView:
+                        if (turret.Turret_ObserverView != null)
+                        {
+                            uint ourChecksum = turret.Turret_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(turret.Turret_ObserverView, entity.EntityId);
+                            }
+                        }
+
+                        break;
+
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+
+                        break;
+                }
+
+                break;
             case OutpostEntity outpost:
                 switch (typecode)
                 {
@@ -969,6 +1046,31 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
+        else if (entity.GetType() == typeof(TurretEntity))
+        {
+            var turret = entity as TurretEntity;
+
+            if (turret.IsPlayerControlled && turret.ControllingPlayer == player)
+            {
+                var baseController = turret.Turret_BaseController;
+
+                bool haveBaseController = baseController != null;
+
+                if (haveBaseController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(baseController, entity.EntityId, player.PlayerId);
+                }
+            }
+
+            var observer = turret.Turret_ObserverView;
+
+            bool haveObserver = observer != null;
+
+            if (haveObserver)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+            }
+        }
         else if (entity.GetType() == typeof(OutpostEntity))
         {
             var outpost = entity as OutpostEntity;
@@ -1168,6 +1270,31 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
+        else if (entity.GetType() == typeof(TurretEntity))
+        {
+            var turret = entity as TurretEntity;
+
+            if (turret.IsPlayerControlled && turret.ControllingPlayer == player)
+            {
+                var baseController = turret.Turret_BaseController;
+
+                bool haveBaseController = baseController != null;
+
+                if (haveBaseController)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendControllerRemove(baseController, entity.EntityId, player.PlayerId);
+                }
+            }
+
+            var observer = turret.Turret_ObserverView;
+
+            bool haveObserver = observer != null;
+
+            if (haveObserver)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
+            }
+        }
         else if (entity.GetType() == typeof(OutpostEntity))
         {
             var outpost = entity as OutpostEntity;
@@ -1224,6 +1351,24 @@ public class EntityManager
                 }
             }
         }
+        else if (entity.GetType() == typeof(TurretEntity))
+        {
+            var turret = entity as TurretEntity;
+
+            if (turret.IsPlayerControlled && turret.ControllingPlayer == player)
+            {
+                var baseController = turret.Turret_BaseController;
+
+                bool haveBaseController = baseController != null;
+
+                if (haveBaseController)
+                {
+                    // By forcing a flush we ensure that the update to the turret state to remove the controlling player are sent down before we remove the controllers. Without this the order of messages won't match the capture and it doesn't behave as we want.
+                    FlushViewChangesToPlayer(baseController, entity.EntityId, player);
+                    player.NetChannels[ChannelType.ReliableGss].SendControllerRemove(baseController, entity.EntityId, player.PlayerId);
+                }
+            }
+        }
     }
 
     public void FlushChanges(IEntity entity)
@@ -1277,6 +1422,17 @@ public class EntityManager
         {
             var deployable = entity as DeployableEntity;
             FlushViewChangesToEveryone(deployable.Deployable_ObserverView, deployable.EntityId);
+        }
+        else if (entity.GetType() == typeof(TurretEntity))
+        {
+            var turret = entity as TurretEntity;
+
+            if (turret.IsPlayerControlled)
+            {
+                FlushViewChangesToPlayer(turret.Turret_BaseController, turret.EntityId, turret.ControllingPlayer);
+            }
+
+            FlushViewChangesToEveryone(turret.Turret_ObserverView, turret.EntityId);
         }
         else if (entity.GetType() == typeof(ThumperEntity))
         {

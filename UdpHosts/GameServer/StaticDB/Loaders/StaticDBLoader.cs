@@ -49,6 +49,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, Turret> LoadTurret()
+    {
+        return LoadStaticDB<Turret>("dbcharacter::Turret")
+            .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, WarpaintPalette> LoadWarpaintPalettes() 
     {
         return LoadStaticDB<WarpaintPalette>("dbvisualrecords::WarpaintPalette")
