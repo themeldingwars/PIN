@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
+using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Vehicle;
 using AeroMessages.GSS.V66.Vehicle.Command;
 using AeroMessages.GSS.V66.Vehicle.Controller;
@@ -10,6 +11,7 @@ using AeroMessages.GSS.V66.Vehicle.View;
 using GameServer.Aptitude;
 using GameServer.Data.SDB;
 using GameServer.Entities.Character;
+using GameServer.Entities.Turret;
 
 namespace GameServer.Entities.Vehicle;
 
@@ -28,17 +30,17 @@ public enum AttachmentRole : byte
     /// <summary>
     /// Passenger with weapon
     /// </summary>
-    ActivePassenger = 3,
+    ActivePassenger = 2,
 
     /// <summary>
     /// Passenger just chillin
     /// </summary>
-    PassivePassenger = 4,
+    PassivePassenger = 3,
 
     /// <summary>
-    /// TODO: Investigate
+    /// Controls turrets/machine guns
     /// </summary>
-    Turret = 5
+    Turret = 4
 }
 
 public class SeatConfig
@@ -46,6 +48,7 @@ public class SeatConfig
     public IEntity Occupant;
     public AttachmentRole Role;
     public byte Posture;
+    public byte TurretIndex;
 }
 
 public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
@@ -149,6 +152,7 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             }
         },
     };
+    public List<TurretEntity> Turrets { get; set; } = new List<TurretEntity>();
     public Dictionary<byte, DeployableIdsData> DeployableData { get; set; } = new Dictionary<byte, DeployableIdsData>()
     {
         { 0, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
@@ -272,24 +276,57 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         CurrentHealth = (uint)vehicleInfo.MaxHitPoints;
         MaxHealth = (uint)vehicleInfo.MaxHitPoints;
 
+        byte emptySeatIdx = 0;
+
         // Create seat configuration
         if (vehicleInfo.HasDriverSeat)
         {
             Occupants[0].Role = AttachmentRole.Driver;
             Occupants[0].Posture = vehicleInfo.DriverPosture;
+            emptySeatIdx++;
         }
 
-        if (vehicleInfo.MaxPassengers > 0)
+        byte turretIdx = 0;
+        foreach (var turret in vehicleInfo.Turrets)
         {
-            byte firstIdx = (byte)(Occupants[0].Role == AttachmentRole.None ? 0 : 1);
-            for (byte idx = firstIdx; idx < vehicleInfo.MaxPassengers - 1; idx++)
-            {
-                Occupants[idx].Role = vehicleInfo.HasActivePassenger ? AttachmentRole.ActivePassenger : AttachmentRole.PassivePassenger;
-                Occupants[idx].Posture = vehicleInfo.PassengerPosture;
-            }
+            Occupants[emptySeatIdx].Role = AttachmentRole.Turret;
+            Occupants[emptySeatIdx].Posture = turret.Posture;
+
+            Turrets.Add(Shard.EntityMan.SpawnTurret(turret.TurretType, this, turretIdx, turret.Posture));
+            Occupants[emptySeatIdx].TurretIndex = turretIdx;
+
+            emptySeatIdx++;
+            turretIdx++;
         }
 
-        // TODO: Handle Turrets, Deployables, Abilities
+        var passengers = vehicleInfo.MaxPassengers;
+
+        if (vehicleInfo.SkipOnePassenger)
+        {
+            // todo: recheck, currently prevents taking last awkward seat, e.g. A1 Hauler (id 201), Convoy (id 66)
+            passengers--;
+        }
+
+        while (passengers-- > 0)
+        {
+            Occupants[emptySeatIdx].Role = vehicleInfo.HasActivePassenger ? AttachmentRole.ActivePassenger : AttachmentRole.PassivePassenger;
+            Occupants[emptySeatIdx].Posture = vehicleInfo.PassengerPosture;
+            emptySeatIdx++;
+        }
+
+        foreach (var ability in vehicleInfo.Abilities)
+        {
+            byte idx = ability.AbilityType switch
+               {
+                   1 => (byte)AbilitySlotIndex.Honk,
+                   2 => (byte)AbilitySlotIndex.Boost,
+                   _ => 0,
+               };
+
+            Abilities[idx] = ability.AbilityId;
+        }
+
+        // TODO: Handle SIN, utility abilities, Deployables
 
         // Hack to just refresh everything by recreating views.
         InitViews();
@@ -499,7 +536,7 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         return isInteractable && isCharacter && numFreeSeats > 0;
     }
 
-    public SeatConfig AddOccupant(CharacterEntity character)
+    public void AddOccupant(CharacterEntity character)
     {
         SeatConfig seatConfig = null;
         foreach (var seat in Occupants.Values)
@@ -513,18 +550,33 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 
         if (seatConfig == null)
         {
-            return null;
+            return;
         }
-        else
-        {
-            seatConfig.Occupant = character;
-            if (seatConfig.Role == AttachmentRole.Driver && character.IsPlayerControlled)
-            {
-                SetControllingPlayer(character.Player);
-            }
 
-            RefreshOccupants();
-            return seatConfig;
+        seatConfig.Occupant = character;
+
+        RefreshOccupants();
+
+        if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Turret)
+        {
+            Turrets[seatConfig.TurretIndex].SetControllingPlayer(character.Player);
+
+            return;
+        }
+
+        character.SetAttachedTo(new AttachedToData
+                                {
+                                    Id1 = AeroEntityId,
+                                    Id2 = AeroEntityId,
+                                    Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
+                                    Unk2 = seatConfig.Posture,
+                                    Unk3 = 1, // mostly 1 in replays
+                                }, this);
+
+        if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Driver)
+        {
+            SetControllingPlayer(character.Player);
+            Shard.EntityMan.ScopeIn(character.Player, this);
         }
     }
 
@@ -540,9 +592,52 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
                 {
                     SetControllingPlayer(null);
                 }
+                else if (character.IsPlayerControlled && seat.Role == AttachmentRole.Turret)
+                {
+                    Turrets[seat.TurretIndex].SetControllingPlayer(null);
+                }
 
                 break;
             }
+        }
+    }
+
+    public void ChangeOccupantSeat(CharacterEntity character, byte requestedSeatIndex)
+    {
+        var seatExists = Occupants.TryGetValue(requestedSeatIndex, out var seatConfig);
+        if (!seatExists
+            || seatConfig.Occupant != null
+            || seatConfig.Role == AttachmentRole.None)
+        {
+            return;
+        }
+
+        RemoveOccupant(character);
+
+        seatConfig.Occupant = character;
+
+        RefreshOccupants();
+
+        if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Turret)
+        {
+            Turrets[seatConfig.TurretIndex].SetControllingPlayer(character.Player);
+
+            return;
+        }
+
+        character.SetAttachedTo(new AttachedToData
+                                {
+                                    Id1 = AeroEntityId,
+                                    Id2 = AeroEntityId,
+                                    Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
+                                    Unk2 = seatConfig.Posture,
+                                    Unk3 = 1, // mostly 1 in replays
+                                }, this);
+
+        if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Driver)
+        {
+            SetControllingPlayer(character.Player);
+            Shard.EntityMan.ScopeIn(character.Player, this);
         }
     }
 
