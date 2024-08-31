@@ -426,7 +426,6 @@ public class BaseController : Base
                        };
         
         client.NetChannels[ChannelType.ReliableGss].SendIAero(response, entityId);
-        client.NetChannels[ChannelType.ReliableGss].SendIAero(player.CharacterEntity.Character_EquipmentView, entityId);
     }
     
     [MessageID((byte)Commands.SlotVisualRequest)]
@@ -445,6 +444,5 @@ public class BaseController : Base
                        };
         
         client.NetChannels[ChannelType.ReliableGss].SendIAero(response, entityId);
-        client.NetChannels[ChannelType.ReliableGss].SendIAero(player.CharacterEntity.Character_ObserverView, entityId);
     }
 }
