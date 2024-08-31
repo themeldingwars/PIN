@@ -54,10 +54,12 @@ public class ZoneLoader
         }
 
         Console.WriteLine($"Loading {zoneData.Chunks.Length} chunks");
+        var counter = 0;
         foreach (var chunk in zoneData.Chunks)
         {
             var chunkFilePath = $"{mapsPath}\\chunks\\{chunk.Name}.pinchunk.json";
-            LoadChunkJSON(chunk.Origin, chunkFilePath);
+            var success = LoadChunkJSON(chunk.Origin, chunkFilePath);
+            Console.WriteLine($"({++counter}/{zoneData.Chunks.Length}) Chunk {chunk.Name} {(success ? "Loaded" : "Failed")}");
         }
 
         stopWatch.Stop();
@@ -86,26 +88,13 @@ public class ZoneLoader
         }
     }
 
-    private void LoadChunkJSON(Vector3 origin, string path)
+    private bool LoadChunkJSON(Vector3 origin, string path)
     {
-        Console.WriteLine($"ZoneLoader LoadChunkJSON {path}");
+        // Console.WriteLine($"ZoneLoader LoadChunkJSON {path}");
         try
         {
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
-
             string json = File.ReadAllText(path);
             PinChunk chunk = JsonSerializer.Deserialize<PinChunk>(json, _serializerOptions);
-
-            stopWatch.Stop();
-            TimeSpan ts1 = stopWatch.Elapsed;
-            string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts1.Hours,
-                ts1.Minutes,
-                ts1.Seconds,
-                ts1.Milliseconds / 10);
-            Console.WriteLine($"ZoneLoader LoadChunkJSON Deserialized in {elapsedTime}");
-            stopWatch.Restart();
 
             foreach (PinChunkSubChunk subChunk in chunk.SubChunks) 
             {
@@ -125,19 +114,12 @@ public class ZoneLoader
                 // TODO: Process subChunk.Cg2, subChunk.Cg3
             }
 
-            stopWatch.Stop();
-            TimeSpan ts2 = stopWatch.Elapsed;
-            string elapsedTime2 = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts2.Hours,
-                ts2.Minutes,
-                ts2.Seconds,
-                ts2.Milliseconds / 10);
-            Console.WriteLine($"ZoneLoader LoadChunkJSON Processed in {elapsedTime2}");
-            Console.WriteLine($"ZoneLoader Total Statics {Simulation.Statics.Count}");
+            return true;
         }
         catch (Exception e)
         {
-            Console.WriteLine($"ZoneLoader LoadChunkJSON Failed: {e.Message} ({e.GetType().Name})");
+            Console.WriteLine($"ZoneLoader LoadChunkJSON Failed: {e.Message} ({e.GetType().Name}) on {path}");
+            return false;
         }
     }
 
