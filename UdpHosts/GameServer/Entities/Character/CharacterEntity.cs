@@ -557,7 +557,6 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             EndUnk1 = 0,
             EndUnk2 = 0
         });
-
         
         SetCharacterStats(new CharacterStatsData
         {
@@ -1062,14 +1061,6 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         ApplyLoadout(CurrentLoadout);
     }
 
-    public class ActiveWeaponDetails
-    {
-        public WeaponTemplateResult Weapon;
-        public uint WeaponId;
-        public float Spread;
-        public float RateOfFire;
-    }
-
     public ActiveWeaponDetails? GetActiveWeaponDetails()
     {
         // Weapon
@@ -1099,17 +1090,20 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 
         float weaponAttributeSpread = 0f;
         float weaponAttributeRateOfFire = 1f;
-        try {
+        try
+        {
             weaponAttributeSpread = weaponAttributes[(ushort)ItemAttributeId.WeaponSpread].Base; // FIXME: Should be calculated on the source
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Console.WriteLine($"Failed to get WeaponSpread Attribute");
         }
-        try {
+
+        try
+        {
             weaponAttributeRateOfFire = weaponAttributes[(ushort)ItemAttributeId.RateOfFire].Base; // FIXME: Should be calculated on the source
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Console.WriteLine($"Failed to get RateOfFire Attribute");
         }
@@ -1530,5 +1524,13 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         public StatModifierIdentifier Stat { get; set; }
         public byte Op { get; set; }
         public float Value { get; set; }
+    }
+
+    public class ActiveWeaponDetails
+    {
+        public WeaponTemplateResult Weapon;
+        public uint WeaponId;
+        public float Spread;
+        public float RateOfFire;
     }
 }

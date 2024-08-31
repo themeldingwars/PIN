@@ -499,7 +499,6 @@ public class SDBInterface
         .ToDictionary();
     }
 
-
     public static Dictionary<byte, CharCreateLoadoutSlots> GetCharCreateLoadoutSlots(uint id) => CharCreateLoadoutSlots.GetValueOrDefault(id);
     public static Deployable GetDeployable(uint id) => Deployable.GetValueOrDefault(id);
     public static Monster GetMonster(uint id) => Monster.GetValueOrDefault(id);

@@ -117,7 +117,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         if (remoteData != null)
         {
-            zoneId = AssignedShard.ZoneId; // remoteData.CharacterInfo.LastZoneId;
+            zoneId = AssignedShard.ZoneId;
             zone = DataUtils.GetZone(zoneId);
             outpostId = remoteData.CharacterInfo.LastZoneId == zoneId ? FindClosestAvailableOutpost(zone, remoteData.CharacterInfo.LastOutpostId) : 0;
         }

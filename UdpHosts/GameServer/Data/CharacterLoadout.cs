@@ -367,6 +367,7 @@ public class CharacterLoadout
                     {
                         characterScalars.Add(attributeCategoryId, 0.0f);
                     }
+
                     if (attributeCategory.IsScalar == 1)
                     {
                         characterScalars[attributeCategoryId] += characterScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
@@ -385,6 +386,7 @@ public class CharacterLoadout
                     {
                         moduleScalars.Add(attributeCategoryId, 0.0f);
                     }
+
                     if (attributeCategory.IsScalar == 1)
                     {
                         moduleScalars[attributeCategoryId] += moduleScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;

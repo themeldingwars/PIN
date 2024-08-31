@@ -1316,7 +1316,8 @@ public class StaticDBLoader : ISDBLoader
                 string convertedName = Policy.ConvertName(propInfo.Name);
                 int index = table.GetColumnIndexByName(convertedName);
                 int backupIndex = table.GetColumnIndexByName(propInfo.Name);
-                try {
+                try
+                {
                     if (index != -1)
                     {
                         propInfo.SetValue(entry, row[index], null);
@@ -1339,7 +1340,6 @@ public class StaticDBLoader : ISDBLoader
                 {
                     Console.WriteLine($"Exception when loading {tableName}, {propInfo.Name}: {ex.Message}");
                 }
-                
             }
 
             list.Add(entry);

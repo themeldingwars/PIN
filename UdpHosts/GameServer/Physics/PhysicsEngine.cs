@@ -38,7 +38,8 @@ public class PhysicsEngine
         _defaultCharacterShape = Simulation.Shapes.Add(new Sphere(0.9f));
         
         // Load zone
-        if (_shard.Settings.LoadMapsCollision) {
+        if (_shard.Settings.LoadMapsCollision)
+        {
             new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(_shard.Settings.MapsPath, _shard.ZoneId);
         }
     }
@@ -70,8 +71,6 @@ public class PhysicsEngine
         currentPose.Position = entity.Position;
         currentPose.Position.Z += 0.9f;
         currentPose.Orientation = entity.Rotation;
-
-        // QuaternionEx.Add(QuaternionEx.CreateFromAxisAngle(Vector3.UnitZ, 90f), entity.Rotation, out currentPose.Orientation);
     }
 
     public BodyDescription CreateTestBall(Vector3 pos)
@@ -159,7 +158,8 @@ public class PhysicsEngine
                 Position = markerOrigin,
                 Direction = new Vector3(0.225f, 0.974f, 0),
                 HaveUnk8 = 1,
-                Unk8 = new AeroMessages.GSS.V66.TookDebugWeaponHitRelatedData {
+                Unk8 = new AeroMessages.GSS.V66.TookDebugWeaponHitRelatedData
+                {
                     Target = source.AeroEntityId,
                     Unk2 = poseOrigin,
                     Unk3 = Quaternion.Identity,

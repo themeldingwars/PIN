@@ -24,12 +24,12 @@ public static partial class PRNG
         Vector3 aimForward = aim;
         Vector3 aimRight = Vector3.Normalize(Vector3.Cross(aimForward, Vector3.UnitZ));
         Vector3 aimUp = Vector3.Normalize(Vector3.Cross(aimRight, aimForward));
-        Vector3 lastSpreadDirection = Vector3.Zero; //new Vector3(-0.997563f, -0.057552f, 0.039456f);
+        Vector3 lastSpreadDirection = Vector3.Zero;
         uint lastSpreadTime = time;
         PRNG.Spread(time, slotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 result);
         result = Vector3.Normalize(result);
 
-        Vector3 finalResult = new Vector3(aim.X, aim.Y, aim.Z) + (result*speed);
+        Vector3 finalResult = new Vector3(aim.X, aim.Y, aim.Z) + (result * speed);
         Console.WriteLine($"RES Generated ({result.X}, {result.Y}, {result.Z})");
         Console.WriteLine($"RES Expected ({dir.X}, {dir.Y}, {dir.Z})");
 

@@ -3,6 +3,7 @@ using static AeroMessages.GSS.V66.Character.Controller.PermissionFlagsData;
 
 namespace GameServer.Admin;
 
+// TODO: Implement ability to pick flags, for now I just need cheat_float :)
 [ServerCommand("Set Character PermissionFlags", "pflags [value]", "pflags", "pflag", "float")]
 public class SetPermissionFlagsServerCommand : ServerCommand
 {
@@ -13,8 +14,6 @@ public class SetPermissionFlagsServerCommand : ServerCommand
             SourceFeedback("Cannot change permission flags without a valid player character", context);
             return;
         }
-
-        // TODO: Implement ability to pick flags, for now I just need cheat_float :)
 
         var character = context.SourcePlayer.CharacterEntity;
 
@@ -32,7 +31,5 @@ public class SetPermissionFlagsServerCommand : ServerCommand
         {
             character.RemoveStatModifier(customRef, Enums.StatModifierIdentifier.GravityMult);
         }
-        
-
     }
 }

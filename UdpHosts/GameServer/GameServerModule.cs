@@ -52,7 +52,8 @@ public class GameServerModule : Module
 
                 if (ConfigurationManager.AppSettings["LoadMapsCollision"] != null)
                 {
-                    if (Boolean.TryParse(ConfigurationManager.AppSettings["LoadMapsCollision"], out bool value)) {
+                    if (bool.TryParse(ConfigurationManager.AppSettings["LoadMapsCollision"], out bool value))
+                    {
                         settings.LoadMapsCollision = value;
                     }
                     else

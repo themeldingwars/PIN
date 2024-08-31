@@ -15,8 +15,8 @@ namespace GameServer;
 
 public class WeaponSim
 {
-    private Shard _shard;
     private readonly Dictionary<ulong, WeaponSimState> _weaponSimState;
+    private Shard _shard;
 
     public WeaponSim(Shard shard)
     {
@@ -33,6 +33,7 @@ public class WeaponSim
             Console.WriteLine($"Will not fire projectile because failed to get active weapon from the entity");
             return;
         }
+
         var weapon = activeWeaponDetails.Weapon;
         var weaponId = activeWeaponDetails.WeaponId;
         var weaponAttributeSpread = activeWeaponDetails.Spread;
@@ -156,13 +157,13 @@ public class WeaponSim
         {
             muzzleBase.Z = 1.08f;
         }
+
         var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(entity.Rotation)); // Match the characters orientation
         var muzzleOffset = new Vector3(aimDirection.X, aimDirection.Y, aimDirection.Z) * 0.1f; // Offset like a sphere based on aim
         var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
         var origin = entity.Position + muzzleOffsetWorld; // Translate to character
         return origin;
     }
-
 
     /*
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
