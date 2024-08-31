@@ -56,6 +56,6 @@ public class CreateItemServerCommand : ServerCommand
             RewardType = 1,
         };
         context.SourcePlayer.NetChannels[ChannelType.ReliableGss]
-                   .SendIAero(msg, context.SourcePlayer.CharacterEntity.EntityId);
+                   .SendMessage(msg, context.SourcePlayer.CharacterEntity.EntityId);
     }
 }

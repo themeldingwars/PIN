@@ -20,7 +20,7 @@ public class ReloadArmyServerCommand : ServerCommand
             var msg = new ReceivedWebUIMessage() { Message = "{\"message_type\":\"" + type + "\"}" };
 
             context.SourcePlayer.NetChannels[ChannelType.ReliableGss]
-                   .SendIAero(msg, context.SourcePlayer.CharacterEntity.EntityId);
+                   .SendMessage(msg, context.SourcePlayer.CharacterEntity.EntityId);
         }
     }
 }

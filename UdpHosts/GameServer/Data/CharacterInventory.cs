@@ -245,7 +245,7 @@ public class CharacterInventory
             update.ItemsPart1 = _items.Values.ToArray();
         }
 
-        _player.NetChannels[ChannelType.ReliableGss].SendIAero(update, _character.EntityId);
+        _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
     }
 
     public void SendItemUpdate(ulong guid)
@@ -275,7 +275,7 @@ public class CharacterInventory
             SecondResources = Array.Empty<Resource>()
         };
 
-        _player.NetChannels[ChannelType.ReliableGss].SendIAero(update, _character.EntityId);
+        _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
     }
 
     public void SendResourceUpdate(uint sdbId)
@@ -305,7 +305,7 @@ public class CharacterInventory
             SecondResources = Array.Empty<Resource>()
         };
 
-        _player.NetChannels[ChannelType.ReliableGss].SendIAero(update, _character.EntityId);
+        _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
     }
 
     public void SendEquipmentChanges(ulong oldItemGuid, ulong newItemGuid)
@@ -347,7 +347,7 @@ public class CharacterInventory
                          SecondResources = Array.Empty<Resource>()
                      };
 
-        _player.NetChannels[ChannelType.ReliableGss].SendIAero(update, _character.EntityId);
+        _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
     }
 
     public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)

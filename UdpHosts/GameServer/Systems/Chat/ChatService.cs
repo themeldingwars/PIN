@@ -58,7 +58,7 @@ public class ChatService
     public void SendToPlayer(string message, ChatChannel channel, INetworkClient player)
     {
         var response = PrepareSingleMessage(message, channel, null);
-        player.NetChannels[ChannelType.UnreliableGss].SendIAero(response, Shard.InstanceId);
+        player.NetChannels[ChannelType.UnreliableGss].SendMessage(response, Shard.InstanceId);
     }
 
     public void SendToAll(string message, ChatChannel channel, IEntity sender)
@@ -68,7 +68,7 @@ public class ChatService
         {
             if (client.Status.Equals(IPlayer.PlayerStatus.Playing))
             {
-                client.NetChannels[ChannelType.UnreliableGss].SendIAero(response, Shard.InstanceId);
+                client.NetChannels[ChannelType.UnreliableGss].SendMessage(response, Shard.InstanceId);
             }
         }
     }

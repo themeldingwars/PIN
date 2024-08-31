@@ -27,7 +27,7 @@ public class CancelForcedMovementServerCommand : ServerCommand
             CommandId = commandId,
             ShortTime = context.Shard.CurrentShortTime,
         };
-        player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+        player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
 
         SourceFeedback($"Cancelling forced movement {commandId}", context);
     }

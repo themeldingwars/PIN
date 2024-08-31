@@ -192,7 +192,7 @@ public class Channel
     /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     /// <exception cref="ArgumentException">The passed packet does not have the AeroMessageIdAttribute</exception>
-    public bool SendIAero<TPacket>(TPacket packet, ulong entityId = 0, byte messageIdOverride = 0, Type? messageEnumType = null)
+    public bool SendMessage<TPacket>(TPacket packet, ulong entityId = 0, byte messageIdOverride = 0, Type? messageEnumType = null)
         where TPacket : class, IAero
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMessageIdAttribute)
@@ -226,7 +226,7 @@ public class Channel
         }
     }
 
-    public bool SendIAeroControllerKeyframe<TPacket>(TPacket packet, ulong entityId, ulong playerId)
+    public bool SendControllerKeyframe<TPacket>(TPacket packet, ulong entityId, ulong playerId)
         where TPacket : class, IAero
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
@@ -242,7 +242,7 @@ public class Channel
         return SendPacketMemory(entityId, 4, controllerId, ref messageData);
     }
 
-    public bool SendIAeroControllerRemove<TPacket>(TPacket packet, ulong entityId, ulong playerId)
+    public bool SendControllerRemove<TPacket>(TPacket packet, ulong entityId, ulong playerId)
         where TPacket : class, IAero
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
@@ -256,7 +256,7 @@ public class Channel
         return SendPacketMemory(entityId, 5, controllerId, ref messageData);
     }
 
-    public bool SendIAeroScopeOut<TPacket>(TPacket packet, ulong entityId)
+    public bool SendViewScopeOut<TPacket>(TPacket packet, ulong entityId)
         where TPacket : class, IAero
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
@@ -269,7 +269,7 @@ public class Channel
         return SendPacketMemory(entityId, 6, controllerId, ref messageData);
     }
 
-    public bool SendIAeroChanges<TPacket>(TPacket packet, ulong entityId)
+    public bool SendChanges<TPacket>(TPacket packet, ulong entityId)
         where TPacket : class, IAeroViewInterface
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
@@ -284,7 +284,7 @@ public class Channel
         return SendPacketMemory(entityId, 1, typeCode, ref packetMemory);
     }
 
-    public bool SendIAeroChanges<TPacket>(TPacket packet, ulong entityId, Memory<byte> packetMemory)
+    public bool SendChanges<TPacket>(TPacket packet, ulong entityId, Memory<byte> packetMemory)
         where TPacket : class, IAeroViewInterface
     {
         if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)

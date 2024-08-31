@@ -61,7 +61,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         {
             Console.WriteLine($"Closing login because entity with this id is already zoned in");
             var resp = new AeroMessages.Control.CloseConnection { Unk = new byte[] { 0, 0, 0, 0 } };
-            NetChannels[ChannelType.Control].SendIAero(resp);
+            NetChannels[ChannelType.Control].SendMessage(resp);
             return;
         }
 
@@ -109,7 +109,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         // WelcomeToTheMatrix
         var wel = new WelcomeToTheMatrix { PlayerID = PlayerId, Unk1 = Array.Empty<byte>(), Unk2 = Array.Empty<byte>() };
-        NetChannels[ChannelType.Matrix].SendIAero(wel);
+        NetChannels[ChannelType.Matrix].SendMessage(wel);
 
         Zone zone;
         uint zoneId;
@@ -158,10 +158,10 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             },
             ShortTime = AssignedShard.CurrentShortTime
         };
-        NetChannels[ChannelType.ReliableGss].SendIAero(forcedMove, CharacterEntity.EntityId);
+        NetChannels[ChannelType.ReliableGss].SendMessage(forcedMove, CharacterEntity.EntityId);
 
         var respawnMsg = new Respawned { ShortTime = AssignedShard.CurrentShortTime, Unk1 = 0, Unk2 = 0 };
-        NetChannels[ChannelType.ReliableGss].SendIAero(respawnMsg, CharacterEntity.EntityId);
+        NetChannels[ChannelType.ReliableGss].SendMessage(respawnMsg, CharacterEntity.EntityId);
 
         var baseController = CharacterEntity.Character_BaseController;
 
@@ -172,7 +172,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         baseController.RespawnTimesProp = new RespawnTimesData(); 
         baseController.RespawnTimesProp = null; // Make the field dirty so we send clear because we probably should send clear. At some point investigaste if this is neccessary.
         baseController.TimedDailyRewardProp = new TimedDailyRewardData { State = TimedDailyRewardData.TimedDailyRewardState.ROLLED, MaxRolls = 1, CountdownToTime = AssignedShard.CurrentTime };
-        NetChannels[ChannelType.ReliableGss].SendIAeroChanges(baseController, CharacterEntity.EntityId);
+        NetChannels[ChannelType.ReliableGss].SendChanges(baseController, CharacterEntity.EntityId);
 
         // Update 2
         CharacterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, AssignedShard.CurrentTime + 1);
@@ -189,7 +189,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             Unk1 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x09, 0x0e, 0x5d, 0xff, 0x5f, 0x08, 0x00, 0x00 } },
             Unk2 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00 } }
         };
-        NetChannels[ChannelType.ReliableGss].SendIAeroChanges(baseController, CharacterEntity.EntityId);
+        NetChannels[ChannelType.ReliableGss].SendChanges(baseController, CharacterEntity.EntityId);
 
         // Hack to add in jetpack fx until we hook up item effects
         CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(986), new Aptitude.Context(AssignedShard, CharacterEntity)
@@ -205,7 +205,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         {
             CombatTimer_0Prop = AssignedShard.CurrentTime,
         };
-        NetChannels[ChannelType.ReliableGss].SendIAeroChanges(combatController, CharacterEntity.EntityId);
+        NetChannels[ChannelType.ReliableGss].SendChanges(combatController, CharacterEntity.EntityId);
 
         // InventoryUpdate
         Inventory.SendFullInventory();
@@ -319,7 +319,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             SpectatorModeFlag = 0
         };
 
-        NetChannels[ChannelType.Matrix].SendIAero(msg);
+        NetChannels[ChannelType.Matrix].SendMessage(msg);
 
         Status = IPlayer.PlayerStatus.Loading;
         _lastKeyFrame = AssignedShard.CurrentTime;

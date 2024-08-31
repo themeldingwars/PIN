@@ -30,7 +30,7 @@ public class ActiveInitiationCommmand : ICommand
                     }
                 };
                 Console.WriteLine($"ActivateAbility {message.ActivatedAbilityId} at {message.ActivatedTime}");
-                player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
             }
         }
 

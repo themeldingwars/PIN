@@ -92,7 +92,7 @@ public class GenericShard : Base
     public void RequestLogout(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var resp = new CloseConnection { Unk = new byte[] { 0, 0, 0, 0 } };
-        client.NetChannels[ChannelType.Control].SendIAero(resp);
+        client.NetChannels[ChannelType.Control].SendMessage(resp);
 
         var zone = player.CurrentZone;
 

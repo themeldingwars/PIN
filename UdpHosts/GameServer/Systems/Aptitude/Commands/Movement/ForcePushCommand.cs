@@ -48,7 +48,7 @@ public class ForcePushCommand : ICommand
 
                     ShortTime = context.Shard.CurrentShortTime,
                 };
-                player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
             }
         }
 
