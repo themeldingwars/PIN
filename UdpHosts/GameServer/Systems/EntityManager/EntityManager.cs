@@ -809,7 +809,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(turret.Turret_BaseController, entity.EntityId, player.PlayerId);
+                                client.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(turret.Turret_BaseController, entity.EntityId, player.PlayerId);
                             }
                         }
 
@@ -824,7 +824,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendIAero(turret.Turret_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendMessage(turret.Turret_ObserverView, entity.EntityId, 3);
                             }
                         }
 
@@ -1054,7 +1054,7 @@ public class EntityManager
 
                 if (haveBaseController)
                 {
-                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerKeyframe(baseController, entity.EntityId, player.PlayerId);
+                    player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(baseController, entity.EntityId, player.PlayerId);
                 }
             }
 
@@ -1064,7 +1064,7 @@ public class EntityManager
 
             if (haveObserver)
             {
-                player.NetChannels[ChannelType.ReliableGss].SendIAero(observer, entity.EntityId, 3);
+                player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
             }
         }
         else if (entity.GetType() == typeof(OutpostEntity))
@@ -1278,7 +1278,7 @@ public class EntityManager
 
                 if (haveBaseController)
                 {
-                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(baseController, entity.EntityId, player.PlayerId);
+                    player.NetChannels[ChannelType.ReliableGss].SendControllerRemove(baseController, entity.EntityId, player.PlayerId);
                 }
             }
 
@@ -1288,7 +1288,7 @@ public class EntityManager
 
             if (haveObserver)
             {
-                player.NetChannels[ChannelType.ReliableGss].SendIAeroScopeOut(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(OutpostEntity))
@@ -1361,7 +1361,7 @@ public class EntityManager
                 {
                     // By forcing a flush we ensure that the update to the turret state to remove the controlling player are sent down before we remove the controllers. Without this the order of messages won't match the capture and it doesn't behave as we want.
                     FlushViewChangesToPlayer(baseController, entity.EntityId, player);
-                    player.NetChannels[ChannelType.ReliableGss].SendIAeroControllerRemove(baseController, entity.EntityId, player.PlayerId);
+                    player.NetChannels[ChannelType.ReliableGss].SendControllerRemove(baseController, entity.EntityId, player.PlayerId);
                 }
             }
         }

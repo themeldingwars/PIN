@@ -63,13 +63,10 @@ public class TurretEntity : BaseEntity
                     Unk3 = 0,
                 }, this);
 
-            if (character.IsPlayerControlled)
-            {
-                ControllingPlayer = player;
-                InitControllers();
-                InitViews();
-                Shard.EntityMan.ScopeIn(character.Player, this);
-            }
+            ControllingPlayer = player;
+            InitControllers();
+            InitViews();
+            Shard.EntityMan.ScopeIn(character.Player, this);
         }
     }
 

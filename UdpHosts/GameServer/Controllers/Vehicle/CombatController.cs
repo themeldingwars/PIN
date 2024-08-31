@@ -33,7 +33,7 @@ public class CombatController : Base
         {
             var message = new AbilityActivated() { AbilityId = abilityId, Time = activateAbility.Time };
 
-            character.Player.NetChannels[ChannelType.ReliableGss].SendIAero(message, character.EntityId);
+            character.Player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
         }
 
         shard.Abilities.HandleActivateAbility(shard, vehicle, abilityId, activateAbility.Time, new AptitudeTargets(vehicle));
