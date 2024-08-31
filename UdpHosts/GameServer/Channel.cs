@@ -86,16 +86,13 @@ public class Channel
 
         while (_incomingPackets.TryDequeue(out var packet))
         {
-            // Console.Write("> " + string.Concat(BitConverter.GetBytes(packet.Header.PacketHeader).ToArray().Select(b => b.ToString("X2")).ToArray()));
-            // Console.WriteLine(" "+string.Concat(packet.PacketData.ToArray().Select(b => b.ToString("X2")).ToArray()));
             ushort sequenceNumber = 0;
             if (IsSequenced)
             {
                 sequenceNumber = Utils.SimpleFixEndianness(packet.Read<ushort>());
             }
-            
-            // TODO: Implement SequencedPacketQueue
-            // TODO: Fix resent message handling
+
+            // TODO: Verify if resent message handling works and resolve any issues
             if (packet.Header.ResendCount > 0)
             {
                 // de-xor data
@@ -126,13 +123,10 @@ public class Channel
                     data[i] ^= XorByte[packet.Header.ResendCount];
                 }
 
-                // for( int i = 0; i < data.Length; i++ )
-                //     data[i] ^= xorByte[packet.Header.ResendCount];
                 packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(data));
                 _logger.Fatal("---> Resent packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
             }
 
-            // TODO: Ensure we follow sequence number when combining split messages
             if (InSplitMode)
             {
                 _incomingSplitMessagePackets.Add(sequenceNumber, packet);
@@ -173,13 +167,15 @@ public class Channel
             
             LastActivity = DateTime.Now;
         }
-
-        if ((DateTime.Now - LastActivity).TotalMilliseconds > 100)
-        {
-            // Send heartbeat?
-        }
     }
 
+    /// <summary>
+    ///     Send a GSS View Checksum message
+    /// </summary>
+    /// <param name="entityId">Id of the entity</param>
+    /// <param name="controllerId">View the checksum is for</param>
+    /// <param name="checksum">Checksum value</param>
+    /// <returns>true if the operation succeeded, false in all other cases</returns>
     public bool SendChecksum(ulong entityId, Enums.GSS.Controllers controllerId, uint checksum)
     {
         var messageData = Serializer.WritePrimitive(checksum);
@@ -220,8 +216,6 @@ public class Channel
             case AeroMessageIdAttribute.MsgType.GSS:
                 {
                     var controllerId = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
-                    
-                    // Program.Logger.Information($"SendIAero type {type}, controller {controllerId} and msgid {messageId}");
                     return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, messageEnumType);
                 }
             
@@ -349,7 +343,6 @@ public class Channel
                             messageId);
         }
 
-        // Program.Logger.Verbose( "<--- Sending {0} bytes", packetData.Length );
         return Send(serializedData);
     }
 
@@ -408,8 +401,6 @@ public class Channel
             var headerData = Serializer.WritePrimitive(Utils.SimpleFixEndianness(header.PacketHeader));
             headerData.CopyTo(t);
 
-            // Console.Write("< "+string.Concat(BitConverter.GetBytes(Utils.SimpleFixEndianness(hdr.PacketHeader)).ToArray().Select(b => b.ToString("X2")).ToArray()));
-            // Console.WriteLine( " "+string.Concat( t.Slice(2).ToArray().Select( b => b.ToString( "X2" ) ).ToArray() ) )
             _outgoingPackets.Enqueue(t);
 
             packetData = packetData[(length - headerLength) ..];
