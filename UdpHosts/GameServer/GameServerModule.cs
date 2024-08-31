@@ -49,6 +49,17 @@ public class GameServerModule : Module
             if (ConfigurationManager.AppSettings["MapsPath"] != null)
             {
                 settings.MapsPath = ConfigurationManager.AppSettings["MapsPath"];
+
+                if (ConfigurationManager.AppSettings["LoadMapsCollision"] != null)
+                {
+                    if (Boolean.TryParse(ConfigurationManager.AppSettings["LoadMapsCollision"], out bool value)) {
+                        settings.LoadMapsCollision = value;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Cannot parse LoadMapsCollision setting value");
+                    }
+                }
             }
 
             return settings;

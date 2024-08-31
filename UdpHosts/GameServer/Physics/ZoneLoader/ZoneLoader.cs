@@ -49,7 +49,8 @@ public class ZoneLoader
         PinZone zoneData = LoadZoneJSON(zoneFilePath);
         if (zoneData == null)
         {
-            Console.WriteLine($"Everything went to shit and we did not load the zone");
+            Console.WriteLine($"ZoneLoader Failed to load {zoneFilePath}");
+            return;
         }
 
         Console.WriteLine($"Loading {zoneData.Chunks.Length} chunks");

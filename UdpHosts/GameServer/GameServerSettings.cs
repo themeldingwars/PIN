@@ -33,12 +33,12 @@ public class GameServerSettings
     public uint ZoneId { get; set; } = 448;
 
     /// <summary>
-    ///    Load collision world
-    /// </summary>
-    public bool LoadCollisionWorld { get; set; } = true;
-
-    /// <summary>
     ///    File path to PIN Maps Data
     /// </summary>
     public string MapsPath { get; set; } = string.Empty;
+
+    /// <summary>
+    ///    Enable loading world collision data from PIN Maps Data
+    /// </summary>
+    public bool LoadMapsCollision { get; set; } = false;
 }
