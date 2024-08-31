@@ -170,10 +170,54 @@ public class Channel
     }
 
     /// <summary>
+    ///     Send a GSS Update message (View or Controller) using Aero's change tracking
+    /// </summary>
+    /// <typeparam name="TViewOrController">The Aero Class of AeroGenTypes.View or AeroGenTypes.Controller</typeparam>
+    /// <param name="view">The Aero View or Controller</param>
+    /// <param name="entityId">Id of the entity the View represents</param>
+    /// <returns>true if the operation succeeded, false in all other cases</returns>
+    /// <exception cref="ArgumentException">The passed view does not have the AeroMessageIdAttribute</exception>
+    public bool SendChanges<TViewOrController>(TViewOrController view, ulong entityId)
+        where TViewOrController : class, IAeroViewInterface
+    {
+        if (typeof(TViewOrController).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed Aero class is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TViewOrController).FullName})");
+        }
+
+        // Generate and send
+        var typeCode = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+        view.SerializeChangesToMemory(out var packetMemory);
+        return SendPacketMemory(entityId, 1, typeCode, ref packetMemory);
+    }
+
+    /// <summary>
+    ///     Send a custom GSS View Update message (View or Controller)
+    /// </summary>
+    /// <typeparam name="TViewOrController">The Aero Class of AeroGenTypes.View or AeroGenTypes.Controller</typeparam>
+    /// <param name="view">The Aero View</param>
+    /// <param name="entityId">Id of the entity the View represents</param>
+    /// <param name="packetMemory">The update message</param>
+    /// <returns>true if the operation succeeded, false in all other cases</returns>
+    /// <exception cref="ArgumentException">The passed view does not have the AeroMessageIdAttribute</exception>
+    public bool SendChanges<TViewOrController>(TViewOrController view, ulong entityId, Memory<byte> packetMemory)
+        where TViewOrController : class, IAeroViewInterface
+    {
+        if (typeof(TViewOrController).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed Aero class is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TViewOrController).FullName})");
+        }
+
+        // Send
+        var typeCode = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+        return SendPacketMemory(entityId, 1, typeCode, ref packetMemory);
+    }
+
+    /// <summary>
     ///     Send a GSS View Checksum message
     /// </summary>
-    /// <param name="entityId">Id of the entity</param>
-    /// <param name="controllerId">View the checksum is for</param>
+    /// <param name="entityId">Id of the entity the View represents</param>
+    /// <param name="controllerId">View type the checksum is for</param>
     /// <param name="checksum">Checksum value</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
     public bool SendChecksum(ulong entityId, Enums.GSS.Controllers controllerId, uint checksum)
@@ -183,21 +227,164 @@ public class Channel
     }
 
     /// <summary>
-    ///     Send an <see cref="IAero" /> package to the client
+    ///     Send a GSS View Keyframe message
     /// </summary>
-    /// <typeparam name="TPacket">The type of the packet</typeparam>
-    /// <param name="packet">The Aero message</param>
-    /// <param name="entityId">Id of the entity the packet is for</param>
-    /// <param name="messageIdOverride">Optional way to override the message ID</param>
-    /// <param name="messageEnumType">Optionally, the enum type containing the message id may be specified for enhanced verbose-level logging</param>
+    /// <typeparam name="TView">The Aero Class of AeroGenTypes.View</typeparam>
+    /// <param name="view">The Aero View</param>
+    /// <param name="entityId">Id of the entity the View represents</param>
     /// <returns>true if the operation succeeded, false in all other cases</returns>
-    /// <exception cref="ArgumentException">The passed packet does not have the AeroMessageIdAttribute</exception>
-    public bool SendMessage<TPacket>(TPacket packet, ulong entityId = 0, byte messageIdOverride = 0, Type? messageEnumType = null)
-        where TPacket : class, IAero
+    /// <exception cref="ArgumentException">The passed view does not have the AeroMessageIdAttribute or AeroAttribute, or it is not a AeroGenTypes.View</exception>
+    public bool SendViewKeyframe<TView>(TView view, ulong entityId)
+        where TView : class, IAero
     {
-        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMessageIdAttribute)
+        if (typeof(TView).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
         {
-            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
+            throw new ArgumentException($"The passed Aero view is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TView).FullName})");
+        }
+
+        if (typeof(TView).GetCustomAttributes(typeof(AeroAttribute), false).FirstOrDefault() is not AeroAttribute aeroAttr)
+        {
+            throw new ArgumentException($"The passed Aero view is required to be annotated with {nameof(AeroAttribute)} (Type: {typeof(TView).FullName})");
+        }
+
+        if (aeroAttr.AeroType != AeroGenTypes.View)
+        {
+            throw new ArgumentException($"The AeroType should be View to send View Keyframe. Received {aeroAttr.AeroType} instead. (Type: {typeof(TView).FullName})");
+        }
+
+        // Generate and send
+        view.SerializeToMemory(out var packetMemory);
+        var typecode = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+        return SendPacketMemory(entityId, 3, typecode, ref packetMemory);
+    }
+
+    /// <summary>
+    ///     Send a GSS View ScopeOut/Remove message
+    /// </summary>
+    /// <typeparam name="TView">The Aero Class of AeroGenTypes.View</typeparam>
+    /// <param name="view">The Aero View</param>
+    /// <param name="entityId">Id of the entity the View represents</param>
+    /// <returns>true if the operation succeeded, false in all other cases</returns>
+    /// <exception cref="ArgumentException">The passed view does not have the AeroMessageIdAttribute or AeroAttribute, or it is not a AeroGenTypes.View</exception>
+    public bool SendViewScopeOut<TView>(TView view, ulong entityId)
+        where TView : class, IAero
+    {
+        if (typeof(TView).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed Aero view is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TView).FullName})");
+        }
+
+        if (typeof(TView).GetCustomAttributes(typeof(AeroAttribute), false).FirstOrDefault() is not AeroAttribute aeroAttr)
+        {
+            throw new ArgumentException($"The passed Aero view is required to be annotated with {nameof(AeroAttribute)} (Type: {typeof(TView).FullName})");
+        }
+
+        if (aeroAttr.AeroType != AeroGenTypes.View)
+        {
+            throw new ArgumentException($"The AeroType should be View to send View ScopeOut. Received {aeroAttr.AeroType} instead. (Type: {typeof(TView).FullName})");
+        }
+
+        // Generate and send
+        var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+        var messageData = new Memory<byte>(new byte[0]);
+        return SendPacketMemory(entityId, 6, controllerId, ref messageData);
+    }
+
+    /// <summary>
+    ///     Send a GSS Controller Keyframe message
+    /// </summary>
+    /// <typeparam name="TController">The Aero Class of AeroGenTypes.Controller</typeparam>
+    /// <param name="controller">The Aero Controller</param>
+    /// <param name="entityId">Id of the entity the View represents</param>
+    /// <param name="playerId">Player id (?) used in controller messages</param>
+    /// <returns>true if the operation succeeded, false in all other cases</returns>
+    /// <exception cref="ArgumentException">The passed controller does not have the AeroMessageIdAttribute or AeroAttribute, or it is not a AeroGenTypes.Controller</exception>
+    public bool SendControllerKeyframe<TController>(TController controller, ulong entityId, ulong playerId)
+        where TController : class, IAero
+    {
+        if (typeof(TController).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed Aero controller is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TController).FullName})");
+        }
+
+        if (typeof(TController).GetCustomAttributes(typeof(AeroAttribute), false).FirstOrDefault() is not AeroAttribute aeroAttr)
+        {
+            throw new ArgumentException($"The passed Aero controller is required to be annotated with {nameof(AeroAttribute)} (Type: {typeof(TController).FullName})");
+        }
+
+        if (aeroAttr.AeroType != AeroGenTypes.Controller)
+        {
+            throw new ArgumentException($"The AeroType should be Controller to send Controller Keyframe. Received {aeroAttr.AeroType} instead. (Type: {typeof(TController).FullName})");
+        }
+
+        // Generate and send
+        var typecode = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+        controller.SerializeToMemory(out var packetMemory);
+        var messageData = new Memory<byte>(new byte[8 + packetMemory.Length]);
+        packetMemory.CopyTo(messageData[8..]);
+        Serializer.WritePrimitive(playerId).CopyTo(messageData);
+        return SendPacketMemory(entityId, 4, typecode, ref messageData);
+    }
+
+    /// <summary>
+    ///     Send a GSS Controller Remove message
+    /// </summary>
+    /// <typeparam name="TController">The Aero Class of AeroGenTypes.Controller</typeparam>
+    /// <param name="controller">The Aero Controller</param>
+    /// <param name="entityId">Id of the entity the View represents</param>
+    /// <param name="playerId">Player id (?) used in controller messages</param>
+    /// <returns>true if the operation succeeded, false in all other cases</returns>
+    /// <exception cref="ArgumentException">The passed controller does not have the AeroMessageIdAttribute or AeroAttribute, or it is not a AeroGenTypes.Controller</exception>
+    public bool SendControllerRemove<TController>(TController controller, ulong entityId, ulong playerId)
+        where TController : class, IAero
+    {
+        if (typeof(TController).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
+        {
+            throw new ArgumentException($"The passed Aero controller is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TController).FullName})");
+        }
+
+        if (typeof(TController).GetCustomAttributes(typeof(AeroAttribute), false).FirstOrDefault() is not AeroAttribute aeroAttr)
+        {
+            throw new ArgumentException($"The passed Aero controller is required to be annotated with {nameof(AeroAttribute)} (Type: {typeof(TController).FullName})");
+        }
+
+        if (aeroAttr.AeroType != AeroGenTypes.Controller)
+        {
+            throw new ArgumentException($"The AeroType should be Controller to send Controller Keyframe. Received {aeroAttr.AeroType} instead. (Type: {typeof(TController).FullName})");
+        }
+
+        // Generate and send
+        var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
+        var messageData = new Memory<byte>(new byte[8]);
+        Serializer.WritePrimitive(playerId).CopyTo(messageData);
+        return SendPacketMemory(entityId, 5, controllerId, ref messageData);
+    }
+
+    /// <summary>
+    ///     Send a Control, Matrix or Normal GSS Message
+    /// </summary>
+    /// <typeparam name="TNormal">The Aero class of AeroGenTypes.Normal</typeparam>
+    /// <param name="message">The Aero message</param>
+    /// <param name="entityId">For GSS Messages, Id of the entity the message is for</param>
+    /// <param name="messageIdOverride">Optional way to override the message ID</param>
+    /// <returns>true if the operation succeeded, false in all other cases</returns>
+    /// <exception cref="ArgumentException">The passed message does not have the AeroMessageIdAttribute, AeroAttribute, or it is not a AeroGenTypes.Normal</exception>
+    public bool SendMessage<TNormal>(TNormal message, ulong entityId = 0, byte messageIdOverride = 0)
+        where TNormal : class, IAero
+    {
+        if (typeof(TNormal).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMessageIdAttribute)
+        {
+            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TNormal).FullName})");
+        }
+
+        if (typeof(TNormal).GetCustomAttributes(typeof(AeroAttribute), false).FirstOrDefault() is not AeroAttribute aeroAttr)
+        {
+            throw new ArgumentException($"The passed Aero controller is required to be annotated with {nameof(AeroAttribute)} (Type: {typeof(TNormal).FullName})");
+        }
+
+        if (aeroAttr.AeroType != AeroGenTypes.Normal)
+        {
+            throw new ArgumentException($"The AeroType should be Normal if it should be sent as a message. Received {aeroAttr.AeroType} instead. (Type: {typeof(TNormal).FullName})");
         }
 
         var type = aeroMessageIdAttribute.Typ;
@@ -207,94 +394,23 @@ public class Channel
             messageId = messageIdOverride;
         }
 
-        packet.SerializeToMemory(out var packetMemory);
+        message.SerializeToMemory(out var packetMemory);
 
         switch (type)
         {
             case AeroMessageIdAttribute.MsgType.Matrix:
-                return SendPacketMemoryMatrix(messageId, ref packetMemory, messageEnumType);
+                return SendPacketMemoryMatrix(messageId, ref packetMemory);
             case AeroMessageIdAttribute.MsgType.GSS:
                 {
-                    var controllerId = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
-                    return SendPacketMemory(entityId, messageId, controllerId, ref packetMemory, messageEnumType);
+                    var typecode = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
+                    return SendPacketMemory(entityId, messageId, typecode, ref packetMemory);
                 }
             
             case AeroMessageIdAttribute.MsgType.Control:
-                return SendPacketMemoryMatrix(messageId, ref packetMemory, messageEnumType); // Everything's gonna be just fine
+                return SendPacketMemoryMatrix(messageId, ref packetMemory); // Everything's gonna be just fine
             default:
                 throw new ArgumentException("Message type not implemented");
         }
-    }
-
-    public bool SendControllerKeyframe<TPacket>(TPacket packet, ulong entityId, ulong playerId)
-        where TPacket : class, IAero
-    {
-        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
-        {
-            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
-        }
-
-        var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
-        packet.SerializeToMemory(out var packetMemory);
-        var messageData = new Memory<byte>(new byte[8 + packetMemory.Length]);
-        packetMemory.CopyTo(messageData[8..]);
-        Serializer.WritePrimitive(playerId).CopyTo(messageData);
-        return SendPacketMemory(entityId, 4, controllerId, ref messageData);
-    }
-
-    public bool SendControllerRemove<TPacket>(TPacket packet, ulong entityId, ulong playerId)
-        where TPacket : class, IAero
-    {
-        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
-        {
-            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
-        }
-
-        var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
-        var messageData = new Memory<byte>(new byte[8]);
-        Serializer.WritePrimitive(playerId).CopyTo(messageData);
-        return SendPacketMemory(entityId, 5, controllerId, ref messageData);
-    }
-
-    public bool SendViewScopeOut<TPacket>(TPacket packet, ulong entityId)
-        where TPacket : class, IAero
-    {
-        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
-        {
-            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
-        }
-
-        var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
-        var messageData = new Memory<byte>(new byte[0]);
-        return SendPacketMemory(entityId, 6, controllerId, ref messageData);
-    }
-
-    public bool SendChanges<TPacket>(TPacket packet, ulong entityId)
-        where TPacket : class, IAeroViewInterface
-    {
-        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
-        {
-            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
-        }
-
-        var typeCode = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
-
-        packet.SerializeChangesToMemory(out var packetMemory);
-
-        return SendPacketMemory(entityId, 1, typeCode, ref packetMemory);
-    }
-
-    public bool SendChanges<TPacket>(TPacket packet, ulong entityId, Memory<byte> packetMemory)
-        where TPacket : class, IAeroViewInterface
-    {
-        if (typeof(TPacket).GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault() is not AeroMessageIdAttribute aeroMsgAttr)
-        {
-            throw new ArgumentException($"The passed package is required to be annotated with {nameof(AeroMessageIdAttribute)} (Type: {typeof(TPacket).FullName})");
-        }
-
-        var typeCode = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
-
-        return SendPacketMemory(entityId, 1, typeCode, ref packetMemory);
     }
 
     /// <summary>

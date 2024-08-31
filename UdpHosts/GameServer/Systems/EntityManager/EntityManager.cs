@@ -524,7 +524,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(character.Character_ObserverView, entity.EntityId, player.PlayerId);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(character.Character_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -539,7 +539,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(character.Character_EquipmentView, entity.EntityId, player.PlayerId);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(character.Character_EquipmentView, entity.EntityId);
                             }
                         }
 
@@ -554,7 +554,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(character.Character_CombatView, entity.EntityId, player.PlayerId);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(character.Character_CombatView, entity.EntityId);
                             }
                         }
 
@@ -569,7 +569,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(character.Character_MovementView, entity.EntityId, player.PlayerId);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(character.Character_MovementView, entity.EntityId);
                             }
                         }
 
@@ -584,7 +584,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(character.Character_TinyObjectView, entity.EntityId, player.PlayerId);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(character.Character_TinyObjectView, entity.EntityId);
                             }
                         }
 
@@ -609,7 +609,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(melding.Melding_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(melding.Melding_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -633,7 +633,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(meldingBubble.MeldingBubble_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(meldingBubble.MeldingBubble_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -691,7 +691,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(vehicle.Vehicle_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(vehicle.Vehicle_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -706,7 +706,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(vehicle.Vehicle_CombatView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(vehicle.Vehicle_CombatView, entity.EntityId);
                             }
                         }
 
@@ -721,7 +721,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(vehicle.Vehicle_MovementView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(vehicle.Vehicle_MovementView, entity.EntityId);
                             }
                         }
 
@@ -746,7 +746,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(deployable.Deployable_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(deployable.Deployable_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -773,7 +773,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(outpost.Outpost_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(outpost.Outpost_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -797,7 +797,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(thumper.ResourceNode_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(thumper.ResourceNode_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -821,7 +821,7 @@ public class EntityManager
                             }
                             else
                             {
-                                client.NetChannels[ChannelType.ReliableGss].SendMessage(carryable.CarryableObject_ObserverView, entity.EntityId, 3);
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(carryable.CarryableObject_ObserverView, entity.EntityId);
                             }
                         }
 
@@ -890,15 +890,15 @@ public class EntityManager
 
             if (haveObserver && haveEquipment && haveCombat && haveMovement)
             {
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(equipment, entity.EntityId, 3);
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(combat, entity.EntityId, 3);
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(movement, entity.EntityId, 3);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(equipment, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(combat, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(movement, entity.EntityId);
             }
 
             if (haveTinyObject)
             {
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(tinyobject, entity.EntityId, 3);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(tinyobject, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(MeldingEntity))
@@ -908,7 +908,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
+                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(MeldingBubbleEntity))
@@ -918,7 +918,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
+                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(VehicleEntity))
@@ -950,9 +950,9 @@ public class EntityManager
 
             if (haveObserver && haveCombat && haveMovement)
             {
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(combat, entity.EntityId, 3);
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(movement, entity.EntityId, 3);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(combat, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(movement, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(DeployableEntity))
@@ -962,7 +962,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
+                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(OutpostEntity))
@@ -972,7 +972,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
+                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(ThumperEntity))
@@ -982,7 +982,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
+                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity.GetType() == typeof(CarryableEntity))
@@ -992,7 +992,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendMessage(observer, entity.EntityId, 3);
+                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
     }
@@ -1088,9 +1088,9 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(tinyobject, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(Entities.Melding.MeldingEntity))
+        else if (entity.GetType() == typeof(MeldingEntity))
         {
-            var melding = entity as Entities.Melding.MeldingEntity;
+            var melding = entity as MeldingEntity;
             var observer = melding.Melding_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1098,9 +1098,9 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(Entities.MeldingBubble.MeldingBubbleEntity))
+        else if (entity.GetType() == typeof(MeldingBubbleEntity))
         {
-            var meldingBubble = entity as Entities.MeldingBubble.MeldingBubbleEntity;
+            var meldingBubble = entity as MeldingBubbleEntity;
             var observer = meldingBubble.MeldingBubble_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1243,15 +1243,15 @@ public class EntityManager
             FlushViewChangesToEveryone(character.Character_CombatView, character.EntityId);
             FlushViewChangesToEveryone(character.Character_TinyObjectView, character.EntityId);
         }
-        else if (entity.GetType() == typeof(Entities.Melding.MeldingEntity))
+        else if (entity.GetType() == typeof(MeldingEntity))
         {
-            var melding = entity as Entities.Melding.MeldingEntity;
+            var melding = entity as MeldingEntity;
 
             FlushViewChangesToEveryone(melding.Melding_ObserverView, melding.EntityId);
         }
-        else if (entity.GetType() == typeof(Entities.MeldingBubble.MeldingBubbleEntity))
+        else if (entity.GetType() == typeof(MeldingBubbleEntity))
         {
-            var meldingBubble = entity as Entities.MeldingBubble.MeldingBubbleEntity;
+            var meldingBubble = entity as MeldingBubbleEntity;
 
             FlushViewChangesToEveryone(meldingBubble.MeldingBubble_ObserverView, meldingBubble.EntityId);
         }
@@ -1312,7 +1312,7 @@ public class EntityManager
         }
     }
  
-    private void OnAddedEntity(Entities.IEntity entity)
+    private void OnAddedEntity(IEntity entity)
     {
         // TEMP: Hack to introduce new entities to connected players. This should be replaced with tick logic that sends down entities based on scope and distance.
         foreach (var client in Shard.Clients.Values)
@@ -1325,7 +1325,7 @@ public class EntityManager
         }
     }
 
-    private void OnRemovedEntity(Entities.IEntity entity)
+    private void OnRemovedEntity(IEntity entity)
     {
         foreach (var client in ScopedPlayersByEntity[entity.EntityId])
         {

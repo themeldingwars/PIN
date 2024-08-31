@@ -55,7 +55,7 @@ public class MovementRelay
             },
             NextShortTime = unchecked((ushort)(input.ShortTime + 90)) // This value has to be in the future, nobody cares why.
         };
-        client.NetChannels[ChannelType.UnreliableGss].SendMessage(confirmedPose, character.EntityId, 0, typeof(Enums.GSS.Character.Events));
+        client.NetChannels[ChannelType.UnreliableGss].SendMessage(confirmedPose, character.EntityId);
 
         // Forward update to remote clients
         var currentPose = new CurrentPoseUpdate
