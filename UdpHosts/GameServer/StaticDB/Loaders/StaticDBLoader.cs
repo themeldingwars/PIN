@@ -17,6 +17,13 @@ using System.Reflection;
 public class StaticDBLoader : ISDBLoader
 {
     private static readonly SnakeCasePropertyNamingPolicy Policy = new SnakeCasePropertyNamingPolicy();
+    private static readonly Dictionary<string, string> ManualNameConversions = new()
+    {
+        { "DamageType", "damageType" }, // InflictDamageCommandDef and HealDamageCommandDef
+        { "OrnamentsMapGroupId1", "ornaments_map_group_id_1" }, // dbitems::Weapons
+        { "OrnamentsMapGroupId2", "ornaments_map_group_id_2" }, // dbitems::Weapons
+        { "FlightFx1stPersonId", "flight_fx_1st_person_id" }, // dbitems::Ammo
+    };
     private static StaticDB sdb;
 
     public StaticDBLoader(StaticDB instance)
@@ -1326,10 +1333,9 @@ public class StaticDBLoader : ISDBLoader
                     {
                         propInfo.SetValue(entry, row[backupIndex], null);
                     }
-                    else if (propInfo.Name == "DamageType")
+                    else if (ManualNameConversions.TryGetValue(propInfo.Name, out var value))
                     {
-                        // Appears in InflictDamageCommandDef and HealDamageCommandDef
-                        propInfo.SetValue(entry, row[table.GetColumnIndexByName("damageType")], null);
+                        propInfo.SetValue(entry, row[table.GetColumnIndexByName(value)], null);
                     }
                     else
                     {
