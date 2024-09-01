@@ -105,10 +105,34 @@ public class CharacterLoadout
         { AbilitySlotType.AbilityCalldownGlider, LoadoutSlotType.Glider }
     };
 
-    public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>(); 
+    public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>();
+
+    // Module and Character Scalars is an assumption that has not been completely confirmed. I'm not sure what the exact rule for separation between the two categories is.
     public Dictionary<ushort, float> ItemAttributes = new Dictionary<ushort, float>();
     public Dictionary<ushort, float> ItemModuleScalars = new Dictionary<ushort, float>();
     public Dictionary<ushort, float> ItemCharacterScalars = new Dictionary<ushort, float>();
+
+    private static readonly Dictionary<ushort, float> _fallbackAttributes = new()
+    {
+        // We fill these in if we somehow don't have them to ensure a playable experience (0 run speed = zzz)
+        { 5, 75 }, // Jet Energy Recharge
+        { 6, 100 }, // Health
+        { 7, 3.75f }, // Health Regen
+        { 12, 10 }, // Run Speed
+        { 35, 500 }, // Jet Energy
+        { 37, 1.75f }, // Jump Height
+        { 1121, 150 }, // Jet Spring Cost
+        { 1451, 100 }, // Power Rating
+        { 1377, 130 }, // Sprint Speed
+    };
+
+    private static readonly Dictionary<ushort, float> _fallbackModuleScalars = new()
+    {
+    };
+
+    private static readonly Dictionary<ushort, float> _fallbackCharacterScalars = new()
+    {
+    };
  
     /// <summary>
     /// Initializes a new instance of the <see cref="CharacterLoadout"/> class.
@@ -273,9 +297,9 @@ public class CharacterLoadout
         .ToArray();
     }
 
-    public StatsData[] GetItemCharacterScalars()
+    public StatsData[] GetItemModuleScalars()
     {
-        return ItemCharacterScalars
+        return ItemModuleScalars
         .Select((pair) =>
         {
             return new StatsData()
@@ -287,9 +311,9 @@ public class CharacterLoadout
         .ToArray();
     }
 
-    public StatsData[] GetItemModuleScalars()
+    public StatsData[] GetItemCharacterScalars()
     {
-        return ItemModuleScalars
+        return ItemCharacterScalars
         .Select((pair) =>
         {
             return new StatsData()
@@ -319,88 +343,108 @@ public class CharacterLoadout
         CalculateItemAttributes();
     }
 
+    private void ApplyItemStats(uint itemTypeId, Dictionary<ushort, float> totalAttributes, Dictionary<ushort, float> totalModuleScalars, Dictionary<ushort, float> totalCharacterScalars)
+    {
+        var itemAttributes = SDBInterface.GetItemAttributeRange(itemTypeId);
+        foreach (var range in itemAttributes.Values)
+        {
+            if (totalAttributes.ContainsKey(range.AttributeId))
+            {
+                totalAttributes[range.AttributeId] += range.Base;
+            }
+            else
+            {
+                totalAttributes.Add(range.AttributeId, range.Base);
+            }
+        }
+
+        var itemModuleScalars = SDBInterface.GetItemModuleScalars(itemTypeId);
+        foreach ((ushort attributeCategoryId, (float value, float perLevel)) in itemModuleScalars)
+        {
+            var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
+            if (!totalCharacterScalars.ContainsKey(attributeCategoryId))
+            {
+                totalCharacterScalars.Add(attributeCategoryId, 0.0f);
+            }
+
+            if (attributeCategory.IsScalar == 1)
+            {
+                totalCharacterScalars[attributeCategoryId] += totalCharacterScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
+            }
+            else
+            {
+                totalCharacterScalars[attributeCategoryId] += value - 1;
+            }
+        }
+
+        var itemCharacterScalars = SDBInterface.GetItemCharacterScalars(itemTypeId);
+        foreach ((ushort attributeCategoryId, (float value, float perLevel)) in itemCharacterScalars)
+        {
+            var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
+            if (!totalModuleScalars.ContainsKey(attributeCategoryId))
+            {
+                totalModuleScalars.Add(attributeCategoryId, 0.0f);
+            }
+
+            if (attributeCategory.IsScalar == 1)
+            {
+                totalModuleScalars[attributeCategoryId] += totalModuleScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
+            }
+            else
+            {
+                totalModuleScalars[attributeCategoryId] += value - 1;
+            }
+        }
+    }
+
     private void CalculateItemAttributes()
     {
         var attributes = new Dictionary<ushort, float>()
         {
-            // Base stats that should probably be collected elsewhere
-            { 5, 75 }, // Jet Energy Recharge
-            { 6, 100 }, // Health
-            { 7, 3.75f }, // Health Regen
-            { 12, 10 }, // Run Speed
-            { 35, 500 }, // Jet Energy
-            { 37, 1.75f }, // Jump Height
-            { 1121, 150 }, // Jet Spring Cost
-            { 1451, 100 }, // Power Rating
-            { 1377, 130 }, // Sprint Speed
+            { 12, 2.5f }, // Temporary base Run Speed boost because it's so slow otherwise
         };
         var moduleScalars = new Dictionary<ushort, float>()
         {
-            { 10003, 0.15f }
         };
         var characterScalars = new Dictionary<ushort, float>()
         {
         };
 
+        ApplyItemStats(ChassisID, attributes, moduleScalars, characterScalars);
         foreach (var pair in SlottedItems)
         {
             if (LoadoutAbilitySlots.Contains(pair.Key) || LoadoutChassisSlots.Contains(pair.Key))
             {
-                var itemAttributes = SDBInterface.GetItemAttributeRange(pair.Value);
-                foreach (var range in itemAttributes.Values)
-                {
-                    if (attributes.ContainsKey(range.AttributeId))
-                    {
-                        attributes[range.AttributeId] += range.Base;
-                    }
-                    else
-                    {
-                        attributes.Add(range.AttributeId, range.Base);
-                    }
-                }
+                ApplyItemStats(pair.Value, attributes, moduleScalars, characterScalars);
+            }
+        }
 
-                var itemCharacterScalars = SDBInterface.GetItemCharacterScalars(pair.Value);
-                foreach ((ushort attributeCategoryId, (float value, float perLevel)) in itemCharacterScalars)
-                {
-                    var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
-                    if (!characterScalars.ContainsKey(attributeCategoryId))
-                    {
-                        characterScalars.Add(attributeCategoryId, 0.0f);
-                    }
+        foreach (var pair in _fallbackAttributes)
+        {
+            if (!attributes.ContainsKey(pair.Key))
+            {
+                attributes.Add(pair.Key, pair.Value);
+            }
+        }
 
-                    if (attributeCategory.IsScalar == 1)
-                    {
-                        characterScalars[attributeCategoryId] += characterScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
-                    }
-                    else
-                    {
-                        characterScalars[attributeCategoryId] += value - 1;
-                    }
-                }
+        foreach (var pair in _fallbackModuleScalars)
+        {
+            if (!moduleScalars.ContainsKey(pair.Key))
+            {
+                moduleScalars.Add(pair.Key, pair.Value);
+            }
+        }
 
-                var itemModuleScalars = SDBInterface.GetItemModuleScalars(pair.Value);
-                foreach ((ushort attributeCategoryId, (float value, float perLevel)) in itemModuleScalars)
-                {
-                    var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
-                    if (!moduleScalars.ContainsKey(attributeCategoryId))
-                    {
-                        moduleScalars.Add(attributeCategoryId, 0.0f);
-                    }
-
-                    if (attributeCategory.IsScalar == 1)
-                    {
-                        moduleScalars[attributeCategoryId] += moduleScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
-                    }
-                    else
-                    {
-                        moduleScalars[attributeCategoryId] += value - 1;
-                    }
-                }
+        foreach (var pair in _fallbackCharacterScalars)
+        {
+            if (!characterScalars.ContainsKey(pair.Key))
+            {
+                characterScalars.Add(pair.Key, pair.Value);
             }
         }
 
         ItemAttributes = attributes;
-        ItemCharacterScalars = characterScalars;
         ItemModuleScalars = moduleScalars;
+        ItemCharacterScalars = characterScalars;
     }
 }
