@@ -1061,6 +1061,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         ApplyLoadout(CurrentLoadout);
     }
 
+#nullable enable
     public ActiveWeaponDetails? GetActiveWeaponDetails()
     {
         // Weapon
@@ -1122,6 +1123,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             RateOfFire = weaponAttributeRateOfFire,
         };
     }
+#nullable disable
 
     private void InitFields()
     {
