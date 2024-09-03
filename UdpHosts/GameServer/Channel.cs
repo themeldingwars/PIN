@@ -23,8 +23,7 @@ public class Channel
     private const int TotalHeaderSize = ProtocolHeaderSize + GameSocketHeaderSize;
     private const int MaxPacketSize = PacketServer.MTU - TotalHeaderSize;
     
-    private static readonly byte[] XorByte = { 0x00, 0xFF, 0xCC, 0xAA };
-    private static readonly ulong[] XorULong = { 0x00, 0xFFFFFFFFFFFFFFFF, 0xCCCCCCCCCCCCCCCC, 0xAAAAAAAAAAAAAAAA };
+    private static readonly byte[] XorByte = { 0xFF, 0xAA, 0xCC  };
 
     private readonly ILogger _logger;
 
@@ -95,32 +94,11 @@ public class Channel
             // TODO: Verify if resent message handling works and resolve any issues
             if (packet.Header.ResendCount > 0)
             {
-                // de-xor data
-                var x = packet.PacketData.Length >> 3;
-                var data = packet.PacketData.ToArray();
-                var dataTemp = Array.Empty<byte>();
-
-                if (x > 0)
+                var xorIndex = packet.Header.ResendCount - 1;
+                var data = packet.Peek(packet.BytesRemaining).ToArray();
+                for (var i = 0; i < data.Length; i++)
                 {
-                    var uSpan = MemoryMarshal.Cast<byte, ulong>(data);
-
-                    for (var i = 0; i < x; i++)
-                    {
-                        uSpan[i] ^= XorULong[packet.Header.ResendCount];
-                    }
-
-                    dataTemp = MemoryMarshal.Cast<ulong, byte>(uSpan).ToArray(); // override old size
-                }
-
-                // copy back
-                for (var i = 0; i < dataTemp.Length; i++)
-                {
-                    data[i] = dataTemp[i];
-                }
-
-                for (var i = x * 8; i < packet.PacketData.Length; i++)
-                {
-                    data[i] ^= XorByte[packet.Header.ResendCount];
+                    data[i] ^= XorByte[xorIndex];
                 }
 
                 packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(data));
