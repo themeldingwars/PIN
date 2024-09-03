@@ -134,8 +134,9 @@ public class Channel
                 {
                     // Finish split mode
                     InSplitMode = false;
+
                     var combined = _incomingSplitMessagePackets
-                    .SelectMany((pair) => pair.Value.PacketData[2..].ToArray()) // Skip seqnum
+                    .SelectMany((pair) => pair.Value.Peek(pair.Value.BytesRemaining).ToArray())
                     .ToArray();
                     _incomingSplitMessagePackets.Clear();
                     
@@ -143,9 +144,7 @@ public class Channel
 
                     _client.SendAck(Type, sequenceNumber, packet.Received);
                     LastAck = sequenceNumber;
-
                     PacketAvailable?.Invoke(combinedPacket);
-                    _logger.Fatal("---> Collected Split Packet");
                 }
             }
             else if (packet.Header.IsSplit)
@@ -153,6 +152,8 @@ public class Channel
                 // Enter split mode
                 InSplitMode = true;
                 _incomingSplitMessagePackets.Add(sequenceNumber, packet);
+                _client.SendAck(Type, sequenceNumber, packet.Received);
+                LastAck = sequenceNumber;
             }
             else
             {

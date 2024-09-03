@@ -7,7 +7,7 @@ public struct GamePacket
     public readonly GamePacketHeader Header;
 
     /// <summary>
-    ///     All of the data received from the client except the socket id
+    ///     All of the data received from the client except the socket id and header bytes
     /// </summary>
     public readonly ReadOnlyMemory<byte> PacketData;
 
