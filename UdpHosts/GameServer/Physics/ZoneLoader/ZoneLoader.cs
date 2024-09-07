@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using BepuPhysics;
@@ -392,6 +393,7 @@ public class ZoneLoader
         throw new NotImplementedException("Fix Pls");
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     private class PinZone
     {
         public string Name;
@@ -402,18 +404,21 @@ public class ZoneLoader
         public ENWFLayer[] Imports;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     private class PinZoneChunk
     {
         public string Name;
         public Vector3 Origin;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     private class PinChunk
     {
         public string Name;
         public PinChunkSubChunk[] SubChunks;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     private class PinChunkSubChunk
     {
         public string Name;

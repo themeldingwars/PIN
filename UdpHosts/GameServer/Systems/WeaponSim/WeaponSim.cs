@@ -21,7 +21,7 @@ public class WeaponSim
     public WeaponSim(Shard shard)
     {
         _shard = shard;
-        _weaponSimState = [];
+        _weaponSimState = new();
     }
 
     public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir)

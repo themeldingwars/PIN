@@ -42,8 +42,8 @@ public static partial class PRNG
     public static uint Trace(uint time, byte bullet)
     {
         uint mod = time + bullet;
-        byte u = (byte)(bullet ^ (uint)((ulong)bullet * 0x797a8d77 >> 32));
-        uint v = mod ^ (uint)((ulong)mod * 0x797a8d77 >> 32);
+        byte u = (byte)(bullet ^ (uint)(((ulong)bullet * 0x797a8d77) >> 32));
+        uint v = mod ^ (uint)(((ulong)mod * 0x797a8d77) >> 32);
 
         byte a = Table[u];
         byte b = Table[v & 0xFF];
@@ -122,12 +122,12 @@ public static partial class PRNG
 
     private static uint GetUVar(uint input)
     {
-        return (uint)((ulong)input * 0x797a8d77 >> 0x20) ^ input;
+        return (uint)(((ulong)input * 0x797a8d77) >> 0x20) ^ input;
     }
 
     private static float GetV(uint uVar, int iVar)
     {
         uint d = Table[uVar >> 0x10 & 0xFF];
-        return (float)(((double)(((uint)iVar << 8) | d)) * 2.328306e-10 * 2.0 - 1.0);
+        return (float)(((((uint)iVar << 8) | d) * 2.328306e-10 * 2.0) - 1.0);
     }
 }
