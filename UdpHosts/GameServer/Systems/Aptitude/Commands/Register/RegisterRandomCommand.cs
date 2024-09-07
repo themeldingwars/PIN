@@ -7,12 +7,13 @@ using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
-public class RegisterRandomCommand : ICommand
+public class RegisterRandomCommand : Command, ICommand
 {
     private RegisterRandomCommandDef Params;
     private Random rng = new Random();
 
     public RegisterRandomCommand(RegisterRandomCommandDef par)
+: base(par)
     {
         Params = par;
     }

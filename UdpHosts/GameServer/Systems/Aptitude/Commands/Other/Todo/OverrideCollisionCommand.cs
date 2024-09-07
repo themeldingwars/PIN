@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class OverrideCollisionCommand : ICommand
+public class OverrideCollisionCommand : Command, ICommand
 {
     private OverrideCollisionCommandDef Params;
 
     public OverrideCollisionCommand(OverrideCollisionCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class AirborneDurationCommand : ICommand
+public class AirborneDurationCommand : Command, ICommand
 {
     private AirborneDurationCommandDef Params;
 
     public AirborneDurationCommand(AirborneDurationCommandDef par)
+: base(par)
     {
         Params = par;
     }

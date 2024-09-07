@@ -7,11 +7,12 @@ using GameServer.Entities.Vehicle;
 
 namespace GameServer.Aptitude;
 
-public class ApplySinCardCommand : ICommand
+public class ApplySinCardCommand : Command, ICommand
 {
     private ApplySinCardCommandDef Params;
 
     public ApplySinCardCommand(ApplySinCardCommandDef par)
+: base(par)
     {
         Params = par;
     }

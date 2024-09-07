@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record ModifyDamageByHeadshotCommandDef
+public record ModifyDamageByHeadshotCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

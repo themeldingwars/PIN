@@ -5,11 +5,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class InstantActivationCommand : ICommand
+public class InstantActivationCommand : Command, ICommand
 {
     private InstantActivationCommandDef Params;
 
     public InstantActivationCommand(InstantActivationCommandDef par)
+: base(par)
     {
         Params = par;
     }

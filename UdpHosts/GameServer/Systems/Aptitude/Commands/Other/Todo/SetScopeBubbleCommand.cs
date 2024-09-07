@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class SetScopeBubbleCommand : ICommand
+public class SetScopeBubbleCommand : Command, ICommand
 {
     private SetScopeBubbleCommandDef Params;
 
     public SetScopeBubbleCommand(SetScopeBubbleCommandDef par)
+: base(par)
     {
         Params = par;
     }

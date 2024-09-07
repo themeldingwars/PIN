@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class MovementTetherCommand : ICommand
+public class MovementTetherCommand : Command, ICommand
 {
     private MovementTetherCommandDef Params;
 
     public MovementTetherCommand(MovementTetherCommandDef par)
+: base(par)
     {
         Params = par;
     }

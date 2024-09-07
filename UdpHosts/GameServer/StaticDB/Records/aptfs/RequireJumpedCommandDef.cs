@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireJumpedCommandDef
+public record class RequireJumpedCommandDef : ICommandDef
 {
     public int Timeoffset { get; set; }
     public uint Id { get; set; }

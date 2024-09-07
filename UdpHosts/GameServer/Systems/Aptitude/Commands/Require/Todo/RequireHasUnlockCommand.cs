@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireHasUnlockCommand : ICommand
+public class RequireHasUnlockCommand : Command, ICommand
 {
     private RequireHasUnlockCommandDef Params;
 
     public RequireHasUnlockCommand(RequireHasUnlockCommandDef par)
+: base(par)
     {
         Params = par;
     }

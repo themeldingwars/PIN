@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class CallCommand : ICommand
+public class CallCommand : Command, ICommand
 {
     private CallCommandDef Params;
 
     public CallCommand(CallCommandDef par)
+: base(par)
     {
         Params = par;
     }

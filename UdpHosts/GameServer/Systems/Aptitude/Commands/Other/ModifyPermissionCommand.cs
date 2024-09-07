@@ -5,11 +5,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ModifyPermissionCommand : ICommand
+public class ModifyPermissionCommand : Command, ICommand
 {
     private ModifyPermissionCommandDef Params;
 
     public ModifyPermissionCommand(ModifyPermissionCommandDef par)
+: base(par)
     {
         Params = par;
     }

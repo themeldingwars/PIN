@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class HostilityOverrideCommand : ICommand
+public class HostilityOverrideCommand : Command, ICommand
 {
     private HostilityOverrideCommandDef Params;
 
     public HostilityOverrideCommand(HostilityOverrideCommandDef par)
+: base(par)
     {
         Params = par;
     }

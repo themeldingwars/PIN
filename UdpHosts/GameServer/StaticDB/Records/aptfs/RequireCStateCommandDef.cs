@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireCStateCommandDef
+public record class RequireCStateCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Respawning { get; set; }

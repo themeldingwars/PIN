@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class ResourceNodeBeaconCalldownCommand : ICommand
+public class ResourceNodeBeaconCalldownCommand : Command, ICommand
 {
     private ResourceNodeBeaconCalldownCommandDef Params;
 
     public ResourceNodeBeaconCalldownCommand(ResourceNodeBeaconCalldownCommandDef par)
+: base(par)
     {
         Params = par;
     }

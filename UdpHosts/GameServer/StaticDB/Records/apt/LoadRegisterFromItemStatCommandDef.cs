@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class LoadRegisterFromItemStatCommandDef
+public record class LoadRegisterFromItemStatCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public ushort Stat { get; set; }

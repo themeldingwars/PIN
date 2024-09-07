@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class WhileLoopCommandDef
+public record class WhileLoopCommandDef : ICommandDef
 {
     public uint BodyChain { get; set; }
     public uint ConditionChain { get; set; }

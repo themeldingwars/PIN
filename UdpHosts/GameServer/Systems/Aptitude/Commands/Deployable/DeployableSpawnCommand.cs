@@ -5,11 +5,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class DeployableSpawnCommand : ICommand
+public class DeployableSpawnCommand : Command, ICommand
 {
-    private DeployableSpawnCommandDef Params;
+    public DeployableSpawnCommandDef Params;
 
     public DeployableSpawnCommand(DeployableSpawnCommandDef par)
+    : base(par)
     {
         Params = par;
     }

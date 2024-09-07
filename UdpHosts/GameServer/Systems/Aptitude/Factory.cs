@@ -133,9 +133,9 @@ public class Factory
             // case CommandType.Interrupt:
             //     return new InterruptCommand(CustomDBInterface.GetInterruptCommandDef(commandId));
             case CommandType.BeginInteraction:
-                return new BeginInteractionCommand();
+                return new BeginInteractionCommand(commandId);
             case CommandType.EndInteraction:
-                return new EndInteractionCommand();
+                return new EndInteractionCommand(commandId);
             // case CommandType.TargetInteractives:
             //     return new TargetInteractivesCommand(SDBInterface.GetTargetInteractivesCommandDef(commandId));
             // case CommandType.ImpactMarkInteractives:
@@ -213,7 +213,7 @@ public class Factory
             // case CommandType.CancelRopePull:
             //     return new CancelRopePullCommand(CustomDBInterface.GetCancelRopePullCommandDef(commandId));
             case CommandType.RequestBattleFrameList:
-                return new RequestBattleFrameListCommand();
+                return new RequestBattleFrameListCommand(SDBInterface.GetRequestBattleFrameList(commandId));
             // case CommandType.NPCSpawn:
             //     return new NPCSpawnCommand(CustomDBInterface.GetNPCSpawnCommandDef(commandId));
             // case CommandType.ApplyImpulse:

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class SlotAbilityCommand : ICommand
+public class SlotAbilityCommand : Command, ICommand
 {
     private SlotAbilityCommandDef Params;
 
     public SlotAbilityCommand(SlotAbilityCommandDef par)
+: base(par)
     {
         Params = par;
     }

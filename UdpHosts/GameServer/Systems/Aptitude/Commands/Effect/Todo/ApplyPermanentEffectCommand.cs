@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ApplyPermanentEffectCommand : ICommand
+public class ApplyPermanentEffectCommand : Command, ICommand
 {
     private ApplyPermanentEffectCommandDef Params;
 
     public ApplyPermanentEffectCommand(ApplyPermanentEffectCommandDef par)
+: base(par)
     {
         Params = par;
     }

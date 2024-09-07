@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class TargetByHealthCommandDef
+public record class TargetByHealthCommandDef : ICommandDef
 {
     public int HealthPct { get; set; }
     public uint Id { get; set; }

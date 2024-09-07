@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record DamageItemSlotCommandDef
+public record DamageItemSlotCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

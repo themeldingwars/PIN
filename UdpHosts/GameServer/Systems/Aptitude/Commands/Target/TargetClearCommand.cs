@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class TargetClearCommand : ICommand
+public class TargetClearCommand : Command, ICommand
 {
     private TargetClearCommandDef Params;
 
     public TargetClearCommand(TargetClearCommandDef par)
+: base(par)
     {
         Params = par;
     }

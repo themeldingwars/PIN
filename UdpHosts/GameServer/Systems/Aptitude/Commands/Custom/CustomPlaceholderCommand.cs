@@ -3,7 +3,7 @@ namespace GameServer.Aptitude;
 public class CustomPlaceholderCommand : ICommand
 {
     public string Label;
-    public uint Id;
+    public uint Id { get; set; }
 
     public CustomPlaceholderCommand(string label, uint id)
     {

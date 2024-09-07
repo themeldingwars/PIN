@@ -4,11 +4,12 @@ using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
-public class RequireMovingCommand : ICommand
+public class RequireMovingCommand : Command, ICommand
 {
     private RequireMovingCommandDef Params;
 
     public RequireMovingCommand(RequireMovingCommandDef par)
+: base(par)
     {
         Params = par;
     }

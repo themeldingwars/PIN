@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class TargetHostilesCommand : ICommand
+public class TargetHostilesCommand : Command, ICommand
 {
     private TargetHostilesCommandDef Params;
 
     public TargetHostilesCommand(TargetHostilesCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -4,11 +4,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ImpactRemoveEffectCommand : ICommand
+public class ImpactRemoveEffectCommand : Command, ICommand
 {
     private ImpactRemoveEffectCommandDef Params;
 
     public ImpactRemoveEffectCommand(ImpactRemoveEffectCommandDef par)
+: base(par)
     {
         Params = par;
     }

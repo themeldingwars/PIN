@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class HealDamageCommandDef
+public record class HealDamageCommandDef : ICommandDef
 {
     public int Healpoints { get; set; }
     public uint Id { get; set; }

@@ -5,11 +5,12 @@ using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
-public class RequireZoneTypeCommand : ICommand
+public class RequireZoneTypeCommand : Command, ICommand
 {
     private RequireZoneTypeCommandDef Params;
 
     public RequireZoneTypeCommand(RequireZoneTypeCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RegisterClientProximityCommandDef
+public record class RegisterClientProximityCommandDef : ICommandDef
 {
     public uint Chain { get; set; }
     public uint AbilityId { get; set; }

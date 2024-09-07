@@ -40,7 +40,7 @@ public class Chain
                 if (debug)
                 {
                     var hasMoreInfo = command.ToString() != command.GetType().ToString();
-                    Console.WriteLine($"Chain {Id} - Executing {(hasMoreInfo ? command : command.GetType().Name)}");
+                    Console.WriteLine($"Chain {Id} Command {command.Id} - Executing {(hasMoreInfo ? command : command.GetType().Name)}");
                 }
 
                 bool commandSuccess = command.Execute(context);
@@ -61,7 +61,7 @@ public class Chain
                 if (debug)
                 {
                     var hasMoreInfo = command.ToString() != command.GetType().ToString();
-                    Console.WriteLine($"Chain {Id} - Executing {(hasMoreInfo ? command : command.GetType().Name)}");
+                    Console.WriteLine($"Chain {Id} Command {command.Id} - Executing {(hasMoreInfo ? command : command.GetType().Name)}");
                 }
 
                 bool commandSuccess = command.Execute(context);
@@ -83,7 +83,7 @@ public class Chain
         Console.WriteLine($"Chain {Id}");
         foreach(var command in Commands)
         {
-            Console.WriteLine($"- Command {command}");
+            Console.WriteLine($"- Command {command.Id} {command}");
         }
     }
 }

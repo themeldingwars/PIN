@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class ConditionalBranchCommandDef
+public record class ConditionalBranchCommandDef : ICommandDef
 {
     public uint IfChain { get; set; }
     public uint ThenChain { get; set; }

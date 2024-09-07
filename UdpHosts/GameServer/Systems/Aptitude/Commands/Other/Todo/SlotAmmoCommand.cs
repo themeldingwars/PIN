@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class SlotAmmoCommand : ICommand
+public class SlotAmmoCommand : Command, ICommand
 {
     private SlotAmmoCommandDef Params;
 
     public SlotAmmoCommand(SlotAmmoCommandDef par)
+: base(par)
     {
         Params = par;
     }

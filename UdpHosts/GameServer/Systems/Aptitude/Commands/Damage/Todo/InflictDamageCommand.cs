@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class InflictDamageCommand : ICommand
+public class InflictDamageCommand : Command, ICommand
 {
     private InflictDamageCommandDef Params;
 
     public InflictDamageCommand(InflictDamageCommandDef par)
+: base(par)
     {
         Params = par;
     }

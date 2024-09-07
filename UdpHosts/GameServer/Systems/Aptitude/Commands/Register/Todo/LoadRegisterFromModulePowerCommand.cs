@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class LoadRegisterFromModulePowerCommand : ICommand
+public class LoadRegisterFromModulePowerCommand : Command, ICommand
 {
     private LoadRegisterFromModulePowerCommandDef Params;
 
     public LoadRegisterFromModulePowerCommand(LoadRegisterFromModulePowerCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class MovementSlideCommand : ICommand
+public class MovementSlideCommand : Command, ICommand
 {
     private MovementSlideCommandDef Params;
 
     public MovementSlideCommand(MovementSlideCommandDef par)
+: base(par)
     {
         Params = par;
     }

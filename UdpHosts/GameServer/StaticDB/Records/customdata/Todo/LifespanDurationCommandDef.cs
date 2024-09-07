@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record LifespanDurationCommandDef
+public record LifespanDurationCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

@@ -4,11 +4,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class LogicAndChainCommand : ICommand
+public class LogicAndChainCommand : Command, ICommand
 {
     private LogicAndChainCommandDef Params;
 
     public LogicAndChainCommand(LogicAndChainCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class SetWeaponDamageCommandDef
+public record class SetWeaponDamageCommandDef : ICommandDef
 {
     public float Dmgmaxvalue { get; set; }
     public float Lerpminvalue { get; set; }

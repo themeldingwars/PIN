@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class RequireTryingToMoveCommand : ICommand
+public class RequireTryingToMoveCommand : Command, ICommand
 {
     private RequireTryingToMoveCommandDef Params;
 
     public RequireTryingToMoveCommand(RequireTryingToMoveCommandDef par)
+: base(par)
     {
         Params = par;
     }

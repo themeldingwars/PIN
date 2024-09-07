@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class MountVehicleCommand : ICommand
+public class MountVehicleCommand : Command, ICommand
 {
     private MountVehicleCommandDef Params;
 
     public MountVehicleCommand(MountVehicleCommandDef par)
+: base(par)
     {
         Params = par;
     }

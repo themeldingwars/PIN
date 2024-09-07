@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class TargetPBAECommandDef
+public record class TargetPBAECommandDef : ICommandDef
 {
     // public Vec3 AimPosOffset { get; set; }
     public float Radius { get; set; }

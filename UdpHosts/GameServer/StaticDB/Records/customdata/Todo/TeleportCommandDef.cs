@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record TeleportCommandDef
+public record TeleportCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

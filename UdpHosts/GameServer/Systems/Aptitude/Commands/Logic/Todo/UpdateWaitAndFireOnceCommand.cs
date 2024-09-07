@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class UpdateWaitAndFireOnceCommand : ICommand
+public class UpdateWaitAndFireOnceCommand : Command, ICommand
 {
     private UpdateWaitAndFireOnceCommandDef Params;
 
     public UpdateWaitAndFireOnceCommand(UpdateWaitAndFireOnceCommandDef par)
+: base(par)
     {
         Params = par;
     }

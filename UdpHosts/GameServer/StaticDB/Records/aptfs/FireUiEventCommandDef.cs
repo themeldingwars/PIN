@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class FireUiEventCommandDef
+public record class FireUiEventCommandDef : ICommandDef
 {
     public string ComponentFunction { get; set; }
     public string ComponentName { get; set; }

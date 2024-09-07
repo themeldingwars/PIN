@@ -3,11 +3,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class EncounterSpawnCommand : ICommand
+public class EncounterSpawnCommand : Command, ICommand
 {
     private EncounterSpawnCommandDef Params;
 
     public EncounterSpawnCommand(EncounterSpawnCommandDef par)
+    : base(par)
     {
         Params = par;
     }

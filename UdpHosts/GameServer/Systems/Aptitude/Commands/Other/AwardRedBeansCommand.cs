@@ -5,11 +5,12 @@ using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
-public class AwardRedBeansCommand : ICommand
+public class AwardRedBeansCommand : Command, ICommand
 {
     private AwardRedBeansCommandDef Params;
 
     public AwardRedBeansCommand(AwardRedBeansCommandDef par)
+: base(par)
     {
         Params = par;
     }

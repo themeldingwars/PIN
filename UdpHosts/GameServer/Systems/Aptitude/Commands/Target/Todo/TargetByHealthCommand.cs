@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class TargetByHealthCommand : ICommand
+public class TargetByHealthCommand : Command, ICommand
 {
     private TargetByHealthCommandDef Params;
 
     public TargetByHealthCommand(TargetByHealthCommandDef par)
+: base(par)
     {
         Params = par;
     }

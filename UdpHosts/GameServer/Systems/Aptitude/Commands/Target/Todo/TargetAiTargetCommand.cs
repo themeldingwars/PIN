@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class TargetAiTargetCommand : ICommand
+public class TargetAiTargetCommand : Command, ICommand
 {
     private TargetAiTargetCommandDef Params;
 
     public TargetAiTargetCommand(TargetAiTargetCommandDef par)
+: base(par)
     {
         Params = par;
     }

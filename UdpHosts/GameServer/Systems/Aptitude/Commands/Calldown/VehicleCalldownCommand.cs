@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class VehicleCalldownCommand : ICommand
+public class VehicleCalldownCommand : Command, ICommand
 {
     private VehicleCalldownCommandDef Params;
 
     public VehicleCalldownCommand(VehicleCalldownCommandDef par)
+: base(par)
     {
         Params = par;
     }

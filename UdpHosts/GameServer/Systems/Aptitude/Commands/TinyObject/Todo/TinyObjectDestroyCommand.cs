@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class TinyObjectDestroyCommand : ICommand
+public class TinyObjectDestroyCommand : Command, ICommand
 {
     private TinyObjectDestroyCommandDef Params;
 
     public TinyObjectDestroyCommand(TinyObjectDestroyCommandDef par)
+: base(par)
     {
         Params = par;
     }

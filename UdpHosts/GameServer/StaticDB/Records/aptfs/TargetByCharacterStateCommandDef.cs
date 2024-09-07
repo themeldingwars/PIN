@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class TargetByCharacterStateCommandDef
+public record class TargetByCharacterStateCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Respawning { get; set; }

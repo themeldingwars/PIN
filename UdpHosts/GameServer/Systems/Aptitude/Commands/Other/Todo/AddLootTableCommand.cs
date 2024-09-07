@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class AddLootTableCommand : ICommand
+public class AddLootTableCommand : Command, ICommand
 {
     private AddLootTableCommandDef Params;
 
     public AddLootTableCommand(AddLootTableCommandDef par)
+: base(par)
     {
         Params = par;
     }

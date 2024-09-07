@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RegisterMovementEffectCommand : ICommand
+public class RegisterMovementEffectCommand : Command, ICommand
 {
     private RegisterMovementEffectCommandDef Params;
 
     public RegisterMovementEffectCommand(RegisterMovementEffectCommandDef par)
+: base(par)
     {
         Params = par;
     }

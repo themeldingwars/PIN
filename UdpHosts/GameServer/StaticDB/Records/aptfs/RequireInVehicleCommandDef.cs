@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireInVehicleCommandDef
+public record class RequireInVehicleCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Passenger { get; set; }

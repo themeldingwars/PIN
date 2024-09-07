@@ -3,11 +3,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class CarryableObjectSpawnCommand : ICommand
+public class CarryableObjectSpawnCommand : Command, ICommand
 {
     private CarryableObjectSpawnCommandDef Params;
 
     public CarryableObjectSpawnCommand(CarryableObjectSpawnCommandDef par)
+: base(par)
     {
         Params = par;
     }

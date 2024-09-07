@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class LoadRegisterFromNamedVarCommandDef
+public record class LoadRegisterFromNamedVarCommandDef : ICommandDef
 {
     public float UndeclValue { get; set; }
     public string MemberName { get; set; }

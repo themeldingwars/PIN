@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class RegisterEffectTagTriggerCommand : ICommand
+public class RegisterEffectTagTriggerCommand : Command, ICommand
 {
     private RegisterEffectTagTriggerCommandDef Params;
 
     public RegisterEffectTagTriggerCommand(RegisterEffectTagTriggerCommandDef par)
+: base(par)
     {
         Params = par;
     }

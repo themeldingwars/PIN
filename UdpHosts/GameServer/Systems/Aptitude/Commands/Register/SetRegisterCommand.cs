@@ -7,11 +7,12 @@ using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
-public class SetRegisterCommand : ICommand
+public class SetRegisterCommand : Command, ICommand
 {
     private SetRegisterCommandDef Params;
 
     public SetRegisterCommand(SetRegisterCommandDef par)
+: base(par)
     {
         Params = par;
     }

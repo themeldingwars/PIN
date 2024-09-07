@@ -3,11 +3,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireMovestateCommand : ICommand
+public class RequireMovestateCommand : Command, ICommand
 {
     private RequireMovestateCommandDef Params;
 
     public RequireMovestateCommand(RequireMovestateCommandDef par)
+: base(par)
     {
         Params = par;
     }

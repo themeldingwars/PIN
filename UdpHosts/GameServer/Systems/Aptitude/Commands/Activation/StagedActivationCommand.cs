@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class StagedActivationCommand : ICommand
+public class StagedActivationCommand : Command, ICommand
 {
     private StagedActivationCommandDef Params;
 
     public StagedActivationCommand(StagedActivationCommandDef par)
+: base(par)
     {
         Params = par;
     }

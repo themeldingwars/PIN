@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireItemAttributeCommand : ICommand
+public class RequireItemAttributeCommand : Command, ICommand
 {
     private RequireItemAttributeCommandDef Params;
 
     public RequireItemAttributeCommand(RequireItemAttributeCommandDef par)
+: base(par)
     {
         Params = par;
     }

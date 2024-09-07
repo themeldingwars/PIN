@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class ImpactToggleEffectCommandDef
+public record class ImpactToggleEffectCommandDef : ICommandDef
 {
     public uint PreApplyChain { get; set; }
     public uint EffectId { get; set; }

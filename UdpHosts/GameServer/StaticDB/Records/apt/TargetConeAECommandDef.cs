@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class TargetConeAECommandDef
+public record class TargetConeAECommandDef : ICommandDef
 {
     // public Vec3 AimDirOffset { get; set; }
     // public Vec3 AimPosOffset { get; set; }

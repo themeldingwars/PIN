@@ -3,11 +3,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class TargetByEffectTagCommand : ICommand
+public class TargetByEffectTagCommand : Command, ICommand
 {
     private TargetByEffectTagCommandDef Params;
 
     public TargetByEffectTagCommand(TargetByEffectTagCommandDef par)
+: base(par)
     {
         Params = par;
     }

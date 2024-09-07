@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class MindControlCommand : ICommand
+public class MindControlCommand : Command, ICommand
 {
     private MindControlCommandDef Params;
 
     public MindControlCommand(MindControlCommandDef par)
+: base(par)
     {
         Params = par;
     }

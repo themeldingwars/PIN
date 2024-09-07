@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class HealDamageCommand : ICommand
+public class HealDamageCommand : Command, ICommand
 {
     private HealDamageCommandDef Params;
 
     public HealDamageCommand(HealDamageCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record HostilityOverrideCommandDef
+public record HostilityOverrideCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

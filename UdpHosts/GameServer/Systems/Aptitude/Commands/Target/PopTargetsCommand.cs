@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class PopTargetsCommand : ICommand
+public class PopTargetsCommand : Command, ICommand
 {
     private PopTargetsCommandDef Params;
 
     public PopTargetsCommand(PopTargetsCommandDef par)
+: base(par)
     {
         Params = par;
     }

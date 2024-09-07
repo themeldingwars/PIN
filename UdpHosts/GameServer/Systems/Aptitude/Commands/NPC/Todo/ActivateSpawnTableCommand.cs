@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ActivateSpawnTableCommand : ICommand
+public class ActivateSpawnTableCommand : Command, ICommand
 {
     private ActivateSpawnTableCommandDef Params;
 
     public ActivateSpawnTableCommand(ActivateSpawnTableCommandDef par)
+: base(par)
     {
         Params = par;
     }

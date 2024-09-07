@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireSuperChargeCommandDef
+public record class RequireSuperChargeCommandDef : ICommandDef
 {
     public float Percent { get; set; }
     public uint Id { get; set; }

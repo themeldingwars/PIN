@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class LoadRegisterFromDamageCommandDef
+public record class LoadRegisterFromDamageCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public float Multiplier { get; set; }

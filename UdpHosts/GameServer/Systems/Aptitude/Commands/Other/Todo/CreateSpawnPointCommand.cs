@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class CreateSpawnPointCommand : ICommand
+public class CreateSpawnPointCommand : Command, ICommand
 {
     private CreateSpawnPointCommandDef Params;
 
     public CreateSpawnPointCommand(CreateSpawnPointCommandDef par)
+: base(par)
     {
         Params = par;
     }

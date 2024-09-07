@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireHasItemCommandDef
+public record class RequireHasItemCommandDef : ICommandDef
 {
     public uint Quantity { get; set; }
     public uint ItemId { get; set; }

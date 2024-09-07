@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class OrientationLockCommandDef
+public record class OrientationLockCommandDef : ICommandDef
 {
     public float MaxAimAngle { get; set; }
     public uint Duration { get; set; }

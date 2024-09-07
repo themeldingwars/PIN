@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class TargetByHostilityCommandDef
+public record class TargetByHostilityCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte IncludeInitiator { get; set; }

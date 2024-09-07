@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireMovingCommandDef
+public record class RequireMovingCommandDef : ICommandDef
 {
     public float Velocitytol { get; set; }
     public uint Id { get; set; }

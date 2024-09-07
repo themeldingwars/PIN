@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireCAISStateCommandDef
+public record class RequireCAISStateCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte None { get; set; }

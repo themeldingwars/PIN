@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class LoadRegisterFromResourceCommandDef
+public record class LoadRegisterFromResourceCommandDef : ICommandDef
 {
     public float RegisterVal_4 { get; set; }
     public uint ResourceId { get; set; }

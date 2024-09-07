@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class DestroyAbilityObjectCommand : ICommand
+public class DestroyAbilityObjectCommand : Command, ICommand
 {
     private DestroyAbilityObjectCommandDef Params;
 
     public DestroyAbilityObjectCommand(DestroyAbilityObjectCommandDef par)
+: base(par)
     {
         Params = par;
     }

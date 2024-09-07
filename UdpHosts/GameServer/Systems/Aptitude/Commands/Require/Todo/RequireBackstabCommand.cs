@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireBackstabCommand : ICommand
+public class RequireBackstabCommand : Command, ICommand
 {
     private RequireBackstabCommandDef Params;
 
     public RequireBackstabCommand(RequireBackstabCommandDef par)
+: base(par)
     {
         Params = par;
     }

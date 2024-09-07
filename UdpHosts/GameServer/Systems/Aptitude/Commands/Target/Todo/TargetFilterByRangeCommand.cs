@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class TargetFilterByRangeCommand : ICommand
+public class TargetFilterByRangeCommand : Command, ICommand
 {
     private TargetFilterByRangeCommandDef Params;
 
     public TargetFilterByRangeCommand(TargetFilterByRangeCommandDef par)
+: base(par)
     {
         Params = par;
     }

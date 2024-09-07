@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequirementServerCommandDef
+public record class RequirementServerCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Local { get; set; }

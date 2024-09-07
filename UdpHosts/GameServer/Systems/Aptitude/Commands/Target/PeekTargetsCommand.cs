@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class PeekTargetsCommand : ICommand
+public class PeekTargetsCommand : Command, ICommand
 {
     private PeekTargetsCommandDef Params;
 
     public PeekTargetsCommand(PeekTargetsCommandDef par)
+: base(par)
     {
         Params = par;
     }

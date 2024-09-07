@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ConsumeItemCommand : ICommand
+public class ConsumeItemCommand : Command, ICommand
 {
     private ConsumeItemCommandDef Params;
 
     public ConsumeItemCommand(ConsumeItemCommandDef par)
+: base(par)
     {
         Params = par;
     }

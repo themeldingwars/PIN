@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class TargetPreviousCommand : ICommand
+public class TargetPreviousCommand : Command, ICommand
 {
     private TargetPreviousCommandDef Params;
 
     public TargetPreviousCommand(TargetPreviousCommandDef par)
+: base(par)
     {
         Params = par;
     }

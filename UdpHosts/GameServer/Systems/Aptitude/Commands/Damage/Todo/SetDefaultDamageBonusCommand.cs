@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class SetDefaultDamageBonusCommand : ICommand
+public class SetDefaultDamageBonusCommand : Command, ICommand
 {
     private SetDefaultDamageBonusCommandDef Params;
 
     public SetDefaultDamageBonusCommand(SetDefaultDamageBonusCommandDef par)
+: base(par)
     {
         Params = par;
     }

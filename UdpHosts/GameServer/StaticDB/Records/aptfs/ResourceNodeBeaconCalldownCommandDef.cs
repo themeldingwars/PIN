@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class ResourceNodeBeaconCalldownCommandDef
+public record class ResourceNodeBeaconCalldownCommandDef : ICommandDef
 {
     public float MaxSlope { get; set; }
     public uint LandedAbility { get; set; }

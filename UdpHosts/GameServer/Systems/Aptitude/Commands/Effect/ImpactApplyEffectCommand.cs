@@ -5,11 +5,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class ImpactApplyEffectCommand : ICommand
+public class ImpactApplyEffectCommand : Command, ICommand
 {
     private ImpactApplyEffectCommandDef Params;
 
     public ImpactApplyEffectCommand(ImpactApplyEffectCommandDef par)
+: base(par)
     {
         Params = par;
     }

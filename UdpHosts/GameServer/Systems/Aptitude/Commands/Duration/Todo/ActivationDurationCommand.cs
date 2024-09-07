@@ -5,11 +5,12 @@ using GameServer.Entities;
 
 namespace GameServer.Aptitude;
 
-public class ActivationDurationCommand : ICommand
+public class ActivationDurationCommand : Command, ICommand
 {
     private ActivationDurationCommandDef Params;
 
     public ActivationDurationCommand(ActivationDurationCommandDef par)
+: base(par)
     {
         Params = par;
     }

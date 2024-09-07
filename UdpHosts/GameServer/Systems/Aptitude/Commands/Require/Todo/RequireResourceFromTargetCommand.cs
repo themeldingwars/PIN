@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireResourceFromTargetCommand : ICommand
+public class RequireResourceFromTargetCommand : Command, ICommand
 {
     private RequireResourceFromTargetCommandDef Params;
 
     public RequireResourceFromTargetCommand(RequireResourceFromTargetCommandDef par)
+: base(par)
     {
         Params = par;
     }

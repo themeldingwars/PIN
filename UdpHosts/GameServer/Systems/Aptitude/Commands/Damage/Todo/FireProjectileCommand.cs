@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class FireProjectileCommand : ICommand
+public class FireProjectileCommand : Command, ICommand
 {
     private FireProjectileCommandDef Params;
 
     public FireProjectileCommand(FireProjectileCommandDef par)
+: base(par)
     {
         Params = par;
     }

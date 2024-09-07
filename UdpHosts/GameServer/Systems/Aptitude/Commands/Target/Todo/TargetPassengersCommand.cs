@@ -5,11 +5,12 @@ using GameServer.Entities.Vehicle;
 
 namespace GameServer.Aptitude;
 
-public class TargetPassengersCommand : ICommand
+public class TargetPassengersCommand : Command, ICommand
 {
     private TargetPassengersCommandDef Params;
 
     public TargetPassengersCommand(TargetPassengersCommandDef par)
+: base(par)
     {
         Params = par;
     }

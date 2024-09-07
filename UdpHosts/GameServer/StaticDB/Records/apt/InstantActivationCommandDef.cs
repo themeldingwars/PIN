@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class InstantActivationCommandDef
+public record class InstantActivationCommandDef : ICommandDef
 {
     public uint CategoryCooldownPrecoolCount { get; set; }
     public uint CategoryCooldown { get; set; }

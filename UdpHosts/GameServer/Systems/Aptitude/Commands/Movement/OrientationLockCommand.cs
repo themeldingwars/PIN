@@ -8,11 +8,12 @@ using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
-public class OrientationLockCommand : ICommand
+public class OrientationLockCommand : Command, ICommand
 {
     private OrientationLockCommandDef Params;
 
     public OrientationLockCommand(OrientationLockCommandDef par)
+: base(par)
     {
         Params = par;
     }

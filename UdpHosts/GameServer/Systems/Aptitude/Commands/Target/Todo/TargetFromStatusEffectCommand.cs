@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class TargetFromStatusEffectCommand : ICommand
+public class TargetFromStatusEffectCommand : Command, ICommand
 {
     private TargetFromStatusEffectCommandDef Params;
 
     public TargetFromStatusEffectCommand(TargetFromStatusEffectCommandDef par)
+: base(par)
     {
         Params = par;
     }

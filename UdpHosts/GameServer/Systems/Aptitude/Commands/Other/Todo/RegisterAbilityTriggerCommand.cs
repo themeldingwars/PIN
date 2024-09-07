@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class RegisterAbilityTriggerCommand : ICommand
+public class RegisterAbilityTriggerCommand : Command, ICommand
 {
     private RegisterAbilityTriggerCommandDef Params;
 
     public RegisterAbilityTriggerCommand(RegisterAbilityTriggerCommandDef par)
+: base(par)
     {
         Params = par;
     }

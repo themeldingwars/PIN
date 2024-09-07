@@ -7,11 +7,12 @@ using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
-public class RegisterComparisonCommand : ICommand
+public class RegisterComparisonCommand : Command, ICommand
 {
     private RegisterComparisonCommandDef Params;
 
     public RegisterComparisonCommand(RegisterComparisonCommandDef par)
+: base(par)
     {
         Params = par;
     }

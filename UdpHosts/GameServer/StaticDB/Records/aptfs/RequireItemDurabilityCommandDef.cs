@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireItemDurabilityCommandDef
+public record class RequireItemDurabilityCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public ushort DurabilityAmount { get; set; }

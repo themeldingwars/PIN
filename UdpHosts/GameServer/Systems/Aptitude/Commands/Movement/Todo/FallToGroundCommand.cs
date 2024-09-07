@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class FallToGroundCommand : ICommand
+public class FallToGroundCommand : Command, ICommand
 {
     private FallToGroundCommandDef Params;
 
     public FallToGroundCommand(FallToGroundCommandDef par)
+: base(par)
     {
         Params = par;
     }

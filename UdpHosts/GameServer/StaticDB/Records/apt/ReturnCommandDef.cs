@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class ReturnCommandDef
+public record class ReturnCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public ushort ReturnStatus { get; set; }

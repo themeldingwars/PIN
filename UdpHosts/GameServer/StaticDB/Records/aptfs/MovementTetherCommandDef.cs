@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class MovementTetherCommandDef
+public record class MovementTetherCommandDef : ICommandDef
 {
     public float ConstRate { get; set; }
     public float MaxVelocity { get; set; }

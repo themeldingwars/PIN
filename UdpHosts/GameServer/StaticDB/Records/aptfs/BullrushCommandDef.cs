@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class BullrushCommandDef
+public record class BullrushCommandDef : ICommandDef
 {
     public uint ImpactEffect { get; set; }
     public uint Duration { get; set; }

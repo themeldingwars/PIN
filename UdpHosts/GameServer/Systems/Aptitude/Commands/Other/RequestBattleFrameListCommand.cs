@@ -1,10 +1,19 @@
 ﻿using AeroMessages.GSS.V66.Character.Controller;
+using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
-public class RequestBattleFrameListCommand : ICommand
+public class RequestBattleFrameListCommand : Command, ICommand
 {
+    private RequestBattleFrameListCommandDef Params;
+
+    public RequestBattleFrameListCommand(RequestBattleFrameListCommandDef par)
+    : base(par)
+    {
+        Params = par;
+    }
+
     public bool Execute(Context context)
     {
         var target = context.Self;

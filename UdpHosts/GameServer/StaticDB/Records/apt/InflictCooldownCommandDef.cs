@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class InflictCooldownCommandDef
+public record class InflictCooldownCommandDef : ICommandDef
 {
     public uint CategoryCooldownPrecoolCount { get; set; }
     public uint CategoryCooldown { get; set; }

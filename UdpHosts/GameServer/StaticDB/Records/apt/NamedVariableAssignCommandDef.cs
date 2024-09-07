@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class NamedVariableAssignCommandDef
+public record class NamedVariableAssignCommandDef : ICommandDef
 {
     public float Value { get; set; }
     public string MemberName { get; set; }

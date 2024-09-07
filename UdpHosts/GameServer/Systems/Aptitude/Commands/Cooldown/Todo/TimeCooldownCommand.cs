@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class TimeCooldownCommand : ICommand
+public class TimeCooldownCommand : Command, ICommand
 {
     private TimeCooldownCommandDef Params;
 
     public TimeCooldownCommand(TimeCooldownCommandDef par)
+: base(par)
     {
         Params = par;
     }

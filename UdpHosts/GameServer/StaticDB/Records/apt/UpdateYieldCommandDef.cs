@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class UpdateYieldCommandDef
+public record class UpdateYieldCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public uint Period { get; set; }

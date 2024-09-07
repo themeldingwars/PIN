@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireHasEffectCommand : ICommand
+public class RequireHasEffectCommand : Command, ICommand
 {
     private RequireHasEffectCommandDef Params;
 
     public RequireHasEffectCommand(RequireHasEffectCommandDef par)
+: base(par)
     {
         Params = par;
     }

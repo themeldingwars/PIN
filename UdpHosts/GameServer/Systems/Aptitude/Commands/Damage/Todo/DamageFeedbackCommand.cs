@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class DamageFeedbackCommand : ICommand
+public class DamageFeedbackCommand : Command, ICommand
 {
     private DamageFeedbackCommandDef Params;
 
     public DamageFeedbackCommand(DamageFeedbackCommandDef par)
+: base(par)
     {
         Params = par;
     }

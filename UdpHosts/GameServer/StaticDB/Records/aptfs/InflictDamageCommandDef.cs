@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class InflictDamageCommandDef
+public record class InflictDamageCommandDef : ICommandDef
 {
     public float Hitshakemult { get; set; }
     public int Damagepoints { get; set; }

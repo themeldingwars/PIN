@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class TimeCooldownCommandDef
+public record class TimeCooldownCommandDef : ICommandDef
 {
     public uint Duration { get; set; }
     public uint Category { get; set; }

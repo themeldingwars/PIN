@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireItemDurabilityCommand : ICommand
+public class RequireItemDurabilityCommand : Command, ICommand
 {
     private RequireItemDurabilityCommandDef Params;
 
     public RequireItemDurabilityCommand(RequireItemDurabilityCommandDef par)
+: base(par)
     {
         Params = par;
     }

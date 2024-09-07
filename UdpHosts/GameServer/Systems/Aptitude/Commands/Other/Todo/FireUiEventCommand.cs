@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class FireUiEventCommand : ICommand
+public class FireUiEventCommand : Command, ICommand
 {
     private FireUiEventCommandDef Params;
 
     public FireUiEventCommand(FireUiEventCommandDef par)
+: base(par)
     {
         Params = par;
     }

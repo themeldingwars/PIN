@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class StatRequirementCommand : ICommand
+public class StatRequirementCommand : Command, ICommand
 {
     private StatRequirementCommandDef Params;
 
     public StatRequirementCommand(StatRequirementCommandDef par)
+: base(par)
     {
         Params = par;
     }

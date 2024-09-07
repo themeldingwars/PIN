@@ -6,11 +6,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class AuthorizeTerminalCommand : ICommand
+public class AuthorizeTerminalCommand : Command, ICommand
 {
     private AuthorizeTerminalCommandDef Params;
 
     public AuthorizeTerminalCommand(AuthorizeTerminalCommandDef par)
+: base(par)
     {
         Params = par;
     }

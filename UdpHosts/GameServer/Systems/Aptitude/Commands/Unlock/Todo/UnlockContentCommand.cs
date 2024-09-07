@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class UnlockContentCommand : ICommand
+public class UnlockContentCommand : Command, ICommand
 {
     private UnlockContentCommandDef Params;
 
     public UnlockContentCommand(UnlockContentCommandDef par)
+: base(par)
     {
         Params = par;
     }

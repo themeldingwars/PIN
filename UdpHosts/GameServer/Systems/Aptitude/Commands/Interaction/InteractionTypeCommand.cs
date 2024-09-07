@@ -4,11 +4,12 @@ using GameServer.Entities;
 
 namespace GameServer.Aptitude;
 
-public class InteractionTypeCommand : ICommand
+public class InteractionTypeCommand : Command, ICommand
 {
     private InteractionTypeCommandDef Params;
 
     public InteractionTypeCommand(InteractionTypeCommandDef par)
+: base(par)
     {
         Params = par;
     }

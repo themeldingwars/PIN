@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class TargetStackEmptyCommand : ICommand
+public class TargetStackEmptyCommand : Command, ICommand
 {
     private TargetStackEmptyCommandDef Params;
 
     public TargetStackEmptyCommand(TargetStackEmptyCommandDef par)
+: base(par)
     {
         Params = par;
     }

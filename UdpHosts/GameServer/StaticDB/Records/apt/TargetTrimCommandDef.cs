@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class TargetTrimCommandDef
+public record class TargetTrimCommandDef : ICommandDef
 {
     public uint Trimsize { get; set; }
     public uint Id { get; set; }

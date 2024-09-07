@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class UiNamedVariableCommand : ICommand
+public class UiNamedVariableCommand : Command, ICommand
 {
     private UiNamedVariableCommandDef Params;
 
     public UiNamedVariableCommand(UiNamedVariableCommandDef par)
+: base(par)
     {
         Params = par;
     }

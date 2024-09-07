@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class TeleportInstanceCommand : ICommand
+public class TeleportInstanceCommand : Command, ICommand
 {
     private TeleportInstanceCommandDef Params;
 
     public TeleportInstanceCommand(TeleportInstanceCommandDef par)
+: base(par)
     {
         Params = par;
     }

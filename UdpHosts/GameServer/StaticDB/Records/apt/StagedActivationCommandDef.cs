@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class StagedActivationCommandDef
+public record class StagedActivationCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public uint SelfEffectId { get; set; }

@@ -4,11 +4,12 @@ using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
-public class RequireSprintModifierCommand : ICommand
+public class RequireSprintModifierCommand : Command, ICommand
 {
     private RequireSprintModifierCommandDef Params;
 
     public RequireSprintModifierCommand(RequireSprintModifierCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class UnlockHeadAccessoriesCommand : ICommand
+public class UnlockHeadAccessoriesCommand : Command, ICommand
 {
     private UnlockHeadAccessoriesCommandDef Params;
 
     public UnlockHeadAccessoriesCommand(UnlockHeadAccessoriesCommandDef par)
+: base(par)
     {
         Params = par;
     }

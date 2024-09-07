@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class BombardmentCommandDef
+public record class BombardmentCommandDef : ICommandDef
 {
     public int Ratevariance { get; set; }
     public float Rise { get; set; }

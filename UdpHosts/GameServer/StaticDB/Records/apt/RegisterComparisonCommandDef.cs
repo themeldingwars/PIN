@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class RegisterComparisonCommandDef
+public record class RegisterComparisonCommandDef : ICommandDef
 {
     public float CompareVal { get; set; }
     public float EqualTol { get; set; }

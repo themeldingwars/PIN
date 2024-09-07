@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class TauntCommand : ICommand
+public class TauntCommand : Command, ICommand
 {
     private TauntCommandDef Params;
 
     public TauntCommand(TauntCommandDef par)
+: base(par)
     {
         Params = par;
     }

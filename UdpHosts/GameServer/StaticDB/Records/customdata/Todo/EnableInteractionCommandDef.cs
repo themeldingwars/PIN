@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record EnableInteractionCommandDef
+public record EnableInteractionCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

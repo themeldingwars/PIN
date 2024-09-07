@@ -1,6 +1,6 @@
 ﻿namespace GameServer.Data.SDB.Records.customdata;
 
-public record MountVehicleCommandDef
+public record MountVehicleCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class TargetSwapCommandDef
+public record class TargetSwapCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte ClearFormer { get; set; }

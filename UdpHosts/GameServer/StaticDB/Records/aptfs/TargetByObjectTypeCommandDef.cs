@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class TargetByObjectTypeCommandDef
+public record class TargetByObjectTypeCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Projectile { get; set; }

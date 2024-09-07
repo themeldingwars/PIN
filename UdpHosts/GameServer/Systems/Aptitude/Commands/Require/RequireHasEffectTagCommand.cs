@@ -4,11 +4,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireHasEffectTagCommand : ICommand
+public class RequireHasEffectTagCommand : Command, ICommand
 {
     private RequireHasEffectTagCommandDef Params;
 
     public RequireHasEffectTagCommand(RequireHasEffectTagCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class DeployableCalldownCommandDef
+public record class DeployableCalldownCommandDef : ICommandDef
 {
     public float ConstructTimeMult { get; set; }
     public float MaxSlope { get; set; }

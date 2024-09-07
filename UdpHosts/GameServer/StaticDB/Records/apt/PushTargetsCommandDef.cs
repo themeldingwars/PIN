@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class PushTargetsCommandDef
+public record class PushTargetsCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Former { get; set; }

@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record RequireAppliedUnlockCommandDef
+public record RequireAppliedUnlockCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

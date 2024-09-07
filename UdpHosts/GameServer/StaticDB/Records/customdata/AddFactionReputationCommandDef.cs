@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record AddFactionReputationCommandDef
+public record AddFactionReputationCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public uint FactionId { get; set; }

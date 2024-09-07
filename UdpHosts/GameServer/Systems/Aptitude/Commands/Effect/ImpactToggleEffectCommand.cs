@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class ImpactToggleEffectCommand : ICommand
+public class ImpactToggleEffectCommand : Command, ICommand
 {
     private ImpactToggleEffectCommandDef Params;
 
     public ImpactToggleEffectCommand(ImpactToggleEffectCommandDef par)
+: base(par)
     {
         Params = par;
     }

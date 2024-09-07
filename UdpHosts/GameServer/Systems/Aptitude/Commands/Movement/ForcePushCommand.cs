@@ -5,11 +5,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class ForcePushCommand : ICommand
+public class ForcePushCommand : Command, ICommand
 {
     private ForcePushCommandDef Params;
 
     public ForcePushCommand(ForcePushCommandDef par)
+: base(par)
     {
         Params = par;
     }

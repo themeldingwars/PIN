@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class ClimbLedgeCommandDef
+public record class ClimbLedgeCommandDef : ICommandDef
 {
     public float Maxheight { get; set; }
     public uint Id { get; set; }

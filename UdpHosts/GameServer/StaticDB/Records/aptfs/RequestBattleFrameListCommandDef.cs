@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequestBattleFrameListCommandDef
+public record class RequestBattleFrameListCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

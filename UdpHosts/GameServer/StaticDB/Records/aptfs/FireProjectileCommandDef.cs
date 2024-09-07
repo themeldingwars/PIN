@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class FireProjectileCommandDef
+public record class FireProjectileCommandDef : ICommandDef
 {
     public string AimOffset { get; set; }
     public uint Ammotype { get; set; }

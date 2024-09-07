@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class ApplyAmmoRiderCommand : ICommand
+public class ApplyAmmoRiderCommand : Command, ICommand
 {
     private ApplyAmmoRiderCommandDef Params;
 
     public ApplyAmmoRiderCommand(ApplyAmmoRiderCommandDef par)
+: base(par)
     {
         Params = par;
     }

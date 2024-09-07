@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RegisterMovementEffectCommandDef
+public record class RegisterMovementEffectCommandDef : ICommandDef
 {
     public uint StatusfxId { get; set; }
     public uint MovestateIndex { get; set; }

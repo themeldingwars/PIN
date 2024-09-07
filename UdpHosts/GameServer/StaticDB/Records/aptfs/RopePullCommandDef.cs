@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RopePullCommandDef
+public record class RopePullCommandDef : ICommandDef
 {
     public uint Skiprollback { get; set; }
     public float Range { get; set; }

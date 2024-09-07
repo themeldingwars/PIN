@@ -4,9 +4,12 @@ namespace GameServer.Aptitude;
 
 public class BeginInteractionCommand : ICommand
 {
-    public BeginInteractionCommand()
+    public BeginInteractionCommand(uint id)
     {
+        Id = id;
     }
+
+    public uint Id { get; set; } 
 
     public bool Execute(Context context)
     {

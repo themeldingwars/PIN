@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class TinyObjectUpdateCommand : ICommand
+public class TinyObjectUpdateCommand : Command, ICommand
 {
     private TinyObjectUpdateCommandDef Params;
 
     public TinyObjectUpdateCommand(TinyObjectUpdateCommandDef par)
+: base(par)
     {
         Params = par;
     }

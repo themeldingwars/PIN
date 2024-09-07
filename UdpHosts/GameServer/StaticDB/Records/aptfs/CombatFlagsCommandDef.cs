@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class CombatFlagsCommandDef
+public record class CombatFlagsCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte ReversedControls { get; set; }

@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireMovestateCommandDef
+public record class RequireMovestateCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Falling { get; set; }

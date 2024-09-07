@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class AddPhysicsCommandDef
+public record class AddPhysicsCommandDef : ICommandDef
 {
     public uint DamageResponse { get; set; }
     public uint Hitpoints { get; set; }

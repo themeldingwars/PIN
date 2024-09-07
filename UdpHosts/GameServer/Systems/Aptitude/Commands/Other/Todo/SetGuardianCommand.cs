@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class SetGuardianCommand : ICommand
+public class SetGuardianCommand : Command, ICommand
 {
     private SetGuardianCommandDef Params;
 
     public SetGuardianCommand(SetGuardianCommandDef par)
+: base(par)
     {
         Params = par;
     }

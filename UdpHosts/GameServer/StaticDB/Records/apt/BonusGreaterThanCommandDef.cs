@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class BonusGreaterThanCommandDef
+public record class BonusGreaterThanCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public uint GreaterThan { get; set; }

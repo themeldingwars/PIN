@@ -3,13 +3,14 @@ namespace GameServer.Aptitude;
 public class CustomNOOPCommand : ICommand
 {
     public string Label;
-    public uint Id;
-
+    
     public CustomNOOPCommand(string label, uint id)
     {
         Label = label;
         Id = id;
     }
+
+    public uint Id { get; set; }
 
     public bool Execute(Context context)
     {

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class RegisterTimedTriggerCommand : ICommand
+public class RegisterTimedTriggerCommand : Command, ICommand
 {
     private RegisterTimedTriggerCommandDef Params;
 
     public RegisterTimedTriggerCommand(RegisterTimedTriggerCommandDef par)
+: base(par)
     {
         Params = par;
     }

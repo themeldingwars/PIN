@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RemoveClientStatusEffectCommand : ICommand
+public class RemoveClientStatusEffectCommand : Command, ICommand
 {
     private RemoveClientStatusEffectCommandDef Params;
 
     public RemoveClientStatusEffectCommand(RemoveClientStatusEffectCommandDef par)
+: base(par)
     {
         Params = par;
     }

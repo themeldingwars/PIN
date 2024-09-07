@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class RemoteAbilityCallCommand : ICommand
+public class RemoteAbilityCallCommand : Command, ICommand
 {
     private RemoteAbilityCallCommandDef Params;
 
     public RemoteAbilityCallCommand(RemoteAbilityCallCommandDef par)
+: base(par)
     {
         Params = par;
     }

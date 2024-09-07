@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class ForcePushCommandDef
+public record class ForcePushCommandDef : ICommandDef
 {
     public float Strength { get; set; }
     public float Falloff { get; set; }

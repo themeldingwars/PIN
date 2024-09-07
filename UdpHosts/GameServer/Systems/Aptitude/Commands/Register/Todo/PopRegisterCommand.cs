@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class PopRegisterCommand : ICommand
+public class PopRegisterCommand : Command, ICommand
 {
     private PopRegisterCommandDef Params;
 
     public PopRegisterCommand(PopRegisterCommandDef par)
+: base(par)
     {
         Params = par;
     }

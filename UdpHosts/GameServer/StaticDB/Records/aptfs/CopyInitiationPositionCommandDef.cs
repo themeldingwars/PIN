@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class CopyInitiationPositionCommandDef
+public record class CopyInitiationPositionCommandDef : ICommandDef
 {
 
     public uint Id { get; set; }

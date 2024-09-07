@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class ConsumeEnergyCommandDef
+public record class ConsumeEnergyCommandDef : ICommandDef
 {
     public float Amount { get; set; }
     public uint Id { get; set; }

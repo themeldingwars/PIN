@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class NPCEquipMonsterCommand : ICommand
+public class NPCEquipMonsterCommand : Command, ICommand
 {
     private NPCEquipMonsterCommandDef Params;
 
     public NPCEquipMonsterCommand(NPCEquipMonsterCommandDef par)
+: base(par)
     {
         Params = par;
     }

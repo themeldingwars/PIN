@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireNeedsAmmoCommandDef
+public record class RequireNeedsAmmoCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte CheckSecondary { get; set; }

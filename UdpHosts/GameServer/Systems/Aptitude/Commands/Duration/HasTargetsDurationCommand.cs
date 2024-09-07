@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class HasTargetsDurationCommand : ICommand
+public class HasTargetsDurationCommand : Command, ICommand
 {
     private HasTargetsDurationCommandDef Params;
 
     public HasTargetsDurationCommand(HasTargetsDurationCommandDef par)
+: base(par)
     {
         Params = par;
     }

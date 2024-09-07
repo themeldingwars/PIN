@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class SetTargetOffsetCommand : ICommand
+public class SetTargetOffsetCommand : Command, ICommand
 {
     private SetTargetOffsetCommandDef Params;
 
     public SetTargetOffsetCommand(SetTargetOffsetCommandDef par)
+: base(par)
     {
         Params = par;
     }

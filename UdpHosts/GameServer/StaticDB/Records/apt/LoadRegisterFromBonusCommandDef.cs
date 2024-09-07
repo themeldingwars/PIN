@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class LoadRegisterFromBonusCommandDef
+public record class LoadRegisterFromBonusCommandDef : ICommandDef
 {
     public float RegisterVal_4 { get; set; }
     public float RegisterVal_6 { get; set; }

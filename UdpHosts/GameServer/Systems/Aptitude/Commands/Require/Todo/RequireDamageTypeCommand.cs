@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class RequireDamageTypeCommand : ICommand
+public class RequireDamageTypeCommand : Command, ICommand
 {
     private RequireDamageTypeCommandDef Params;
 
     public RequireDamageTypeCommand(RequireDamageTypeCommandDef par)
+: base(par)
     {
         Params = par;
     }

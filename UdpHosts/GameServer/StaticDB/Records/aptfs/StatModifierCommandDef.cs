@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class StatModifierCommandDef
+public record class StatModifierCommandDef : ICommandDef
 {
     public float Value { get; set; }
     public uint Id { get; set; }

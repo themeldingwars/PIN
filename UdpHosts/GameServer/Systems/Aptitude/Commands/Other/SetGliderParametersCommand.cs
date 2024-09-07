@@ -5,11 +5,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class SetGliderParametersCommand : ICommand
+public class SetGliderParametersCommand : Command, ICommand
 {
     private SetGliderParametersCommandDef Params;
 
     public SetGliderParametersCommand(SetGliderParametersCommandDef par)
+: base(par)
     {
         Params = par;
     }

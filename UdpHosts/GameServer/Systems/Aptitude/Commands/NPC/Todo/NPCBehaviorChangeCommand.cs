@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class NPCBehaviorChangeCommand : ICommand
+public class NPCBehaviorChangeCommand : Command, ICommand
 {
     private NPCBehaviorChangeCommandDef Params;
 
     public NPCBehaviorChangeCommand(NPCBehaviorChangeCommandDef par)
+: base(par)
     {
         Params = par;
     }

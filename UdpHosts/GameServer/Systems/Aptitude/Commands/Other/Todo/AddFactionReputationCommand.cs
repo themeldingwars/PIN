@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class AddFactionReputationCommand : ICommand
+public class AddFactionReputationCommand : Command, ICommand
 {
     private AddFactionReputationCommandDef Params;
 
     public AddFactionReputationCommand(AddFactionReputationCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -3,11 +3,12 @@ using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
-public class TargetFilterMovestateCommand : ICommand
+public class TargetFilterMovestateCommand : Command, ICommand
 {
     private TargetFilterMovestateCommandDef Params;
 
     public TargetFilterMovestateCommand(TargetFilterMovestateCommandDef par)
+: base(par)
     {
         Params = par;
     }

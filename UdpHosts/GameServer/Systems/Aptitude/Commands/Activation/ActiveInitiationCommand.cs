@@ -5,8 +5,16 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class ActiveInitiationCommmand : ICommand
+public class ActiveInitiationCommmand : Command, ICommand
 {
+    private ActiveInitiationCommandDef Params;
+
+    public ActiveInitiationCommmand(ActiveInitiationCommandDef par)
+    : base(par)
+    {
+        Params = par;
+    }
+
     public bool Execute(Context context)
     {
         if (context.Self.GetType() == typeof(Entities.Character.CharacterEntity))

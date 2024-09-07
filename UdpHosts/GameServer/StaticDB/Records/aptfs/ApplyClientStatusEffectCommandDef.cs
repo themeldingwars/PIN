@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class ApplyClientStatusEffectCommandDef
+public record class ApplyClientStatusEffectCommandDef : ICommandDef
 {
     public uint StatusEffectId { get; set; }
     public uint Id { get; set; }

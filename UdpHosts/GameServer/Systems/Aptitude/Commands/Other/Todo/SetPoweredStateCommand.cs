@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class SetPoweredStateCommand : ICommand
+public class SetPoweredStateCommand : Command, ICommand
 {
     private SetPoweredStateCommandDef Params;
 
     public SetPoweredStateCommand(SetPoweredStateCommandDef par)
+: base(par)
     {
         Params = par;
     }

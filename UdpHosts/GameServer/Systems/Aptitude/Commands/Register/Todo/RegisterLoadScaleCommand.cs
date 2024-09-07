@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class RegisterLoadScaleCommand : ICommand
+public class RegisterLoadScaleCommand : Command, ICommand
 {
     private RegisterLoadScaleCommandDef Params;
 
     public RegisterLoadScaleCommand(RegisterLoadScaleCommandDef par)
+: base(par)
     {
         Params = par;
     }

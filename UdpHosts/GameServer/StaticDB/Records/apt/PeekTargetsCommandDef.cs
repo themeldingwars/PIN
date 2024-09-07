@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class PeekTargetsCommandDef
+public record class PeekTargetsCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Former { get; set; }

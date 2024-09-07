@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class NetworkStealthCommand : ICommand
+public class NetworkStealthCommand : Command, ICommand
 {
     private NetworkStealthCommandDef Params;
 
     public NetworkStealthCommand(NetworkStealthCommandDef par)
+: base(par)
     {
         Params = par;
     }

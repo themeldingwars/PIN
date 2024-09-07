@@ -3,11 +3,12 @@ using static AeroMessages.GSS.V66.Character.CharacterStateData;
 
 namespace GameServer.Aptitude;
 
-public class TargetByCharacterStateCommand : ICommand
+public class TargetByCharacterStateCommand : Command, ICommand
 {
     private TargetByCharacterStateCommandDef Params;
 
     public TargetByCharacterStateCommand(TargetByCharacterStateCommandDef par)
+: base(par)
     {
         Params = par;
     }

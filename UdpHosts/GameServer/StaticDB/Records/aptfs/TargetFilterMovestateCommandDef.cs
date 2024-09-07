@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class TargetFilterMovestateCommandDef
+public record class TargetFilterMovestateCommandDef : ICommandDef
 {
     public uint Id { get; set; }
     public byte Falling { get; set; }

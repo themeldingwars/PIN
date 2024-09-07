@@ -4,11 +4,12 @@ using static AeroMessages.GSS.V66.Character.CharacterStateData;
 
 namespace GameServer.Aptitude;
 
-public class RequireWeaponArmedCommand : ICommand
+public class RequireWeaponArmedCommand : Command, ICommand
 {
     private RequireWeaponArmedCommandDef Params;
 
     public RequireWeaponArmedCommand(RequireWeaponArmedCommandDef par)
+: base(par)
     {
         Params = par;
     }

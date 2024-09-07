@@ -3,11 +3,12 @@ using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
-public class TargetPBAECommand : ICommand
+public class TargetPBAECommand : Command, ICommand
 {
     private TargetPBAECommandDef Params;
 
     public TargetPBAECommand(TargetPBAECommandDef par)
+: base(par)
     {
         Params = par;
     }

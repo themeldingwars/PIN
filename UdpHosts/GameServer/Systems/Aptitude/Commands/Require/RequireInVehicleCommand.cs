@@ -5,11 +5,12 @@ using GameServer.Entities.Vehicle;
 
 namespace GameServer.Aptitude;
 
-public class RequireInVehicleCommand : ICommand
+public class RequireInVehicleCommand : Command, ICommand
 {
     private RequireInVehicleCommandDef Params;
 
     public RequireInVehicleCommand(RequireInVehicleCommandDef par)
+: base(par)
     {
         Params = par;
     }

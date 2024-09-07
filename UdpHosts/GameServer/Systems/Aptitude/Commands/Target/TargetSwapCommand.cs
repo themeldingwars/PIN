@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class TargetSwapCommand : ICommand
+public class TargetSwapCommand : Command, ICommand
 {
     private TargetSwapCommandDef Params;
 
     public TargetSwapCommand(TargetSwapCommandDef par)
+: base(par)
     {
         Params = par;
     }

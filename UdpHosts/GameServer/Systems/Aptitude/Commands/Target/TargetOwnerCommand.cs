@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class TargetOwnerCommand : ICommand
+public class TargetOwnerCommand : Command, ICommand
 {
     private TargetOwnerCommandDef Params;
 
     public TargetOwnerCommand(TargetOwnerCommandDef par)
+: base(par)
     {
         Params = par;
     }

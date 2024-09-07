@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireHasUnlockCommandDef
+public record class RequireHasUnlockCommandDef : ICommandDef
 {
     public string UnlockType { get; set; }
     public uint UnlockId { get; set; }

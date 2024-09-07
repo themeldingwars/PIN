@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class SetWeaponDamageTypeCommand : ICommand
+public class SetWeaponDamageTypeCommand : Command, ICommand
 {
     private SetWeaponDamageTypeCommandDef Params;
 
     public SetWeaponDamageTypeCommand(SetWeaponDamageTypeCommandDef par)
+: base(par)
     {
         Params = par;
     }

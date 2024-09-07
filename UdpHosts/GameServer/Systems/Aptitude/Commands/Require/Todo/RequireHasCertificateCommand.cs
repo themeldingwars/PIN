@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireHasCertificateCommand : ICommand
+public class RequireHasCertificateCommand : Command, ICommand
 {
     private RequireHasCertificateCommandDef Params;
 
     public RequireHasCertificateCommand(RequireHasCertificateCommandDef par)
+: base(par)
     {
         Params = par;
     }

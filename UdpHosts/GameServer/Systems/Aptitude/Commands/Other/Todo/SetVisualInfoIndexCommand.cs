@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class SetVisualInfoIndexCommand : ICommand
+public class SetVisualInfoIndexCommand : Command, ICommand
 {
     private SetVisualInfoIndexCommandDef Params;
 
     public SetVisualInfoIndexCommand(SetVisualInfoIndexCommandDef par)
+: base(par)
     {
         Params = par;
     }

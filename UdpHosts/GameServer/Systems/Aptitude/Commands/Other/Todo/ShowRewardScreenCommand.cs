@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ShowRewardScreenCommand : ICommand
+public class ShowRewardScreenCommand : Command, ICommand
 {
     private ShowRewardScreenCommandDef Params;
 
     public ShowRewardScreenCommand(ShowRewardScreenCommandDef par)
+: base(par)
     {
         Params = par;
     }

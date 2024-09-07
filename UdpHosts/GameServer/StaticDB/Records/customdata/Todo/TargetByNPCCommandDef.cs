@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record TargetByNPCCommandDef
+public record TargetByNPCCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

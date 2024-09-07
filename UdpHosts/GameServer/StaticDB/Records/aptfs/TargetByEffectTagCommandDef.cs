@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class TargetByEffectTagCommandDef
+public record class TargetByEffectTagCommandDef : ICommandDef
 {
     public uint StackCount { get; set; }
     public uint TagId { get; set; }

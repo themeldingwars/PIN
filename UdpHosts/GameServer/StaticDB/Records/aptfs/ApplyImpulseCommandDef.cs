@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class ApplyImpulseCommandDef
+public record class ApplyImpulseCommandDef : ICommandDef
 {
     public float Loftangle { get; set; }
     public uint Duration { get; set; }

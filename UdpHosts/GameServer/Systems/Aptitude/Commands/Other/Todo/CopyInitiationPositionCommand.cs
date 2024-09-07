@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class CopyInitiationPositionCommand : ICommand
+public class CopyInitiationPositionCommand : Command, ICommand
 {
     private CopyInitiationPositionCommandDef Params;
 
     public CopyInitiationPositionCommand(CopyInitiationPositionCommandDef par)
+: base(par)
     {
         Params = par;
     }

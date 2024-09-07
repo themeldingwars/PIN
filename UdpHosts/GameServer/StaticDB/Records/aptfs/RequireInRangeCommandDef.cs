@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireInRangeCommandDef
+public record class RequireInRangeCommandDef : ICommandDef
 {
     public float Range { get; set; }
     public uint Id { get; set; }

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ModifyDamageForInflictCommand : ICommand
+public class ModifyDamageForInflictCommand : Command, ICommand
 {
     private ModifyDamageForInflictCommandDef Params;
 
     public ModifyDamageForInflictCommand(ModifyDamageForInflictCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class StatRequirementCommandDef
+public record class StatRequirementCommandDef : ICommandDef
 {
     public float Value { get; set; }
     public uint Id { get; set; }

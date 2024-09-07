@@ -4,11 +4,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class TargetInitiatorCommand : ICommand
+public class TargetInitiatorCommand : Command, ICommand
 {
     private TargetInitiatorCommandDef Params;
 
     public TargetInitiatorCommand(TargetInitiatorCommandDef par)
+: base(par)
     {
         Params = par;
     }

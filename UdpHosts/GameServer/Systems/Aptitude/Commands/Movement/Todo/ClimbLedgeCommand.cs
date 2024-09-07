@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class ClimbLedgeCommand : ICommand
+public class ClimbLedgeCommand : Command, ICommand
 {
     private ClimbLedgeCommandDef Params;
 
     public ClimbLedgeCommand(ClimbLedgeCommandDef par)
+: base(par)
     {
         Params = par;
     }

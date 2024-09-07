@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireResourceFromTargetCommandDef
+public record class RequireResourceFromTargetCommandDef : ICommandDef
 {
     public int Amount { get; set; }
     public uint ResourceSdbId { get; set; }

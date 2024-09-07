@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class PushTargetsCommand : ICommand
+public class PushTargetsCommand : Command, ICommand
 {
     private PushTargetsCommandDef Params;
 
     public PushTargetsCommand(PushTargetsCommandDef par)
+: base(par)
     {
         Params = par;
     }

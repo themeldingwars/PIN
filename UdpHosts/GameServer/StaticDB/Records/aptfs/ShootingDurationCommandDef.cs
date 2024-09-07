@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class ShootingDurationCommandDef
+public record class ShootingDurationCommandDef : ICommandDef
 {
     public int Timeoffset { get; set; }
     public uint Id { get; set; }

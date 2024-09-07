@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class PassiveInitiationCommand : ICommand
+public class PassiveInitiationCommand : Command, ICommand
 {
     private PassiveInitiationCommandDef Params;
 
     public PassiveInitiationCommand(PassiveInitiationCommandDef par)
+: base(par)
     {
         Params = par;
     }

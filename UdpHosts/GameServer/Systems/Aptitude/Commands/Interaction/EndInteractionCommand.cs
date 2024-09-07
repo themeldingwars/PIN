@@ -12,9 +12,12 @@ namespace GameServer.Aptitude;
 
 public class EndInteractionCommand : ICommand
 {
-    public EndInteractionCommand()
+    public EndInteractionCommand(uint id)
     {
+        Id = id;
     }
+
+    public uint Id { get; set; } 
 
     public bool Execute(Context context)
     {

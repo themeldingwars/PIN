@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class EncounterSignalCommand : ICommand
+public class EncounterSignalCommand : Command, ICommand
 {
     private EncounterSignalCommandDef Params;
 
     public EncounterSignalCommand(EncounterSignalCommandDef par)
+: base(par)
     {
         Params = par;
     }

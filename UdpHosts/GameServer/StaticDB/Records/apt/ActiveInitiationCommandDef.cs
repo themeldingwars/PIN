@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class ActiveInitiationCommandDef
+public record class ActiveInitiationCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

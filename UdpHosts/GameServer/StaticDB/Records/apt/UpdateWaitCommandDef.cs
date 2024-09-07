@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class UpdateWaitCommandDef
+public record class UpdateWaitCommandDef : ICommandDef
 {
 
     public uint Id { get; set; }

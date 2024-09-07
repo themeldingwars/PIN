@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class LogicNegateCommand : ICommand
+public class LogicNegateCommand : Command, ICommand
 {
     private LogicNegateCommandDef Params;
 
     public LogicNegateCommand(LogicNegateCommandDef par)
+: base(par)
     {
         Params = par;
     }

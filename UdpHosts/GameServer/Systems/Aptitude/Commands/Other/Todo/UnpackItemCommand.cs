@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class UnpackItemCommand : ICommand
+public class UnpackItemCommand : Command, ICommand
 {
     private UnpackItemCommandDef Params;
 
     public UnpackItemCommand(UnpackItemCommandDef par)
+: base(par)
     {
         Params = par;
     }

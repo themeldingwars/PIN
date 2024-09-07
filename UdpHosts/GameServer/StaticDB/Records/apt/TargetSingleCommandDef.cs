@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class TargetSingleCommandDef
+public record class TargetSingleCommandDef : ICommandDef
 {
     public float Range { get; set; }
     public uint Id { get; set; }

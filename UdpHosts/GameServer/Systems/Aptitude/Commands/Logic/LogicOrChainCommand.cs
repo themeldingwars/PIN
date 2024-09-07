@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class LogicOrChainCommand : ICommand
+public class LogicOrChainCommand : Command, ICommand
 {
     private LogicOrChainCommandDef Params;
 
     public LogicOrChainCommand(LogicOrChainCommandDef par)
+: base(par)
     {
         Params = par;
     }

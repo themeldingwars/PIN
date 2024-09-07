@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record ModifyHostilityCommandDef
+public record ModifyHostilityCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

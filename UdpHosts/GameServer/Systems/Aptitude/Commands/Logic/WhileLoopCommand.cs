@@ -2,12 +2,13 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class WhileLoopCommand : ICommand
+public class WhileLoopCommand : Command, ICommand
 {
     private const uint MaximumLaps = 100;
     private WhileLoopCommandDef Params;
 
     public WhileLoopCommand(WhileLoopCommandDef par)
+: base(par)
     {
         Params = par;
     }

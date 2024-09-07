@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class RegisterRandomCommandDef
+public record class RegisterRandomCommandDef : ICommandDef
 {
     public float MinValue { get; set; }
     public float MaxValue { get; set; }

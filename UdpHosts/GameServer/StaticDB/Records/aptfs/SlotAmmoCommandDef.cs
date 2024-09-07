@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class SlotAmmoCommandDef
+public record class SlotAmmoCommandDef : ICommandDef
 {
     public uint AmmoType { get; set; }
     public float WeaponDamageAdd { get; set; }

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class ConditionalBranchCommand : ICommand
+public class ConditionalBranchCommand : Command, ICommand
 {
     private ConditionalBranchCommandDef Params;
 
     public ConditionalBranchCommand(ConditionalBranchCommandDef par)
+: base(par)
     {
         Params = par;
     }

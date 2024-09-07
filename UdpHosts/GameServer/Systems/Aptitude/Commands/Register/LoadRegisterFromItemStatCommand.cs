@@ -8,11 +8,12 @@ using SharpCompress;
 
 namespace GameServer.Aptitude;
 
-public class LoadRegisterFromItemStatCommand : ICommand
+public class LoadRegisterFromItemStatCommand : Command, ICommand
 {
     private LoadRegisterFromItemStatCommandDef Params;
 
     public LoadRegisterFromItemStatCommand(LoadRegisterFromItemStatCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class UpdateWaitAndFireOnceCommandDef
+public record class UpdateWaitAndFireOnceCommandDef : ICommandDef
 {
     public uint Chain { get; set; }
     public uint Duration { get; set; }    

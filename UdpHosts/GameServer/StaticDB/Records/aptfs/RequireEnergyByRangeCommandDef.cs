@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireEnergyByRangeCommandDef
+public record class RequireEnergyByRangeCommandDef : ICommandDef
 {
     public float MinRange { get; set; }
     public float MaxRange { get; set; }

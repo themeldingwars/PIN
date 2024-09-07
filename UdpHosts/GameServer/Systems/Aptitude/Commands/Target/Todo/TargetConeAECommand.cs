@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class TargetConeAECommand : ICommand
+public class TargetConeAECommand : Command, ICommand
 {
     private TargetConeAECommandDef Params;
 
     public TargetConeAECommand(TargetConeAECommandDef par)
+: base(par)
     {
         Params = par;
     }

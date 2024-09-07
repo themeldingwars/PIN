@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class TemporaryEquipmentStatMappingCommand : ICommand
+public class TemporaryEquipmentStatMappingCommand : Command, ICommand
 {
     private TemporaryEquipmentStatMappingCommandDef Params;
 
     public TemporaryEquipmentStatMappingCommand(TemporaryEquipmentStatMappingCommandDef par)
+: base(par)
     {
         Params = par;
     }

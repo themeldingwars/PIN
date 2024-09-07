@@ -1,6 +1,6 @@
 namespace GameServer.Data.SDB.Records.customdata;
 
-public record FallToGroundCommandDef
+public record FallToGroundCommandDef : ICommandDef
 {
     public uint Id { get; set; }
 }

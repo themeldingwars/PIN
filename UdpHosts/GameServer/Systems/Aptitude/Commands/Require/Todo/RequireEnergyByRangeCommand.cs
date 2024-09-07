@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireEnergyByRangeCommand : ICommand
+public class RequireEnergyByRangeCommand : Command, ICommand
 {
     private RequireEnergyByRangeCommandDef Params;
 
     public RequireEnergyByRangeCommand(RequireEnergyByRangeCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireHasEffectCommandDef
+public record class RequireHasEffectCommandDef : ICommandDef
 {
     public uint StackCount { get; set; }
     public uint EffectId { get; set; }

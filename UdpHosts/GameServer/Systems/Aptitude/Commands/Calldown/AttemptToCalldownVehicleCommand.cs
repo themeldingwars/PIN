@@ -4,11 +4,12 @@ using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
-public class AttemptToCalldownVehicleCommand : ICommand
+public class AttemptToCalldownVehicleCommand : Command, ICommand
 {
     private AttemptToCalldownVehicleCommandDef Params;
 
     public AttemptToCalldownVehicleCommand(AttemptToCalldownVehicleCommandDef par)
+: base(par)
     {
         Params = par;
     }

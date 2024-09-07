@@ -8,11 +8,12 @@ using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
-public class ApplyFreezeCommand : ICommand
+public class ApplyFreezeCommand : Command, ICommand
 {
     private ApplyFreezeCommandDef Params;
 
     public ApplyFreezeCommand(ApplyFreezeCommandDef par)
+: base(par)
     {
         Params = par;
     }

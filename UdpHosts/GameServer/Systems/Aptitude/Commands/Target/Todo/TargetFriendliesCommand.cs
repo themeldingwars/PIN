@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class TargetFriendliesCommand : ICommand
+public class TargetFriendliesCommand : Command, ICommand
 {
     private TargetFriendliesCommandDef Params;
 
     public TargetFriendliesCommand(TargetFriendliesCommandDef par)
+: base(par)
     {
         Params = par;
     }

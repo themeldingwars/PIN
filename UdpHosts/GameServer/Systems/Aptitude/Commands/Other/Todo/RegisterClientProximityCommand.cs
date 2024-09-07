@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RegisterClientProximityCommand : ICommand
+public class RegisterClientProximityCommand : Command, ICommand
 {
     private RegisterClientProximityCommandDef Params;
 
     public RegisterClientProximityCommand(RegisterClientProximityCommandDef par)
+: base(par)
     {
         Params = par;
     }

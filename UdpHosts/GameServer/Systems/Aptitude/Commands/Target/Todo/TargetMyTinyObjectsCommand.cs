@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class TargetMyTinyObjectsCommand : ICommand
+public class TargetMyTinyObjectsCommand : Command, ICommand
 {
     private TargetMyTinyObjectsCommandDef Params;
 
     public TargetMyTinyObjectsCommand(TargetMyTinyObjectsCommandDef par)
+: base(par)
     {
         Params = par;
     }

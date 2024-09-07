@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class StartArcCommand : ICommand
+public class StartArcCommand : Command, ICommand
 {
     private StartArcCommandDef Params;
 
     public StartArcCommand(StartArcCommandDef par)
+: base(par)
     {
         Params = par;
     }

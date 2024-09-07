@@ -2,11 +2,12 @@
 
 namespace GameServer.Aptitude;
 
-public class TargetDifferenceCommand : ICommand
+public class TargetDifferenceCommand : Command, ICommand
 {
     private TargetDifferenceCommandDef Params;
 
     public TargetDifferenceCommand(TargetDifferenceCommandDef par)
+: base(par)
     {
         Params = par;
     }

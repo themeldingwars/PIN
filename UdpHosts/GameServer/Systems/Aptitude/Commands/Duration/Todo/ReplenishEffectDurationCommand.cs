@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ReplenishEffectDurationCommand : ICommand
+public class ReplenishEffectDurationCommand : Command, ICommand
 {
     private ReplenishEffectDurationCommandDef Params;
 
     public ReplenishEffectDurationCommand(ReplenishEffectDurationCommandDef par)
+: base(par)
     {
         Params = par;
     }

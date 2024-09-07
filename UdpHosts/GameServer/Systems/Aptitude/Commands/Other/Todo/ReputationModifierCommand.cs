@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class ReputationModifierCommand : ICommand
+public class ReputationModifierCommand : Command, ICommand
 {
     private ReputationModifierCommandDef Params;
 
     public ReputationModifierCommand(ReputationModifierCommandDef par)
+: base(par)
     {
         Params = par;
     }

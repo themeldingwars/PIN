@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireSuperChargeCommand : ICommand
+public class RequireSuperChargeCommand : Command, ICommand
 {
     private RequireSuperChargeCommandDef Params;
 
     public RequireSuperChargeCommand(RequireSuperChargeCommandDef par)
+: base(par)
     {
         Params = par;
     }

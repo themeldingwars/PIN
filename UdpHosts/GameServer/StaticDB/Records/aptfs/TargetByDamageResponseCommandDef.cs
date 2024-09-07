@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class TargetByDamageResponseCommandDef
+public record class TargetByDamageResponseCommandDef : ICommandDef
 {
     public uint DamageresponseId { get; set; }
     public float VulnerableTol { get; set; }

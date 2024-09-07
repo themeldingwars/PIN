@@ -8,11 +8,12 @@ using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
-public class StatModifierCommand : ICommand
+public class StatModifierCommand : Command, ICommand
 {
     private StatModifierCommandDef Params;
 
     public StatModifierCommand(StatModifierCommandDef par)
+: base(par)
     {
         Params = par;
     }

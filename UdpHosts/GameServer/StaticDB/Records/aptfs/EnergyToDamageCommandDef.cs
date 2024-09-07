@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class EnergyToDamageCommandDef
+public record class EnergyToDamageCommandDef : ICommandDef
 {
     public float MaxEnergyAllowed { get; set; }
     public float EnergyPerPoint { get; set; }

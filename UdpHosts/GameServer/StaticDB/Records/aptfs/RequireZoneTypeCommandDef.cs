@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class RequireZoneTypeCommandDef
+public record class RequireZoneTypeCommandDef : ICommandDef
 {
     public uint SpecificZoneId { get; set; }
     public uint Id { get; set; }

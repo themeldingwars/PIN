@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class DeployableCalldownCommand : ICommand
+public class DeployableCalldownCommand : Command, ICommand
 {
     private DeployableCalldownCommandDef Params;
 
     public DeployableCalldownCommand(DeployableCalldownCommandDef par)
+: base(par)
     {
         Params = par;
     }

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
 
-public class TargetTrimCommand : ICommand
+public class TargetTrimCommand : Command, ICommand
 {
     private TargetTrimCommandDef Params;
 
     public TargetTrimCommand(TargetTrimCommandDef par)
+: base(par)
     {
         Params = par;
     }

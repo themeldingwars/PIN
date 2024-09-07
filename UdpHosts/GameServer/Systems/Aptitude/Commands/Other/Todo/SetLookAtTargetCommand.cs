@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class SetLookAtTargetCommand : ICommand
+public class SetLookAtTargetCommand : Command, ICommand
 {
     private SetLookAtTargetCommandDef Params;
 
     public SetLookAtTargetCommand(SetLookAtTargetCommandDef par)
+: base(par)
     {
         Params = par;
     }

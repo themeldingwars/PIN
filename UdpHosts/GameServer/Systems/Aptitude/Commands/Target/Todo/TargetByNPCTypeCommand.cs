@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class TargetByNPCTypeCommand : ICommand
+public class TargetByNPCTypeCommand : Command, ICommand
 {
     private TargetByNPCTypeCommandDef Params;
 
     public TargetByNPCTypeCommand(TargetByNPCTypeCommandDef par)
+: base(par)
     {
         Params = par;
     }

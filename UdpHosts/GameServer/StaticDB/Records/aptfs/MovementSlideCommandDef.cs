@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class MovementSlideCommandDef
+public record class MovementSlideCommandDef : ICommandDef
 {
     public float OffsetY { get; set; }
     public uint MoveDuration { get; set; }

@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;
 
-public class RequireAimModeCommand : ICommand
+public class RequireAimModeCommand : Command, ICommand
 {
     private RequireAimModeCommandDef Params;
 
     public RequireAimModeCommand(RequireAimModeCommandDef par)
+: base(par)
     {
         Params = par;
     }

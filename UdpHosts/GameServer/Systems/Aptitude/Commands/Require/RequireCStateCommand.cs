@@ -4,11 +4,12 @@ using static AeroMessages.GSS.V66.Character.CharacterStateData;
 
 namespace GameServer.Aptitude;
 
-public class RequireCStateCommand : ICommand
+public class RequireCStateCommand : Command, ICommand
 {
     private RequireCStateCommandDef Params;
 
     public RequireCStateCommand(RequireCStateCommandDef par)
+: base(par)
     {
         Params = par;
     }

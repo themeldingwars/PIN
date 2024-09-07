@@ -2,11 +2,12 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 
-public class RequireInitiatorExistsCommand : ICommand
+public class RequireInitiatorExistsCommand : Command, ICommand
 {
     private RequireInitiatorExistsCommandDef Params;
 
     public RequireInitiatorExistsCommand(RequireInitiatorExistsCommandDef par)
+: base(par)
     {
         Params = par;
     }

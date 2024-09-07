@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.apt;
-public record class AimRangeDurationCommandDef
+public record class AimRangeDurationCommandDef : ICommandDef
 {
     public float Minslope { get; set; }
     public float Range { get; set; }

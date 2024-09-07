@@ -1,5 +1,5 @@
 namespace GameServer.Data.SDB.Records.aptfs;
-public record class UiNamedVariableCommandDef
+public record class UiNamedVariableCommandDef : ICommandDef
 {
     public string MemberName { get; set; }
     public string UiName { get; set; }
