@@ -278,13 +278,6 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         return closestOutpostId;
     }
 
-    public void TestRayCast()
-    {
-        var pos = CharacterEntity.Position;
-        var dir = CharacterEntity.AimDirection;
-        AssignedShard.Physics.CreateTestFireRayCast(CharacterEntity, dir);
-    }
-
     public void HandleFireWeaponProjectile(uint time, Vector3 aim)
     {
         AssignedShard.WeaponSim.OnFireWeaponProjectile(CharacterEntity, time, aim);

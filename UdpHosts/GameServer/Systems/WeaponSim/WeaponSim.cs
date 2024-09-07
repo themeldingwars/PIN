@@ -60,7 +60,7 @@ public class WeaponSim
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
         
         // Projectile origin
-        var origin = GetProjectileOrigin(entity, localAimDir);
+        var origin = entity.GetProjectileOrigin(localAimDir);
 
         // Determine number of rounds to fire with this proj
         // If weapon has burst duration, we expect to receive multiple proj calls and only fire 1.
@@ -148,21 +148,6 @@ public class WeaponSim
         }
 
         return spreadPct;
-    }
-
-    private Vector3 GetProjectileOrigin(CharacterEntity entity, Vector3 aimDirection)
-    {
-        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
-        if (entity.IsCrouching)
-        {
-            muzzleBase.Z = 1.08f;
-        }
-
-        var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(entity.Rotation)); // Match the characters orientation
-        var muzzleOffset = new Vector3(aimDirection.X, aimDirection.Y, aimDirection.Z) * 0.1f; // Offset like a sphere based on aim
-        var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
-        var origin = entity.Position + muzzleOffsetWorld; // Translate to character
-        return origin;
     }
 
     /*

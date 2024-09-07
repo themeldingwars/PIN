@@ -7,6 +7,7 @@ using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.View;
+using BepuUtilities;
 using GameServer.Aptitude;
 using GameServer.Data;
 using GameServer.Data.SDB;
@@ -1124,6 +1125,26 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         };
     }
 #nullable disable
+
+    public Vector3 GetProjectileOrigin()
+    {
+        return GetProjectileOrigin(AimDirection);
+    }
+
+    public Vector3 GetProjectileOrigin(Vector3 aimDirection)
+    {
+        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
+        if (IsCrouching)
+        {
+            muzzleBase.Z = 1.08f;
+        }
+
+        var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(Rotation)); // Match the characters orientation
+        var muzzleOffset = new Vector3(aimDirection.X, aimDirection.Y, aimDirection.Z) * 0.1f; // Offset like a sphere based on aim
+        var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
+        var origin = Position + muzzleOffsetWorld; // Translate to character
+        return origin;
+    }
 
     private void InitFields()
     {

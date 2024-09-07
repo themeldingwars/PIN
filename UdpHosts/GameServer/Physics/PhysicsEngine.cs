@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -8,6 +9,7 @@ using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using GameServer.Entities;
 using GameServer.Entities.Character;
 using Serilog;
 
@@ -20,6 +22,7 @@ public class PhysicsEngine
     private Shard _shard;
     private ILogger _logger;
     private TypedIndex _defaultCharacterShape;
+    private Dictionary<BodyHandle, ulong> _bodyToEntityId = new();
 
     public PhysicsEngine(Shard shard)
     {
@@ -62,7 +65,9 @@ public class PhysicsEngine
     public BodyHandle CreateKineticEntity(CharacterEntity entity)
     {
         var pose = new RigidPose { Position = entity.Position, Orientation = entity.Rotation };
-        return Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, _defaultCharacterShape, -1));
+        var body = Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, _defaultCharacterShape, -1));
+        _bodyToEntityId[body] = entity.EntityId;
+        return body;
     }
 
     public void UpdateEntity(CharacterEntity entity)
@@ -73,30 +78,31 @@ public class PhysicsEngine
         currentPose.Orientation = entity.Rotation;
     }
 
-    public BodyDescription CreateTestBall(Vector3 pos)
+    public void ProjectileRayCast(Vector3 origin, Vector3 direction, CharacterEntity source, uint trace)
     {
-        var bulletShape = new Sphere(3f);
-        var bulletDescription = BodyDescription.CreateDynamic(new Vector3(), bulletShape.ComputeInertia(100), new(Simulation.Shapes.Add(bulletShape), 0.1f), 0.01f);
-        bulletDescription.Pose.Position = pos;
-        Simulation.Bodies.Add(bulletDescription);
-        return bulletDescription;
-    }
-
-    public void CreateTestRayCast(Vector3 pos, Vector3 dir)
-    {
-        Console.WriteLine($"CreateTestRayCast from {pos} towards {dir}");
+        var speed = 500f;
+        var maxRange = 500f;
+        
+        SendDebugProjectileSpawn(source, trace, origin, direction, speed);
 
         var hitHandler = default(RayHitHandler);
-        hitHandler.T = float.MaxValue;
-        
-        Simulation.RayCast(pos, dir, float.MaxValue, ref hitHandler);
-        if (hitHandler.T < float.MaxValue)
+        hitHandler.T = maxRange;
+        hitHandler.AvoidSourceBody = true;
+        hitHandler.SourceBody = source.BodyHandle;
+
+        Simulation.RayCast(origin, direction, float.MaxValue, ref hitHandler);
+        if (hitHandler.T < maxRange)
         {   
-            var posEst = pos + (dir * hitHandler.T);
-            Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {posEst}");
-            if (hitHandler.HitCollidable.Mobility == CollidableMobility.Static)
+            var hitPosition = origin + (direction * hitHandler.T);
+            Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {hitPosition}");
+
+            SendDebugProjectileImpact(source, trace, hitPosition, hitHandler.Normal);
+
+            if (hitHandler.HitCollidable.Mobility == CollidableMobility.Kinematic)
             {
-                Console.WriteLine($"Static Origin At {Simulation.Statics.GetStaticReference(hitHandler.HitCollidable.StaticHandle).Pose.Position}");
+                var bodyPosition = Simulation.Bodies[hitHandler.HitCollidable.BodyHandle].Pose.Position;
+                bodyPosition.Z -= 0.9f;
+                SendDebugProjectilePoseHit(source, trace, hitPosition, bodyPosition);
             }
         }
         else
@@ -105,7 +111,37 @@ public class PhysicsEngine
         }
     }
 
-    public void SendDebugProjectileSpawn(CharacterEntity source, uint traceId, Vector3 origin, Vector3 direction, float speed)
+    public (bool, Vector3, ulong) TargetRayCast(Vector3 origin, Vector3 direction, CharacterEntity source, float maxRange = 500f)
+    {
+        bool outHit = false;
+        Vector3 outPos = Vector3.Zero;
+        ulong outEnt = 0;
+
+        var hitHandler = default(RayHitHandler);
+        hitHandler.T = maxRange;
+        hitHandler.AvoidSourceBody = true;
+        hitHandler.SourceBody = source.BodyHandle;
+        Simulation.RayCast(origin, direction, float.MaxValue, ref hitHandler);
+        if (hitHandler.T < maxRange)
+        {   
+            outHit = true;
+            outPos = origin + (direction * hitHandler.T);
+            outEnt = _bodyToEntityId[hitHandler.HitCollidable.BodyHandle];
+        }
+
+        return (outHit, outPos, outEnt);
+    }
+    
+    private BodyDescription CreateTestBall(Vector3 pos)
+    {
+        var bulletShape = new Sphere(3f);
+        var bulletDescription = BodyDescription.CreateDynamic(new Vector3(), bulletShape.ComputeInertia(100), new(Simulation.Shapes.Add(bulletShape), 0.1f), 0.01f);
+        bulletDescription.Pose.Position = pos;
+        Simulation.Bodies.Add(bulletDescription);
+        return bulletDescription;
+    }
+
+    private void SendDebugProjectileSpawn(CharacterEntity source, uint traceId, Vector3 origin, Vector3 direction, float speed)
     {
         var rayVector = direction * speed;
         var msg = new TookDebugWeaponHit
@@ -126,7 +162,7 @@ public class PhysicsEngine
         }
     }
 
-    public void SendDebugProjectileImpact(CharacterEntity source, uint traceId, Vector3 position, Vector3 normal)
+    private void SendDebugProjectileImpact(CharacterEntity source, uint traceId, Vector3 position, Vector3 normal)
     {
         var msg = new TookDebugWeaponHit
         {
@@ -146,7 +182,7 @@ public class PhysicsEngine
         }
     }
 
-    public void SendDebugProjectilePoseHit(CharacterEntity source, uint traceId, Vector3 markerOrigin, Vector3 poseOrigin)
+    private void SendDebugProjectilePoseHit(CharacterEntity source, uint traceId, Vector3 markerOrigin, Vector3 poseOrigin)
     {
         var msg = new TookDebugWeaponHit
         {
@@ -176,78 +212,7 @@ public class PhysicsEngine
         }
     }
 
-    public void ProjectileRayCast(Vector3 origin, Vector3 direction, CharacterEntity source, uint trace)
-    {
-        var speed = 500f;
-        var maxRange = 500f;
-        
-        SendDebugProjectileSpawn(source, trace, origin, direction, speed);
-
-        var hitHandler = default(RayHitHandlerFire);
-        hitHandler.T = maxRange;
-        hitHandler.AvoidSourceBody = true;
-        hitHandler.SourceBody = source.BodyHandle;
-
-        Simulation.RayCast(origin, direction, float.MaxValue, ref hitHandler);
-        if (hitHandler.T < maxRange)
-        {   
-            var hitPosition = origin + (direction * hitHandler.T);
-            Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {hitPosition}");
-
-            SendDebugProjectileImpact(source, trace, hitPosition, hitHandler.Normal);
-
-            if (hitHandler.HitCollidable.Mobility == CollidableMobility.Kinematic)
-            {
-                var bodyPosition = Simulation.Bodies[hitHandler.HitCollidable.BodyHandle].Pose.Position;
-                bodyPosition.Z -= 0.9f;
-                SendDebugProjectilePoseHit(source, trace, hitPosition, bodyPosition);
-            }
-        }
-        else
-        {
-            Console.WriteLine($"Nothing hit");
-        }
-    }
-
-    public void CreateTestFireRayCast(CharacterEntity source, Vector3 direction)
-    {
-        var projectileOffset = new Vector3(0.2f, 0.1f, 0f);
-        var projectileBase = new Vector3(0f, 0f, 1.62f);
-        var muzzleOffset = projectileBase + projectileOffset;
-        var invQ = QuaternionEx.Inverse(source.Rotation);
-        var origin = source.Position + QuaternionEx.Transform(muzzleOffset, invQ);
-        
-        uint traceId = 11111;
-        var speed = 500f;
-        var maxRange = 500f;
-        var hitHandler = default(RayHitHandlerFire);
-        hitHandler.T = maxRange;
-        hitHandler.AvoidSourceBody = true;
-        hitHandler.SourceBody = source.BodyHandle;
-
-        SendDebugProjectileSpawn(source, traceId, origin, direction, speed);
-        Simulation.RayCast(origin, direction, float.MaxValue, ref hitHandler);
-        if (hitHandler.T < maxRange)
-        {   
-            var hitPosition = origin + (direction * hitHandler.T);
-            Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {hitPosition}");
-
-            SendDebugProjectileImpact(source, traceId, hitPosition, hitHandler.Normal);
-
-            if (hitHandler.HitCollidable.Mobility == CollidableMobility.Kinematic)
-            {
-                var bodyPosition = Simulation.Bodies[hitHandler.HitCollidable.BodyHandle].Pose.Position;
-                bodyPosition.Z -= 0.9f;
-                SendDebugProjectilePoseHit(source, traceId, hitPosition, bodyPosition);
-            }
-        }
-        else
-        {
-            Console.WriteLine($"Nothing hit");
-        }
-    }
-
-    public struct RayHitHandlerFire : IRayHitHandler
+    private struct RayHitHandler : IRayHitHandler
     {
         public float T;
         public CollidableReference HitCollidable;
@@ -288,36 +253,6 @@ public class PhysicsEngine
             T = t;
             HitCollidable = collidable;
             Normal = normal;
-        }
-    }
-
-    public struct RayHitHandler : IRayHitHandler
-    {
-        public float T;
-        public CollidableReference HitCollidable;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AllowTest(CollidableReference collidable)
-        {
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AllowTest(CollidableReference collidable, int childIndex)
-        {
-            return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
-        {
-            // We are only interested in the earliest hit. This callback is executing within the traversal, so modifying maximumT informs the traversal
-            // that it can skip any AABBs which are more distant than the new maximumT.
-            maximumT = t;
-
-            // Cache the earliest impact.
-            T = t;
-            HitCollidable = collidable;
         }
     }
 }
