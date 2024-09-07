@@ -1,4 +1,5 @@
 using AeroMessages.GSS.V66.Character;
+using GameServer.Entities.Character;
 
 namespace GameServer.Admin;
 
@@ -21,11 +22,15 @@ public class SetCombatFlagsServerCommand : ServerCommand
         }
 
         var character = context.SourcePlayer.CharacterEntity;
+        if (context.Target != null && context.Target is CharacterEntity commandTarget)
+        {
+            character = commandTarget;
+        }
 
         var value = new CombatFlagsData { Value = (CombatFlagsData.CharacterCombatFlags)flags, Time = context.Shard.CurrentTime };
 
         character.SetCombatFlags(value);
         
-        SourceFeedback($"Setting combat flags to {flags}", context);
+        SourceFeedback($"Setting {character} combat flags to {flags}", context);
     }
 }

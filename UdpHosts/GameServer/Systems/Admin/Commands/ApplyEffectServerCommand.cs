@@ -20,8 +20,6 @@ public class ApplyEffectServerCommand : ServerCommand
             return;
         }
 
-        var shard = context.Shard;
-        var character = context.SourcePlayer.CharacterEntity;
         uint effectId = ParseUIntParameter(parameters[0]);
         if (SDBInterface.GetStatusEffectData(effectId) == null)
         {
@@ -29,7 +27,15 @@ public class ApplyEffectServerCommand : ServerCommand
             return;
         }
 
-        shard.Abilities.DoApplyEffect(effectId, character, new Context(shard, character)
+        IAptitudeTarget initiator = context.SourcePlayer.CharacterEntity;
+        IAptitudeTarget target = context.SourcePlayer.CharacterEntity;
+        if (context.Target != null && context.Target is IAptitudeTarget commandTarget)
+        {
+            target = commandTarget;
+        }
+
+        var shard = context.Shard;
+        shard.Abilities.DoApplyEffect(effectId, target, new Context(shard, initiator)
         {
             InitTime = shard.CurrentTime,
         });

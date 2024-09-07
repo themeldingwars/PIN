@@ -1,4 +1,5 @@
 using AeroMessages.GSS.V66.Character.Event;
+using GameServer.Entities.Character;
 
 namespace GameServer.Admin;
 
@@ -18,10 +19,21 @@ public class CancelForcedMovementServerCommand : ServerCommand
             SourceFeedback("Invalid arguments", context);
             return;
         }
-        
-        uint commandId = ParseUIntParameter(parameters[0]);
+
         var character = context.SourcePlayer.CharacterEntity;
+        if (context.Target != null && context.Target is CharacterEntity commandTarget)
+        {
+            character = commandTarget;
+        }
+
+        if (!character.IsPlayerControlled)
+        {
+            SourceFeedback("Can only cancel for player controlled characters", context);
+            return;
+        }
+
         var player = character.Player;
+        uint commandId = ParseUIntParameter(parameters[0]);
         var message = new ForcedMovementCancelled
         {
             CommandId = commandId,

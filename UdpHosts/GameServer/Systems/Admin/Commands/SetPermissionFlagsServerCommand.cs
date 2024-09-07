@@ -1,4 +1,4 @@
-using AeroMessages.GSS.V66.Character;
+using GameServer.Entities.Character;
 using static AeroMessages.GSS.V66.Character.Controller.PermissionFlagsData;
 
 namespace GameServer.Admin;
@@ -16,6 +16,10 @@ public class SetPermissionFlagsServerCommand : ServerCommand
         }
 
         var character = context.SourcePlayer.CharacterEntity;
+        if (context.Target != null && context.Target is CharacterEntity commandTarget)
+        {
+            character = commandTarget;
+        }
 
         bool newFloatValue = !character.CurrentPermissions[CharacterPermissionFlags.cheat_float];
         character.SetPermissionFlag(CharacterPermissionFlags.cheat_float, newFloatValue);

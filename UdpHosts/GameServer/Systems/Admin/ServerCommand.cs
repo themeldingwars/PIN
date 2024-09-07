@@ -25,6 +25,19 @@ public abstract class ServerCommand
         }
     }
 
+    public ulong ParseULongParameter(string value)
+    {
+        if (ulong.TryParse(value, out ulong result))
+        {
+            return result;
+        }
+        else
+        {
+            Console.WriteLine($"Invalid format: {value}");
+            return 0;
+        }
+    }
+
     public Vector3? ParseVector3Parameters(string[] parameters, int startIndex = 0)
     {
         if (startIndex < 0 || startIndex >= parameters.Length)

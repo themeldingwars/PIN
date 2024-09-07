@@ -19,14 +19,16 @@ namespace GameServer;
 
 public class AdminService
 {
-    private readonly Dictionary<string, Type> commandDictionary;
-    private Shard Shard;
+    private readonly Dictionary<string, Type> _commandDictionary;
+    private Dictionary<INetworkPlayer, IEntity> _targetDictionary;
+    private Shard _shard;
 
     public AdminService(Shard shard)
     {
-        Shard = shard;
+        _shard = shard;
+        _commandDictionary = new Dictionary<string, Type>();
+        _targetDictionary = new Dictionary<INetworkPlayer, IEntity>();
 
-        commandDictionary = new Dictionary<string, Type>();
         LoadCommands();
     }
 
@@ -35,7 +37,7 @@ public class AdminService
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("Available Commands:");
 
-        foreach (var commandType in commandDictionary.Values.Distinct())
+        foreach (var commandType in _commandDictionary.Values.Distinct())
         {
             var command = Activator.CreateInstance(commandType) as ServerCommand;
             var attribute = commandType.GetCustomAttribute<ServerCommandAttribute>();
@@ -49,16 +51,26 @@ public class AdminService
     {
         var (commandName, parameters) = ParseCommand(input);
 
-        if (commandDictionary.TryGetValue(commandName.ToLower(), out var commandType))
+        if (_commandDictionary.TryGetValue(commandName.ToLower(), out var commandType))
         {
             var command = Activator.CreateInstance(commandType) as ServerCommand;
-            command.Execute(parameters, new() { Shard = Shard, SourcePlayer = sourcePlayer });
+            command.Execute(parameters, new() { Service = this, Shard = _shard, SourcePlayer = sourcePlayer, Target = _targetDictionary.GetValueOrDefault(sourcePlayer) });
         }
         else
         {
             Console.WriteLine($"Unknown command: {commandName}");
             sourcePlayer?.SendDebugChat($"Unknown command: {commandName}");
         }
+    }
+
+    public void SetTarget(INetworkPlayer player, IEntity target)
+    {
+        _targetDictionary[player] = target;
+    }
+
+    public void ClearTarget(INetworkPlayer player)
+    {
+        _targetDictionary.Remove(player);
     }
 
     private (string commandName, string[] parameters) ParseCommand(string input)
@@ -83,7 +95,7 @@ public class AdminService
             {
                 foreach (var name in attribute.Names)
                 {
-                    commandDictionary.Add(name.ToLower(), commandType);
+                    _commandDictionary.Add(name.ToLower(), commandType);
                 }
             }
         }

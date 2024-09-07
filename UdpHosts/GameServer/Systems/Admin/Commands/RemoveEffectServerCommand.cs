@@ -20,8 +20,6 @@ public class RemoveEffectServerCommand : ServerCommand
             return;
         }
 
-        var shard = context.Shard;
-        var character = context.SourcePlayer.CharacterEntity;
         uint effectId = ParseUIntParameter(parameters[0]);
         if (SDBInterface.GetStatusEffectData(effectId) == null)
         {
@@ -29,6 +27,13 @@ public class RemoveEffectServerCommand : ServerCommand
             return;
         }
 
-        shard.Abilities.DoRemoveEffect(character, effectId);
+        var shard = context.Shard;
+        IAptitudeTarget target = context.SourcePlayer.CharacterEntity;
+        if (context.Target != null && context.Target is IAptitudeTarget commandTarget)
+        {
+            target = commandTarget;
+        }
+
+        shard.Abilities.DoRemoveEffect(target, effectId);
     }
 }

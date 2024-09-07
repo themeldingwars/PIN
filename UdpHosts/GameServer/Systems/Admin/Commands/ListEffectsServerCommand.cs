@@ -1,4 +1,5 @@
 using System.Text;
+using GameServer.Aptitude;
 
 namespace GameServer.Admin;
 
@@ -13,13 +14,19 @@ public class ListEffectsServerCommand : ServerCommand
             return;
         }
 
+        IAptitudeTarget target = context.SourcePlayer.CharacterEntity;
+        if (context.Target != null && context.Target is IAptitudeTarget commandTarget)
+        {
+            target = commandTarget;
+        }
+
         StringBuilder stringBuilder = new();
-        stringBuilder.AppendLine("Active Effects:");
-        foreach (var activeEffect in context.SourcePlayer.CharacterEntity.GetActiveEffects())
+        stringBuilder.AppendLine($"{target} Active Effects:");
+        foreach (var activeEffect in target.GetActiveEffects())
         {
             if (activeEffect != null)
             {
-                stringBuilder.AppendLine($"{activeEffect.Index} : {activeEffect.Effect?.Id}");
+                stringBuilder.AppendLine($"Idx {activeEffect.Index} : Effect {activeEffect.Effect?.Id}");
             }
         }
 
