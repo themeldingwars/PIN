@@ -25,14 +25,16 @@ public class StatModifierCommand : Command, ICommand
             Console.WriteLine($"StatModifierCommand {Params.Id} has unhandled param Permanent");
         }
 
-        var target = context.Self;
-
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (context.Self.GetType() == typeof(CharacterEntity))
         {
             context.Actives.Add(this, new StatModifierCommandActiveContext()
             {
                 Register = context.Register
             });
+        }
+        else
+        {
+            Console.WriteLine($"StatModifierCommand {Id} does nothing because self is not a Character. Self is {context.Self.GetType().Name}. If this is happening, we should investigate why.");
         }
 
         return true;
@@ -41,10 +43,9 @@ public class StatModifierCommand : Command, ICommand
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
         var modifierContext = (StatModifierCommandActiveContext)activeCommandContext;
-        var target = context.Self;
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (context.Self.GetType() == typeof(CharacterEntity))
         {
-            var character = target as Entities.Character.CharacterEntity;
+            var character = context.Self as CharacterEntity;
 
             float value = AbilitySystem.RegistryOp(modifierContext.Register, Params.Value, (Operand)Params.ValueRegop);
 
@@ -60,10 +61,9 @@ public class StatModifierCommand : Command, ICommand
 
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
-        var target = context.Self;
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (context.Self.GetType() == typeof(CharacterEntity))
         {
-            var character = target as Entities.Character.CharacterEntity;
+            var character = context.Self as CharacterEntity;
             character.RemoveStatModifier(Params.Id, (StatModifierIdentifier)Params.Stat);
         }
     }

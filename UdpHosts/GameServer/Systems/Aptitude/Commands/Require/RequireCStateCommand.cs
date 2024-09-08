@@ -19,15 +19,15 @@ public class RequireCStateCommand : Command, ICommand
         bool result = false;
 
         // NOTE: Investigate target handling
-        var target = context.Self;
+        var source = context.Self;
         if (Params.FromInitiator == 1)
         {
-            target = context.Initiator;
+            source = context.Initiator;
         }
         
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (source.GetType() == typeof(Entities.Character.CharacterEntity))
         {
-            var character = target as Entities.Character.CharacterEntity;
+            var character = source as Entities.Character.CharacterEntity;
             var cstate = character.CharacterState.State;
 
             if (Params.Respawning == 1 && (cstate == CharacterStatus.Respawning))
@@ -61,7 +61,7 @@ public class RequireCStateCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine($"RequireCStateCommand fails because target is not a Character. If this is happening, we should investigate why.");
+            Console.WriteLine($"RequireCStateCommand {Id} fails because source is not a Character. Source is {source.GetType().Name}. If this is happening, we should investigate why.");
             result = false;
         }
 
