@@ -1,9 +1,9 @@
-﻿using GameServer.Data.SDB.Records.apt;
-using GameServer.Entities;
-using GameServer.Enums;
-using System;
+﻿using System;
 using System.Linq;
 using System.Numerics;
+using GameServer.Data.SDB.Records.apt;
+using GameServer.Entities;
+using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 
@@ -26,7 +26,6 @@ public class TargetPBAECommand : Command, ICommand
         // Params.AimPosOffset
         // Params.UseInitPos
         // Params.UseBodyPosition
-
         if (context.Targets.Count >= Params.MaxTargets)
         {
             Console.WriteLine($"TargetPBAECommand {Id} The context target count exceeds the MaxTargets BEFORE command executes, investigate if this happens");

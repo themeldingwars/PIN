@@ -28,6 +28,19 @@ public class WeaponSim
         _weaponSimState = new();
     }
 
+    public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
+    {
+        if (currentTime > LastUpdate + UpdateIntervalMs)
+        {
+            LastUpdate = currentTime;
+            var entities = GetWeaponSimPlayersEntities();
+            foreach (var entity in entities)
+            {
+                ProcessEntity(entity as CharacterEntity);
+            }
+        }
+    }
+
     public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir)
     {
         // Weapon
@@ -152,19 +165,6 @@ public class WeaponSim
         }
 
         return spreadPct;
-    }
-
-    public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
-    {
-        if (currentTime > LastUpdate + UpdateIntervalMs)
-        {
-            LastUpdate = currentTime;
-            var entities = GetWeaponSimPlayersEntities();
-            foreach (var entity in entities)
-            {
-                ProcessEntity(entity as CharacterEntity);
-            }
-        }
     }
 
     private void ProcessEntity(CharacterEntity entity)
