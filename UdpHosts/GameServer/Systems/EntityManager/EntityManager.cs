@@ -284,14 +284,14 @@ public class EntityManager
     public void SpawnZoneEntities(uint zoneId)
     {
         // Deployable
-        foreach (var entry in CustomDBInterface.GetZoneDeployables(448))
+        foreach (var entry in CustomDBInterface.GetZoneDeployables(zoneId))
         {
             var deployable = entry.Value;
             SpawnDeployable(deployable.Type, deployable.Position, deployable.Orientation);
         }
 
         // Melding
-        foreach (var entry in CustomDBInterface.GetZoneMeldings(448))
+        foreach (var entry in CustomDBInterface.GetZoneMeldings(zoneId))
         {
             var melding = entry.Value;
             SpawnMelding(melding.PerimiterSetName, new ActiveDataStruct()
@@ -307,7 +307,7 @@ public class EntityManager
         }
 
         // Outpost
-        foreach (var entry in CustomDBInterface.GetZoneOutposts(448))
+        foreach (var entry in CustomDBInterface.GetZoneOutposts(zoneId))
         {
             var outpost = entry.Value;
             SpawnOutpost(outpost);

@@ -243,12 +243,17 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
     public uint FindClosestAvailableOutpost(Zone zone, uint targetOutpostId = 0)
     {
-        if (targetOutpostId == 0)
+        bool haveOutposts = AssignedShard.Outposts.TryGetValue(zone.ID, out var outposts);
+        if (!haveOutposts)
+        {
+            return 0;
+        }
+        else if (targetOutpostId == 0)
         {
             return zone.DefaultOutpostId;
         }
 
-        var targetOutpost = AssignedShard.Outposts[zone.ID][targetOutpostId];
+        var targetOutpost = outposts[targetOutpostId];
 
         if (!targetOutpost.IsCapturedByHostiles)
         {
@@ -260,7 +265,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         var minDistance = Vector3.DistanceSquared(sourcePosition, zone.POIs["spawn"]);
         var closestOutpostId = zone.DefaultOutpostId;
 
-        foreach (var outpost in AssignedShard.Outposts[zone.ID])
+        foreach (var outpost in outposts)
         {
             if (outpost.Value.IsCapturedByHostiles)
             {
