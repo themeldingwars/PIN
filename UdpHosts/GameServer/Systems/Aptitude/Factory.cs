@@ -94,8 +94,8 @@ public class Factory
             //     return new TargetFriendliesCommand(SDBInterface.GetTargetFriendliesCommandDef(commandId));
             // case CommandType.TargetHostiles:
             //     return new TargetHostilesCommand(SDBInterface.GetTargetHostilesCommandDef(commandId));
-            // case CommandType.TargetPBAE:
-            //     return new TargetPBAECommand(SDBInterface.GetTargetPBAECommandDef(commandId));
+            case CommandType.TargetPBAE:
+                return new TargetPBAECommand(SDBInterface.GetTargetPBAECommandDef(commandId));
             case CommandType.TargetSelf:
                 return new TargetSelfCommand(SDBInterface.GetTargetSelfCommandDef(commandId));
             // case CommandType.TargetSingle:
