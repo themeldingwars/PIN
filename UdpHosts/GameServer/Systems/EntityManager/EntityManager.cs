@@ -336,8 +336,12 @@ public class EntityManager
         if (!hasSpawnedTestEntities && currentTime != 0)
         {
             hasSpawnedTestEntities = true;
-            TempSpawnTestEntities();
             SpawnZoneEntities(Shard.ZoneId);
+
+            if (Shard.ZoneId == 448)
+            {
+                TempSpawnTestEntities();
+            }
         }
 
         // Process queued scope-ins
