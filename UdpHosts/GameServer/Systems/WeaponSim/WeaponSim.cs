@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json;
 using System.Threading;
+using AeroMessages.GSS.V66.Generic;
 using BepuUtilities;
 using FauFau.Util;
 using GameServer.Data.SDB;
@@ -17,6 +19,8 @@ public class WeaponSim
 {
     private readonly Dictionary<ulong, WeaponSimState> _weaponSimState;
     private Shard _shard;
+    private ulong LastUpdate = 0;
+    private ulong UpdateIntervalMs = 50;
 
     public WeaponSim(Shard shard)
     {
@@ -116,7 +120,7 @@ public class WeaponSim
     {
         // NOTE: Consider this whole thing a sham, needs further RE.
         float spreadValue, spreadFactor;
-        if (weapon.SpreadRampTime > 0)
+        if (weapon.SpreadRampTime > 0 &&  weapon.MsSpreadReturn > 0)
         {
             uint elapsedTime = time - weaponSimState.LastBurstTime; // The time elapsed since we last fired
             uint returnedTime = System.Math.Min(System.Math.Max(0, elapsedTime - weapon.MsSpreadReturnDelay), weapon.MsSpreadReturn); // Subtract delay and account for up to the full return time
@@ -150,22 +154,72 @@ public class WeaponSim
         return spreadPct;
     }
 
-    /*
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
-        var players = GetWeaponSimPlayers();
-        var entities = GetWeaponSimEntities();
-        foreach (var entity in entities)
+        if (currentTime > LastUpdate + UpdateIntervalMs)
         {
-            ProcessEntity(entity as CharacterEntity);
+            LastUpdate = currentTime;
+            var entities = GetWeaponSimPlayersEntities();
+            foreach (var entity in entities)
+            {
+                ProcessEntity(entity as CharacterEntity);
+            }
         }
     }
 
     private void ProcessEntity(CharacterEntity entity)
+    {   
+        DebugWeaponSpread(entity);
+    }
+
+    private void DebugWeaponSpread(CharacterEntity entity)
     {
-        var aimForward = entity.AimDirection;
-        // Get active weapon
-        // Get active fire mode
+        var client = entity.Player;
+
+        if (client.Preferences.DebugWeapon == 0)
+        {
+            return;
+        }
+
+        if (!(client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected))
+        {
+            return;
+        }
+
+        var activeWeaponDetails = entity.GetActiveWeaponDetails();
+        if (activeWeaponDetails == null)
+        {
+            return;
+        }
+
+        var weapon = activeWeaponDetails.Weapon;
+        var weaponId = activeWeaponDetails.WeaponId;
+        var weaponAttributeSpread = activeWeaponDetails.Spread;
+        var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState());
+        var time = _shard.CurrentTime;
+
+        var spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponAttributeSpread, time);
+
+        var eventData = new DebugWeaponSimEventData()
+        {
+            WeaponName = weapon.DebugName,
+            SpreadPct = spreadPct,
+            WeaponId = weaponId,
+            Ramp = weaponSimState.Ramp,
+        };
+
+        var json = JsonSerializer.Serialize(eventData);
+
+        var message = new TempConsoleMessage()
+        {
+            ConsoleNoticeMessage = string.Empty,
+            ConsoleCommand = string.Empty,
+            ChatNotification = string.Empty,
+            DebugReportArgType = "WeaponSim.Spread",
+            DebugReportArgData = json,
+        };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(message);
     }
 
     private IEnumerable<INetworkPlayer> GetWeaponSimPlayers()
@@ -173,11 +227,10 @@ public class WeaponSim
         return _shard.Clients.Values.Where((client) => (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected));
     }
 
-    private IEnumerable<IEntity> GetWeaponSimEntities()
+    private IEnumerable<IEntity> GetWeaponSimPlayersEntities()
     {
-        return _shard.Entities.Values.Where((entity) => entity is CharacterEntity);
+        return _shard.Entities.Values.Where((entity) => entity is CharacterEntity character && character.IsPlayerControlled);
     }
-    */
 
     public class WeaponSimState
     {
@@ -186,5 +239,13 @@ public class WeaponSim
         public uint LastBurstTime;
         public uint Ramp;
         public uint LastWeaponId;
+    }
+
+    public record class DebugWeaponSimEventData
+    {
+        public string WeaponName { get; set; }
+        public float SpreadPct { get; set; }
+        public uint WeaponId { get; set; }
+        public uint Ramp { get; set; }
     }
 }

@@ -28,6 +28,7 @@ public interface IPlayer
     CharacterEntity CharacterEntity { get; }
     CharacterInventory Inventory { get; set; }
     PlayerStatus Status { get; }
+    PlayerPreferences Preferences { get; }
     Zone CurrentZone { get; }
     uint ConnectedAt { get; }
     uint LastRequestedUpdate { get; set; }

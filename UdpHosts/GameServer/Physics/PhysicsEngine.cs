@@ -155,7 +155,7 @@ public class PhysicsEngine
                 Direction = rayVector,
             }
         };
-        if (source.IsPlayerControlled)
+        if (source.IsPlayerControlled && source.Player.Preferences.DebugWeapon > 0)
         {
             // Console.WriteLine($"SendDebugProjectileSpawn");
             source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);
@@ -175,7 +175,7 @@ public class PhysicsEngine
                 Direction = normal,
             }
         };
-        if (source.IsPlayerControlled)
+        if (source.IsPlayerControlled && source.Player.Preferences.DebugWeapon > 0)
         {
             // Console.WriteLine($"SendDebugProjectileImpact");
             source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);
@@ -205,7 +205,7 @@ public class PhysicsEngine
                 HaveUnk9 = 0,
             }
         };
-        if (source.IsPlayerControlled)
+        if (source.IsPlayerControlled && source.Player.Preferences.DebugWeapon > 0)
         {
             // Console.WriteLine($"SendDebugProjectilePoseHit");
             source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);

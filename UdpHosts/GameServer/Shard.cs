@@ -95,6 +95,8 @@ public class Shard : IShard
         EntityMan.Tick(deltaTime, currentTime, ct);
         Abilities.Tick(deltaTime, currentTime, ct);
 
+        WeaponSim.Tick(deltaTime, currentTime, ct);
+
         return true;
     }
 

@@ -35,6 +35,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public ulong CharacterId { get; private set; }
     public CharacterEntity CharacterEntity { get; private set; }
     public IPlayer.PlayerStatus Status { get; private set; }
+    public PlayerPreferences Preferences { get; private set; }
     public Zone CurrentZone { get; private set; }
     public uint CurrentOutpostId { get; private set; }
     public uint LastRequestedUpdate { get; set; }
@@ -47,6 +48,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public void Init(IShard shard)
     {
         Init(this, shard, shard);
+        Preferences = new PlayerPreferences();
     }
 
     public async void Login(ulong characterId)

@@ -1067,13 +1067,16 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     {
         // Weapon
         uint weaponId;
+        StatsData[] weaponAttributes;
         switch (WeaponIndex.Index)
         {
             case 2:
-                weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(Data.LoadoutSlotType.Secondary);
+                weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary);
+                weaponAttributes = CurrentLoadout.GetSecondaryWeaponAttributes();
                 break;
             case 1:
-                weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(Data.LoadoutSlotType.Primary);
+                weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary);
+                weaponAttributes = CurrentLoadout.GetPrimaryWeaponAttributes();
                 break;
             case 0:
             default:
@@ -1088,13 +1091,19 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         }
 
         var weaponDetails = SDBUtils.GetDetailedWeaponInfo(weaponId);
-        var weaponAttributes = SDBInterface.GetItemAttributeRange(weaponId);
+        var weapon = weaponDetails.Main;
+        if (weaponDetails.Alt != null && (FireMode_0.Mode != 0 || FireMode_1.Mode != 0))
+        {
+            weapon = weaponDetails.Alt;
+        }
+  
+        var weaponAttributesDict = weaponAttributes.ToDictionary((StatsData p) => p.Id);
 
         float weaponAttributeSpread = 0f;
         float weaponAttributeRateOfFire = 1f;
         try
         {
-            weaponAttributeSpread = weaponAttributes[(ushort)ItemAttributeId.WeaponSpread].Base; // FIXME: Should be calculated on the source
+            weaponAttributeSpread = weaponAttributesDict[(ushort)ItemAttributeId.WeaponSpread].Value;
         }
         catch (Exception)
         {
@@ -1103,17 +1112,11 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 
         try
         {
-            weaponAttributeRateOfFire = weaponAttributes[(ushort)ItemAttributeId.RateOfFire].Base; // FIXME: Should be calculated on the source
+            weaponAttributeRateOfFire = weaponAttributesDict[(ushort)ItemAttributeId.RateOfFire].Value;
         }
         catch (Exception)
         {
             Console.WriteLine($"Failed to get RateOfFire Attribute");
-        }
-        
-        var weapon = weaponDetails.Main;
-        if (weaponDetails.Alt != null && FireMode_0.Mode != 0)
-        {
-            weapon = weaponDetails.Alt;
         }
 
         return new ActiveWeaponDetails()

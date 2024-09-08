@@ -19,6 +19,7 @@ using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
+using static AeroMessages.GSS.V66.Character.Command.NonDevDebugCommand;
 using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
 
 namespace GameServer.Controllers.Character;
@@ -480,5 +481,25 @@ public class BaseController : Base
                        };
         
         client.NetChannels[ChannelType.ReliableGss].SendMessage(response, entityId);
+    }
+
+    [MessageID((byte)Commands.NonDevDebugCommand)]
+    public void NonDevDebugCommand(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<NonDevDebugCommand>();
+        switch (request.Type)
+        {
+            case NonDevDebugCommandType.DEBUGWEAPON:
+                player.Preferences.DebugWeapon = request.Value;
+                break;
+            case NonDevDebugCommandType.DEBUGEVENT:
+                player.Preferences.DebugEvent = request.Value;
+                break;
+            case NonDevDebugCommandType.DEBUGLAG:
+                player.Preferences.DebugLag = request.Value;
+                break;
+            default:
+                break;
+        }
     }
 }
