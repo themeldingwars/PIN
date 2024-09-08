@@ -336,11 +336,16 @@ public class EntityManager
         if (!hasSpawnedTestEntities && currentTime != 0)
         {
             hasSpawnedTestEntities = true;
-            SpawnZoneEntities(Shard.ZoneId);
 
-            if (Shard.ZoneId == 448)
+            if (Shard.Settings.LoadZoneEntities)
             {
-                TempSpawnTestEntities();
+                SpawnZoneEntities(Shard.ZoneId);
+
+                // TODO: Remove these in favor of using the files instead
+                if (Shard.ZoneId == 448)
+                {
+                    TempSpawnTestEntities();
+                }
             }
         }
 

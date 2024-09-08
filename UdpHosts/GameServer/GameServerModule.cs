@@ -63,6 +63,18 @@ public class GameServerModule : Module
                 }
             }
 
+            if (ConfigurationManager.AppSettings["LoadZoneEntities"] != null)
+            {
+                if (bool.TryParse(ConfigurationManager.AppSettings["LoadZoneEntities"], out bool value))
+                {
+                    settings.LoadZoneEntities = value;
+                }
+                else
+                {
+                    Console.WriteLine($"Cannot parse LoadZoneEntities setting value");
+                }
+            }
+
             return settings;
         })
         .As<GameServerSettings>().SingleInstance();

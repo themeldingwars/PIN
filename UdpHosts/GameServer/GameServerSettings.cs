@@ -41,4 +41,9 @@ public class GameServerSettings
     ///    Enable loading world collision data from PIN Maps Data
     /// </summary>
     public bool LoadMapsCollision { get; set; } = false;
+
+    /// <summary>
+    ///    Enable loading entities on zone startup
+    /// </summary>
+    public bool LoadZoneEntities { get; set; } = true;
 }
