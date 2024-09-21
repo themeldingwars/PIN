@@ -53,7 +53,7 @@ public class WeaponSim
 
         var weapon = activeWeaponDetails.Weapon;
         var weaponId = activeWeaponDetails.WeaponId;
-        var weaponAttributeSpread = activeWeaponDetails.Spread;
+        var weaponSpreadFactor = activeWeaponDetails.Spread;
         var weaponAttributeRateOfFire = activeWeaponDetails.RateOfFire;
 
         // Weapon Sim State
@@ -64,6 +64,8 @@ public class WeaponSim
         }
         else if (weaponSimState.LastWeaponId != weaponId)
         {
+            // Console.WriteLine($"Reset {weaponId} sim state!");
+
             // Drop state if we swapped weapon   
             weaponSimState = new WeaponSimState
             {
@@ -71,7 +73,7 @@ public class WeaponSim
             };
         }
 
-        Console.WriteLine($"Selected weapon {weapon.DebugName} and attribute spread {weaponAttributeSpread}");
+        // Console.WriteLine($"Selected weapon {weapon.DebugName} and spread factor {weaponSpreadFactor}");
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
@@ -88,8 +90,8 @@ public class WeaponSim
         }
 
         // Calculate spreadPct
-        float spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponAttributeSpread, time);
-        Console.WriteLine($"Firing with spreadPct {spreadPct}");
+        float spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponSpreadFactor, time);
+        // Console.WriteLine($"Firing with spreadPct {spreadPct}");
 
         // Fire rounds
         for (byte round = 0; round < roundsToFire; round++)
@@ -106,70 +108,139 @@ public class WeaponSim
             weaponSimState.LastSpreadTime = time;
         }
 
-        // Update spread ramp
-        if (time - weaponSimState.LastBurstTime < weapon.MsSpreadReturnDelay + weapon.MsSpreadReturn)
+        // Add spread
+        if (weapon.SpreadRampTime != 0)
         {
-            // FIXME: Just make getters
-            if (entity.Character_CombatView.WeaponBurstFiredProp > entity.Character_CombatView.WeaponBurstEndedProp)
-            {
-                uint fireTime = time - entity.Character_CombatView.WeaponBurstFiredProp;
-                weaponSimState.Ramp = System.Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + fireTime);
-            }
-            else
-            {
-                weaponSimState.Ramp = System.Math.Min(weapon.SpreadRampTime, weaponSimState.Ramp + (uint)weaponAttributeRateOfFire);
-            }
-        }
-        else
-        {
-            weaponSimState.Ramp = weapon.MsPerBurst;
+            uint burstCost = weapon.MsPerBurst;
+            var update = System.Math.Min(weapon.SpreadRampTime, weaponSimState.AccumulatedSpreadTime + burstCost);
+
+            // Console.WriteLine($"SpreadRampTime {weapon.SpreadRampTime}, AccumulatedSpreadTime: {weaponSimState.AccumulatedSpreadTime}, MsPerBurst: {weapon.MsPerBurst}, Setting AccumulatedSpreadTime To : {update}");
+            weaponSimState.AccumulatedSpreadTime = update;
         }
 
         weaponSimState.LastBurstTime = time;
         _weaponSimState[entity.EntityId] = weaponSimState;
     }
 
-    private float GetCurrentSpreadPct(CharacterEntity entity, WeaponTemplateResult weapon, WeaponSimState weaponSimState, float weaponAttributeSpread, uint time)
+    private float GetCurrentSpreadPct(CharacterEntity entity, WeaponTemplateResult weapon, WeaponSimState weaponSimState, float weaponSpreadFactor, uint time)
     {
         // NOTE: Consider this whole thing a sham, needs further RE.
-        float spreadValue, spreadFactor;
-        if (weapon.SpreadRampTime > 0 &&  weapon.MsSpreadReturn > 0)
+        float spreadValue = 0;
+
+        // Start at max spread if spread should reduce when firing (HMG)
+        bool inverse = weapon.SpreadPerBurst < 0;
+        if (inverse)
         {
-            uint elapsedTime = time - weaponSimState.LastBurstTime; // The time elapsed since we last fired
-            uint returnedTime = System.Math.Min(System.Math.Max(0, elapsedTime - weapon.MsSpreadReturnDelay), weapon.MsSpreadReturn); // Subtract delay and account for up to the full return time
-            float ratioToReturn = returnedTime / weapon.MsSpreadReturn; // Get how much progress was made
-            weaponSimState.Ramp = (uint)(weaponSimState.Ramp * (1f - ratioToReturn)); // Reduce the accumulated time to the remaining amount
-
-            // Calculate spread value based on ramp time
-            float rampTimeFactor = weaponSimState.Ramp / weapon.SpreadRampTime;
-            spreadValue = weapon.MinSpread + ((weapon.MaxSpread - weapon.MinSpread) * rampTimeFactor);
-
-            // Calcualte spread based on spread value
-            spreadFactor = weaponAttributeSpread / weapon.MaxSpread;
+            spreadValue = weapon.MaxSpread;
         }
-        else
+
+        // Ensure we are at least at minSpread
+        if (spreadValue < weapon.MinSpread)
         {
-            // TODO: How should this work when there is no ramp time?
             spreadValue = weapon.MinSpread;
-            spreadFactor = weaponAttributeSpread / weapon.MaxSpread;
         }
 
-        float spreadPct = spreadValue * spreadFactor;
-        if (entity.IsAirborne)
+        // Add burst spread
+        if (weapon.SpreadPerBurst != 0 && weapon.SpreadRampTime != 0)
         {
-            spreadPct += weapon.JumpMinSpread;
+            // Shambles
+            float mult = (float)weaponSimState.AccumulatedSpreadTime / weapon.SpreadRampTime;
+            float spreadRange = weapon.MaxSpread - weapon.MinSpread;
+            spreadValue += mult * spreadRange;
         }
-        else if (entity.IsMoving)
+
+        // If max spread is set, ensure we are not above maxSpread, even if minSpread > maxSpread (BioCrossbow, AR ADS)
+        if (weapon.MaxSpread != 0 && spreadValue > weapon.MaxSpread)
         {
-            spreadPct += weapon.RunMinSpread;
+            spreadValue = weapon.MaxSpread;
         }
+
+        // Calculate with spread factor
+        float spreadPct = spreadValue * weaponSpreadFactor;
+
+        // Add movement bonus
+        spreadPct += weaponSimState.CurrentMovementSpreadBonus;
 
         return spreadPct;
     }
 
     private void ProcessEntity(CharacterEntity entity)
-    {   
+    {
         DebugWeaponSpread(entity);
+        ProcessWeaponSpread(entity);
+    }
+
+    private void ProcessWeaponSpread(CharacterEntity entity)
+    {
+        // NOTE: Consider this whole thing a sham, needs further RE.
+        var activeWeaponDetails = entity.GetActiveWeaponDetails();
+        if (activeWeaponDetails == null)
+        {
+            return;
+        }
+
+        var weapon = activeWeaponDetails.Weapon;
+        var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState());
+        var currentTime = _shard.CurrentTime;
+
+        // Process Accumulated Spread Time
+        if (weaponSimState.AccumulatedSpreadTime > 0)
+        {
+            int timeCanReturn = (int)(currentTime - weaponSimState.LastBurstTime - weapon.MsSpreadReturnDelay);
+            if (timeCanReturn > 0)
+            {
+                uint returnedTime = (uint)System.Math.Min(weapon.MsSpreadReturn, timeCanReturn);
+                float ratioToReturn = (float)returnedTime / weapon.MsSpreadReturn;
+                uint rampTimeToReturn = (uint)(weaponSimState.AccumulatedSpreadTime * ratioToReturn);
+                uint update = (uint)System.Math.Max(0, (int)weaponSimState.AccumulatedSpreadTime - rampTimeToReturn);
+
+                // Console.WriteLine($"returnedTime {returnedTime}, ratioToReturn: {ratioToReturn}, rampTimeToReturn: {rampTimeToReturn}, Setting AccumulatedSpreadTime To : {update}");
+                weaponSimState.AccumulatedSpreadTime = update;
+            }
+        }
+
+        // Process Movement Bonus
+        if (entity.IsAirborne || entity.IsMoving)
+        {
+            // We are moving, so we should be at full value
+            weaponSimState.LastMovementTime = currentTime;
+            if (entity.IsAirborne)
+            {
+                weaponSimState.CurrentMovementSpreadBonus = weapon.JumpMinSpread;
+            }
+            else if (entity.IsMoving)
+            {
+                weaponSimState.CurrentMovementSpreadBonus = weapon.RunMinSpread;
+            }
+        }
+        else if (weaponSimState.CurrentMovementSpreadBonus > 0)
+        {
+            if (currentTime > weaponSimState.LastMovementTime + weapon.MsSpreadReturnDelay)
+            {
+                // Delay passed, we should reduce
+                uint elapsedTime = currentTime - (weaponSimState.LastMovementTime + weapon.MsSpreadReturnDelay);
+                if (weapon.MsSpreadReturn > elapsedTime)
+                {
+                    // Within return time, reducing by ratio of passed time
+                    float ratioToReturn = (float)elapsedTime / weapon.MsSpreadReturn;
+                    float update = (float)(weaponSimState.CurrentMovementSpreadBonus * (1f - ratioToReturn));
+
+                    // Console.WriteLine($"ReturnMovementSpread elapsedTime: {elapsedTime}, ratioToReturn: {ratioToReturn}, Setting CurrentMovementSpreadBonus To : {update}");
+                    weaponSimState.CurrentMovementSpreadBonus = update;
+                }
+                else
+                {
+                    // Atter return time, finished reducing and setting 0
+                    weaponSimState.CurrentMovementSpreadBonus = 0;
+                }
+            }
+            else
+            {
+                // Within delay, keep full bonus
+            }
+        }
+
+        _weaponSimState[entity.EntityId] = weaponSimState;
     }
 
     private void DebugWeaponSpread(CharacterEntity entity)
@@ -194,32 +265,39 @@ public class WeaponSim
 
         var weapon = activeWeaponDetails.Weapon;
         var weaponId = activeWeaponDetails.WeaponId;
-        var weaponAttributeSpread = activeWeaponDetails.Spread;
+        var weaponSpreadFactor = activeWeaponDetails.Spread;
         var weaponSimState = _weaponSimState.GetValueOrDefault(entity.EntityId, new WeaponSimState());
         var time = _shard.CurrentTime;
 
-        var spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponAttributeSpread, time);
+        var spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponSpreadFactor, time);
 
         var eventData = new DebugWeaponSimEventData()
         {
             WeaponName = weapon.DebugName,
             SpreadPct = spreadPct,
             WeaponId = weaponId,
-            Ramp = weaponSimState.Ramp,
+            AccumulatedSpreadTime = weaponSimState.AccumulatedSpreadTime,
         };
 
-        var json = JsonSerializer.Serialize(eventData);
-
-        var message = new TempConsoleMessage()
+        try
         {
-            ConsoleNoticeMessage = string.Empty,
-            ConsoleCommand = string.Empty,
-            ChatNotification = string.Empty,
-            DebugReportArgType = "WeaponSim.Spread",
-            DebugReportArgData = json,
-        };
+            var json = JsonSerializer.Serialize(eventData);
 
-        client.NetChannels[ChannelType.ReliableGss].SendMessage(message);
+            var message = new TempConsoleMessage()
+            {
+                ConsoleNoticeMessage = string.Empty,
+                ConsoleCommand = string.Empty,
+                ChatNotification = string.Empty,
+                DebugReportArgType = "WeaponSim.Spread",
+                DebugReportArgData = json,
+            };
+
+            client.NetChannels[ChannelType.ReliableGss].SendMessage(message);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Failed DebugWeaponSpread", e);
+        }
     }
 
     private IEnumerable<INetworkPlayer> GetWeaponSimPlayers()
@@ -237,8 +315,12 @@ public class WeaponSim
         public Vector3 LastSpreadDirection;
         public uint LastSpreadTime;
         public uint LastBurstTime;
-        public uint Ramp;
+        public float Ramp;
         public uint LastWeaponId;
+
+        public uint AccumulatedSpreadTime;
+        public uint LastMovementTime;
+        public float CurrentMovementSpreadBonus;
     }
 
     public record class DebugWeaponSimEventData
@@ -246,6 +328,6 @@ public class WeaponSim
         public string WeaponName { get; set; }
         public float SpreadPct { get; set; }
         public uint WeaponId { get; set; }
-        public uint Ramp { get; set; }
+        public uint AccumulatedSpreadTime { get; set; }
     }
 }

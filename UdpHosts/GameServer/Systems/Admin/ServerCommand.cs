@@ -1,5 +1,7 @@
 using System;
 using System.Numerics;
+using GameServer.Entities;
+using GameServer.Entities.Character;
 
 namespace GameServer.Admin;
 
@@ -10,6 +12,19 @@ public abstract class ServerCommand
     {
         Console.WriteLine(message);
         context.SourcePlayer?.SendDebugChat(message);
+    }
+
+    public IEntity GetGunTarget(CharacterEntity character, ServerCommandContext context)
+    {
+        var direction = character.AimDirection;
+        var origin = character.GetProjectileOrigin(direction);
+        (bool hit, Vector3 loc, ulong entId) = context.Shard.Physics.TargetRayCast(origin, direction, character);
+        if (hit)
+        {
+            return context.Shard.Entities.TryGetValue(entId, out var value) ? value : null;
+        }
+
+        return null;
     }
 
     public uint ParseUIntParameter(string value)

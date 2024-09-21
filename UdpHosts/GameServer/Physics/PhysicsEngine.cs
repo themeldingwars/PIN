@@ -107,7 +107,7 @@ public class PhysicsEngine
         }
         else
         {
-            Console.WriteLine($"Nothing hit");
+            // Console.WriteLine($"Nothing hit");
         }
     }
 

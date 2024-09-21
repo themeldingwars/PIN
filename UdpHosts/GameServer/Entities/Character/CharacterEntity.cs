@@ -1063,6 +1063,8 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
     }
 
 #nullable enable
+
+    // TODO: cache this
     public ActiveWeaponDetails? GetActiveWeaponDetails()
     {
         // Weapon
@@ -1080,7 +1082,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
                 break;
             case 0:
             default:
-                Console.WriteLine($"GetActiveWeaponDetails fails because invalid selected weapon index {WeaponIndex.Index}");
+                // Console.WriteLine($"GetActiveWeaponDetails fails because invalid selected weapon index {WeaponIndex.Index}");
                 return null;
         }
 
@@ -1119,11 +1121,15 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
             Console.WriteLine($"Failed to get RateOfFire Attribute");
         }
 
+        // Calculate spread factor using Main even for Underbarrel, based on testing in-game.
+        // Bio Crossbow - Max spread 0, min spread 0.75, attribute spread 1, expected spread 0.75 => Ignore max spread if 0 and use attribute spread
+        float spreadFactor = weaponDetails.Main.MaxSpread > 0f ? weaponAttributeSpread / weaponDetails.Main.MaxSpread : weaponAttributeSpread;
+
         return new ActiveWeaponDetails()
         {
             Weapon = weapon,
             WeaponId = weaponId,
-            Spread = weaponAttributeSpread,
+            Spread = spreadFactor,
             RateOfFire = weaponAttributeRateOfFire,
         };
     }
