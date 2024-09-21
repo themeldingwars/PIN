@@ -1099,7 +1099,7 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
   
         var weaponAttributesDict = weaponAttributes.ToDictionary((StatsData p) => p.Id);
 
-        float weaponAttributeSpread = 0f;
+        float weaponAttributeSpread = 1f;
         float weaponAttributeRateOfFire = 1f;
         try
         {
