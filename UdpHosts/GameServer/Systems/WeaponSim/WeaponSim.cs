@@ -91,6 +91,7 @@ public class WeaponSim
 
         // Calculate spreadPct
         float spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponSpreadFactor, time);
+
         // Console.WriteLine($"Firing with spreadPct {spreadPct}");
 
         // Fire rounds

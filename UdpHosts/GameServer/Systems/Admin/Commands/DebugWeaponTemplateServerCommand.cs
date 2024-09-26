@@ -1,6 +1,6 @@
+using System.Text;
 using AeroMessages.GSS.V66.Character;
 using GameServer.Entities.Character;
-using System.Text;
 
 namespace GameServer.Admin;
 
