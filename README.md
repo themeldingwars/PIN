@@ -10,7 +10,7 @@ https://user-images.githubusercontent.com/920861/134824107-03e9f99c-b420-47c7-b7
 
 **Note:** If you want to play around with the configuration, see the Development section below
 
-1. [Install Firefall via Steam](steam://install/227700)
+1. Install Firefall via Steam (paste `steam://install/227700` into address bar of web browser)
 2. Edit the `firefall.ini` located in `steamapps\common\Firefall`
 3. Add content from below
 4. Download the [latest PIN release](https://github.com/themeldingwars/PIN/releases/latest)

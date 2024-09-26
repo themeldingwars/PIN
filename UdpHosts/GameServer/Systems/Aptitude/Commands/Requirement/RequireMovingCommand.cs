@@ -23,9 +23,18 @@ public class RequireMovingCommand : Command, ICommand
         
         if (target is CharacterEntity character)
         {
-            result = character.MovementStateContainer.Movement;
-
-            // Params.Velocitytol // velocity tolerance
+            if (Params.CheckVelocity == 1)
+            {
+                if (Params.Velocitytol == 0)
+                {
+                    result = !character.MovementStateContainer.Movement;
+                }
+                else
+                {
+                    // todo
+                    Console.WriteLine($"[RequireMovingCommand] velocity tolerance: {Params.Velocitytol}, negate: {Params.Negate}");
+                }
+            }
         }
         else
         {

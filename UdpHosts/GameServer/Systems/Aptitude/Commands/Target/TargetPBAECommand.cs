@@ -64,7 +64,7 @@ public class TargetPBAECommand : Command, ICommand
                     return false;
                 }
 
-                var distance = Vector3.DistanceSquared(origin, compatibleEntity.Position);
+                var distance = Vector3.Distance(origin, compatibleEntity.Position);
                 if (distance <= radius)
                 {
                     return true;
