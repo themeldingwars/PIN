@@ -1985,7 +1985,9 @@
 	},
 	{
 		"id": 271326,
-		"comment": "Triggered by Effect 2688  "
+		"comment": "Triggered by Effect 2688  ",
+		"effect_id": 2768,
+		"remove_from_self": true
 	},
 	{
 		"id": 271413,

@@ -30,6 +30,7 @@ using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS;
 using GameServer.Extensions;
+using Timer = System.Threading.Timer;
 
 namespace GameServer;
 
@@ -165,17 +166,13 @@ public class EntityManager
 
         if (deployableInfo.ConstructedAbilityid != 0)
         {
-            new System.Threading.Timer(state =>
-            {
-                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid, Shard.CurrentTime, new AptitudeTargets());
-                if (state != null)
-                {
-                    ((System.Threading.Timer)state).Dispose();
-                }
-            },
-            null,
-            deployableInfo.BuildTimeMs,
-            Timeout.Infinite);
+            var timer = new Timer(state =>
+                 {
+                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid, Shard.CurrentTime, new AptitudeTargets());
+
+                     ((Timer)state)?.Dispose();
+                 });
+            timer.Change(deployableInfo.BuildTimeMs, Timeout.Infinite);
         }
 
         if (deployableInfo.TurretType != 0)
@@ -196,18 +193,14 @@ public class EntityManager
                 }
             }
 
-            new System.Threading.Timer(state =>
-            {
-                Console.WriteLine($"deployable: Executing ability {deployableInfo.PoweredOnAbility}");
-                Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility, Shard.CurrentTime, new AptitudeTargets());
-                if (state != null)
-                {
-                    ((System.Threading.Timer)state).Dispose();
-                }
-            },
-            null,
-            deployableInfo.BuildTimeMs,
-            Timeout.Infinite);
+            var timer = new Timer(state =>
+                 {
+                     Console.WriteLine($"deployable: Executing ability {deployableInfo.PoweredOnAbility}");
+                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility, Shard.CurrentTime, new AptitudeTargets());
+
+                     ((Timer)state)?.Dispose();
+                 });
+            timer.Change(deployableInfo.BuildTimeMs, Timeout.Infinite);
         }
 
         return deployableEntity;
