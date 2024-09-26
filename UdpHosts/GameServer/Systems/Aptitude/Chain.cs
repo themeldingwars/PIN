@@ -22,9 +22,9 @@ public class Chain
         OrChain
     }
 
-    public bool Execute(Context context, ExecutionMethod method = ExecutionMethod.AndChain) 
+    public bool Execute(Context context, ExecutionMethod method = ExecutionMethod.AndChain)
     {
-        bool debug = context.ExecutionHint != ExecutionHint.DurationEffect;
+        bool debug = context.ExecutionHint is not(ExecutionHint.DurationEffect or ExecutionHint.UpdateEffect);
 
         if (debug)
         {

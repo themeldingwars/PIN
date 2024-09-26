@@ -15,12 +15,12 @@ public class PushTargetsCommand : Command, ICommand
     public bool Execute(Context context)
     {
         // todo aptitude: verify what to push
-        if (Params.Former == 1)
+        if (Params.Former == 1 && context.FormerTargets.Count > 0)
         {
             context.FormerTargets.Push(context.Targets.Peek());
         }
 
-        if (Params.Current == 1)
+        if (Params.Current == 1 && context.Targets.Count > 0)
         {
             context.Targets.Push(context.Targets.Peek());
         }

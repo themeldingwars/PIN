@@ -69,22 +69,33 @@ public class AbilitySystem
             {
                 if (entity is IAptitudeTarget target)
                 {
-                    ProcessTarget(target);
+                    ProcessTarget(target, currentTime);
                 }
             }
         }
     }
 
-    public void ProcessTarget(IAptitudeTarget entity)
+    public void ProcessTarget(IAptitudeTarget entity, ulong currentTime)
     {
         var activeEffects = entity.GetActiveEffects();
         foreach (var activeEffect in activeEffects)
         {
-            if (activeEffect?.Effect.DurationChain != null)
+            if (activeEffect?.Effect.DurationChain != null
+                && currentTime > activeEffect.LastUpdateTime + activeEffect.Effect.UpdateFrequency)
             {
                 activeEffect.Context.ExecutionHint = ExecutionHint.DurationEffect;
                 bool durationResult = activeEffect.Effect.DurationChain.Execute(activeEffect.Context);
-                if (!durationResult)
+                activeEffect.LastUpdateTime = currentTime;
+
+                if (durationResult)
+                {
+                    if (activeEffect.Effect.UpdateChain != null)
+                    {
+                        activeEffect.Context.ExecutionHint = ExecutionHint.UpdateEffect;
+                        activeEffect.Effect.UpdateChain.Execute(activeEffect.Context);
+                    }
+                }
+                else
                 {
                     DoRemoveEffect(activeEffect);
                 }
@@ -112,7 +123,12 @@ public class AbilitySystem
             
         }
         */
-        target.AddEffect(effect, applyContext);
+        var effectState = target.AddEffect(effect, applyContext);
+
+        if (effectState.MaxStacksExceeded)
+        {
+            return;
+        }
 
         effect.ApplyChain?.Execute(applyContext);
 
