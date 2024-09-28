@@ -851,12 +851,12 @@ public enum CommandType : uint
     RequireMovestate = 174,
 
     /// <summary>
-    /// Self - Grant Item
+    /// Impact - Grant Item
     /// </summary>
     GrantOwnerItem = 175,
 
     /// <summary>
-    /// Open the Forge
+    /// DEPRECATED: Open the Forge
     /// </summary>
     ShoppingInvitation = 176,
 
@@ -1155,21 +1155,84 @@ public enum CommandType : uint
     /// </summary>
     BulletTime = 237,
 
+    /// <summary>
+    /// Self - Set Powered State
+    /// </summary>
     SetPoweredState = 238,
+
+    /// <summary>
+    /// Register - Set Named Variable
+    /// </summary>
     NamedVariableAssign = 239,
+
+    /// <summary>
+    /// Register - Load Named Variable
+    /// </summary>
     LoadRegisterFromNamedVar = 240,
+
+    /// <summary>
+    /// Feedback - Fire UI Event
+    /// </summary>
     FireUiEvent = 241,
+
+    /// <summary>
+    /// NPC - Calcuate Trajectory To Target
+    /// </summary>
     CalculateTrajectory = 242,
+
+    /// <summary>
+    /// Register - Comparison
+    /// </summary>
     RegisterComparison = 243,
+
+    /// <summary>
+    /// Consume Item
+    /// </summary>
     ConsumeItem = 244,
+
+    /// <summary>
+    /// Register - Set Random
+    /// </summary>
     RegisterRandom = 245,
+
+    /// <summary>
+    /// Resource Area - Create Node
+    /// </summary>
     ResourceAreaCreateNode = 246,
+
+    /// <summary>
+    /// Set Glider Parameters
+    /// </summary>
     SetGliderParametersDef = 247,
+
+    /// <summary>
+    /// Set Hover Parameters
+    /// </summary>
     SetHoverParametersDef = 248,
+
+    /// <summary>
+    /// Self - Set Visual Info Index
+    /// </summary>
     SetVisualInfoIndex = 249,
+
+    /// <summary>
+    /// Feedback - Draw Scan Plot
+    /// </summary>
     DrawScanPlotDef = 250,
+
+    /// <summary>
+    /// UI - Expose Named Variable
+    /// </summary>
     UiNamedVariable = 251,
+
+    /// <summary>
+    /// Impact - Set Respawn Flags
+    /// </summary>
     SetRespawnFlags = 252,
+
+    /// <summary>
+    /// Vehicle - Previewed
+    /// </summary>
     VehicleCalldown = 253,
     EncounterSignal = 254,
     RequireNeedsAmmo = 255,
