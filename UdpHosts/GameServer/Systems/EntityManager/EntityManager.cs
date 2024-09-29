@@ -17,6 +17,7 @@ using AeroMessages.GSS.V66.Melding.View;
 using FauFau.Util;
 using GameServer.Aptitude;
 using GameServer.Data.SDB;
+using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
 using GameServer.Entities.Carryable;
@@ -243,10 +244,14 @@ public class EntityManager
         return outpostEntity;
     }
 
-    public ThumperEntity SpawnThumper(uint nodeType, uint beaconType, Vector3 position)
+    public ThumperEntity SpawnThumper(
+        uint nodeType,
+        Vector3 position,
+        BaseEntity owner,
+        ResourceNodeBeaconCalldownCommandDef commandDef)
     {
-        var thumperEntity = new ThumperEntity(Shard, Shard.GetNextGuid(), nodeType, beaconType);
-        thumperEntity.SetPosition(position);
+        var thumperEntity = new ThumperEntity(Shard, Shard.GetNextGuid(), nodeType, position, owner, commandDef);
+
         Add(thumperEntity.EntityId, thumperEntity);
         return thumperEntity;
     }
@@ -262,13 +267,13 @@ public class EntityManager
     public void TempSpawnTestEntities()
     {
         // Aero
-        SpawnCharacter(356, new Vector3(167.84642f, 262.20822f, 491.86758f));
+        var aero = SpawnCharacter(356, new Vector3(167.84642f, 262.20822f, 491.86758f));
 
         // Battleframe Station
         SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
 
         // Thumper
-        SpawnThumper(20, 33978, new Vector3(158.3f, 249.3f, 491.93f));
+        Shard.EncounterMan.CreateThumper(20, new Vector3(158.3f, 249.3f, 491.93f), aero, SDBInterface.GetResourceNodeBeaconCalldownCommandDef(766269));
 
         // Datapad
         SpawnCarryable(26, new Vector3(160.3f, 250.3f, 491.93f));

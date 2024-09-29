@@ -23,6 +23,7 @@ public class BaseEntity : IEntity
 
     public InteractionComponent Interaction { get; set; }
     public ScopingComponent Scoping { get; set; }
+    public EncounterComponent Encounter { get; set; }
 
     public virtual bool IsInteractable()
     {

@@ -7,6 +7,7 @@ using GameServer.Data.SDB.Records.apt;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
+using GameServer.Systems.Encounters;
 
 namespace GameServer.Aptitude;
 
@@ -36,7 +37,15 @@ public class EndInteractionCommand : ICommand
             }
 
             var interactionEntity = context.Targets.Peek();
-            var hack = interactionEntity as BaseEntity;
+            var hack = (BaseEntity)interactionEntity;
+
+            if (hack.Encounter is { Instance: IInteractionHandler encounter })
+            {
+                encounter.OnInteraction(hack);
+
+                return true;
+            }
+
             var abilityId = hack.Interaction.CompletedAbilityId;
             if (abilityId != 0)
             {
