@@ -1,25 +1,41 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
-using AeroMessages.GSS.V66.ResourceNode;
 using AeroMessages.GSS.V66.ResourceNode.View;
 using GameServer.Aptitude;
+using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 using GameServer.Enums;
 
 namespace GameServer.Entities.Thumper;
 
 public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 {
-    public ThumperEntity(IShard shard, ulong eid, uint nodeType, uint beaconType)
+    public ThumperEntity(
+        IShard shard,
+        ulong eid,
+        uint nodeType,
+        Vector3 position,
+        BaseEntity owner,
+        ResourceNodeBeaconCalldownCommandDef commandDef)
         : base(shard, eid)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.ResourceNode };
         NodeType = nodeType;
-        BeaconType = beaconType;
+        BeaconType = commandDef.ResourceNodeBeaconId;
         Scoping = new ScopingComponent() { Global = true };
+        Position = position;
+        Owner = owner;
+        LandedAbility = commandDef.LandedAbility;
+        CompletedAbility = commandDef.CompletedAbility;
+        CalldownTimeMs = commandDef.CalldownTimeMs;
+        MaxHealth = (uint)commandDef.Health;
+        Interaction = new InteractionComponent()
+          {
+              Type = InteractionType.GenericHold,
+              CompletedAbilityId = CompletedAbility,
+          };
         InitFields();
         InitViews();
     }
@@ -33,7 +49,7 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public uint NodeType { get; set; }
     public uint BeaconType { get; set; }
-    public float Progress { get; set; } = 0.01f;
+    public float Progress { get; set; } = 0.00f;
     public ThumpingCharacterInfoStruct ThumpingCharacterInfo { get; set; }
     public StateInfoStruct StateInfo { get; set; }
     public ScopeBubbleInfoData ScopeBubble { get; set; } = new ScopeBubbleInfoData()
@@ -41,6 +57,11 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         Layer = 0,
         Unk2 = 1
     };
+
+    public uint LandedAbility { get; set; } = 0;
+    public uint CompletedAbility { get; set; } = 0;
+    public uint CalldownTimeMs { get; set; } = 0;
+    public uint MaxHealth { get; set; } = 0;
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -133,38 +154,52 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         ResourceNode_ObserverView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(ResourceNode_ObserverView, null, null);
     }
 
-    public void SetPosition(Vector3 newPosition)
+    public void SetProgress(float newProgress)
     {
-        Position = newPosition;
-        ResourceNode_ObserverView.PositionProp = Position;
+        Progress = newProgress;
+        ResourceNode_ObserverView.ProgressProp = Progress;
+    }
+
+    public void TransitionToState(ThumperState newState, uint? countdownOverride = null)
+    {
+        var countdownTime = countdownOverride ?? newState.CountdownTime();
+        StateInfo = new StateInfoStruct()
+                    {
+                        State = (byte)newState,
+                        Time = Shard.CurrentTime,
+                        CountdownTime = Shard.CurrentTime + countdownTime,
+                    };
+        ResourceNode_ObserverView.StateInfoProp = StateInfo;
     }
 
     public override bool IsInteractable()
     {
-        return Interaction != null ? Interaction.Type != 0 : false;
+        return StateInfo.State is (byte)ThumperState.THUMPING or (byte)ThumperState.COMPLETED;
     }
 
     public override bool CanBeInteractedBy(IEntity other)
     {
-        return IsInteractable();
+        return IsInteractable()
+               && other is CharacterEntity character
+               && Encounter.Instance.Participants.Contains(character.Player);
     }
 
     private void InitFields()
     {
-        Position = new Vector3();
+        var charOwner = (CharacterEntity)Owner;
         HostilityInfo = new HostilityInfoData { Flags = 0 | HostilityInfoData.HostilityFlags.Faction, FactionId = 1 };
         ThumpingCharacterInfo = new ThumpingCharacterInfoStruct
         {
-            OwnerId1 = Owner?.AeroEntityId ?? new EntityId { Backing = 0 },
-            OwnerId2 = Owner?.AeroEntityId ?? new EntityId { Backing = 0 },
-            Owner = string.Empty,
+            OwnerId1 = Owner.AeroEntityId,
+            OwnerId2 = Owner.AeroEntityId,
+            Owner = charOwner.ToString(),
             Unk = 0f,
         };
         StateInfo = new StateInfoStruct
         {
-            State = (byte)ThumperState.THUMPING,
+            State = (byte)ThumperState.LANDING,
             Time = Shard.CurrentTime,
-            CountdownTime = Shard.CurrentTime + (60 * 1000)
+            CountdownTime = Shard.CurrentTime + CalldownTimeMs
         };
     }
 
@@ -178,7 +213,7 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
             ThumpingCharacterInfoProp = ThumpingCharacterInfo,
             StateInfoProp = StateInfo,
             CurrentHealthPctProp = 100,
-            MaxHealthProp = 10000,
+            MaxHealthProp = MaxHealth,
             ProgressProp = Progress,
             HostilityInfoProp = HostilityInfo,
             PersonalFactionStanceProp = null,

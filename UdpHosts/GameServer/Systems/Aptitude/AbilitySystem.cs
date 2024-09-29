@@ -280,6 +280,11 @@ public class AbilitySystem
         });
     }
 
+    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId)
+    {
+        HandleActivateAbility(shard, initiator, abilityId, Shard.CurrentTime, new AptitudeTargets());
+    }
+
     public void HandleTargetAbility()
     {
         throw new NotImplementedException();

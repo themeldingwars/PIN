@@ -361,7 +361,9 @@
 	},
 	{
 		"id": 93747,
-		"comment": "Triggered by Effect 154  "
+		"comment": "Triggered by Effect 154, part of Thumper.CompletedAbility",
+		"effect_id": 2260,
+		"remove_from_self":  true
 	},
 	{
 		"id": 95466,
@@ -5631,7 +5633,9 @@
 	},
 	{
 		"id": 818991,
-		"comment": "Triggered by Effect 1723  "
+		"comment": "Triggered by Effect 1723, ThumpIntro",
+		"effect_id": 2260,
+		"remove_from_self":  true
 	},
 	{
 		"id": 821894,

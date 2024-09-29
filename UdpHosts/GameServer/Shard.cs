@@ -11,6 +11,7 @@ using GameServer.Data.SDB.Records.dbitems;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
+using GameServer.Systems.Encounters;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Shared.Common;
@@ -36,12 +37,14 @@ public class Shard : IShard
         Logger = logger;
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
         Entities = new ConcurrentDictionary<ulong, IEntity>();
+        Encounters = new ConcurrentDictionary<ulong, IEncounter>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
         Physics = new PhysicsEngine(this);
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
         EntityMan = new EntityManager(this);
+        EncounterMan = new EncounterManager(this);
         WeaponSim = new WeaponSim(this);
         ProjectileSim = new ProjectileSim(this);
         Chat = new ChatService(this);
@@ -51,12 +54,14 @@ public class Shard : IShard
 
     public DateTime StartTime => DateTimeExtensions.Epoch.AddSeconds(_startTime);
     public IDictionary<ulong, IEntity> Entities { get; protected set; }
+    public IDictionary<ulong, IEncounter> Encounters { get; protected set; }
     public IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; protected set; }
     public IDictionary<uint, INetworkPlayer> Clients { get; }
     public PhysicsEngine Physics { get; }
     public AIEngine AI { get; }
     public MovementRelay Movement { get; }
     public EntityManager EntityMan { get; }
+    public EncounterManager EncounterMan { get; }
     public AbilitySystem Abilities { get; }
     public ProjectileSim ProjectileSim { get; }
     public WeaponSim WeaponSim { get; }
@@ -93,6 +98,7 @@ public class Shard : IShard
         AI.Tick(deltaTime, currentTime, ct);
         Physics.Tick(deltaTime, currentTime, ct);
         EntityMan.Tick(deltaTime, currentTime, ct);
+        EncounterMan.Tick(deltaTime, currentTime, ct);
         Abilities.Tick(deltaTime, currentTime, ct);
 
         WeaponSim.Tick(deltaTime, currentTime, ct);
