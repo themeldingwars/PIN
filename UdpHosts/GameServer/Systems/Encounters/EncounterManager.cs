@@ -56,6 +56,7 @@ public class EncounterManager
             {
                 // todo add update queue
                 encounter.OnUpdate(currentTime);
+
                 // FlushChanges(encounter);
             }
         }
