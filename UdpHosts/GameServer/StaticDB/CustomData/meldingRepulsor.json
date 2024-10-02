@@ -1,0 +1,45 @@
+[
+  {
+    "id": 1,
+    "zone_id": 448,
+    "perimiter_set_name": "Hydro_Core_Melding_02",
+    "repulsor": {
+      "type": 2785,
+      "orientation": {
+        "IsIdentity": false,
+        "W": -0.96569586,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.25967574
+      },
+      "position": {
+        "X": -901.675,
+        "Y": 828.024,
+        "Z": 401.654
+      }
+    },
+    "terminal": {
+      "type": 1142,
+      "orientation": {
+        "IsIdentity": false,
+        "W": -0.96569586,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.25967574
+      },
+      "position": {
+        "X": -896.65735,
+        "Y":  823.70123,
+        "Z": 401.28564
+      }
+    },
+    "melding_position": {
+      "control_point_index": 4,
+      "position": {
+        "X": -1113.637451171875,
+        "Y": 908.70935,
+        "Z": 581.6483154296875
+      }
+    }
+  }
+]

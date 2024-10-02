@@ -1,8 +1,13 @@
+using AeroMessages.Common;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
+using AeroMessages.GSS.V66.Character.Command;
+using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Generic;
+using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities;
 using GameServer.Entities.Character;
@@ -13,13 +18,38 @@ namespace GameServer.Systems.Encounters;
 public class EncounterManager
 {
     private const ulong _updateFlushIntervalMs = 20;
+    private const ulong _lifetimeCheckIntervalMs = 1000;
 
     private readonly Shard Shard;
     private ulong _lastUpdateFlush = 0;
+    private ulong _lastLifetimeCheck = 0;
+    private bool _hasSpawnedZoneEncounters = false;
+
+    private Dictionary<ulong, IEncounter> UiQueries = new Dictionary<ulong, IEncounter>();
+    private HashSet<IEncounter> EncountersToUpdate = new HashSet<IEncounter>();
+    private ConcurrentDictionary<ulong, Lifetime> LifetimeByEncounter = new ConcurrentDictionary<ulong, Lifetime>();
 
     public EncounterManager(Shard shard)
     {
         Shard = shard;
+    }
+
+    public void SendUiQuery(NewUiQuery uiQuery, INetworkPlayer target, IEncounter encounter)
+    {
+        UiQueries.Add(uiQuery.QueryGuid, encounter);
+
+        target.NetChannels[ChannelType.ReliableGss].SendMessage(uiQuery, target.CharacterEntity.EntityId);
+    }
+
+    public void HandleUiQueryResponse(UiQueryResponse uiQueryResponse, INetworkPlayer player)
+    {
+        if (UiQueries.TryGetValue(uiQueryResponse.QueryGuid, out var encounter)
+            && encounter is IDonationHandler donationHandler)
+        {
+            donationHandler.OnDonation(uiQueryResponse, player);
+
+            UiQueries.Remove(uiQueryResponse.QueryGuid);
+        }
     }
 
     public Thumper CreateThumper(
@@ -46,18 +76,73 @@ public class EncounterManager
         return thumper;
     }
 
+    public void SpawnZoneEncounters(uint zoneId)
+    {
+        foreach (var entry in CustomDBInterface.GetZoneMeldingRepulsors(zoneId))
+        {
+            var guid = Shard.GetNextGuid((byte)Controller.Encounter);
+            Shard.Encounters.Add(guid, new MeldingRepulsor(Shard, guid, new HashSet<INetworkPlayer>(), entry.Value));
+        }
+    }
+
+    public void SetRemainingLifetime(ICanTimeout encounter, uint timeMs)
+    {
+        var tracker = LifetimeByEncounter.TryGetValue(encounter.EntityId, out var value) ? value : new Lifetime();
+
+        tracker.ExpireAt = Shard.CurrentTimeLong + timeMs;
+        LifetimeByEncounter[encounter.EntityId] = tracker;
+    }
+
+    public void StartUpdatingEncounter(IEncounter encounter)
+    {
+        EncountersToUpdate.Add(encounter);
+    }
+
+    public void StopUpdatingEncounter(IEncounter encounter)
+    {
+        EncountersToUpdate.Remove(encounter);
+    }
+
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
+        if (!_hasSpawnedZoneEncounters && currentTime != 0)
+        {
+            _hasSpawnedZoneEncounters = true;
+
+            if (Shard.Settings.LoadZoneEntities)
+            {
+                SpawnZoneEncounters(Shard.ZoneId);
+            }
+        }
+
         if (currentTime > _lastUpdateFlush + _updateFlushIntervalMs)
         {
             _lastUpdateFlush = currentTime;
 
-            foreach (var encounter in Shard.Encounters.Values)
+            foreach (var encounter in EncountersToUpdate)
             {
                 // todo add update queue
                 encounter.OnUpdate(currentTime);
 
                 // FlushChanges(encounter);
+            }
+        }
+
+        if (currentTime > _lastLifetimeCheck + _lifetimeCheckIntervalMs)
+        {
+            _lastLifetimeCheck = currentTime;
+
+            foreach ((ulong entityId, Lifetime tracker) in LifetimeByEncounter)
+            {
+                if (currentTime > tracker.ExpireAt)
+                {
+                    if (Shard.Encounters.TryGetValue(entityId, out var e) && e is ICanTimeout encounter)
+                    {
+                        encounter.OnTimeOut();
+
+                        LifetimeByEncounter.Remove(encounter.EntityId, out _);
+                    }
+                }
             }
         }
     }
@@ -145,5 +230,10 @@ public class EncounterManager
         {
             player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, player.CharacterEntity.EntityId);
         }
+    }
+
+    private class Lifetime
+    {
+        public ulong ExpireAt;
     }
 }

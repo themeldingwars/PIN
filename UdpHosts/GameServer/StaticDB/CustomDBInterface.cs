@@ -154,6 +154,7 @@ public class CustomDBInterface
     private static Dictionary<uint, Dictionary<uint, Deployable>> Deployable;
     private static Dictionary<uint, Dictionary<uint, Melding>> Melding;
     private static Dictionary<uint, Dictionary<uint, Outpost>> Outpost;
+    private static Dictionary<uint, Dictionary<uint, MeldingRepulsor>> MeldingRepulsor;
 
     public static void Init()
     {
@@ -308,6 +309,7 @@ public class CustomDBInterface
         Deployable = loader.LoadDeployable();
         Melding = loader.LoadMelding();
         Outpost = loader.LoadOutpost();
+        MeldingRepulsor = loader.LoadMeldingRepulsor();
     }
 
     // aptgss
@@ -459,4 +461,5 @@ public class CustomDBInterface
     public static Dictionary<uint, Deployable> GetZoneDeployables(uint zoneId) => Deployable.GetValueOrDefault(zoneId);
     public static Dictionary<uint, Melding> GetZoneMeldings(uint zoneId) => Melding.GetValueOrDefault(zoneId);
     public static Dictionary<uint, Outpost> GetZoneOutposts(uint zoneId) => Outpost.GetValueOrDefault(zoneId);
+    public static Dictionary<uint, MeldingRepulsor> GetZoneMeldingRepulsors(uint zoneId) => MeldingRepulsor.GetValueOrDefault(zoneId);
 }

@@ -696,6 +696,7 @@ public static class HardcodedCharacterData
 
     public static (uint, uint)[] FallbackInventoryResources =
     [
+        (82628, 4001),
         (10, 3531909),
         (56, 11),
         (30101, 98780),

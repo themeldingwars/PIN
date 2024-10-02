@@ -160,14 +160,13 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         ResourceNode_ObserverView.ProgressProp = Progress;
     }
 
-    public void TransitionToState(ThumperState newState, uint? countdownOverride = null)
+    public void TransitionToState(ThumperState newState)
     {
-        var countdownTime = countdownOverride ?? newState.CountdownTime();
         StateInfo = new StateInfoStruct()
                     {
                         State = (byte)newState,
                         Time = Shard.CurrentTime,
-                        CountdownTime = Shard.CurrentTime + countdownTime,
+                        CountdownTime = Shard.CurrentTime + newState.CountdownTime(),
                     };
         ResourceNode_ObserverView.StateInfoProp = StateInfo;
     }

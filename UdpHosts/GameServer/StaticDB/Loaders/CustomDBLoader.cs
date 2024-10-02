@@ -894,6 +894,12 @@ public class CustomDBLoader
         .GroupBy(row => row.ZoneId)
         .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
     }
+    public Dictionary<uint, Dictionary<uint, MeldingRepulsor>> LoadMeldingRepulsor()
+    {
+        return LoadJSON<MeldingRepulsor>("./StaticDB/CustomData/meldingRepulsor.json")
+               .GroupBy(row => row.ZoneId)
+               .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
+    }
 
     private T[] LoadJSON<T>(string fileName)
     {

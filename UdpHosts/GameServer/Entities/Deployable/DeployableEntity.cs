@@ -154,7 +154,12 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override bool IsInteractable()
     {
-        return Interaction != null ? Interaction.Type != 0 : false;
+        if (Encounter != null && !Encounter.Handles(EncounterComponent.Event.Interaction))
+        {
+            return false;
+        }
+
+        return Interaction != null && Interaction.Type != 0;
     }
 
     public override bool CanBeInteractedBy(IEntity other)
