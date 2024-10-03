@@ -1,9 +1,9 @@
-using AeroMessages.Common;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
+using AeroMessages.Common;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Generic;

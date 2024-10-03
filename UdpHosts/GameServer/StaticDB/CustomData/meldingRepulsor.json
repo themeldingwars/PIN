@@ -4,7 +4,7 @@
     "zone_id": 448,
     "perimiter_set_name": "Hydro_Core_Melding_02",
     "repulsor": {
-      "type": 2785,
+      "type": 3695,
       "orientation": {
         "IsIdentity": false,
         "W": -0.96569586,

@@ -18,12 +18,12 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
     private const uint EffectOffline = 2958;
     private const uint EffectOnline = 2957;
     private const uint EffectInitializing = 3285;
-    private const uint EffectWhispers = 5157;
+    private const uint EffectCollapse = 5157;
 
     private const uint MaxMeldedCrystite = 4000;
     private const uint PushbackDurationMs = 1224_000;
 
-    private readonly DeployableEntity _meldingRepulsor;
+    private readonly DeployableEntity _repulsor;
     private readonly DeployableEntity _terminal;
 
     private readonly MeldingEntity _melding;
@@ -39,8 +39,8 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
         : base(shard, entityId, participants)
     {
         var r = repulsor.Repulsor;
-        _meldingRepulsor = Shard.EntityMan.SpawnDeployable(r.Type, r.Position, r.Orientation);
-        _meldingRepulsor.Encounter = new EncounterComponent { EncounterId = entityId, Instance = this, Events = EncounterComponent.Event.Signal };
+        _repulsor = Shard.EntityMan.SpawnDeployable(r.Type, r.Position, r.Orientation);
+        _repulsor.Encounter = new EncounterComponent { EncounterId = entityId, Instance = this, Events = EncounterComponent.Event.Signal };
 
         var t = repulsor.Terminal;
         _terminal = Shard.EntityMan.SpawnDeployable(t.Type, t.Position, t.Orientation);
@@ -118,7 +118,7 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
         Shard.Abilities.DoRemoveEffect(_terminal, EffectOffline);
         Shard.Abilities.DoApplyEffect(EffectInitializing, _terminal, new Context(Shard, _terminal) { InitTime = Shard.CurrentTime });
 
-        Shard.Abilities.HandleActivateAbility(Shard, _meldingRepulsor, _meldingRepulsor.Interaction.CompletedAbilityId);
+        Shard.Abilities.HandleActivateAbility(Shard, _repulsor, _repulsor.Interaction.CompletedAbilityId);
     }
 
     public override void OnSignal()
@@ -146,10 +146,10 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
     {
         foreach (var participant in Participants)
         {
-            Shard.Abilities.DoApplyEffect(EffectWhispers, participant.CharacterEntity, new Context(Shard, _meldingRepulsor) { InitTime = Shard.CurrentTime });
+            Shard.Abilities.DoApplyEffect(EffectCollapse, participant.CharacterEntity, new Context(Shard, _repulsor) { InitTime = Shard.CurrentTime });
         }
 
-        Shard.Abilities.DoApplyEffect(9487, _meldingRepulsor, new Context(Shard, _meldingRepulsor) { InitTime = Shard.CurrentTime });
+        Shard.Abilities.DoApplyEffect(9487, _repulsor, new Context(Shard, _repulsor) { InitTime = Shard.CurrentTime });
 
         Shard.Abilities.DoRemoveEffect(_terminal, EffectOnline);
         Shard.Abilities.DoApplyEffect(EffectOffline, _terminal, new Context(Shard, _terminal) { InitTime = Shard.CurrentTime });
