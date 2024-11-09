@@ -16,9 +16,11 @@ public class Thumper : BaseEncounter, IInteractionHandler
         : base(shard, entityId, participants)
     {
         thumper = thumperEntity;
+
+        Shard.EncounterMan.StartUpdatingEncounter(this);
     }
 
-    public void OnInteraction(BaseEntity target)
+    public void OnInteraction(BaseEntity actingEntity, BaseEntity target)
     {
         switch ((ThumperState)thumper.StateInfo.State)
         {
@@ -28,7 +30,7 @@ public class Thumper : BaseEncounter, IInteractionHandler
                 thumper.TransitionToState(ThumperState.LEAVING);
                 break;
             case ThumperState.COMPLETED:
-                thumper.TransitionToState(ThumperState.COMPLETED, 0);
+                thumper.StateInfo = thumper.StateInfo with { CountdownTime = Shard.CurrentTime };
                 break;
         }
     }
@@ -75,6 +77,8 @@ public class Thumper : BaseEncounter, IInteractionHandler
 
     public override void OnSuccess()
     {
+        Shard.EncounterMan.StopUpdatingEncounter(this);
+
         Shard.EntityMan.Remove(thumper);
 
         base.OnSuccess();

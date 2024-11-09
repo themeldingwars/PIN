@@ -502,4 +502,17 @@ public class BaseController : Base
                 break;
         }
     }
+
+    [MessageID((byte)Commands.UiQueryResponse)]
+    public void UiQueryResponse(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var response = packet.Unpack<UiQueryResponse>();
+
+        if (response.SelectedOptionId == 0)
+        {
+            return;
+        }
+
+        client.AssignedShard.EncounterMan.HandleUiQueryResponse(response, (INetworkPlayer)player);
+    }
 }

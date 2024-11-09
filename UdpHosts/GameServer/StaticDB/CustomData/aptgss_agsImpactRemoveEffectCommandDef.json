@@ -8995,11 +8995,15 @@
 	},
 	{
 		"id": 1111837,
-		"comment": "Triggered by Effect 9487  "
+		"comment": "Triggered by Effect 9487  ",
+		"effect_id": 9524,
+		"remove_from_self": true
 	},
 	{
 		"id": 1111838,
-		"comment": "Triggered by Effect 9487  "
+		"comment": "Triggered by Effect 9487  ",
+		"effect_id": 9518,
+		"remove_from_self": true
 	},
 	{
 		"id": 1111939,
