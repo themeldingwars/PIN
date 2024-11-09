@@ -1315,36 +1315,44 @@ public class StaticDBLoader : ISDBLoader
 
         Table table = sdb.GetTableByName(tableName);
         var list = new List<T>();
+        var properties = typeof(T).GetProperties()
+            .Select(propInfo =>
+                    {
+                        var convertedName = Policy.ConvertName(propInfo.Name);
+                        var index = table.GetColumnIndexByName(convertedName);
+
+                        if (index == -1 && ManualNameConversions.TryGetValue(propInfo.Name, out var value))
+                        {
+                            index = table.GetColumnIndexByName(value);
+                        }
+
+                        if (index == -1)
+                        {
+                            index = table.GetColumnIndexByName(propInfo.Name);
+                        }
+
+                        return new { PropInfo = propInfo, ConvertedName = convertedName, Index = index, };
+                    }).ToList();
+
         foreach(Row row in table.Rows)
         {
             T entry = new T();
-            foreach (var propInfo in entry.GetType().GetProperties())
+            foreach (var prop in properties)
             {
-                string convertedName = Policy.ConvertName(propInfo.Name);
-                int index = table.GetColumnIndexByName(convertedName);
-                int backupIndex = table.GetColumnIndexByName(propInfo.Name);
                 try
                 {
-                    if (index != -1)
+                    if (prop.Index != -1)
                     {
-                        propInfo.SetValue(entry, row[index], null);
-                    }
-                    else if (backupIndex != -1)
-                    {
-                        propInfo.SetValue(entry, row[backupIndex], null);
-                    }
-                    else if (ManualNameConversions.TryGetValue(propInfo.Name, out var value))
-                    {
-                        propInfo.SetValue(entry, row[table.GetColumnIndexByName(value)], null);
+                        prop.PropInfo.SetValue(entry, row[prop.Index], null);
                     }
                     else
                     {
-                        warningsSet.Add($"Could not find column for {propInfo.Name} (converted to {convertedName}) in {tableName}");
+                        warningsSet.Add($"Could not find column for {prop.PropInfo.Name} (converted to {prop.ConvertedName}) in {tableName}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception when loading {tableName}, {propInfo.Name}: {ex.Message}");
+                    Console.WriteLine($"Exception when loading {tableName}, {prop.PropInfo.Name}: {ex.Message}");
                 }
             }
 
