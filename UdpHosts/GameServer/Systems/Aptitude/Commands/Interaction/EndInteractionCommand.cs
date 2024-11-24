@@ -41,7 +41,7 @@ public class EndInteractionCommand : ICommand
 
             if (hack.Encounter is { Instance: IInteractionHandler encounter })
             {
-                encounter.OnInteraction(hack);
+                encounter.OnInteraction((BaseEntity)actingEntity, hack);
 
                 return true;
             }
