@@ -14,20 +14,21 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - { name: Linux, os: ubuntu-22.04 }
+          - { name: Linux, os: ubuntu-24.04 }
           - { name: Windows VS2022, os: windows-2022 }
-          - { name: macOS, os: macos-13 }
+          - { name: macOS, os: macos-14 }
         dotnet:
           - { name: .NET 8, version: "8.0.x" }
+          - { name: .NET 9, version: "9.0.x" }
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Setup .NET ${{ matrix.dotnet.version }} SDK
         id: setup-dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet.version }}
       - name: Enforce SDK Version
@@ -39,15 +40,15 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Publish
-        if: matrix.platform.name == 'Windows VS2022' && matrix.dotnet.name == '.NET 6'
+        if: matrix.platform.name == 'Windows VS2022' && matrix.dotnet.name == '.NET 8'
         run: |
-          dotnet publish --runtime win10-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -o Publish
+          dotnet publish --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -o Publish
           cp ./Start.cmd ./Publish
           cp ./README.md ./Publish
           cp ./CHANGELOG.md ./Publish
       - name: Upload Artifact
-        if: matrix.platform.name == 'Windows VS2022' && matrix.dotnet.name == '.NET 6'
-        uses: actions/upload-artifact@v3
+        if: matrix.platform.name == 'Windows VS2022' && matrix.dotnet.name == '.NET 8'
+        uses: actions/upload-artifact@v4
         with:
           name: PIN-${{ github.sha }}
           path: Publish
