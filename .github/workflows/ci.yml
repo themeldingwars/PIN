@@ -52,3 +52,4 @@ jobs:
         with:
           name: PIN-${{ github.sha }}
           path: Publish
+          include-hidden-files: true
