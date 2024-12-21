@@ -205,7 +205,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                             {
                                 new StatInfo()
                                 {
-                                    TitleId = _finalTime, Type = 2, Value = time / 1000f, Unk3 = string.Empty,
+                                    NameId = _finalTime, Type = 2, Value = time / 1000f, Unk3 = string.Empty,
                                 }
                             },
                     Unk1 = 0,
