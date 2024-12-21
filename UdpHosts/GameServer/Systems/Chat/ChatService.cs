@@ -1,17 +1,14 @@
 using System;
 using System.Linq;
-using System.Threading;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
-using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
-using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Generic;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Enums;
 
-namespace GameServer;
+namespace GameServer.Systems.Chat;
 
 public class ChatService
 {
@@ -24,10 +21,12 @@ public class ChatService
     };
 
     private Shard Shard;
+    private ChatCommandService CommandService;
 
     public ChatService(Shard shard)
     {
         Shard = shard;
+        CommandService = new ChatCommandService(shard);
     }
 
     public void CharacterPerformTextChat(INetworkClient client, IEntity entity, PerformTextChat query)
@@ -40,7 +39,13 @@ public class ChatService
         
         ChatChannel queryChannel = (ChatChannel)query.Channel;
 
-        if (PublicBroadcastChannels.Contains(queryChannel))
+        var trimmed = query.Message.Trim();
+        if (trimmed.StartsWith('\\'))
+        {
+            CommandService.ExecuteCommand(trimmed[1..], ((CharacterEntity)entity).Player);
+            Console.WriteLine(query.Message);
+        }
+        else if (PublicBroadcastChannels.Contains(queryChannel))
         {
             SendToAll(query.Message, queryChannel, entity);
         }
@@ -71,6 +76,11 @@ public class ChatService
                 client.NetChannels[ChannelType.UnreliableGss].SendMessage(response, Shard.InstanceId);
             }
         }
+    }
+
+    public string GetCommandList()
+    {
+        return CommandService.GetCommandList();
     }
 
     private ChatMessageList PrepareSingleMessage(string message, ChatChannel channel, IEntity sender)
