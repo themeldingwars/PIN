@@ -10,6 +10,7 @@ using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
 using GameServer.Entities.Melding;
+using GameServer.StaticDB.Records.customdata.Encounters;
 
 namespace GameServer.Systems.Encounters.Encounters;
 
@@ -35,14 +36,14 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
     private ulong StartTime = 0;
     private uint MeldedCrystite = 0;
 
-    public MeldingRepulsor(IShard shard, ulong entityId, HashSet<INetworkPlayer> participants, Data.SDB.Records.customdata.MeldingRepulsor repulsor)
+    public MeldingRepulsor(IShard shard, ulong entityId, HashSet<INetworkPlayer> participants, MeldingRepulsorDef repulsorDef)
         : base(shard, entityId, participants)
     {
-        var r = repulsor.Repulsor;
+        var r = repulsorDef.Repulsor;
         _repulsor = Shard.EntityMan.SpawnDeployable(r.Type, r.Position, r.Orientation);
         _repulsor.Encounter = new EncounterComponent { EncounterId = entityId, Instance = this, Events = EncounterComponent.Event.Signal };
 
-        var t = repulsor.Terminal;
+        var t = repulsorDef.Terminal;
         _terminal = Shard.EntityMan.SpawnDeployable(t.Type, t.Position, t.Orientation);
         _terminal.Encounter = new EncounterComponent() { EncounterId = entityId, Instance = this, Events = EncounterComponent.Event.Interaction };
 
@@ -56,13 +57,13 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
             };
 
         _melding = (MeldingEntity)Shard.Entities.Values.First(e => e is MeldingEntity meldingEntity
-            && meldingEntity.PerimiterSetName == repulsor.PerimiterSetName);
+            && meldingEntity.PerimiterSetName == repulsorDef.PerimiterSetName);
 
         var adp = _melding.Melding_ObserverView.ActiveDataProp;
 
-        _controlPointIndex = repulsor.MeldingPosition.ControlPointIndex;
+        _controlPointIndex = repulsorDef.MeldingPosition.ControlPointIndex;
 
-        _startPosition = repulsor.MeldingPosition.Position;
+        _startPosition = repulsorDef.MeldingPosition.Position;
         _endPosition = adp.ControlPoints_1[_controlPointIndex];
 
         adp.ControlPoints_1[_controlPointIndex] = _startPosition;

@@ -12,12 +12,14 @@ using AeroMessages.GSS.V66.Character.View;
 using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
+using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
+using GameServer.Systems.Encounters;
 using Serilog;
 using static AeroMessages.GSS.V66.Character.Command.NonDevDebugCommand;
 using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
@@ -371,12 +373,13 @@ public class BaseController : Base
         }
 
         var character = player.CharacterEntity;
+        var entity = character.AttachedToEntity;
 
-        if (character.AttachedToEntity is VehicleEntity vehicle)
+        if (entity is VehicleEntity vehicle)
         {
             vehicle.RemoveOccupant(character);
         }
-        else if (character.AttachedToEntity is TurretEntity turret)
+        else if (entity is TurretEntity turret)
         {
             if (turret.Parent is VehicleEntity parentVehicle)
             {
@@ -393,6 +396,12 @@ public class BaseController : Base
         var response = new ExitingAttachment() { Direction = new Vector3(-0.5f, -0.5f, -0.47f) };
 
         client.NetChannels[ChannelType.ReliableGss].SendMessage(response, character.EntityId);
+
+        if (entity is BaseEntity { Encounter.Instance: IExitAttachmentHandler handler } baseEntity
+            && baseEntity.Encounter.Handles(EncounterComponent.Event.ExitAttachment))
+        {
+            handler.OnExitAttachment(baseEntity, (INetworkPlayer)player);
+        }
     }
 
     [MessageID((byte)Commands.SeatChangeRequest)]

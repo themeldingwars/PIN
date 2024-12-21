@@ -1,8 +1,9 @@
 using System.Numerics;
+using GameServer.Data.SDB.Records.customdata;
 
-namespace GameServer.Data.SDB.Records.customdata;
+namespace GameServer.StaticDB.Records.customdata.Encounters;
 
-public record MeldingRepulsor
+public record MeldingRepulsorDef : IEncounterDef
 {
     public uint Id { get; set; }
     public uint ZoneId { get; set; }

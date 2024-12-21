@@ -17,7 +17,9 @@ namespace GameServer.Systems.Encounters;
 
 public class EncounterManager
 {
-    private const ulong _updateFlushIntervalMs = 20;
+    public Factory Factory;
+
+    private const ulong _updateFlushIntervalMs = 40;
     private const ulong _lifetimeCheckIntervalMs = 1000;
 
     private readonly Shard Shard;
@@ -25,6 +27,7 @@ public class EncounterManager
     private ulong _lastLifetimeCheck = 0;
     private bool _hasSpawnedZoneEncounters = false;
 
+    public Dictionary<BaseEntity, IProximityHandler> EntitiesToCheckProximity = new Dictionary<BaseEntity, IProximityHandler>();
     private Dictionary<ulong, IEncounter> UiQueries = new Dictionary<ulong, IEncounter>();
     private HashSet<IEncounter> EncountersToUpdate = new HashSet<IEncounter>();
     private ConcurrentDictionary<ulong, Lifetime> LifetimeByEncounter = new ConcurrentDictionary<ulong, Lifetime>();
@@ -32,6 +35,7 @@ public class EncounterManager
     public EncounterManager(Shard shard)
     {
         Shard = shard;
+        Factory = new Factory(shard);
     }
 
     public void SendUiQuery(NewUiQuery uiQuery, INetworkPlayer target, IEncounter encounter)
@@ -81,7 +85,14 @@ public class EncounterManager
         foreach (var entry in CustomDBInterface.GetZoneMeldingRepulsors(zoneId))
         {
             var guid = Shard.GetNextGuid((byte)Controller.Encounter);
-            Shard.Encounters.Add(guid, new MeldingRepulsor(Shard, guid, new HashSet<INetworkPlayer>(), entry.Value));
+            Add(guid, new MeldingRepulsor(Shard, guid, new HashSet<INetworkPlayer>(), entry.Value));
+        }
+
+        foreach (var entry in CustomDBInterface.GetZoneLgvRaces(zoneId))
+        {
+            var t = entry.Value.Terminal;
+            var terminal = Shard.EntityMan.SpawnDeployable(820, t.Position, t.Orientation);
+            terminal.Encounter = new EncounterComponent() { SpawnDef = entry.Value, Events = EncounterComponent.Event.Interaction };
         }
     }
 
@@ -125,6 +136,22 @@ public class EncounterManager
                 encounter.OnUpdate(currentTime);
 
                 // FlushChanges(encounter);
+            }
+
+            foreach (var (entity, encounter) in EntitiesToCheckProximity)
+            {
+                foreach (var p in encounter.Participants)
+                {
+                    if (!Shard.EntityMan.HasScopedInEntity(entity.EntityId, p))
+                    {
+                        continue;
+                    }
+
+                    if (Vector3.Distance(entity.Position, p.CharacterEntity.Position) < entity.Encounter.ProximityDistance)
+                    {
+                        encounter.OnProximity(entity, p);
+                    }
+                }
             }
         }
 

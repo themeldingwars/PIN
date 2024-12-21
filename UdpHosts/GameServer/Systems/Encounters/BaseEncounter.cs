@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Aero.Gen;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66.Generic;
@@ -18,11 +19,17 @@ public abstract class BaseEncounter : IEncounter
         Participants = participants;
     }
 
+    protected BaseEncounter(IShard shard, ulong entityId, INetworkPlayer soloParticipant)
+        : this(shard, entityId, new HashSet<INetworkPlayer>() { soloParticipant })
+    {
+    }
+
     public IShard Shard { get; protected set; }
     public ulong EntityId { get; }
     public EntityId AeroEntityId { get; protected set; }
 
     public HashSet<INetworkPlayer> Participants { get; }
+    public INetworkPlayer SoloParticipant => Participants.Single();
     public virtual IAeroEncounter View => null;
 
     public virtual void OnUpdate(ulong currentTime)
@@ -51,6 +58,14 @@ public abstract class BaseEncounter : IEncounter
         foreach (var p in Participants)
         {
             p.NetChannels[ChannelType.ReliableGss].SendMessage(msg, p.CharacterEntity.EntityId);
+        }
+    }
+
+    protected void RewardWithResource(uint resourceId, uint quantity)
+    {
+        foreach (var p in Participants)
+        {
+            p.Inventory.AddResource(resourceId, quantity);
         }
     }
 }

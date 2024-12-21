@@ -46,6 +46,11 @@ public class EndInteractionCommand : ICommand
                 return true;
             }
 
+            if (hack.Encounter is { SpawnDef: { } spawnData })
+            {
+                context.Shard.EncounterMan.Factory.SpawnEncounter(spawnData, (CharacterEntity)actingEntity);
+            }
+
             var abilityId = hack.Interaction.CompletedAbilityId;
             if (abilityId != 0)
             {
