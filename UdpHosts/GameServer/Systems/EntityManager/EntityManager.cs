@@ -64,9 +64,12 @@ public class EntityManager
 
     public int GetNumberOfScopedEntities(IPlayer player)
     {
-        return ScopedPlayersByEntity.Values
-        .Where((set) => set.Contains(player))
-        .Count();
+        return ScopedPlayersByEntity.Values.Count(set => set.Contains(player));
+    }
+
+    public bool HasScopedInEntity(ulong entityId, INetworkPlayer player)
+    {
+        return ScopedPlayersByEntity.TryGetValue(entityId, out var players) && players.Contains(player);
     }
 
     public CharacterEntity SpawnCharacter(uint typeId, Vector3 position)
@@ -107,22 +110,18 @@ public class EntityManager
         {
             vehicleEntity.SetOwner(owner as BaseEntity);
             
-            if (owner.GetType() == typeof(CharacterEntity))
+            if (owner is CharacterEntity { IsPlayerControlled: true } character)
             {
-                var character = owner as CharacterEntity;
-                if (character.IsPlayerControlled)
-                {
-                    vehicleEntity.SetOwningPlayer(character.Player);
-                }
-            }
-
-            if (autoMount)
-            {
-                // TODO:
+                vehicleEntity.SetOwningPlayer(character.Player);
             }
         }
 
         Add(vehicleEntity.EntityId, vehicleEntity);
+
+        if (owner is CharacterEntity c && autoMount)
+        {
+            vehicleEntity.AddOccupant(c);
+        }
 
         if (vehicleEntity.SpawnAbility != 0)
         {
