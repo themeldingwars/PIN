@@ -13,6 +13,7 @@ using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Enums;
+using GameServer.Systems.Encounters;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
 using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
@@ -22,8 +23,11 @@ namespace GameServer.Entities.Character;
 /// <summary>
 /// Base Character
 /// </summary>
-public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
+public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 {
+    public const byte MaxMapMarkerCount = 64;
+    private MapMarkerState[] MapMarkers = new MapMarkerState[MaxMapMarkerCount];
+
     public CharacterEntity(IShard shard, ulong eid)
         : base(shard, eid)
     {
@@ -1043,6 +1047,51 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         Shard.EntityMan.FlushChanges(this);
     }
 
+    public void AddMapMarker(ulong encounterId, PersonalMapMarkerData data)
+    {
+        byte firstFreeIndex = InvalidIndex;
+        for (byte i = 0; i < MaxMapMarkerCount; i++)
+        {
+            if (MapMarkers[i] == null)
+            {
+                firstFreeIndex = i;
+                break;
+            }
+        }
+
+        if (firstFreeIndex == InvalidIndex)
+        {
+            Console.WriteLine("AddMapMarkers but there are too many active map markers!");
+            firstFreeIndex = MaxMapMarkerCount - 1; // Lets not crash
+        }
+
+        var state = new MapMarkerState
+        {
+            EncounterId = data.EncounterId,
+            EncounterMarkerId = data.EncounterMarkerId,
+        };
+
+        MapMarkers[firstFreeIndex] = state;
+
+        SetMapMarker(firstFreeIndex, data);
+    }
+
+    public void RemoveEncounterMapMarkers(ulong encounterId)
+    {
+        for (byte i = 0; i < MapMarkers.Length; i++)
+        {
+            if (MapMarkers[i] == null)
+            {
+                continue;
+            }
+
+            if (MapMarkers[i].EncounterId.Backing == encounterId)
+            {
+                SetMapMarker(i, null);
+            }
+        }
+    }
+
     public void SetCombatFlags(CombatFlagsData value)
     {
         Character_CombatController.CombatFlagsProp = value;
@@ -1549,6 +1598,12 @@ public partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
         }
         
         return result;
+    }
+
+    private void SetMapMarker(byte index, PersonalMapMarkerData? data)
+    {
+        Character_MissionAndMarkerController?.GetType().GetProperty($"PersonalMapMarkers_{index}Prop")
+                                            ?.SetValue(Character_MissionAndMarkerController, data);
     }
 
     public class ActiveStatModifier
