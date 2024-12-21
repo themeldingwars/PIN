@@ -12,6 +12,7 @@ using GameServer.GRPC;
 using GameServer.Test;
 using Serilog;
 using Shared.Udp;
+using SDB = FauFau.Formats.StaticDB;
 
 namespace GameServer;
 
@@ -31,7 +32,7 @@ internal class GameServer : PacketServer
 
     public GameServer(GameServerSettings serverSettings,
                       ILogger logger,
-                      StaticDB sdb)
+                      SDB sdb)
         : base(serverSettings.Port, logger)
     {
         _clientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
