@@ -140,12 +140,12 @@ internal class GameServer : PacketServer
         {
             try
             {
-                await GRPCService.ListenAsync(_clientMap);
+                await GRPCService.ListenAsync(_clientMap, ct);
             }
             catch (Exception)
             {
-                Console.WriteLine("Failed to connect to GRPC, retrying in 5 minutes");
-                await Task.Delay(TimeSpan.FromMinutes(5), ct);
+                Console.WriteLine("Failed to establish GRPC stream, retrying in 30 seconds");
+                await Task.Delay(TimeSpan.FromSeconds(30), ct);
             }
         }
     }
