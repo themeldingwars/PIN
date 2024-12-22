@@ -81,7 +81,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
             });
         timer.Change(30_000, Timeout.Infinite);
 
-        finishLine = Shard.EntityMan.SpawnAreaVisualData(data.Finish.Position, new ScopingComponent() { Range = 90 });
+        finishLine = Shard.EntityMan.SpawnAreaVisualData(data.Finish.Position, new ScopingComponent() { Range = 150 });
         finishLine.AreaVisualData_ParticleEffectsView.ParticleEffects_0Prop = new ParticleEffect()
             {
                 PfxEntityId = AeroEntityId,
