@@ -7,7 +7,6 @@ using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Generic.Event.EncounterView;
 using GameServer.Entities;
 using GameServer.Entities.AreaVisualData;
-using GameServer.Entities.Vehicle;
 using GameServer.GRPC;
 using GameServer.StaticDB.Records.customdata.Encounters;
 using GrpcGameServerAPIClient;
@@ -26,12 +25,9 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
     private const uint _pfxFinishLine = 212597;
     private const ushort _mapMarkerRace = 26;
 
-    public override HudTimerView View { get; }
-
     private ulong startTime;
     private uint leaderboardId;
     private uint bonusTimeMs;
-    private VehicleEntity vehicle;
     private AreaVisualDataEntity finishLine;
 
     public LgvRace(IShard shard, ulong entityId, INetworkPlayer soloParticipant, LgvRaceDef data)
@@ -42,7 +38,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
 
         leaderboardId = data.LeaderboardId;
 
-        vehicle = Shard.EntityMan.SpawnVehicle(
+        var vehicle = Shard.EntityMan.SpawnVehicle(
             _terromotoCobra,
             data.Start.Position,
             data.Start.Orientation,
@@ -105,7 +101,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                 Events = EncounterComponent.Event.Proximity,
                 ProximityDistance = 3,
             };
-        Shard.EncounterMan.EntitiesToCheckProximity.Add(finishLine, this);
+        Shard.EncounterMan.AddCheckingOfProximity(finishLine, this);
 
         SoloParticipant.CharacterEntity.AddMapMarker(
             EntityId,
@@ -124,6 +120,8 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                 MarkerType = _mapMarkerRace,
             });
     }
+
+    public override HudTimerView View { get; }
 
     public void OnExitAttachment(BaseEntity targetEntity, INetworkPlayer player)
     {
@@ -176,7 +174,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                 {
                     ResourceTargetId = new EntityId() { Backing = 0 },
                     Experience = exp,
-                    Reputations = [],
+                    Reputations = new ReputationInfo[] { },
                     Rewards1 = new RewardInfoData[]
                                {
                                    new RewardInfoData()
@@ -200,12 +198,12 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                                        Module2 = 0
                                    }
                                },
-                    Rewards2 = [],
+                    Rewards2 = new RewardInfoData[] { },
                     Stats = new StatInfo[]
                             {
                                 new StatInfo()
                                 {
-                                    NameId = _finalTime, Type = 2, Value = time / 1000f, Unk3 = string.Empty,
+                                    NameId = _finalTime, Type = StatInfo.StatType.Time, Value = time / 1000f, Unk3 = string.Empty,
                                 }
                             },
                     Unk1 = 0,

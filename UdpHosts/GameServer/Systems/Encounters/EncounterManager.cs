@@ -27,7 +27,7 @@ public class EncounterManager
     private ulong _lastLifetimeCheck = 0;
     private bool _hasSpawnedZoneEncounters = false;
 
-    public Dictionary<BaseEntity, IProximityHandler> EntitiesToCheckProximity = new Dictionary<BaseEntity, IProximityHandler>();
+    private Dictionary<BaseEntity, IProximityHandler> EntitiesToCheckProximity = new Dictionary<BaseEntity, IProximityHandler>();
     private Dictionary<ulong, IEncounter> UiQueries = new Dictionary<ulong, IEncounter>();
     private HashSet<IEncounter> EncountersToUpdate = new HashSet<IEncounter>();
     private ConcurrentDictionary<ulong, Lifetime> LifetimeByEncounter = new ConcurrentDictionary<ulong, Lifetime>();
@@ -112,6 +112,11 @@ public class EncounterManager
     public void StopUpdatingEncounter(IEncounter encounter)
     {
         EncountersToUpdate.Remove(encounter);
+    }
+
+    public void AddCheckingOfProximity(BaseEntity entity, IProximityHandler encounter)
+    {
+        EntitiesToCheckProximity.Add(entity, encounter);
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
