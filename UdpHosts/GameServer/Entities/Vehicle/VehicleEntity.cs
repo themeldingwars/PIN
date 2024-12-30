@@ -51,7 +51,7 @@ public class SeatConfig
     public byte TurretIndex;
 }
 
-public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
+public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public VehicleEntity(IShard shard, ulong eid)
         : base(shard, eid)
@@ -503,6 +503,11 @@ public class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override bool IsInteractable()
     {
+        if (Encounter != null && !Encounter.Handles(EncounterComponent.Event.Interaction))
+        {
+            return false;
+        }
+
         foreach (var seat in Occupants.Values)
         {
             if (seat.Occupant == null && seat.Role != AttachmentRole.None)

@@ -1,0 +1,262 @@
+﻿[
+  {
+    "id": 1,
+    "zone_id": 448,
+    "comment": "Copacabana - Trans-Hub",
+    "label": 156505,
+    "leaderboard_id": 1,
+    "start_dialog": 11156,
+    "start": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": -0.17295577,
+        "X": 0.002591103,
+        "Y": 0.0435862,
+        "Z": 0.9839613
+      },
+      "position": {
+        "X": -357.18137,
+        "Y": -467.0791,
+        "Z": 418.691528
+      }
+    },
+    "finish": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.1801588,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.9836375
+      },
+      "position": {
+        "X": -1020.095704,
+        "Y": -908.493591,
+        "Z": 430.220825
+      }
+    },
+    "terminal": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.7175571,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.6964997
+      },
+      "position": {
+        "X": -360.3101,
+        "Y": -465.41077,
+        "Z": 418.7193
+      }
+    },
+    "time_limit_ms": 80000,
+    "bonus_time_limit_ms": 50000
+  },
+  {
+    "id": 2,
+    "zone_id": 448,
+    "comment": "Trans-Hub - Sunken Harbor",
+    "label": 141983,
+    "leaderboard_id": 2,
+    "start_dialog": 11387,
+    "start": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.3392906,
+        "X": 0.014921068,
+        "Y": 0.041290212,
+        "Z": 0.9396565
+      },
+      "position": {
+        "X": -1023.555908,
+        "Y": -910.066528,
+        "Z": 429.218689
+      }
+    },
+    "finish": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": -0.50619423,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.8624195
+      },
+      "position": {
+        "X": 627.695129,
+        "Y": -1452.656860,
+        "Z": 411.751312
+      }
+    },
+    "terminal": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": -0.97638285,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.2160475
+      },
+      "position": {
+        "X": -1028.4078,
+        "Y": -907.1568,
+        "Z": 428.6798
+      }
+    },
+    "time_limit_ms": 180000,
+    "bonus_time_limit_ms": 120000
+  },
+  {
+    "id": 3,
+    "zone_id": 448,
+    "comment": "Sunken Harbor - Copacabana",
+    "label": 135929,
+    "leaderboard_id": 3,
+    "start_dialog": 11012,
+    "start": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.7648511,
+        "X": -0.012024249,
+        "Y": -0.010168955,
+        "Z": -0.6440147
+      },
+      "position": {
+        "X": 642.516479,
+        "Y": -1483.968628,
+        "Z": 414.576904
+      }
+    },
+    "finish": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.044414524,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.9990132
+      },
+      "position": {
+        "X": -350.430237,
+        "Y": -421.046906,
+        "Z": 415.034119
+      }
+    },
+    "terminal": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.9999156,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.012992493
+      },
+      "position": {
+        "X": 646.72455,
+        "Y": -1488.7458,
+        "Z": 414.7206
+      }
+    },
+    "time_limit_ms": 160000,
+    "bonus_time_limit_ms": 100000
+  },
+  {
+    "id": 4,
+    "zone_id": 448,
+    "comment": "Copacabana - Thump Dump",
+    "label": 151665,
+    "leaderboard_id": 4,
+    "start_dialog": 11585,
+    "start": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.9566996,
+        "X": 0.071605094,
+        "Y": 0.026196381,
+        "Z": -0.28091335
+      },
+      "position": {
+        "X": -667.258972,
+        "Y": -329.081451,
+        "Z": 442.637207
+      }
+    },
+    "finish": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": -0.6432496,
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.76565653
+      },
+      "position": {
+        "X": -1644.012207,
+        "Y": 1294.188232,
+        "Z": 492.192047
+      }
+    },
+    "terminal": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": -0.31347674,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.94959587
+      },
+      "position": {
+        "X": -667.1653,
+        "Y": -324.08643,
+        "Z": 441.51447
+      }
+    },
+    "time_limit_ms": 180000,
+    "bonus_time_limit_ms": 120000
+  },
+  {
+    "id": 5,
+    "zone_id": 448,
+    "comment": "Thump Dump - Copacabana",
+    "label": 135929,
+    "leaderboard_id": 5,
+    "start_dialog": 11012,
+    "start": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.5659935,
+        "X": -0.03600099,
+        "Y": 0.05213954,
+        "Z": 0.82197124
+      },
+      "position": {
+        "X": -1653.038086,
+        "Y": 1294.078857,
+        "Z": 490.870789
+      }
+    },
+    "finish": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": 0.9220468,
+        "X": 0,
+        "Y": 0,
+        "Z": 0.38707846
+      },
+      "position": {
+        "X": -683.523499,
+        "Y": -322.812042,
+        "Z": 441.364685
+      }
+    },
+    "terminal": {
+      "orientation": {
+        "IsIdentity": false,
+        "W": -0.8908104,
+        "X": 0,
+        "Y": 0,
+        "Z":0.45437527
+      },
+      "position": {
+        "X": -1649.3523,
+        "Y": 1289.0253,
+        "Z": 491.0055
+      }
+    },
+    "time_limit_ms": 180000,
+    "bonus_time_limit_ms": 120000
+  }
+]

@@ -20,6 +20,7 @@ using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
+using GameServer.Entities.AreaVisualData;
 using GameServer.Entities.Carryable;
 using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
@@ -63,9 +64,12 @@ public class EntityManager
 
     public int GetNumberOfScopedEntities(IPlayer player)
     {
-        return ScopedPlayersByEntity.Values
-        .Where((set) => set.Contains(player))
-        .Count();
+        return ScopedPlayersByEntity.Values.Count(set => set.Contains(player));
+    }
+
+    public bool HasScopedInEntity(ulong entityId, INetworkPlayer player)
+    {
+        return ScopedPlayersByEntity.TryGetValue(entityId, out var players) && players.Contains(player);
     }
 
     public CharacterEntity SpawnCharacter(uint typeId, Vector3 position)
@@ -106,22 +110,18 @@ public class EntityManager
         {
             vehicleEntity.SetOwner(owner as BaseEntity);
             
-            if (owner.GetType() == typeof(CharacterEntity))
+            if (owner is CharacterEntity { IsPlayerControlled: true } character)
             {
-                var character = owner as CharacterEntity;
-                if (character.IsPlayerControlled)
-                {
-                    vehicleEntity.SetOwningPlayer(character.Player);
-                }
-            }
-
-            if (autoMount)
-            {
-                // TODO:
+                vehicleEntity.SetOwningPlayer(character.Player);
             }
         }
 
         Add(vehicleEntity.EntityId, vehicleEntity);
+
+        if (owner is CharacterEntity c && autoMount)
+        {
+            vehicleEntity.AddOccupant(c);
+        }
 
         if (vehicleEntity.SpawnAbility != 0)
         {
@@ -227,6 +227,16 @@ public class EntityManager
         meldingEntity.SetActiveData(activeData);
         Add(meldingEntity.EntityId, meldingEntity);
         return meldingEntity;
+    }
+
+    public AreaVisualDataEntity SpawnAreaVisualData(Vector3 position, ScopingComponent scoping)
+    {
+        var areaVisualData = new AreaVisualDataEntity(Shard, Shard.GetNextGuid())
+            {
+                Scoping = scoping, Position = position,
+            };
+        Add(areaVisualData.EntityId, areaVisualData);
+        return areaVisualData;
     }
 
     public OutpostEntity SpawnOutpost(Outpost outpost)
@@ -693,9 +703,105 @@ public class EntityManager
                 }
 
                 break;
+            case AreaVisualDataEntity areaVisualData:
+                switch (typecode)
+                {
+                    case Enums.GSS.Controllers.AreaVisualData_ObserverView:
+                        if (areaVisualData.AreaVisualData_ObserverView != null)
+                        {
+                            uint ourChecksum = areaVisualData.AreaVisualData_ObserverView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(areaVisualData.AreaVisualData_ObserverView, entity.EntityId);
+                            }
+                        }
 
-            // TODO: AreaVisualData
-            // --
+                        break;
+                    case Enums.GSS.Controllers.AreaVisualData_ParticleEffectsView:
+                        if (areaVisualData.AreaVisualData_ParticleEffectsView != null)
+                        {
+                            uint ourChecksum = areaVisualData.AreaVisualData_ParticleEffectsView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(areaVisualData.AreaVisualData_ParticleEffectsView, entity.EntityId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.AreaVisualData_MapMarkerView:
+                        if (areaVisualData.AreaVisualData_MapMarkerView != null)
+                        {
+                            uint ourChecksum = areaVisualData.AreaVisualData_MapMarkerView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(areaVisualData.AreaVisualData_MapMarkerView, entity.EntityId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.AreaVisualData_TinyObjectView:
+                        if (areaVisualData.AreaVisualData_TinyObjectView != null)
+                        {
+                            uint ourChecksum = areaVisualData.AreaVisualData_TinyObjectView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(areaVisualData.AreaVisualData_TinyObjectView, entity.EntityId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.AreaVisualData_LootObjectView:
+                        if (areaVisualData.AreaVisualData_LootObjectView != null)
+                        {
+                            uint ourChecksum = areaVisualData.AreaVisualData_LootObjectView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(areaVisualData.AreaVisualData_LootObjectView, entity.EntityId);
+                            }
+                        }
+
+                        break;
+                    case Enums.GSS.Controllers.AreaVisualData_ForceShieldView:
+                        if (areaVisualData.AreaVisualData_ForceShieldView != null)
+                        {
+                            uint ourChecksum = areaVisualData.AreaVisualData_ForceShieldView.SerializeToChecksum();
+                            if (clientChecksum == ourChecksum)
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendChecksum(entity.EntityId, typecode, clientChecksum);
+                            }
+                            else
+                            {
+                                client.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(areaVisualData.AreaVisualData_ForceShieldView, entity.EntityId);
+                            }
+                        }
+
+                        break;
+                    default:
+                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        break;
+                }
+
+                break;
             case VehicleEntity vehicle:
                 bool isVehicleController = vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player;
                 switch (typecode)
@@ -1108,6 +1214,44 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
+        else if (entity is AreaVisualDataEntity avd)
+        {
+            var observer = avd.AreaVisualData_ObserverView;
+            if (observer != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+            }
+
+            var particleEffects = avd.AreaVisualData_ParticleEffectsView;
+            if (particleEffects != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(particleEffects, entity.EntityId);
+            }
+
+            var mapMarker = avd.AreaVisualData_MapMarkerView;
+            if (mapMarker != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(mapMarker, entity.EntityId);
+            }
+
+            var tinyObject = avd.AreaVisualData_TinyObjectView;
+            if (tinyObject != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(tinyObject, entity.EntityId);
+            }
+
+            var lootObject = avd.AreaVisualData_LootObjectView;
+            if (lootObject != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(lootObject, entity.EntityId);
+            }
+
+            var forceShield = avd.AreaVisualData_ForceShieldView;
+            if (forceShield != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(forceShield, entity.EntityId);
+            }
+        }
     }
 
     public void ScopeOut(INetworkPlayer player, IEntity entity)
@@ -1332,6 +1476,44 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
+        else if (entity is AreaVisualDataEntity avd)
+        {
+            var observer = avd.AreaVisualData_ObserverView;
+            if (observer != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
+            }
+
+            var particleEffects = avd.AreaVisualData_ParticleEffectsView;
+            if (particleEffects != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(particleEffects, entity.EntityId);
+            }
+
+            var mapMarker = avd.AreaVisualData_MapMarkerView;
+            if (mapMarker != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(mapMarker, entity.EntityId);
+            }
+
+            var tinyObject = avd.AreaVisualData_TinyObjectView;
+            if (tinyObject != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(tinyObject, entity.EntityId);
+            }
+
+            var lootObject = avd.AreaVisualData_LootObjectView;
+            if (lootObject != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(lootObject, entity.EntityId);
+            }
+
+            var forceShield = avd.AreaVisualData_ForceShieldView;
+            if (forceShield != null)
+            {
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(forceShield, entity.EntityId);
+            }
+        }
     }
 
     public void RemoveControllers(INetworkPlayer player, IEntity entity)
@@ -1445,6 +1627,15 @@ public class EntityManager
         {
             var thumper = entity as ThumperEntity;
             FlushViewChangesToEveryone(thumper.ResourceNode_ObserverView, thumper.EntityId);
+        }
+        else if (entity is AreaVisualDataEntity avd)
+        {
+            FlushViewChangesToEveryone(avd.AreaVisualData_ObserverView, avd.EntityId);
+            FlushViewChangesToEveryone(avd.AreaVisualData_ParticleEffectsView, avd.EntityId);
+            FlushViewChangesToEveryone(avd.AreaVisualData_MapMarkerView, avd.EntityId);
+            FlushViewChangesToEveryone(avd.AreaVisualData_TinyObjectView, avd.EntityId);
+            FlushViewChangesToEveryone(avd.AreaVisualData_LootObjectView, avd.EntityId);
+            FlushViewChangesToEveryone(avd.AreaVisualData_ForceShieldView, avd.EntityId);
         }
     }
 

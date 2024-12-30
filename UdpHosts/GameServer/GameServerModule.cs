@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Configuration;
 using Autofac;
-using FauFau.Formats;
 using GameServer.Physics.ZoneLoader;
 using Serilog;
 using Shared.Common;
+using SDB = FauFau.Formats.StaticDB;
 
 namespace GameServer;
 
@@ -21,7 +21,7 @@ public class GameServerModule : Module
     private static void RegisterTypes(ContainerBuilder builder)
     {
         builder.RegisterType<GameServerSettings>().SingleInstance();
-        builder.RegisterType<StaticDB>().SingleInstance();
+        builder.RegisterType<SDB>().SingleInstance();
         builder.RegisterType<GameServer>();
     }
 
@@ -44,6 +44,11 @@ public class GameServerModule : Module
             if (ConfigurationManager.AppSettings["StaticDBPath"] != null)
             {
                 settings.StaticDBPath = ConfigurationManager.AppSettings["StaticDBPath"];
+            }
+
+            if (ConfigurationManager.AppSettings["ZoneId"] != null)
+            {
+                settings.ZoneId = uint.Parse(ConfigurationManager.AppSettings["ZoneId"]);
             }
 
             if (ConfigurationManager.AppSettings["MapsPath"] != null)
@@ -101,11 +106,11 @@ public class GameServerModule : Module
             var settings = ctx.Resolve<GameServerSettings>();
             
             Console.WriteLine($"Opening SDB from {settings.StaticDBPath}");
-            StaticDB sdb = new StaticDB();
+            var sdb = new SDB();
             sdb.Read(settings.StaticDBPath);
 
             return sdb;
         })
-        .As<StaticDB>().SingleInstance();
+        .As<SDB>().SingleInstance();
     }
 }

@@ -136,7 +136,7 @@ internal enum Commands : byte
     RequestTeleport = 210,
     RequestFrameLevelReset = 211,
     LeaveEncounterParty = 212,
-    JoinSquadLeadersAr = 213,
+    JoinSquadLeadersArc = 213,
     LeaveArc = 214,
     JobLedgerOperation = 215,
     SeatChangeRequest = 216,

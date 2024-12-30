@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using GameServer.Data.SDB.Records.customdata;
+using GameServer.StaticDB.Records.customdata.Encounters;
 using Shared.Common;
 
 public class CustomDBLoader
@@ -895,9 +896,16 @@ public class CustomDBLoader
         .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
     }
 
-    public Dictionary<uint, Dictionary<uint, MeldingRepulsor>> LoadMeldingRepulsor()
+    public Dictionary<uint, Dictionary<uint, MeldingRepulsorDef>> LoadMeldingRepulsor()
     {
-        return LoadJSON<MeldingRepulsor>("./StaticDB/CustomData/meldingRepulsor.json")
+        return LoadJSON<MeldingRepulsorDef>("./StaticDB/CustomData/meldingRepulsor.json")
+               .GroupBy(row => row.ZoneId)
+               .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
+    }
+
+    public Dictionary<uint, Dictionary<uint, LgvRaceDef>> LoadLgvRace()
+    {
+        return LoadJSON<LgvRaceDef>("./StaticDB/CustomData/lgv_race.json")
                .GroupBy(row => row.ZoneId)
                .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
     }

@@ -1,3 +1,5 @@
+using GameServer.StaticDB.Records.customdata.Encounters;
+
 namespace GameServer.Data.SDB;
 
 using System.Collections.Generic;
@@ -154,7 +156,8 @@ public class CustomDBInterface
     private static Dictionary<uint, Dictionary<uint, Deployable>> Deployable;
     private static Dictionary<uint, Dictionary<uint, Melding>> Melding;
     private static Dictionary<uint, Dictionary<uint, Outpost>> Outpost;
-    private static Dictionary<uint, Dictionary<uint, MeldingRepulsor>> MeldingRepulsor;
+    private static Dictionary<uint, Dictionary<uint, MeldingRepulsorDef>> MeldingRepulsor;
+    private static Dictionary<uint, Dictionary<uint, LgvRaceDef>> LgvRace;
 
     public static void Init()
     {
@@ -310,6 +313,7 @@ public class CustomDBInterface
         Melding = loader.LoadMelding();
         Outpost = loader.LoadOutpost();
         MeldingRepulsor = loader.LoadMeldingRepulsor();
+        LgvRace = loader.LoadLgvRace();
     }
 
     // aptgss
@@ -461,5 +465,6 @@ public class CustomDBInterface
     public static Dictionary<uint, Deployable> GetZoneDeployables(uint zoneId) => Deployable.GetValueOrDefault(zoneId);
     public static Dictionary<uint, Melding> GetZoneMeldings(uint zoneId) => Melding.GetValueOrDefault(zoneId);
     public static Dictionary<uint, Outpost> GetZoneOutposts(uint zoneId) => Outpost.GetValueOrDefault(zoneId);
-    public static Dictionary<uint, MeldingRepulsor> GetZoneMeldingRepulsors(uint zoneId) => MeldingRepulsor.GetValueOrDefault(zoneId);
+    public static Dictionary<uint, MeldingRepulsorDef> GetZoneMeldingRepulsors(uint zoneId) => MeldingRepulsor.GetValueOrDefault(zoneId);
+    public static Dictionary<uint, LgvRaceDef> GetZoneLgvRaces(uint zoneId) => LgvRace.GetValueOrDefault(zoneId);
 }

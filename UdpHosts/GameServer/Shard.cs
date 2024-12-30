@@ -11,6 +11,7 @@ using GameServer.Data.SDB.Records.dbitems;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
+using GameServer.Systems.Chat;
 using GameServer.Systems.Encounters;
 using Microsoft.Extensions.Logging;
 using Serilog;

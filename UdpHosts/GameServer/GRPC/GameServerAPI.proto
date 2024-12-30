@@ -98,7 +98,11 @@ message CharacterVisualsUpdated {
    uint64 CharacterGuid = 1;
    CharacterAndBattleframeVisuals CharacterAndBattleframeVisuals = 2;
 }
-message Empty {
+message Command {
+   oneof subtype {
+      SaveGameSessionData SaveGameSessionData = 1;
+      SaveLgvRaceFinish SaveLgvRaceFinish = 2;
+   }
 }
 message Event {
    oneof subtype {
@@ -117,12 +121,6 @@ message Event {
       CharacterVisualsUpdated CharacterVisualsUpdated = 13;
    }
 }
-message GameSessionData {
-   uint64 CharacterId = 1;
-   uint32 ZoneId = 2;
-   uint32 OutpostId = 3;
-   uint32 TimePlayed = 4;
-}
 message PingReq {
    .google.protobuf.Timestamp SentTime = 1;
 }
@@ -137,6 +135,17 @@ message PlayerBattleframeVisuals {
    repeated int32 decalgradients = 4 [packed = false];
    repeated int32 warpaint_patterns = 5 [packed = false];
    repeated int32 visual_overrides = 6 [packed = false];
+}
+message SaveGameSessionData {
+   uint64 CharacterId = 1;
+   uint32 ZoneId = 2;
+   uint32 OutpostId = 3;
+   uint32 TimePlayed = 4;
+}
+message SaveLgvRaceFinish {
+   uint64 CharacterGuid = 1;
+   uint32 LeaderboardId = 2;
+   uint64 TimeMs = 3;
 }
 message WebColor {
    uint32 color = 1;
@@ -163,7 +172,6 @@ message WebIdValueColorId {
 }
 service GameServerAPI {
    rpc GetCharacterAndBattleframeVisuals (CharacterID) returns (CharacterAndBattleframeVisuals);
-   rpc Listen (Empty) returns (stream Event);
    rpc Ping (PingReq) returns (PingResp);
-   rpc SaveCharacterGameSessionData (GameSessionData) returns (Empty);
+   rpc Stream (stream Command) returns (stream Event);
 }

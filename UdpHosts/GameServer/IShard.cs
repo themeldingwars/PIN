@@ -5,6 +5,7 @@ using GameServer.Aptitude;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
+using GameServer.Systems.Chat;
 using GameServer.Systems.Encounters;
 using Serilog;
 using Shared.Udp;
