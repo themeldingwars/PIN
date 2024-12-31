@@ -6,4 +6,4 @@
 	url = https://github.com/themeldingwars/AeroMessages
 [submodule "Lib/BepuPhysics2"]
 	path = Lib/BepuPhysics2
-	url = git@github.com:bepu/bepuphysics2.git
+	url = https://github.com/bepu/bepuphysics2.git
