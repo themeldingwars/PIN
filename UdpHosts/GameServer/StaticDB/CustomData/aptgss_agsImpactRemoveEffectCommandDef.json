@@ -15072,11 +15072,15 @@
 	},
 	{
 		"id": 1619576,
-		"comment": "Triggered by Effect 3782  "
+		"comment": "Triggered by Effect 3782 - Removes Heavy Armor Projectile Shield on duration expired",
+		"effect_id": 15224,
+		"remove_from_self": true
 	},
 	{
 		"id": 1619577,
-		"comment": "Triggered by Effect 3782  "
+		"comment": "Triggered by Effect 3782 - Removes Heavy Armor Material Switch on duration expired",
+		"effect_id": 10132,
+		"remove_from_self": true
 	},
 	{
 		"id": 1620669,
