@@ -94,7 +94,7 @@ public class SDBUtils
 
     public static ChassisWarpaintResult GetChassisWarpaint(uint chassisId, uint customFullbody, uint customArmor, uint customBodysuit, uint customGlow)
     {
-        var chassisInfo = SDBInterface.GetBattleframe(chassisId);
+        var chassisInfo = chassisId != 0 ? SDBInterface.GetBattleframe(chassisId) : new Battleframe();
 
         uint defaultFullbody = chassisInfo.DefaultFullbodyPaletteId;
         uint defaultArmor = chassisInfo.DefaultArmorPaletteId;
