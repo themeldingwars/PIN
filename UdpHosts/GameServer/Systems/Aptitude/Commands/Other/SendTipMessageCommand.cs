@@ -16,7 +16,6 @@ public class SendTipMessageCommand : Command, ICommand
     public bool Execute(Context context)
     {
         // var message = new SendTipMessage() { };
-
         return true;
     }
 }

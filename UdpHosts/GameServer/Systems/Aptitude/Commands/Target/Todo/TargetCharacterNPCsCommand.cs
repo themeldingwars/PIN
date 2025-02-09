@@ -22,10 +22,12 @@ public class TargetCharacterNPCsCommand : Command, ICommand
 
         context.FormerTargets = new AptitudeTargets(context.Targets);
 
-        // foreach (var npc in player.OwnedNPCs)
-        // {
-        //     context.Targets.Push(npc);
-        // }
+        /*
+        foreach (var npc in player.OwnedNPCs)
+        {
+            context.Targets.Push(npc);
+        }
+        */
 
         return true;
     }

@@ -61,29 +61,32 @@ public class RequireHasEffectCommand : Command, ICommand
                 result = true;
             }
         }
-        // else
-        // {
-        //     var target = context.Self;
-        //     foreach (EffectState active in target.GetActiveEffects())
-        //     {
-        //         if (active == null)
-        //         {
-        //             continue;
-        //         }
-        //
-        //         if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
-        //         {
-        //             result = true;
-        //
-        //             if (Params.SameInitiator == 1 && context.Initiator != active.Context.Initiator)
-        //             {
-        //                 result = false;
-        //             }
-        //
-        //             break;
-        //         }
-        //     }
-        // }
+
+        /*
+        else
+        {
+            var target = context.Self;
+            foreach (EffectState active in target.GetActiveEffects())
+            {
+                if (active == null)
+                {
+                    continue;
+                }
+
+                if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
+                {
+                    result = true;
+
+                    if (Params.SameInitiator == 1 && context.Initiator != active.Context.Initiator)
+                    {
+                        result = false;
+                    }
+
+                    break;
+                }
+            }
+        }
+        */
 
         if (Params.Negate == 1)
         {

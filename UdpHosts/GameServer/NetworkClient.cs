@@ -218,9 +218,6 @@ public class NetworkClient : INetworkClient
                 Factory.Get<BaseController>().Init(this, Player, AssignedShard, Logger);
                 Player.EnterZoneAck();
                 break;
-            case MatrixPacketType.ExitZone:
-                NetChannels[ChannelType.Matrix].SendMessage(new ExitZone());
-                break;
             case MatrixPacketType.ExitZoneAck:
                 Player.ExitZoneAck();
                 break;

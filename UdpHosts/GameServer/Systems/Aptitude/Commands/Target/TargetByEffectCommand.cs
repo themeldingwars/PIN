@@ -16,7 +16,6 @@ public class TargetByEffectCommand : Command, ICommand
     public bool Execute(Context context)
     {
         // todo Params.FilterList, equal to 1 in 1086 instances, 0 in 6 instances
-        var result = false;
         var previousTargets = context.Targets;
         var newTargets = new AptitudeTargets();
 

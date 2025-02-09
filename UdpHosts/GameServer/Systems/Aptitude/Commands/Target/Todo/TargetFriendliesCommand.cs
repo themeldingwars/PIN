@@ -1,7 +1,4 @@
 ﻿using GameServer.Data.SDB.Records.aptfs;
-using GameServer.Entities.Deployable;
-using GameServer.Entities.Thumper;
-using GameServer.Entities.Vehicle;
 
 namespace GameServer.Aptitude;
 
@@ -24,11 +21,11 @@ public class TargetFriendliesCommand : Command, ICommand
 
         foreach (var target in previousTargets)
         {
+            // add || (target is hostile)
             if (
                 (target == context.Self && Params.IncludeSelf == 0)
                 || (target == context.Initiator && Params.IncludeInitiator == 0)
                 || (target == context.Self.Owner && Params.IncludeOwner == 0))
-                /* || (target is hostile) */
             {
                 continue;
             }

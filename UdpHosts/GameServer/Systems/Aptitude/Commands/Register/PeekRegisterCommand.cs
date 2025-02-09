@@ -15,7 +15,7 @@ public class PeekRegisterCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        context.Register = AbilitySystem.RegistryOp(context.Register, context.Register, (Operand)Params.Regop);
+        context.Register = AbilitySystem.RegistryOp(context.Register, context.FormerRegister, (Operand)Params.Regop);
 
         return context.Register != 0;
     }
