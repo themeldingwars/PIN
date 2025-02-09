@@ -1,5 +1,6 @@
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -22,7 +23,7 @@ public class ResourceNodeBeaconCalldownCommand : Command, ICommand
             var encounterMan = context.Shard.EncounterMan;
             uint nodeType = 20; // TODO: Figure out how to use and determine these
             var position = request.Position;
-            encounterMan.CreateThumper(nodeType, position, (BaseEntity)caller, Params);
+            encounterMan.CreateThumper(nodeType, position, caller as CharacterEntity, Params);
             return true;
         }
         else

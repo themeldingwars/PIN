@@ -25,7 +25,7 @@ public class AttemptToCalldownVehicleCommand : Command, ICommand
             var typeId = request.VehicleID;
             var position = request.Position;
             var orientation = request.Rotation;
-            entityMan.SpawnVehicle(typeId, position, orientation, (Entities.IEntity)caller);
+            entityMan.SpawnVehicle(typeId, position, orientation, caller as CharacterEntity);
             return true;
         }
         else

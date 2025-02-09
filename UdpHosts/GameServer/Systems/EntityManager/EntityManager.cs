@@ -72,9 +72,9 @@ public class EntityManager
         return ScopedPlayersByEntity.TryGetValue(entityId, out var players) && players.Contains(player);
     }
 
-    public CharacterEntity SpawnCharacter(uint typeId, Vector3 position)
+    public CharacterEntity SpawnCharacter(uint typeId, Vector3 position, CharacterEntity owner = null)
     {
-        var characterEntity = new CharacterEntity(Shard, Shard.GetNextGuid());
+        var characterEntity = new CharacterEntity(Shard, Shard.GetNextGuid(), owner);
         characterEntity.LoadMonster(typeId);
         characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, Shard.CurrentTime);
         characterEntity.SetPosition(position);
@@ -83,10 +83,10 @@ public class EntityManager
         return characterEntity;
     }
 
-    public VehicleEntity SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, IEntity owner, bool autoMount = false)
+    public VehicleEntity SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, CharacterEntity owner, bool autoMount = false)
     {
         var vehicleInfo = SDBUtils.GetDetailedVehicleInfo(typeId);
-        var vehicleEntity = new VehicleEntity(Shard, Shard.GetNextGuid());
+        var vehicleEntity = new VehicleEntity(Shard, Shard.GetNextGuid(), owner);
         vehicleEntity.Position = position;
         vehicleEntity.Load(vehicleInfo);
         position.Z += vehicleInfo.SpawnHeight;
@@ -106,21 +106,16 @@ public class EntityManager
             Time = Shard.CurrentTime,
         });
         vehicleEntity.Scoping = new ScopingComponent() { Range = vehicleInfo.ScopeRange };
-        if (owner != null)
+        if (owner is { IsPlayerControlled: true })
         {
-            vehicleEntity.SetOwner(owner as BaseEntity);
-            
-            if (owner is CharacterEntity { IsPlayerControlled: true } character)
-            {
-                vehicleEntity.SetOwningPlayer(character.Player);
-            }
+            vehicleEntity.SetOwningPlayer(owner.Player);
         }
 
         Add(vehicleEntity.EntityId, vehicleEntity);
 
-        if (owner is CharacterEntity c && autoMount)
+        if (owner != null && autoMount)
         {
-            vehicleEntity.AddOccupant(c);
+            vehicleEntity.AddOccupant(owner);
         }
 
         if (vehicleEntity.SpawnAbility != 0)
@@ -131,10 +126,10 @@ public class EntityManager
         return vehicleEntity;
     }
 
-    public DeployableEntity SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation)
+    public DeployableEntity SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation, CharacterEntity owner = null)
     {
         var deployableInfo = SDBInterface.GetDeployable(typeId);
-        var deployableEntity = new DeployableEntity(Shard, Shard.GetNextGuid(), typeId, 0);
+        var deployableEntity = new DeployableEntity(Shard, Shard.GetNextGuid(), typeId, 0, owner);
         var aimDirection = new Vector3(deployableInfo.AimDirection.x, deployableInfo.AimDirection.y, deployableInfo.AimDirection.z);
         deployableEntity.SetPosition(position);
         deployableEntity.SetOrientation(orientation);
@@ -257,7 +252,7 @@ public class EntityManager
     public ThumperEntity SpawnThumper(
         uint nodeType,
         Vector3 position,
-        BaseEntity owner,
+        CharacterEntity owner,
         ResourceNodeBeaconCalldownCommandDef commandDef)
     {
         var thumperEntity = new ThumperEntity(Shard, Shard.GetNextGuid(), nodeType, position, owner, commandDef);

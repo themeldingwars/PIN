@@ -53,8 +53,8 @@ public class SeatConfig
 
 public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 {
-    public VehicleEntity(IShard shard, ulong eid)
-        : base(shard, eid)
+    public VehicleEntity(IShard shard, ulong eid, CharacterEntity owner = null)
+        : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Vehicle };
         Interaction = new InteractionComponent()
@@ -94,7 +94,6 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public byte[] Flags { get; set; } = { 0x00, 0x04, 0x00, 0x00 };
     public byte EngineState { get; set; } = 2; // TEMP
     public byte PathState { get; set; } = 1;
-    public BaseEntity Owner { get; set; }
     public Dictionary<byte, SeatConfig> Occupants { get; set; } = new Dictionary<byte, SeatConfig>()
     {
         {
@@ -359,22 +358,6 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public void SetOwningPlayer(INetworkPlayer player)
     {
         OwningPlayer = player;
-    }
-
-    public void SetOwner(BaseEntity entity)
-    {
-        Owner = entity;
-
-        Vehicle_ObserverView.OwnerIdProp = Owner.AeroEntityId;
-        Vehicle_ObserverView.OwnerNameProp = string.Empty;
-        Vehicle_ObserverView.OwnerLocalStringProp = 0;
-
-        if (Vehicle_BaseController != null)
-        {
-            Vehicle_BaseController.OwnerIdProp = Owner.AeroEntityId;
-            Vehicle_BaseController.OwnerNameProp = string.Empty; // FIXME
-            Vehicle_BaseController.OwnerLocalStringProp = 0; // FIXME
-        }
     }
 
     public void SetPoseData(MovementInput poseData)

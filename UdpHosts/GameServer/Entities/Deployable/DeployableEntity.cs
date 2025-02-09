@@ -7,6 +7,7 @@ using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Deployable;
 using AeroMessages.GSS.V66.Deployable.View;
 using GameServer.Aptitude;
+using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
 
 namespace GameServer.Entities.Deployable;
@@ -14,8 +15,8 @@ namespace GameServer.Entities.Deployable;
 public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     // TODO: Add Deployable Hardpoint support
-    public DeployableEntity(IShard shard, ulong eid, uint type, uint abilitySrcId)
-        : base(shard, eid)
+    public DeployableEntity(IShard shard, ulong eid, uint type, uint abilitySrcId, CharacterEntity owner = null)
+        : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Deployable };
         Type = type;
@@ -28,7 +29,6 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerOwned => Player != null;
-    public BaseEntity Owner { get; set; }
     public Quaternion Orientation { get; set; }
     public Vector3 AimPosition => Position;
     public Vector3 AimDirection { get; set; }

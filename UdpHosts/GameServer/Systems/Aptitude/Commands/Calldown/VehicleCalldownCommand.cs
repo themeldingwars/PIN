@@ -1,4 +1,5 @@
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -22,7 +23,7 @@ public class VehicleCalldownCommand : Command, ICommand
             var typeId = request.VehicleID;
             var position = request.Position;
             var orientation = request.Rotation;
-            entityMan.SpawnVehicle(typeId, position, orientation, (Entities.IEntity)caller);
+            entityMan.SpawnVehicle(typeId, position, orientation, caller as CharacterEntity);
             return true;
         }
         else
