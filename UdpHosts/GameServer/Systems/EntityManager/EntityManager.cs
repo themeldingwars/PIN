@@ -120,7 +120,7 @@ public class EntityManager
 
         if (vehicleEntity.SpawnAbility != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility, Shard.CurrentTime, new AptitudeTargets());
+            Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility);
         }
 
         return vehicleEntity;
@@ -157,14 +157,14 @@ public class EntityManager
 
         if (deployableInfo.SpawnAbilityid != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid, Shard.CurrentTime, new AptitudeTargets());
+            Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid);
         }
 
         if (deployableInfo.ConstructedAbilityid != 0)
         {
             var timer = new Timer(state =>
                  {
-                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid, Shard.CurrentTime, new AptitudeTargets());
+                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid);
 
                      ((Timer)state)?.Dispose();
                  });
@@ -319,15 +319,7 @@ public class EntityManager
 
     public void SetRemainingLifetime(IEntity entity, uint timeMs)
     {
-        Lifetime tracker;
-        if (LifetimeByEntity.ContainsKey(entity.EntityId))
-        {
-            tracker = LifetimeByEntity[entity.EntityId];
-        }
-        else
-        {
-            tracker = new Lifetime();
-        }
+        var tracker = LifetimeByEntity.TryGetValue(entity.EntityId, out var value) ? value : new Lifetime();
 
         tracker.ExpireAt = Shard.CurrentTimeLong + timeMs;
         LifetimeByEntity[entity.EntityId] = tracker;
