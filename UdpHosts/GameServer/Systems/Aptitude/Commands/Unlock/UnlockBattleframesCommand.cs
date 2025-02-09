@@ -3,23 +3,25 @@ using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
-public class RestockAmmoCommand : Command, ICommand
+public class UnlockBattleframesCommand : Command, ICommand
 {
-    private RestockAmmoCommandDef Params;
+    private UnlockBattleframesCommandDef Params;
 
-    public RestockAmmoCommand(RestockAmmoCommandDef par)
+    public UnlockBattleframesCommand(UnlockBattleframesCommandDef par)
 : base(par)
     {
         Params = par;
     }
 
-    // todo: should act on targets?
-    // abilities: 53, 57
     public bool Execute(Context context)
     {
+        if (Params.SdbId == 0)
+        {
+            return true;
+        }
+
         if (context.Self is CharacterEntity character)
         {
-            // character.Character_CombatController.Ammo_0Prop = max
         }
 
         return true;

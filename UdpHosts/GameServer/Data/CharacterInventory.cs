@@ -182,6 +182,11 @@ public class CharacterInventory
         }
     }
 
+    public uint GetResourceQuantity(uint sdbId)
+    {
+        return _resources.TryGetValue(sdbId, out var value) ? value.Quantity : 0;
+    }
+
     public void AddLoadout(Loadout loadout)
     {
         _loadouts.Add(loadout.FrameLoadoutId, loadout);

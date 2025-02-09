@@ -1,4 +1,7 @@
 ﻿using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Deployable;
+using GameServer.Entities.Thumper;
+using GameServer.Entities.Vehicle;
 
 namespace GameServer.Aptitude;
 
@@ -12,27 +15,29 @@ public class TargetFriendliesCommand : Command, ICommand
         Params = par;
     }
 
+    // abilities used: 8
     public bool Execute(Context context)
     {
-        foreach (var target in context.Targets)
+        // todo aptitude: remove non-friendlies
+        var previousTargets = context.Targets;
+        var newTargets = new AptitudeTargets();
+
+        foreach (var target in previousTargets)
         {
-            // todo aptitude: remove non-friendlies
+            if (
+                (target == context.Self && Params.IncludeSelf == 0)
+                || (target == context.Initiator && Params.IncludeInitiator == 0)
+                || (target == context.Self.Owner && Params.IncludeOwner == 0))
+                /* || (target is hostile) */
+            {
+                continue;
+            }
+
+            context.Targets.Push(target);
         }
 
-        if (Params.IncludeInitiator == 1)
-        {
-            context.Targets.Push(context.Initiator);
-        }
-
-        if (Params.IncludeOwner == 1)
-        {
-            // todo aptitude: handle owner
-        }
-
-        if (Params.IncludeSelf == 1)
-        {
-            context.Targets.Push(context.Self);
-        }
+        context.FormerTargets = previousTargets;
+        context.Targets = newTargets;
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {

@@ -17,7 +17,6 @@ public class ImpactToggleEffectCommand : Command, ICommand
         Context effectContext = new Context(context.Shard, context.Initiator)
         {
             InitTime = context.InitTime,
-            ExecutionHint = ExecutionHint.ApplyEffect
         };
 
         if (Params.PassRegister == 1)
@@ -43,7 +42,8 @@ public class ImpactToggleEffectCommand : Command, ICommand
                 if (active.Effect.Id == Params.EffectId)
                 {
                     targetHasEffect = true;
-                    context.Abilities.DoRemoveEffect(active);
+                    effectContext.ExecutionHint = ExecutionHint.RemoveEffect;
+                    effectContext.Abilities.DoRemoveEffect(active);
                     break;
                 }
             }
@@ -55,17 +55,12 @@ public class ImpactToggleEffectCommand : Command, ICommand
 
             if (Params.PreApplyChain != 0)
             {
-                var chain = context.Abilities.Factory.LoadChain(Params.PreApplyChain);
-                chain.Execute(new Context(context.Shard, context.Initiator)
-                              {
-                                  ChainId = Params.PreApplyChain,
-                                  Targets = new AptitudeTargets(target),
-                                  InitTime = context.InitTime,
-                                  ExecutionHint = ExecutionHint.Proximity
-                              });
+                var chain = effectContext.Abilities.Factory.LoadChain(Params.PreApplyChain);
+                chain.Execute(effectContext);
             }
 
-            context.Abilities.DoApplyEffect(Params.EffectId, target, effectContext);
+            effectContext.ExecutionHint = ExecutionHint.ApplyEffect;
+            effectContext.Abilities.DoApplyEffect(Params.EffectId, target, effectContext);
         }
 
         return true;

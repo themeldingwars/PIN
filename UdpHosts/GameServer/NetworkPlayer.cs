@@ -140,6 +140,11 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         AssignedShard.EntityMan.Add(CharacterEntity.EntityId, CharacterEntity);
     }
 
+    public void ExitZoneAck()
+    {
+        AssignedShard.EntityMan.Remove(CharacterEntity);
+    }
+
     public void Respawn()
     {
         var outpostId = FindClosestAvailableOutpost(CurrentZone, CurrentOutpostId);
@@ -290,7 +295,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         AssignedShard.WeaponSim.OnFireWeaponProjectile(CharacterEntity, time, aim);
     }
 
-    private void EnterZone(Zone z, uint outpostId = 0)
+    public void EnterZone(Zone z, uint outpostId = 0)
     {
         var spawnPoint = outpostId == 0
                              ? new SpawnPoint { Position = z.POIs["spawn"] }

@@ -915,6 +915,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    public void SetNpcType(ushort npcType)
+    {
+        Character_ObserverView.NPCTypeProp = npcType;
+    }
+
     public void SetWeaponIndex(WeaponIndexData value)
     {
         WeaponIndex = value;
@@ -946,6 +951,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         if (Character_CombatController != null)
         {
             Character_CombatController.GliderProfileIdProp = profileId;
+        }
+    }
+
+    public void SetHoverProfileId(uint profileId)
+    {
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.HoverProfileIdProp = profileId;
         }
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
@@ -627,6 +628,16 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             SetControllingPlayer(character.Player);
             Shard.EntityMan.ScopeIn(character.Player, this);
         }
+    }
+
+    public void SlotAbility(uint abilityId)
+    {
+        var index = Abilities.FirstOrDefault(a => a.Value == 0).Key;
+
+        Abilities[index] = abilityId;
+
+        Vehicle_CombatController?.GetType().GetProperty($"SlottedAbility_{index}Prop")
+                                ?.SetValue(Vehicle_CombatController, abilityId, null);
     }
 
     private void InitFields()

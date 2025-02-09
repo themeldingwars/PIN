@@ -35,6 +35,12 @@ public class RequireHasEffectCommand : Command, ICommand
                     if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
                     {
                         targetResult = true;
+
+                        if (Params.SameInitiator == 1 && context.Initiator != active.Context.Initiator)
+                        {
+                            targetResult = false;
+                        }
+
                         break;
                     }
                 }
@@ -49,29 +55,35 @@ public class RequireHasEffectCommand : Command, ICommand
                     matchCounter++;
                 }
             }
-            
+
             if (matchCounter == context.Targets.Count)
             {
                 result = true;
             }
         }
-        else
-        {
-            var target = context.Self;
-            foreach (EffectState active in target.GetActiveEffects())
-            {
-                if (active == null)
-                {
-                    continue;
-                }
-
-                if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
-                {
-                    result = true;
-                    break;
-                }
-            }
-        }
+        // else
+        // {
+        //     var target = context.Self;
+        //     foreach (EffectState active in target.GetActiveEffects())
+        //     {
+        //         if (active == null)
+        //         {
+        //             continue;
+        //         }
+        //
+        //         if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
+        //         {
+        //             result = true;
+        //
+        //             if (Params.SameInitiator == 1 && context.Initiator != active.Context.Initiator)
+        //             {
+        //                 result = false;
+        //             }
+        //
+        //             break;
+        //         }
+        //     }
+        // }
 
         if (Params.Negate == 1)
         {
