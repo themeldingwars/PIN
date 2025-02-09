@@ -42,7 +42,7 @@ public enum AptitudeStat : ushort
     Unknown_38 = 38,
     Unknown_39 = 39,
     Unknown_47 = 47,
-    Unknown_56 = 56, // Heavy Armor
+    Unknown_56 = 56, // Heavy Armor uses this in the same way as it uses Damage Taken, so is this some alternate version of Damage Taken?
     Unknown_57 = 57,
     */
 }
