@@ -11,7 +11,7 @@ using GameServer.Enums;
 
 namespace GameServer.Entities.Carryable;
 
-public class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
+public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public CarryableEntity(IShard shard, ulong eid, uint type)
         : base(shard, eid)

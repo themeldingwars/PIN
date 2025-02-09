@@ -1,5 +1,6 @@
 using System;
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -20,56 +21,55 @@ public class RequireMovestateCommand : Command, ICommand
         // NOTE: Investigate target handling
         var target = context.Self;
         
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity character)
         {
-            var character = target as Entities.Character.CharacterEntity;
             var movestate = character.MovementStateContainer.Movestate;
 
-            if (Params.Standing == 1 && (movestate == Entities.Character.Movestate.Standing))
+            if (Params.Standing == 1 && (movestate == Movestate.Standing))
             {
                 result = true;
             }
-            else if (Params.Running == 1 && (movestate == Entities.Character.Movestate.Running))
+            else if (Params.Running == 1 && (movestate == Movestate.Running))
             {
                 result = true;
             }
-            else if (Params.Falling == 1 && (movestate == Entities.Character.Movestate.Falling))
+            else if (Params.Falling == 1 && (movestate == Movestate.Falling))
             {
                 result = true;
             }
-            else if (Params.Sliding == 1 && (movestate == Entities.Character.Movestate.Sliding))
+            else if (Params.Sliding == 1 && (movestate == Movestate.Sliding))
             {
                 result = true;
             }
-            else if (Params.Walking == 1 && (movestate == Entities.Character.Movestate.Walking))
+            else if (Params.Walking == 1 && (movestate == Movestate.Walking))
             {
                 result = true;
             }
-            else if (Params.Jetpack == 1 && (movestate == Entities.Character.Movestate.Jetpack))
+            else if (Params.Jetpack == 1 && (movestate == Movestate.Jetpack))
             {
                 result = true;
             }
-            else if (Params.Gliding == 1 && (movestate == Entities.Character.Movestate.Glider))
+            else if (Params.Gliding == 1 && (movestate == Movestate.Glider))
             {
                 result = true;
             }
-            else if (Params.Thruster == 1 && (movestate == Entities.Character.Movestate.GliderThrusters))
+            else if (Params.Thruster == 1 && (movestate == Movestate.GliderThrusters))
             {
                 result = true;
             }
-            else if (Params.Stall == 1 && (movestate == Entities.Character.Movestate.GliderStalling))
+            else if (Params.Stall == 1 && (movestate == Movestate.GliderStalling))
             {
                 result = true;
             }
-            else if (Params.KnockdownOnground == 1 && (movestate == Entities.Character.Movestate.Knockdown))
+            else if (Params.KnockdownOnground == 1 && (movestate == Movestate.Knockdown))
             {
                 result = true;
             }
-            else if (Params.KnockdownFalling == 1 && (movestate == Entities.Character.Movestate.KnockdownFalling))
+            else if (Params.KnockdownFalling == 1 && (movestate == Movestate.KnockdownFalling))
             {
                 result = true;
             }
-            else if (Params.JetpackSprint == 1 && (movestate == Entities.Character.Movestate.JetpackSprint))
+            else if (Params.JetpackSprint == 1 && (movestate == Movestate.JetpackSprint))
             {
                 result = true;
             }

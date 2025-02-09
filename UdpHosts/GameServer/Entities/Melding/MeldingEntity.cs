@@ -6,7 +6,7 @@ using AeroMessages.GSS.V66.Melding.View;
 
 namespace GameServer.Entities.Melding;
 
-public class MeldingEntity : BaseEntity
+public sealed class MeldingEntity : BaseEntity
 {
     public MeldingEntity(IShard shard, ulong eid, string perimiterSetName)
         : base(shard, eid)

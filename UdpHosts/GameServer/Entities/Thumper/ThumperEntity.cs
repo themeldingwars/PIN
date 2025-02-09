@@ -10,7 +10,7 @@ using GameServer.Enums;
 
 namespace GameServer.Entities.Thumper;
 
-public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
+public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public ThumperEntity(
         IShard shard,

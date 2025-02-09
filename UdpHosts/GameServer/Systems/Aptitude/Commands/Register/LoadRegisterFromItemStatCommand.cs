@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.apt;
+using GameServer.Entities.Character;
 using GameServer.Enums;
 using SharpCompress;
 
@@ -40,13 +41,11 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
             target = context.Initiator;
         }
 
-        if (target.GetType() != typeof(Entities.Character.CharacterEntity))
+        if (target is not CharacterEntity character)
         {
             Console.WriteLine($"LoadRegisterFromItemStatCommand target is not a Character, is something wrong?");
             return true;
         }
-
-        var character = target as Entities.Character.CharacterEntity;
 
         float prevValue = context.Register;
         float statValue = character.GetItemAttribute(Params.Stat);

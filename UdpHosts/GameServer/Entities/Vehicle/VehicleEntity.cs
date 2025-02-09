@@ -527,7 +527,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         * If owned by a player and other entity is not that player, require that there is a free seat for the owner. This ensures 1 seat vehicles can't be stolen from a player.
         */
         var isInteractable = IsInteractable();
-        var isCharacter = other.GetType() == typeof(Entities.Character.CharacterEntity);
+        var isCharacter = other is CharacterEntity;
         var numFreeSeats = GetNumberOfFreeSeats();
         if (IsPlayerOwned && other != Owner)
         {

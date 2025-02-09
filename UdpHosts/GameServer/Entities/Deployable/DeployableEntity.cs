@@ -11,7 +11,7 @@ using GameServer.Entities.Turret;
 
 namespace GameServer.Entities.Deployable;
 
-public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
+public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     // TODO: Add Deployable Hardpoint support
     public DeployableEntity(IShard shard, ulong eid, uint type, uint abilitySrcId)

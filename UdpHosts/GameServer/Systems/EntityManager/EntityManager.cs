@@ -1042,10 +1042,8 @@ public class EntityManager
 
         ScopedPlayersByEntity[entity.EntityId].Add(player);
 
-        if (entity.GetType() == typeof(CharacterEntity))
+        if (entity is CharacterEntity character)
         {
-            var character = entity as CharacterEntity;
-
             if (character.IsPlayerControlled && character.Player == player)
             {
                 var baseController = character.Character_BaseController;
@@ -1095,9 +1093,8 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(tinyobject, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(MeldingEntity))
+        else if (entity is MeldingEntity melding)
         {
-            var melding = entity as MeldingEntity;
             var observer = melding.Melding_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1105,9 +1102,8 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(MeldingBubbleEntity))
+        else if (entity is MeldingBubbleEntity meldingBubble)
         {
-            var meldingBubble = entity as MeldingBubbleEntity;
             var observer = meldingBubble.MeldingBubble_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1115,10 +1111,8 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(VehicleEntity))
+        else if (entity is VehicleEntity vehicle)
         {
-            var vehicle = entity as VehicleEntity;
-
             if (vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player)
             {
                 var baseController = vehicle.Vehicle_BaseController;
@@ -1149,9 +1143,8 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(movement, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(DeployableEntity))
+        else if (entity is DeployableEntity deployable)
         {
-            var deployable = entity as DeployableEntity;
             var observer = deployable.Deployable_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1159,10 +1152,8 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(TurretEntity))
+        else if (entity is TurretEntity turret)
         {
-            var turret = entity as TurretEntity;
-
             if (turret.IsPlayerControlled && turret.ControllingPlayer == player)
             {
                 var baseController = turret.Turret_BaseController;
@@ -1184,9 +1175,8 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(OutpostEntity))
+        else if (entity is OutpostEntity outpost)
         {
-            var outpost = entity as OutpostEntity;
             var observer = outpost.Outpost_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1194,9 +1184,8 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(ThumperEntity))
+        else if (entity is ThumperEntity thumper)
         {
-            var thumper = entity as ThumperEntity;
             var observer = thumper.ResourceNode_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1204,9 +1193,8 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(CarryableEntity))
+        else if (entity is CarryableEntity carryable)
         {
-            var carryable = entity as CarryableEntity;
             var observer = carryable.CarryableObject_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1264,10 +1252,8 @@ public class EntityManager
             return;
         }
 
-        if (entity.GetType() == typeof(CharacterEntity))
+        if (entity is CharacterEntity character)
         {
-            var character = entity as CharacterEntity;
-
             if (character.IsPlayerControlled && character.Player == player)
             {
                 var baseController = character.Character_BaseController;
@@ -1345,9 +1331,8 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(tinyobject, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(MeldingEntity))
+        else if (entity is MeldingEntity melding)
         {
-            var melding = entity as MeldingEntity;
             var observer = melding.Melding_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1355,9 +1340,8 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(MeldingBubbleEntity))
+        else if (entity is MeldingBubbleEntity meldingBubble)
         {
-            var meldingBubble = entity as MeldingBubbleEntity;
             var observer = meldingBubble.MeldingBubble_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1365,10 +1349,8 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(VehicleEntity))
+        else if (entity is VehicleEntity vehicle)
         {
-            var vehicle = entity as VehicleEntity;
-
             if (vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player)
             {
                 var baseController = vehicle.Vehicle_BaseController;
@@ -1411,9 +1393,8 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(movement, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(DeployableEntity))
+        else if (entity is DeployableEntity deployable)
         {
-            var deployable = entity as DeployableEntity;
             var observer = deployable.Deployable_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1421,10 +1402,8 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(TurretEntity))
+        else if (entity is TurretEntity turret)
         {
-            var turret = entity as TurretEntity;
-
             if (turret.IsPlayerControlled && turret.ControllingPlayer == player)
             {
                 var baseController = turret.Turret_BaseController;
@@ -1446,9 +1425,8 @@ public class EntityManager
                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(OutpostEntity))
+        else if (entity is OutpostEntity outpost)
         {
-            var outpost = entity as OutpostEntity;
             var observer = outpost.Outpost_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
@@ -1456,20 +1434,18 @@ public class EntityManager
                  player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(ThumperEntity))
+        else if (entity is ThumperEntity thumper)
         {
-            var outpost = entity as ThumperEntity;
-            var observer = outpost.ResourceNode_ObserverView;
+            var observer = thumper.ResourceNode_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
             {
                  player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
-        else if (entity.GetType() == typeof(CarryableEntity))
+        else if (entity is CarryableEntity carryable)
         {
-            var outpost = entity as CarryableEntity;
-            var observer = outpost.CarryableObject_ObserverView;
+            var observer = carryable.CarryableObject_ObserverView;
             bool haveObserver = observer != null;
             if (haveObserver)
             {
@@ -1518,10 +1494,8 @@ public class EntityManager
 
     public void RemoveControllers(INetworkPlayer player, IEntity entity)
     {
-        if (entity.GetType() == typeof(VehicleEntity))
+        if (entity is VehicleEntity vehicle)
         {
-            var vehicle = entity as VehicleEntity;
-
             if (vehicle.IsPlayerControlled && vehicle.ControllingPlayer == player)
             {
                 var baseController = vehicle.Vehicle_BaseController;
@@ -1540,10 +1514,8 @@ public class EntityManager
                 }
             }
         }
-        else if (entity.GetType() == typeof(TurretEntity))
+        else if (entity is TurretEntity turret)
         {
-            var turret = entity as TurretEntity;
-
             if (turret.IsPlayerControlled && turret.ControllingPlayer == player)
             {
                 var baseController = turret.Turret_BaseController;
@@ -1562,10 +1534,8 @@ public class EntityManager
 
     public void FlushChanges(IEntity entity)
     {
-        if (entity.GetType() == typeof(CharacterEntity))
+        if (entity is CharacterEntity character)
         {
-            var character = entity as CharacterEntity;
-
             if (character.IsPlayerControlled)
             {
                 FlushViewChangesToPlayer(character.Character_BaseController, character.EntityId, character.Player);
@@ -1581,22 +1551,16 @@ public class EntityManager
             FlushViewChangesToEveryone(character.Character_CombatView, character.EntityId);
             FlushViewChangesToEveryone(character.Character_TinyObjectView, character.EntityId);
         }
-        else if (entity.GetType() == typeof(MeldingEntity))
+        else if (entity is MeldingEntity melding)
         {
-            var melding = entity as MeldingEntity;
-
             FlushViewChangesToEveryone(melding.Melding_ObserverView, melding.EntityId);
         }
-        else if (entity.GetType() == typeof(MeldingBubbleEntity))
+        else if (entity is MeldingBubbleEntity meldingBubble)
         {
-            var meldingBubble = entity as MeldingBubbleEntity;
-
             FlushViewChangesToEveryone(meldingBubble.MeldingBubble_ObserverView, meldingBubble.EntityId);
         }
-        else if (entity.GetType() == typeof(VehicleEntity))
+        else if (entity is VehicleEntity vehicle)
         {
-            var vehicle = entity as VehicleEntity;
-
             if (vehicle.IsPlayerControlled)
             {
                 FlushViewChangesToPlayer(vehicle.Vehicle_BaseController, vehicle.EntityId, vehicle.ControllingPlayer);
@@ -1607,15 +1571,12 @@ public class EntityManager
             FlushViewChangesToEveryone(vehicle.Vehicle_CombatView, vehicle.EntityId);
             FlushViewChangesToEveryone(vehicle.Vehicle_MovementView, vehicle.EntityId);
         }
-        else if (entity.GetType() == typeof(DeployableEntity))
+        else if (entity is DeployableEntity deployable)
         {
-            var deployable = entity as DeployableEntity;
             FlushViewChangesToEveryone(deployable.Deployable_ObserverView, deployable.EntityId);
         }
-        else if (entity.GetType() == typeof(TurretEntity))
+        else if (entity is TurretEntity turret)
         {
-            var turret = entity as TurretEntity;
-
             if (turret.IsPlayerControlled)
             {
                 FlushViewChangesToPlayer(turret.Turret_BaseController, turret.EntityId, turret.ControllingPlayer);
@@ -1623,9 +1584,8 @@ public class EntityManager
 
             FlushViewChangesToEveryone(turret.Turret_ObserverView, turret.EntityId);
         }
-        else if (entity.GetType() == typeof(ThumperEntity))
+        else if (entity is ThumperEntity thumper)
         {
-            var thumper = entity as ThumperEntity;
             FlushViewChangesToEveryone(thumper.ResourceNode_ObserverView, thumper.EntityId);
         }
         else if (entity is AreaVisualDataEntity avd)
