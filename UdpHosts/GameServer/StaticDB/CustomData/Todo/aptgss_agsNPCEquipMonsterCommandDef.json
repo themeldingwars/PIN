@@ -21,11 +21,11 @@
   },
   {
     "id": 265636,
-    "comment": ""
+    "comment": "effect 2701. Merch_AppearAsEvil"
   },
   {
     "id": 265652,
-    "comment": ""
+    "comment": "effect 2702. Merch_AppearAsGood"
   },
   {
     "id": 329753,
@@ -33,15 +33,15 @@
   },
   {
     "id": 341060,
-    "comment": ""
+    "comment": "35205. Brontodon Growth; Update of Effect 3328; every 10s register val++; val == 27, 4m 30s passed"
   },
   {
     "id": 341062,
-    "comment": ""
+    "comment": "see above, val == 81, 13m 30s passed"
   },
   {
     "id": 341064,
-    "comment": ""
+    "comment": "see above, value == 243, 40m 30s passed"
   },
   {
     "id": 341436,

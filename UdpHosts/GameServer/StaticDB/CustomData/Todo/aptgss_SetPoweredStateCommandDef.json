@@ -58,7 +58,8 @@
   },
   {
     "id": 629252,
-    "comment": ""
+    "comment": "Apply of effect 6611, ability 37295. Weapons Crate Spawn Ability",
+    "power_on": true
   },
   {
     "id": 862313,
@@ -70,15 +71,17 @@
   },
   {
     "id": 978018,
-    "comment": ""
+    "comment": "Apply of effect 10148, ability 39080",
+    "power_on": true
   },
   {
     "id": 978019,
-    "comment": ""
+    "comment": "Remove of effect 10148, ability 39080",
+    "power_off": false
   },
   {
     "id": 1118347,
-    "comment": ""
+    "comment": "Apply of effect 6092, ability 36957. Chosen Mining Camp Generator Interact Effects"
   },
   {
     "id": 1118360,

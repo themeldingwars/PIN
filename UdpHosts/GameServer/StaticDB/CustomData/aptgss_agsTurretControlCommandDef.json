@@ -49,11 +49,13 @@
   },
   {
     "id": 1356186,
-    "comment": ""
+    "comment": "Player controls a turret, apply chain of effect 203",
+    "control": 1
   },
   {
     "id": 1356191,
-    "comment": ""
+    "comment": "Possibly forces player out of turret, remove chain of effect 203",
+    "control": 0
   },
   {
     "id": 1496779,

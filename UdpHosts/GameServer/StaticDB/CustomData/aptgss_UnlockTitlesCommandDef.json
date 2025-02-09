@@ -21,11 +21,13 @@
   },
   {
     "id": 564174,
-    "comment": "Ability 36585"
+    "comment": "Ability 36585",
+    "title_id": 0
   },
   {
     "id": 564209,
-    "comment": "Ability 36556"
+    "comment": "Ability 36556",
+    "title_id": 0
   },
   {
     "id": 564221,
@@ -39,374 +41,467 @@
   },
   {
     "id": 564312,
-    "comment": "Ability 36258, Title Unlock: Gamescom Title #2"
+    "comment": "Ability 36258, Title Unlock: Gamescom Title #2",
+    "title_id": 0
   },
   {
     "id": 564316,
-    "comment": "Ability 36257, The Gun Show; 149"
+    "comment": "Ability 36257, The Gun Show",
+    "title_id": 149
   },
   {
     "id": 564324,
-    "comment": "Ability 36206, Barbary Lions; 147"
+    "comment": "Ability 36206, Barbary Lions",
+    "title_id": 147
   },
   {
     "id": 564330,
-    "comment": "Ability 36205, Thunderbirds; 146"
+    "comment": "Ability 36205, Thunderbirds",
+    "title_id": 146
   },
   {
     "id": 564336,
-    "comment": "Ability 36204, Spitfires; 145"
+    "comment": "Ability 36204, Spitfires",
+    "title_id": 145
   },
   {
     "id": 564342,
-    "comment": "Ability 36203, Master Blaster; 144"
+    "comment": "Ability 36203, Master Blaster",
+    "title_id": 144
   },
   {
     "id": 564348,
-    "comment": "Ability 36202, The Wave; 143"
+    "comment": "Ability 36202, The Wave",
+    "title_id": 143
   },
   {
     "id": 564354,
-    "comment": "Ability "
+    "comment": "Ability 36201. Rampaging Raiders",
+    "title_id": 142
   },
   {
     "id": 564360,
-    "comment": "Ability "
+    "comment": "Ability 36200. Holmgang Heroes",
+    "title_id": 141
   },
   {
     "id": 564366,
-    "comment": "Ability "
+    "comment": "Ability 36199. Black Cats",
+    "title_id": 140
   },
   {
     "id": 564372,
-    "comment": "Ability "
+    "comment": "Ability 36198. The Brood",
+    "title_id": 124
   },
   {
     "id": 564378,
-    "comment": "Ability "
+    "comment": "Ability 36196. Stellar Ponies",
+    "title_id": 123
   },
   {
     "id": 564384,
-    "comment": "Ability "
+    "comment": "Ability 36195. Blood Falcons",
+    "title_id": 122
   },
   {
     "id": 620786,
-    "comment": "Ability 37205"
+    "comment": "Ability 37205. Placeholder",
+    "title_id": 0
   },
   {
     "id": 620792,
-    "comment": "Ability 37206"
+    "comment": "Ability 37206. Placeholder",
+    "title_id": 0
   },
   {
     "id": 621069,
-    "comment": "Ability 37237"
+    "comment": "Ability 37237. Placeholder",
+    "title_id": 0
   },
   {
     "id": 621072,
-    "comment": "Ability "
+    "comment": "Ability 37238. Placeholder",
+    "title_id": 0
   },
   {
     "id": 621075,
-    "comment": "Ability "
+    "comment": "Ability  37239. Placeholder",
+    "title_id": 0
   },
   {
     "id": 652128,
-    "comment": "Ability "
+    "comment": "Ability 37240. Unnamed, placeholder?",
+    "title_id": 0
   },
   {
     "id": 652143,
-    "comment": "Ability "
+    "comment": "Ability 37241. Unnamed, placeholder?",
+    "title_id": 0
   },
   {
     "id": 740577,
-    "comment": "Ability "
+    "comment": "Ability 37764. Title Unlock: Assault Specialist",
+    "title_id": 345
   },
   {
     "id": 740580,
-    "comment": "Ability "
+    "comment": "Ability 37765. Title Unlock: Biotech Specialist",
+    "title_id": 346
   },
   {
     "id": 740583,
-    "comment": "Ability "
+    "comment": "Ability 37766. Title Unlock: Dreadnaught Specialist",
+    "title_id": 347
   },
   {
     "id": 740586,
-    "comment": "Ability "
+    "comment": "Ability 37767. Title Unlock: Engineer Specialist",
+    "title_id": 348
   },
   {
     "id": 786979,
-    "comment": "Ability "
+    "comment": "Ability 37931. Title Unlock: The Bearer",
+    "title_id": 359
   },
   {
     "id": 793848,
-    "comment": "Ability "
+    "comment": "Ability 37951. Title Unlock: Act 1 Chapter 1 Ability",
+    "title_id": 0
   },
   {
     "id": 810609,
-    "comment": "Ability 30465, Gamescom Recon; 291"
+    "comment": "Ability 30465, Gamescom Recon",
+    "title_id": 291
   },
   {
     "id": 817167,
-    "comment": "Ability 37769, Bought War Bonds; 324"
+    "comment": "Ability 37769, Bought War Bonds",
+    "title_id": 324
   },
   {
     "id": 818282,
-    "comment": "Ability 38046, Iron Sheik; 367"
+    "comment": "Ability 38046, Iron Sheik",
+    "title_id": 367
   },
   {
     "id": 818341,
-    "comment": "Ability 38047, Crimson Comet; 368"
+    "comment": "Ability 38047, Crimson Comet",
+    "title_id": 368
   },
   {
     "id": 818518,
-    "comment": "Ability "
+    "comment": "Ability 38045. Title Unlock: Gun Collector",
+    "title_id": 289
   },
   {
     "id": 818522,
-    "comment": "Ability "
+    "comment": "Ability 38052. Title Unlock: Warrior Poet",
+    "title_id": 369
   },
   {
     "id": 818999,
-    "comment": "Ability "
+    "comment": "Ability 38055. Title Unlock: Bookworm",
+    "title_id": 370
   },
   {
     "id": 879487,
-    "comment": "Ability "
+    "comment": "Ability 38308. Title Unlock: Defender of Humanity",
+    "title_id": 385
   },
   {
     "id": 888236,
-    "comment": "Ability "
+    "comment": "Ability 36767. UNUSED",
+    "title_id": 0
   },
   {
     "id": 891996,
-    "comment": "Ability "
+    "comment": "Ability 38300. Doomsday 2 Rewards: 7 day VIP, Title, Decal, Warpaint. Defender of Humanity?",
+    "title_id": 385
   },
   {
     "id": 944223,
-    "comment": "Ability 115, Descended Into Hell; 412"
+    "comment": "Ability 115, Descended Into Hell",
+    "title_id": 412
   },
   {
     "id": 964009,
-    "comment": "Ability "
+    "comment": "Ability 38930. Title Unlock: Wintertide's Helper",
+    "title_id": 426
   },
   {
     "id": 964012,
-    "comment": "Ability "
+    "comment": "Ability 38931. Title Unlock: Wintertide's Savior",
+    "title_id": 427
   },
   {
     "id": 964015,
-    "comment": "Ability "
+    "comment": "Ability 38932. Title Unlock: Wintertide's Champion",
+    "title_id": 428
   },
   {
     "id": 967092,
-    "comment": "Ability "
+    "comment": "Ability 39021. Title Unlock - Honorary Crusader",
+    "title_id": 429
   },
   {
     "id": 967386,
-    "comment": "Ability "
+    "comment": "Ability 39028. Title Unlock: Sky Conqueror",
+    "title_id": 401
   },
   {
     "id": 967946,
-    "comment": "Ability "
+    "comment": "Ability 39060",
+    "title_id": 0
   },
   {
     "id": 967965,
-    "comment": "Ability "
+    "comment": "Ability 38938. Title Unlock: Maverick",
+    "title_id": 410
   },
   {
     "id": 969211,
-    "comment": "Ability "
+    "comment": "Ability 38785. Title Unlock: Cuddly",
+    "title_id": 402
   },
   {
     "id": 970002,
-    "comment": "Ability "
+    "comment": "Ability 38800. Title Unlock: Marshmallow",
+    "title_id": 411
   },
   {
     "id": 972091,
-    "comment": "Ability "
+    "comment": "Ability 38940. Title Unlock: Battle Ready",
+    "title_id": 416
   },
   {
     "id": 972483,
-    "comment": "Ability "
+    "comment": "Ability 38965. Title Unlock: I am the one who knocks",
+    "title_id": 430
   },
   {
     "id": 973303,
-    "comment": "Ability "
+    "comment": "Ability 37768. Title Unlock: Recon Specialist",
+    "title_id": 349
   },
   {
     "id": 976410,
-    "comment": "Ability "
+    "comment": "Ability 38967. Title Unlock: Headless",
+    "title_id": 432
   },
   {
     "id": 976413,
-    "comment": "Ability "
+    "comment": "Ability 38968. Title Unlock: Beat Boxer",
+    "title_id": 431
   },
   {
     "id": 978766,
-    "comment": "Ability "
+    "comment": "Ability 38969. Title Unlock: On The Naughty List",
+    "title_id": 435
   },
   {
     "id": 980182,
-    "comment": "Ability "
+    "comment": "Ability 39106. Title Unlock: Cupcake",
+    "title_id": 436
   },
   {
     "id": 980208,
-    "comment": "Ability "
+    "comment": "Ability 39110. Title Unlock: Not a Reliable Source of Information",
+    "title_id": 406
   },
   {
     "id": 997084,
-    "comment": "Ability "
+    "comment": "Ability 39005. Title Unlock: Battle Scarred",
+    "title_id": 417
   },
   {
     "id": 1141393,
-    "comment": "Ability "
+    "comment": "Apply of effect 5286",
+    "title_id": 0
   },
   {
     "id": 1141398,
-    "comment": "Ability "
+    "comment": "Apply of effect 5285",
+    "title_id": 0
   },
   {
     "id": 1261569,
-    "comment": "Ability "
+    "comment": "Ability 40493. Title Unlock: Centurion",
+    "title_id": 467
   },
   {
     "id": 1261725,
-    "comment": "Ability "
+    "comment": "Ability 40494. Title Unlock: Spartan",
+    "title_id": 468
   },
   {
     "id": 1261739,
-    "comment": "Ability "
+    "comment": "Ability 40495. Title Unlock: Praetor",
+    "title_id": 469
   },
   {
     "id": 1370729,
-    "comment": "Ability "
+    "comment": "Ability 41094. Title Unlock: Rising Star",
+    "title_id": 477
   },
   {
     "id": 1370733,
-    "comment": "Ability "
+    "comment": "Ability 41093. Title Unlock: Merc",
+    "title_id": 476
   },
   {
     "id": 1370743,
-    "comment": "Ability "
+    "comment": "Ability 40825. Title Unlock: Rookie",
+    "title_id": 114
   },
   {
     "id": 1370774,
-    "comment": "Ability "
+    "comment": "Ability 41095. Title Unlock: Head Honcho",
+    "title_id": 478
   },
   {
     "id": 1370795,
-    "comment": "Ability "
+    "comment": "Ability 41096. Title Unlock: Top Dog",
+    "title_id": 479
   },
   {
     "id": 1370799,
-    "comment": "Ability "
+    "comment": "Ability 41097. Title Unlock: Celebrity",
+    "title_id": 480
   },
   {
     "id": 1370816,
-    "comment": "Ability "
+    "comment": "Ability 41098. Title Unlock: Big Kahuna",
+    "title_id": 481
   },
   {
     "id": 1370824,
-    "comment": "Ability "
+    "comment": "Ability 41099. Title Unlock: Hotshot",
+    "title_id": 482
   },
   {
     "id": 1370887,
-    "comment": "Ability "
+    "comment": "Ability 41100. Title Unlock: Heavyweight",
+    "title_id": 483
   },
   {
     "id": 1370895,
-    "comment": "Ability "
+    "comment": "Ability 41101. Title Unlock: Maestro",
+    "title_id": 484
   },
   {
     "id": 1370899,
-    "comment": "Ability "
+    "comment": "Ability 41102. Title Unlock: Ace",
+    "title_id": 485
   },
   {
     "id": 1370903,
-    "comment": "Ability "
+    "comment": "Ability 41103. Title Unlock: Champion",
+    "title_id": 486
   },
   {
     "id": 1488357,
-    "comment": "Ability "
+    "comment": "Ability 41573. Title Unlock: Angel ARES",
+    "title_id": 514
   },
   {
     "id": 1488361,
-    "comment": "Ability "
+    "comment": "Ability 41572. Title Unlock: Cheetah ARES",
+    "title_id": 513
   },
   {
     "id": 1537073,
-    "comment": "Ability "
+    "comment": "Ability 41782. Title Unlock: 17173 ARES",
+    "title_id": 504
   },
   {
     "id": 1537077,
-    "comment": "Ability "
+    "comment": "Ability 41783. Title Unlock: Duowan ARES",
+    "title_id": 505
   },
   {
     "id": 1537081,
-    "comment": "Ability "
+    "comment": "Ability 41784. Title Unlock: SINA ARES",
+    "title_id": 506
   },
   {
     "id": 1537085,
-    "comment": "Ability "
+    "comment": "Ability 41785. Title Unlock: Youku ARES",
+    "title_id": 507
   },
   {
     "id": 1537089,
-    "comment": "Ability "
+    "comment": "Ability 41786. Title Unlock: Xunyou ARES",
+    "title_id": 508
   },
   {
     "id": 1537093,
-    "comment": "Ability "
+    "comment": "Ability 41787. Title Unlock: 360 ARES",
+    "title_id": 509
   },
   {
     "id": 1537097,
-    "comment": "Ability "
+    "comment": "Ability 41788. Title Unlock: Junwuciweimian ARES",
+    "title_id": 510
   },
   {
     "id": 1537101,
-    "comment": "Ability "
+    "comment": "Ability 41789. Title Unlock: Tencent ARES",
+    "title_id": 511
   },
   {
     "id": 1537105,
-    "comment": "Ability "
+    "comment": "Ability 41790. Title Unlock: Storm ARES",
+    "title_id": 512
   },
   {
     "id": 1564343,
-    "comment": "Ability "
+    "comment": "Ability 41854",
+    "title_id": 0
   },
   {
     "id": 1564873,
-    "comment": "Ability "
+    "comment": "Ability 41858",
+    "title_id": 0
   },
   {
     "id": 1564881,
-    "comment": "Ability "
+    "comment": "Ability 41859",
+    "title_id": 0
   },
   {
     "id": 1595654,
-    "comment": "Ability "
+    "comment": "Ability 41943",
+    "title_id": 0
   },
   {
     "id": 1609159,
-    "comment": "Ability "
+    "comment": "Ability 41857",
+    "title_id": 0
   },
   {
     "id": 1632783,
-    "comment": "Ability "
+    "comment": "Ability 42045. Title Unlock: Challenger",
+    "title_id": 524
   },
   {
     "id": 1632787,
-    "comment": "Ability "
+    "comment": "Ability 42046. Title Unlock: Tough Choice",
+    "title_id": 525
   },
   {
     "id": 1632791,
-    "comment": "Ability "
+    "comment": "Ability 42047. Title Unlock: Obvious Choice",
+    "title_id": 526
   },
   {
     "id": 1632795,
-    "comment": "Ability "
+    "comment": "Ability 42048. Title Unlock: ARES Hunter",
+    "title_id": 527
   },
   {
     "id": 1635682,
-    "comment": "Ability "
+    "comment": "Ability 42100. Open Homecoming Pack",
+    "title_id": 530
   }
 ]

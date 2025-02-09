@@ -1,31 +1,31 @@
 [
   {
     "id": 111960,
-    "comment": ""
+    "comment": "spawn ability of deployable 123; 30634. Thumper - Targeting Spawn ; Targeting PFX and dynamic encounter spawning for the thumper call down"
   },
   {
     "id": 121965,
-    "comment": ""
+    "comment": "ability 30635, nothing points to it 30635. Beacon - Targeting Spawn ; Targeting PFX for SIN Amplifier calldown"
   },
   {
     "id": 122932,
-    "comment": ""
+    "comment": "spawn ability of deployable 153, similar weird one as 123; 30790. Thumper Spawning - Arachne's Nest ; Targeting PFX and encounter spawning for region thumper beacon"
   },
   {
     "id": 146697,
-    "comment": ""
+    "comment": "spawn ability 31455 of deployable 256, similar weird one 123; 31455. Thumper Spawning - Generic (TEST) ; Targeting PFX and encounter spawning for region thumper beacon"
   },
   {
     "id": 313970,
-    "comment": ""
+    "comment": "ability 35130. Spawn Encounter Test Ability, ability module/root item 77322"
   },
   {
     "id": 323968,
-    "comment": ""
+    "comment": "applied by effect 3201, 2 impact apply effects = 321547 (part of remove chain of effect 3203) and 323877 (part of remove chain of effect 3243, apply of that effect is unknown agsImpactRemoveEffectCommand) "
   },
   {
     "id": 324588,
-    "comment": ""
+    "comment": "35177. Melding Field - Destabilized"
   },
   {
     "id": 347408,
@@ -57,27 +57,27 @@
   },
   {
     "id": 372902,
-    "comment": ""
+    "comment": "LGV custom race starting line, deployable 892; 35451. Mobile Racing Terminal - Spawn ; The Mobile race terminal spawn chain"
   },
   {
     "id": 400633,
-    "comment": ""
+    "comment": "35707. Disruption Bomb Defuse Spawn Effects ; Spawning ability for Chosen Bomb"
   },
   {
     "id": 459591,
-    "comment": ""
+    "comment": "Triggered by spawning Copacabana Personal Arcporter, ability 36244, ability 35977 too"
   },
   {
     "id": 518868,
-    "comment": ""
+    "comment": "36424. Resource Run Flag - Spawn ; Resource Run Flag spawn in"
   },
   {
     "id": 519696,
-    "comment": ""
+    "comment": "36433. Army Base Arcporter Spawn Ability ; Activates the army base spawning encounter, then becomes interactable when the zone is ready to teleport army-mates to the army base."
   },
   {
     "id": 521234,
-    "comment": ""
+    "comment": "36543. DELETE ; Ability chain called to activate the spawner"
   },
   {
     "id": 525099,
@@ -85,7 +85,7 @@
   },
   {
     "id": 540486,
-    "comment": ""
+    "comment": "36728. Melding Tornado Spawn Ability ; Spawns the melding tornado encounter."
   },
   {
     "id": 540641,
@@ -121,7 +121,7 @@
   },
   {
     "id": 587679,
-    "comment": ""
+    "comment": "37052. Animator's Encounter Test/Debug Ability ; Attached to an invisible deployable for debugging."
   },
   {
     "id": 647408,
@@ -141,11 +141,11 @@
   },
   {
     "id": 725534,
-    "comment": ""
+    "comment": "37626. Mission Tester - Spawn ; Testy mcTest"
   },
   {
     "id": 731859,
-    "comment": ""
+    "comment": "37723. SRAT TEST START ; SRAT TEST START -- NOT TO SHIP"
   },
   {
     "id": 740906,
@@ -153,7 +153,7 @@
   },
   {
     "id": 748055,
-    "comment": ""
+    "comment": "37808. Personal Arcporter Placement (Dredge) Spawn ; Dredge Arcporter Deployable Spawn chain"
   },
   {
     "id": 773497,
@@ -161,15 +161,15 @@
   },
   {
     "id": 802063,
-    "comment": ""
+    "comment": "37996. Chosen Incursion Spawn ; From consumable Chosen Incursion Spawner"
   },
   {
     "id": 874562,
-    "comment": ""
+    "comment": "38291. Chosen Incursion - Activate Ability ; From consumable Chosen Incursion"
   },
   {
     "id": 878580,
-    "comment": ""
+    "comment": "38286. Chosen Barricade - Activate Ability ; From consumable Chosen Barricade"
   },
   {
     "id": 917452,
@@ -181,7 +181,7 @@
   },
   {
     "id": 989404,
-    "comment": ""
+    "comment": "38076. Whack an Elf - Consumable Ability"
   },
   {
     "id": 989999,
@@ -209,7 +209,7 @@
   },
   {
     "id": 1361707,
-    "comment": ""
+    "comment": "40889. Omnidyne-M Fleet Parent Object Spawn Ability ; Summons a vehicles and rental calldowns"
   },
   {
     "id": 1368841,
@@ -221,7 +221,7 @@
   },
   {
     "id": 1374965,
-    "comment": ""
+    "comment": "Only command of unnamed ability 41119; could be some test dev ability of lgv rentals"
   },
   {
     "id": 1453143,
@@ -229,10 +229,10 @@
   },
   {
     "id": 1495813,
-    "comment": ""
+    "comment": "41117. [VALENTINES] Photobooth - Heart Spawn/Construction Ability"
   },
   {
     "id": 1618303,
-    "comment": ""
+    "comment": "41992. Spawn Emissary Encounter"
   }
 ]

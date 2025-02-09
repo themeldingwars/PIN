@@ -13,7 +13,8 @@
   },
   {
     "id": 89361,
-    "comment": ""
+    "comment": "30277. Battlebot becomes an NPC ; Deployable Battlebot becomes an NPC",
+    "monster_id": 143
   },
   {
     "id": 90444,
@@ -21,7 +22,8 @@
   },
   {
     "id": 91665,
-    "comment": ""
+    "comment": "69. Puker Summon TEST",
+    "monster_id": 150
   },
   {
     "id": 91757,
@@ -97,7 +99,7 @@
   },
   {
     "id": 157945,
-    "comment": ""
+    "comment": "30265. Deployable Turret becomes an NPC (Tier 1) ; Deployable Turret becomes an NPC"
   },
   {
     "id": 171349,
@@ -105,7 +107,8 @@
   },
   {
     "id": 171357,
-    "comment": ""
+    "comment": "33980. Call Down Tiki",
+    "set_owner": true
   },
   {
     "id": 183092,
@@ -121,7 +124,7 @@
   },
   {
     "id": 202517,
-    "comment": ""
+    "comment": "34363. Summon Low Power Scanning Drone"
   },
   {
     "id": 204580,
@@ -357,7 +360,8 @@
   },
   {
     "id": 860808,
-    "comment": ""
+    "comment": "33947. Engineer Turret spawn NPC gunner ; Called from construction of turret",
+    "monster_id": 393
   },
   {
     "id": 860814,
@@ -393,7 +397,7 @@
   },
   {
     "id": 860865,
-    "comment": ""
+    "comment": "33922. Dropship Turret Gunner Spawn ; Spawns the AI to control the dropship turret."
   },
   {
     "id": 860872,
@@ -777,7 +781,7 @@
   },
   {
     "id": 1154350,
-    "comment": ""
+    "comment": "Abilities 151, 178. Death Squad - Guardian Calldown ; Summon friendly soldier / allied NPC"
   },
   {
     "id": 1199548,
@@ -945,11 +949,13 @@
   },
   {
     "id": 1319486,
-    "comment": ""
+    "comment": "40637. Spawn Pet Harpy",
+    "monster_id": 2942
   },
   {
     "id": 1319508,
-    "comment": ""
+    "comment": "40635. Spawn Ankylot Pet ; summon the Ankylot pet",
+    "monster_id": 2940
   },
   {
     "id": 1329622,

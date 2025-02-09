@@ -1,0 +1,251 @@
+﻿[
+  {
+    "id": 507631,
+    "comment": "36214. Open 'Boon Boon Tiki Pet'",
+    "package_sdb_id": 85475,
+    "item_sdb_id": 76999
+  },
+  {
+    "id": 507636,
+    "comment": "36215. Open 'Oi Tiki Pet'",
+    "package_sdb_id": 85476,
+    "item_sdb_id": 77018
+  },
+  {
+    "id": 507641,
+    "comment": "36227. Open 'Battleframe Station'",
+    "package_sdb_id": 85487,
+    "item_sdb_id": 30014
+  },
+  {
+    "id": 507650,
+    "comment": "Open 'Nanu Tiki Pet'",
+    "package_sdb_id": 85477,
+    "item_sdb_id": 77019
+  },
+  {
+    "id": 507655,
+    "comment": "36217. Open 'Pony Keg'"
+  },
+  {
+    "id": 507660,
+    "comment": "36218. Open 'Thresher Pet'",
+    "package_sdb_id": 85479,
+    "item_sdb_id": 85425
+  },
+  {
+    "id": 507665,
+    "comment": "36219. Open 'Monocle TEX pet'"
+  },
+  {
+    "id": 507675,
+    "comment": "36221. Open 'Tiki Torch'",
+    "package_sdb_id": 85482,
+    "item_sdb_id": 76958
+  },
+  {
+    "id": 507680,
+    "comment": "36222. Open 'Hoverpad'",
+    "package_sdb_id": 85483,
+    "item_sdb_id": 85232
+  },
+  {
+    "id": 507690,
+    "comment": "36224. Open 'R-54 LGV'",
+    "package_sdb_id": 85485,
+    "item_sdb_id": 85220
+  },
+  {
+    "id": 507695,
+    "comment": "36225. Open 'Ammo Dispenser'",
+    "package_sdb_id": 85486,
+    "item_sdb_id": 0
+  },
+  {
+    "id": 509702,
+    "comment": "36381. Open 'Crafting Terminal'",
+    "package_sdb_id": 85706,
+    "item_sdb_id": 85699
+  },
+  {
+    "id": 509751,
+    "comment": "36384. Open 'Omnidyne LGV'",
+    "package_sdb_id": 85709,
+    "item_sdb_id": 85704
+  },
+  {
+    "id": 509808,
+    "comment": "36385. Open 'Recharging Detonator'",
+    "package_sdb_id": 85710,
+    "item_sdb_id": 85511
+  },
+  {
+    "id": 509818,
+    "comment": "36386. Open 'Recharging Small Health Pack'",
+    "package_sdb_id": 85711,
+    "item_sdb_id": 85705
+  },
+  {
+    "id": 521686,
+    "comment": "Part of detached chain 521688: RequireZoneType 'Other' -> InteractionType 4 (doctor) -> UnpackItem"
+  },
+  {
+    "id": 543001,
+    "comment": "36751. Open 'Tiny Tempest' Pet",
+    "package_sdb_id": 85959,
+    "item_sdb_id": 85958
+  },
+  {
+    "id": 559767,
+    "comment": "36855. Open 'Recharging Flare'",
+    "package_sdb_id": 86168,
+    "item_sdb_id": 86167
+  },
+  {
+    "id": 559772,
+    "comment": "36220. Open 'Recharging Fireworks'",
+    "package_sdb_id": 85481,
+    "item_sdb_id": 85228
+  },
+  {
+    "id": 564013,
+    "comment": "36887. Open 'Elf Pet'",
+    "package_sdb_id": 85800,
+    "item_sdb_id": 85998
+  },
+  {
+    "id": 574066,
+    "comment": "36940. Open 'Recharging Medium Health Pack'",
+    "package_sdb_id": 86384,
+    "item_sdb_id": 86385
+  },
+  {
+    "id": 575804,
+    "comment": "36942. Open 'Ruby Statue'",
+    "package_sdb_id": 86386,
+    "item_sdb_id": 85840
+  },
+  {
+    "id": 575941,
+    "comment": "36945. Open 'LGV Race'",
+    "package_sdb_id": 86389,
+    "item_sdb_id": 86388
+  },
+  {
+    "id": 575951,
+    "comment": "36946. Open 'Recharging Gift'",
+    "package_sdb_id": 86390,
+    "item_sdb_id": 86387
+  },
+  {
+    "id": 584993,
+    "comment": "36995. Open 'PLACEHOLDER LGV'"
+  },
+  {
+    "id": 599635,
+    "comment": "37123. Open 'Cherub Glider Pad'",
+    "package_sdb_id": 86514,
+    "item_sdb_id": 86469
+  },
+  {
+    "id": 620853,
+    "comment": "37217. Placeholder: Convenience Item Ability: Packaged 1"
+  },
+  {
+    "id": 620858,
+    "comment": "37218. Placeholder: Convenience Item Ability: Packaged 2"
+  },
+  {
+    "id": 620863,
+    "comment": "37219. Placeholder: Convenience Item Ability: Packaged 3"
+  },
+  {
+    "id": 656149,
+    "comment": "37393. Unpack Sunset Gliderpad",
+    "package_sdb_id": 92788,
+    "item_sdb_id": 85555
+  },
+  {
+    "id": 656154,
+    "comment": "37394. Unpack Dusk Gliderpad",
+    "package_sdb_id": 92790,
+    "item_sdb_id":85562
+  },
+  {
+    "id": 656164,
+    "comment": "37395. Unpack Topaz Gliderpad",
+    "package_sdb_id": 92791,
+    "item_sdb_id": 85563
+
+  },
+  {
+    "id": 656174,
+    "comment": "37397. Unpack Royal Gliderpad",
+    "package_sdb_id": 92793,
+    "item_sdb_id": 85942
+  },
+  {
+    "id": 656179,
+    "comment": "37396. Unpack Emerald Gliderpad",
+    "package_sdb_id": 92792,
+    "item_sdb_id": 85941
+  },
+  {
+    "id": 656189,
+    "comment": "37221. Unpack Vapor LGV ; Open the package \n Placeholder: Convenience Item Ability: Packaged 5 ; Open the package"
+  },
+  {
+    "id": 656199,
+    "comment": "37398. Unpack Vortex LGV",
+    "package_sdb_id": 92794,
+    "item_sdb_id": 85886
+  },
+  {
+    "id": 656209,
+    "comment": "37399. Unpack Zephyr LGV",
+    "package_sdb_id": 92795,
+    "item_sdb_id": 86399
+  },
+  {
+    "id": 772617,
+    "comment": "37847. Unpack Item: Celestial Wings",
+    "package_sdb_id": 116546,
+    "item_sdb_id": 102320
+  },
+  {
+    "id": 793224,
+    "comment": "36211. Open 'Rechargeable Glider Pad'"
+  },
+  {
+    "id": 793248,
+    "comment": "37226. Unpack Cobalt Phoenix Glider Pad ; Use to unlock the Cobalt Phoenix Glider Pad \n Placeholder: Convenience Item Ability: Unpacked 5 ; Allows the player to calldown an LGV using a vehicle placer"
+  },
+  {
+    "id": 804693,
+    "comment": "38005. Unpack Sunrise Gliderpad",
+    "package_sdb_id": 117701,
+    "item_sdb_id": 85561
+  },
+  {
+    "id": 812536,
+    "comment": "36223. Unpack Copacabana Arcporter",
+    "package_sdb_id": 85484,
+    "item_sdb_id": 85392
+  },
+  {
+    "id": 914012,
+    "comment": "Unnamed ability 37220"
+  },
+  {
+    "id": 943212,
+    "comment": "38752. Unpackage 'The Royal Brontodon Court'",
+    "package_sdb_id": 120973,
+    "item_sdb_id": 118735
+  },
+  {
+    "id": 984911,
+    "comment": "36383. Open 'Recharging Garage'",
+    "package_sdb_id": 85708,
+    "item_sdb_id": 85707
+  }
+]
