@@ -40,6 +40,8 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public uint AbilitySrcId { get; set; }
     public uint GibVisualsID { get; set; }
     public int MaxHealth { get; set; } = 0;
+    public uint PoweredOnAbility { get; set; } = 0;
+    public uint PoweredOffAbility { get; set; } = 0;
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }

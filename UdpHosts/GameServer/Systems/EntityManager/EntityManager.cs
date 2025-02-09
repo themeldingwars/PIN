@@ -178,6 +178,7 @@ public class EntityManager
 
         if (deployableInfo.PoweredOnAbility != 0)
         {
+            deployableEntity.PoweredOnAbility = deployableInfo.PoweredOnAbility;
             var poweredOnAbility = deployableInfo.PoweredOnAbility;
 
             if (deployableEntity.Turret != null)
@@ -197,6 +198,11 @@ public class EntityManager
                      ((Timer)state)?.Dispose();
                  });
             timer.Change(deployableInfo.BuildTimeMs, Timeout.Infinite);
+        }
+
+        if (deployableInfo.PoweredOffAbility != 0)
+        {
+            deployableEntity.PoweredOffAbility = deployableInfo.PoweredOffAbility;
         }
 
         return deployableEntity;

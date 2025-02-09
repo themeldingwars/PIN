@@ -1,7 +1,8 @@
 [
   {
     "id": 284382,
-    "comment": ""
+    "comment": "34972. Power down the Melding Repulsor Generator ; For testing",
+    "power_on": false
   },
   {
     "id": 307521,
