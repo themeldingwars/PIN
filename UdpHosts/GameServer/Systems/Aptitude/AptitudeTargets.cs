@@ -15,7 +15,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
 
     public AptitudeTargets(AptitudeTargets initialTargets)
     {
-        _targets = new List<IAptitudeTarget>(initialTargets.ToArray());
+        _targets = new List<IAptitudeTarget>(initialTargets);
     }
 
     public AptitudeTargets(params IAptitudeTarget[] initialTargets)

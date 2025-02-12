@@ -612,8 +612,8 @@ public class Factory
             //     return new SetInteractionTypeCommand(CustomDBInterface.GetSetInteractionTypeCommandDef(commandId));
             // case CommandType.UnpackItem:
             //     return new UnpackItemCommand(CustomDBInterface.GetUnpackItemCommandDef(commandId));
-            // case CommandType.TargetOwnedDeployables:
-            //     return new TargetOwnedDeployablesCommand(CustomDBInterface.GetTargetOwnedDeployablesCommandDef(commandId));
+            case CommandType.TargetOwnedDeployables:
+                return new TargetOwnedDeployablesCommand(CustomDBInterface.GetTargetOwnedDeployablesCommandDef(commandId));
             // case CommandType.RemovePermanentEffect:
             //     return new RemovePermanentEffectCommand(CustomDBInterface.GetRemovePermanentEffectCommandDef(commandId));
             // case CommandType.RequireLootStore:
@@ -688,8 +688,8 @@ public class Factory
             //     return new UnlockContentCommand(CustomDBInterface.GetUnlockContentCommandDef(commandId));
             // case CommandType.ShowRewardScreen:
             //     return new ShowRewardScreenCommand(CustomDBInterface.GetShowRewardScreenCommandDef(commandId));
-            // case CommandType.RegisterLoadScale:
-            //     return new RegisterLoadScaleCommand(SDBInterface.GetRegisterLoadScaleCommandDef(commandId));
+            case CommandType.RegisterLoadScale:
+                return new RegisterLoadScaleCommand(SDBInterface.GetRegisterLoadScaleCommandDef(commandId));
             // case CommandType.EnableInteraction:
             //     return new EnableInteractionCommand(CustomDBInterface.GetEnableInteractionCommandDef(commandId));
             // case CommandType.ReputationModifier:

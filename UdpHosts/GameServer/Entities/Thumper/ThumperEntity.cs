@@ -55,6 +55,7 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         Layer = 0,
         Unk2 = 1
     };
+    public float Scale { get; set; }
 
     public uint LandedAbility { get; set; } = 0;
     public uint CompletedAbility { get; set; } = 0;

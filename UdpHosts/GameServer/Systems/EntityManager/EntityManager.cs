@@ -134,6 +134,7 @@ public class EntityManager
         deployableEntity.SetPosition(position);
         deployableEntity.SetOrientation(orientation);
         deployableEntity.SetAimDirection(aimDirection);
+        deployableEntity.Scale = deployableInfo.Scale;
         Add(deployableEntity.EntityId, deployableEntity);
 
         if (deployableInfo.InteractionType != 0)
@@ -261,8 +262,9 @@ public class EntityManager
         CharacterEntity owner,
         ResourceNodeBeaconCalldownCommandDef commandDef)
     {
+        var beacon = SDBInterface.GetResourceNodeBeacon(commandDef.ResourceNodeBeaconId);
         var thumperEntity = new ThumperEntity(Shard, Shard.GetNextGuid(), nodeType, position, owner, commandDef);
-
+        thumperEntity.Scale = beacon.Scale;
         Add(thumperEntity.EntityId, thumperEntity);
         return thumperEntity;
     }
