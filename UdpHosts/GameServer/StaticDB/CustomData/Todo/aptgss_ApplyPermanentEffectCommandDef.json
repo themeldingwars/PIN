@@ -109,7 +109,9 @@
   },
   {
     "id": 674059,
-    "comment": ""
+    "comment": "34886. XP Boost 50%, 5 days ; Player receives a passive xp bonus",
+    "effect_id": 3509,
+    "duration_seconds": 432000
   },
   {
     "id": 674065,
@@ -121,7 +123,9 @@
   },
   {
     "id": 674072,
-    "comment": ""
+    "comment": "34889. XP Boost 10%, Permanent ; Player receives a passive 10% xp bonus permanently for buying Ensign Founder Pack, 5% for squadmates",
+    "permanent": 1,
+    "experience_boost": 10
   },
   {
     "id": 674075,

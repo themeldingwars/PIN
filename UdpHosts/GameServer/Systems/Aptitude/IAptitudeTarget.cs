@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -12,6 +13,7 @@ public interface IAptitudeTarget
     public EntityId AeroEntityId { get; } // From BaseEntity
     public IShard Shard { get; } // From BaseEntity
     public Vector3 Position { get; } // From BaseEntity
+    public CharacterEntity Owner { get; }
 
     public List<EffectState> GetActiveEffects();
     public EffectState AddEffect(Effect effect, Context context);

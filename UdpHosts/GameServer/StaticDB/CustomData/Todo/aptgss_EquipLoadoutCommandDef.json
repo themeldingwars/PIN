@@ -53,11 +53,11 @@
   },
   {
     "id": 667835,
-    "comment": ""
+    "comment": "Ability 37448, effect 6982. Apply of Robot Behavior"
   },
   {
     "id": 667836,
-    "comment": ""
+    "comment": "Ability 37448, effect 6982. Remove of Robot Behavior"
   },
   {
     "id": 698503,
@@ -117,11 +117,11 @@
   },
   {
     "id": 1143785,
-    "comment": ""
+    "comment": "Ability 35870. Apply of status effect that puts Nostromo in combat mode"
   },
   {
     "id": 1143789,
-    "comment": ""
+    "comment": "Ability 35870. Remove of status effect that puts Nostromo in combat mode"
   },
   {
     "id": 1143947,

@@ -170,38 +170,17 @@ public class AbilitySystem
 
     public VehicleCalldownRequest TryConsumeVehicleCalldownRequest(ulong entityId)
     {
-        if (PlayerVehicleCalldownRequests.ContainsKey(entityId))
-        {
-            var result = PlayerVehicleCalldownRequests[entityId];
-            PlayerVehicleCalldownRequests.Remove(entityId);
-            return result;
-        }
-
-        return null;
+        return PlayerVehicleCalldownRequests.Remove(entityId, out var result) ? result : null;
     }
 
     public DeployableCalldownRequest TryConsumeDeployableCalldownRequest(ulong entityId)
     {
-        if (PlayerDeployableCalldownRequests.ContainsKey(entityId))
-        {
-            var result = PlayerDeployableCalldownRequests[entityId];
-            PlayerDeployableCalldownRequests.Remove(entityId);
-            return result;
-        }
-
-        return null;
+        return PlayerDeployableCalldownRequests.Remove(entityId, out var result) ? result : null;
     }
 
     public ResourceNodeBeaconCalldownRequest TryConsumeResourceNodeBeaconCalldownRequest(ulong entityId)
     {
-        if (PlayerThumperCalldownRequests.ContainsKey(entityId))
-        {
-            var result = PlayerThumperCalldownRequests[entityId];
-            PlayerThumperCalldownRequests.Remove(entityId);
-            return result;
-        }
-
-        return null;
+        return PlayerThumperCalldownRequests.Remove(entityId, out var result) ? result : null;
     }
 
     public void HandleVehicleCalldownRequest(ulong entityId, VehicleCalldownRequest request)

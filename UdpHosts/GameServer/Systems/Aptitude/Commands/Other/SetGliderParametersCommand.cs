@@ -1,7 +1,5 @@
-using System;
-using System.Numerics;
-using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.customdata;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -19,9 +17,8 @@ public class SetGliderParametersCommand : Command, ICommand
     {
         var target = context.Self;
 
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity character)
         {
-            var character = target as Entities.Character.CharacterEntity;
             if (Params.Value != null)
             {
                 character.SetGliderProfileId((uint)Params.Value);

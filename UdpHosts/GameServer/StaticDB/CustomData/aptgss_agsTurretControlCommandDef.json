@@ -1,0 +1,84 @@
+[
+  {
+    "id": 510717,
+    "comment": ""
+  },
+  {
+    "id": 510720,
+    "comment": ""
+  },
+  {
+    "id": 905863,
+    "comment": ""
+  },
+  {
+    "id": 905866,
+    "comment": ""
+  },
+  {
+    "id": 1030910,
+    "comment": ""
+  },
+  {
+    "id": 1030915,
+    "comment": ""
+  },
+  {
+    "id": 1218976,
+    "comment": ""
+  },
+  {
+    "id": 1218982,
+    "comment": ""
+  },
+  {
+    "id": 1276394,
+    "comment": ""
+  },
+  {
+    "id": 1276397,
+    "comment": ""
+  },
+  {
+    "id": 1356115,
+    "comment": ""
+  },
+  {
+    "id": 1356120,
+    "comment": ""
+  },
+  {
+    "id": 1356186,
+    "comment": "Player controls a turret, apply chain of effect 203",
+    "control": 1
+  },
+  {
+    "id": 1356191,
+    "comment": "Possibly forces player out of turret, remove chain of effect 203",
+    "control": 0
+  },
+  {
+    "id": 1496779,
+    "comment": ""
+  },
+  {
+    "id": 1496781,
+    "comment": ""
+  },
+  {
+    "id": 1546043,
+    "comment": ""
+  },
+  {
+    "id": 1546048,
+    "comment": ""
+  },
+  {
+    "id": 1573769,
+    "comment": ""
+  },
+  {
+    "id": 1573774,
+    "comment": ""
+  }
+]

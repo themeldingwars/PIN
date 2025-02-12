@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -20,10 +21,8 @@ public class ForcePushCommand : Command, ICommand
     {
         foreach (IAptitudeTarget target in context.Targets)
         {
-            if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+            if (target is CharacterEntity character)
             {
-                var character = target as Entities.Character.CharacterEntity;
-                
                 if (!character.IsPlayerControlled)
                 {
                     continue;

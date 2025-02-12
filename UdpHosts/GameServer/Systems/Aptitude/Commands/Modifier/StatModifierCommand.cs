@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Numerics;
-using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 using GameServer.Enums;
@@ -25,12 +22,9 @@ public class StatModifierCommand : Command, ICommand
             Console.WriteLine($"StatModifierCommand {Params.Id} has unhandled param Permanent");
         }
 
-        if (context.Self.GetType() == typeof(CharacterEntity))
+        if (context.Self is CharacterEntity)
         {
-            context.Actives.Add(this, new StatModifierCommandActiveContext()
-            {
-                Register = context.Register
-            });
+            context.Actives.Add(this, new StatModifierCommandActiveContext() { Register = context.Register });
         }
         else
         {
@@ -43,10 +37,8 @@ public class StatModifierCommand : Command, ICommand
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
         var modifierContext = (StatModifierCommandActiveContext)activeCommandContext;
-        if (context.Self.GetType() == typeof(CharacterEntity))
+        if (context.Self is CharacterEntity character)
         {
-            var character = context.Self as CharacterEntity;
-
             float value = AbilitySystem.RegistryOp(modifierContext.Register, Params.Value, (Operand)Params.ValueRegop);
 
             var mod = new CharacterEntity.ActiveStatModifier()
@@ -61,9 +53,8 @@ public class StatModifierCommand : Command, ICommand
 
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
-        if (context.Self.GetType() == typeof(CharacterEntity))
+        if (context.Self is CharacterEntity character)
         {
-            var character = context.Self as CharacterEntity;
             character.RemoveStatModifier(Params.Id, (StatModifierIdentifier)Params.Stat);
         }
     }

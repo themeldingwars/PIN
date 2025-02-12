@@ -1,11 +1,13 @@
 [
   {
     "id": 50329,
-    "comment": ""
+    "comment": "196. Grant Resources (200 crystite) ; Grants the owner 200 crystite resources",
+    "resource_sdb_id": 10,
+    "quantity": 200
   },
   {
     "id": 57150,
-    "comment": ""
+    "comment": "195. Test Ability (DNIKDEL)"
   },
   {
     "id": 62413,
@@ -41,7 +43,7 @@
   },
   {
     "id": 91333,
-    "comment": ""
+    "comment": "30324. Pick-up Energy Crystal"
   },
   {
     "id": 92121,

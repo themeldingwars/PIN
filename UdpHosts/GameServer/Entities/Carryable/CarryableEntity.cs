@@ -7,14 +7,15 @@ using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.CarryableObject;
 using AeroMessages.GSS.V66.CarryableObject.View;
 using GameServer.Aptitude;
+using GameServer.Entities.Character;
 using GameServer.Enums;
 
 namespace GameServer.Entities.Carryable;
 
-public class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
+public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public CarryableEntity(IShard shard, ulong eid, uint type)
-        : base(shard, eid)
+        : base(shard, eid, owner: null)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Carryable };
         Type = type;
@@ -157,14 +158,9 @@ public class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
     public void SetCarrier(BaseEntity entity)
     {
         Carrier = entity;
-        if (entity.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (entity is CharacterEntity { IsPlayerControlled: true } character)
         {
-            var character = entity as Entities.Character.CharacterEntity;
-
-            if (character.IsPlayerControlled)
-            {
-                Player = character.Player;
-            }
+            Player = character.Player;
         }
 
         CarryableObject_ObserverView.CarryingCharacterIdProp = Carrier.AeroEntityId;

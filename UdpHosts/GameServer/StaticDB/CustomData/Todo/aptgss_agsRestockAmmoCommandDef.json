@@ -245,7 +245,8 @@
   },
   {
     "id": 1367700,
-    "comment": ""
+    "comment": "33816. Small Ammo Powerup; Replenishes 20% clip of ammo (Older patch - Replenishes 40% clip of ammo)",
+    "percent": 20
   },
   {
     "id": 1367718,

@@ -25,7 +25,7 @@
   },
   {
     "id": 91983,
-    "comment": ""
+    "comment": "30333. TestBehaviorChange"
   },
   {
     "id": 114055,
@@ -165,11 +165,11 @@
   },
   {
     "id": 1079023,
-    "comment": ""
+    "comment": "Effect 758, Apply of 'Deployable Turret becomes an NPC'"
   },
   {
     "id": 1079026,
-    "comment": ""
+    "comment": "Effect 758, Remove of 'Deployable Turret becomes an NPC'"
   },
   {
     "id": 1079028,

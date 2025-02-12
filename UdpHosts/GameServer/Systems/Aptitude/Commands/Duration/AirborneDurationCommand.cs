@@ -1,4 +1,5 @@
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -17,9 +18,8 @@ public class AirborneDurationCommand : Command, ICommand
         var target = context.Self; // NOTE: Investigate
 
         bool result = false;
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity character)
         {
-            var character = target as Entities.Character.CharacterEntity;
             result = character.IsAirborne;
         }
 

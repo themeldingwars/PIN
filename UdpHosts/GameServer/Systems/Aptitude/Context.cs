@@ -14,7 +14,7 @@ public class Context
         Abilities = shard.Abilities;
         Targets = new AptitudeTargets();
         FormerTargets = new AptitudeTargets();
-        InitPosition = Vector3.Zero;
+        InitPosition = initiator.Position;
     }
 
     public uint ChainId { get; set; }
@@ -27,6 +27,7 @@ public class Context
     public AptitudeTargets Targets { get; set; }
     public AptitudeTargets FormerTargets { get; set; }
     public float Register { get; set; }
+    public float FormerRegister { get; set; }
     public int Bonus { get; set; }
     public uint InitTime { get; set; }
     public Vector3 InitPosition { get; set; }

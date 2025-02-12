@@ -2,6 +2,7 @@ using System;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.apt;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -17,10 +18,8 @@ public class ActiveInitiationCommmand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        if (context.Self.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (context.Self is CharacterEntity character)
         {
-            var character = context.Self as Entities.Character.CharacterEntity;
-
             if (character.IsPlayerControlled)
             {
                 var player = character.Player;

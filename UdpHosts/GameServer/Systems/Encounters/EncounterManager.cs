@@ -59,18 +59,16 @@ public class EncounterManager
     public Thumper CreateThumper(
         uint nodeType,
         Vector3 position,
-        BaseEntity owner,
+        CharacterEntity owner,
         ResourceNodeBeaconCalldownCommandDef commandDef)
     {
-        var ownerPlayer = (CharacterEntity)owner;
-
         var thumperEntity = Shard.EntityMan.SpawnThumper(nodeType, position, owner, commandDef);
 
         // add squadmates later
         var thumper = new Thumper(
           Shard,
           Shard.GetNextGuid(),
-          new HashSet<INetworkPlayer>() { ownerPlayer.Player },
+          new HashSet<INetworkPlayer>() { owner.Player },
           thumperEntity);
 
         thumperEntity.Encounter = new EncounterComponent() { EncounterId = thumper.EntityId, Instance = thumper };

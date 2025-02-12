@@ -14,7 +14,7 @@ public class CallCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        context.Shard.Abilities.HandleActivateAbility(context.Shard, context.Initiator, Params.AbilityId, context.Shard.CurrentTime, new AptitudeTargets());
+        context.Shard.Abilities.HandleActivateAbility(context.Shard, context.Initiator, Params.AbilityId);
         return true;
     }
 }

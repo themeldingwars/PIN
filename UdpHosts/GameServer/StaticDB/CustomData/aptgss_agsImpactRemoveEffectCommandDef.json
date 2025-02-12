@@ -1955,11 +1955,15 @@
 	},
 	{
 		"id": 265637,
-		"comment": "Triggered by Effect 2701  "
+		"comment": "Triggered by Effect 2701, 34849. Merch_AppearAsEvil ; make merch pet appear as evil; removing Merch_AppearAsGood",
+		"remove_from_self": true,
+		"effect_id": 2702
 	},
 	{
 		"id": 265653,
-		"comment": "Triggered by Effect 2702  "
+		"comment": "Triggered by Effect 2702, 34850. Merch_AppearAsGood ; make merch pet appear as good; removing Merch_AppearAsEvil",
+		"remove_from_self": true,
+		"effect_id": 2701
 	},
 	{
 		"id": 267957,

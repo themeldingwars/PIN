@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
@@ -53,8 +54,8 @@ public class SeatConfig
 
 public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 {
-    public VehicleEntity(IShard shard, ulong eid)
-        : base(shard, eid)
+    public VehicleEntity(IShard shard, ulong eid, CharacterEntity owner = null)
+        : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Vehicle };
         Interaction = new InteractionComponent()
@@ -94,7 +95,6 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public byte[] Flags { get; set; } = { 0x00, 0x04, 0x00, 0x00 };
     public byte EngineState { get; set; } = 2; // TEMP
     public byte PathState { get; set; } = 1;
-    public BaseEntity Owner { get; set; }
     public Dictionary<byte, SeatConfig> Occupants { get; set; } = new Dictionary<byte, SeatConfig>()
     {
         {
@@ -361,22 +361,6 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         OwningPlayer = player;
     }
 
-    public void SetOwner(BaseEntity entity)
-    {
-        Owner = entity;
-
-        Vehicle_ObserverView.OwnerIdProp = Owner.AeroEntityId;
-        Vehicle_ObserverView.OwnerNameProp = string.Empty;
-        Vehicle_ObserverView.OwnerLocalStringProp = 0;
-
-        if (Vehicle_BaseController != null)
-        {
-            Vehicle_BaseController.OwnerIdProp = Owner.AeroEntityId;
-            Vehicle_BaseController.OwnerNameProp = string.Empty; // FIXME
-            Vehicle_BaseController.OwnerLocalStringProp = 0; // FIXME
-        }
-    }
-
     public void SetPoseData(MovementInput poseData)
     {
         Position = poseData.Position;
@@ -527,7 +511,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         * If owned by a player and other entity is not that player, require that there is a free seat for the owner. This ensures 1 seat vehicles can't be stolen from a player.
         */
         var isInteractable = IsInteractable();
-        var isCharacter = other.GetType() == typeof(Entities.Character.CharacterEntity);
+        var isCharacter = other is CharacterEntity;
         var numFreeSeats = GetNumberOfFreeSeats();
         if (IsPlayerOwned && other != Owner)
         {
@@ -644,6 +628,16 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             SetControllingPlayer(character.Player);
             Shard.EntityMan.ScopeIn(character.Player, this);
         }
+    }
+
+    public void SlotAbility(uint abilityId)
+    {
+        var index = Abilities.FirstOrDefault(a => a.Value == 0).Key;
+
+        Abilities[index] = abilityId;
+
+        Vehicle_CombatController?.GetType().GetProperty($"SlottedAbility_{index}Prop")
+                                ?.SetValue(Vehicle_CombatController, abilityId, null);
     }
 
     private void InitFields()

@@ -155,6 +155,7 @@ public class CharacterLoadout
     public uint GliderID { get; set; }
     public uint ChassisID { get; set; }
     public uint BackpackID { get; set; }
+    public uint ChassisChangeTime { get; set; } = 0;
     public ChassisWarpaintResult ChassisWarpaint { get; set; }
 
     public VisualsBlock GetChassisVisuals()
