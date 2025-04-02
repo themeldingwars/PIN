@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
@@ -33,6 +34,20 @@ public class ImpactRemoveEffectCommand : Command, ICommand
         }
         else
         {
+            StringBuilder stringBuilder = new();
+            stringBuilder.AppendLine("Active Effects (Self):");
+            var character = context.Self;
+            var activefx = character.GetActiveEffects();
+            foreach (var activeEffect in activefx)
+            {
+                if (activeEffect != null)
+                {
+                    stringBuilder.AppendLine($"{activeEffect.Index} : {activeEffect.Effect?.Id}");
+                }
+            }
+
+            string message = stringBuilder.ToString();
+            Console.WriteLine(message);
             Console.WriteLine($"Don't know which effect to remove for ImpactRemoveEffectCommand {Params.Id}");
         }
 

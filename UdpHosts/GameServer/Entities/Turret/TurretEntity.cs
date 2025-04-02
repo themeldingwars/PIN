@@ -8,7 +8,7 @@ using AeroMessages.GSS.V66.Turret.View;
 
 namespace GameServer.Entities.Turret;
 
-public class TurretEntity : BaseEntity
+public sealed class TurretEntity : BaseEntity
 {
     public TurretEntity(IShard shard, ulong eid, uint type, BaseEntity parent, byte parentChildIndex, byte posture)
         : base(shard, eid)

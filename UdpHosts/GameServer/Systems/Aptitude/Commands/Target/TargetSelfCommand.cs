@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
@@ -16,12 +14,10 @@ public class TargetSelfCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        // Console.WriteLine($"TargetSelfCommand Pre Target {context.Targets.FirstOrDefault()}");
+        context.FormerTargets = new AptitudeTargets(context.Targets);
 
-        // TODO: FormerTargets ?
         context.Targets.Push(context.Self);
 
-        // Console.WriteLine($"TargetSelfCommand Post Target {context.Targets.FirstOrDefault()}");
         return true;
     }
 }

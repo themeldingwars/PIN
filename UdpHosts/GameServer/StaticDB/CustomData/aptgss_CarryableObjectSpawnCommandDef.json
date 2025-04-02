@@ -1,7 +1,7 @@
 [
   {
     "id": 488276,
-    "comment": "Triggered by Ability 36263; Disposable Jetball",
+    "comment": "Triggered by Ability 36263; Disposable Jetball ; spawns jetball as a deployable",
     "carryable_type_id": 40,
     "lifetime": 0
   },
@@ -11,10 +11,10 @@
   },
   {
     "id": 1068947,
-    "comment": "Triggered by Ability 39561"
+    "comment": "Triggered by Ability 39561, could be same as Ability 39560 -> PvP CTF-Ball Throw"
   },
   {
     "id": 1119309,
-    "comment": "Triggered by Ability 39793"
+    "comment": "Triggered by Ability 39793. Pickup Proximity Mine"
   }
 ]

@@ -1,19 +1,19 @@
 [
   {
     "id": 74044,
-    "comment": ""
+    "comment": "19. Teleport Spine 4x4 ; Transfers targets to the Spine 4x4 instance (Changed to Tower Assault temp)"
   },
   {
     "id": 81068,
-    "comment": ""
+    "comment": "30130. Teleport Powercell ; Transfers targets to the Frostbite Chasm instance"
   },
   {
     "id": 81126,
-    "comment": ""
+    "comment": "30136. Teleport Attack/Defend ; Transfers targets to the Tripoli Pass instance"
   },
   {
     "id": 81415,
-    "comment": ""
+    "comment": "30142. Teleport Collapsing Pocket ; Transfers targets to the Nothing instance (temp)"
   },
   {
     "id": 81418,
@@ -21,23 +21,25 @@
   },
   {
     "id": 82042,
-    "comment": ""
+    "comment": "30157. Teleport Sweep and Clear ; Transfers targets to the Nothing instance (temp)",
+    "zone_id": 12
   },
   {
     "id": 82045,
-    "comment": ""
+    "comment": "30158. Teleport Last Stand ; Transfers targets to the Nothing instance (temp)",
+    "zone_id": 12
   },
   {
     "id": 83184,
-    "comment": ""
+    "comment": "30156. Teleport Arena ; Transfers targets to the Arena (Ember) instance."
   },
   {
     "id": 83202,
-    "comment": ""
+    "comment": "30183. Teleport Ember ; Transfers targets to the Ember zone"
   },
   {
     "id": 83217,
-    "comment": ""
+    "comment": "Effect 473. Teleport Ember"
   },
   {
     "id": 84545,
@@ -57,7 +59,7 @@
   },
   {
     "id": 914736,
-    "comment": ""
+    "comment": "38551. Arcfold to Devil's Tusk"
   },
   {
     "id": 1029055,

@@ -1308,6 +1308,12 @@ public class StaticDBLoader : ISDBLoader
             .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, ResourceNodeBeacon> LoadResourceNodeBeacon()
+    {
+        return LoadStaticDB<ResourceNodeBeacon>("dbitems::ResourceNodeBeacon")
+            .ToDictionary(row => row.Id);
+    }
+
     private static T[] LoadStaticDB<T>(string tableName)
     where T : class, new()
     {

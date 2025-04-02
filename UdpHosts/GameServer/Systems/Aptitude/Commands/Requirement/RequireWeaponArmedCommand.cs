@@ -1,5 +1,6 @@
 using System;
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 using static AeroMessages.GSS.V66.Character.CharacterStateData;
 
 namespace GameServer.Aptitude;
@@ -19,9 +20,8 @@ public class RequireWeaponArmedCommand : Command, ICommand
         bool result = false;
 
         var target = context.Self;
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity character)
         {
-            var character = target as Entities.Character.CharacterEntity;
             var selectedIndex = character.WeaponIndex.Index;
             
             // The command seems to consider 1 holstered, 2 primary, 3 secondary.

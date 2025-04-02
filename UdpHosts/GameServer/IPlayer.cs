@@ -48,6 +48,7 @@ public interface IPlayer
 
     void Login(ulong characterId);
     void EnterZoneAck();
+    void ExitZoneAck();
     void Ready();
     void Respawn();
     void Jump();
