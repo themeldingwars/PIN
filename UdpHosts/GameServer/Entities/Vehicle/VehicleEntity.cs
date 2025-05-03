@@ -97,60 +97,12 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public byte PathState { get; set; } = 1;
     public Dictionary<byte, SeatConfig> Occupants { get; set; } = new Dictionary<byte, SeatConfig>()
     {
-        {
-            0,
-            new SeatConfig
-            {
-                Occupant = null,
-                Role = AttachmentRole.None,
-                Posture = 0,
-            }
-        },
-        {
-            1,
-            new SeatConfig
-            {
-                Occupant = null,
-                Role = AttachmentRole.None,
-                Posture = 0,
-            }
-        },
-        {
-            2,
-            new SeatConfig
-            {
-                Occupant = null,
-                Role = AttachmentRole.None,
-                Posture = 0,
-            }
-        },
-        {
-            3,
-            new SeatConfig
-            {
-                Occupant = null,
-                Role = AttachmentRole.None,
-                Posture = 0,
-            }
-        },
-        {
-            4,
-            new SeatConfig
-            {
-                Occupant = null,
-                Role = AttachmentRole.None,
-                Posture = 0,
-            }
-        },
-        {
-            5,
-            new SeatConfig
-            {
-                Occupant = null,
-                Role = AttachmentRole.None,
-                Posture = 0,
-            }
-        },
+        { 0, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
+        { 1, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
+        { 2, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
+        { 3, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
+        { 4, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
+        { 5, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
     };
     public List<TurretEntity> Turrets { get; set; } = new List<TurretEntity>();
     public Dictionary<byte, DeployableIdsData> DeployableData { get; set; } = new Dictionary<byte, DeployableIdsData>()

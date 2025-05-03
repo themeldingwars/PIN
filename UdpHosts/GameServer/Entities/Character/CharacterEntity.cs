@@ -207,74 +207,23 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public Dictionary<StatModifierIdentifier, Dictionary<uint, ActiveStatModifier>> CurrentStatModifiers { get; set; }
     public Dictionary<StatModifierIdentifier, float> BaseStatModifiers { get; set; } = new()
     {
-        {
-            StatModifierIdentifier.RunSpeedMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.FireRateModifier,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.FwdRunSpeedMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.JumpHeightMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.AirControlMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.ThrustStrengthMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.ThrustAirControl,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.Friction,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.AmmoConsumption,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.MaxTurnRate,
-            0.0f
-        },
-        {
-            StatModifierIdentifier.TurnSpeed,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.TimeDilation,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.AccuracyModifier,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.GravityMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.AirResistanceMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.WeaponChargeupMod,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.WeaponDamageDealtMod,
-            1.0f
-        },
+        { StatModifierIdentifier.RunSpeedMult,         1.0f },
+        { StatModifierIdentifier.FireRateModifier,     1.0f },
+        { StatModifierIdentifier.FwdRunSpeedMult,      1.0f },
+        { StatModifierIdentifier.JumpHeightMult,       1.0f },
+        { StatModifierIdentifier.AirControlMult,       1.0f },
+        { StatModifierIdentifier.ThrustStrengthMult,   1.0f },
+        { StatModifierIdentifier.ThrustAirControl,     1.0f },
+        { StatModifierIdentifier.Friction,             1.0f },
+        { StatModifierIdentifier.AmmoConsumption,      1.0f },
+        { StatModifierIdentifier.MaxTurnRate,          0.0f },
+        { StatModifierIdentifier.TurnSpeed,            1.0f },
+        { StatModifierIdentifier.TimeDilation,         1.0f },
+        { StatModifierIdentifier.AccuracyModifier,     1.0f },
+        { StatModifierIdentifier.GravityMult,          1.0f },
+        { StatModifierIdentifier.AirResistanceMult,    1.0f },
+        { StatModifierIdentifier.WeaponChargeupMod,    1.0f },
+        { StatModifierIdentifier.WeaponDamageDealtMod, 1.0f },
     };
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();

@@ -29,6 +29,7 @@ public class ImpactApplyEffectCommand : Command, ICommand
         }
 
         // TODO: Pass is a keyword associated with outcomes similiar to Fail. This might not mean to pass targets but rather to require targets/register/bonus in order to apply the effect
+        // On the other hand: ability 40133. Teleportal Beacon Interact Ability ; player targeted. Add the other beacon to target list, then apply status effect to player, passing the target.
         if (Params.PassTargets == 1)
         {
             if (Params.UseFormer == 1)

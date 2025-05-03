@@ -38,10 +38,10 @@ public class OrientationLockCommand : Command, ICommand
             Console.WriteLine($"OrientationLockCommand Sending ForcedMovementCancelled {Params.Id}");
             var player = character.Player;
             var message = new ForcedMovementCancelled
-                          {
-                              CommandId = Params.Id,
-                              ShortTime = context.Shard.CurrentShortTime,
-                          };
+            {
+                CommandId = Params.Id,
+                ShortTime = context.Shard.CurrentShortTime,
+            };
             player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
         }
     }
