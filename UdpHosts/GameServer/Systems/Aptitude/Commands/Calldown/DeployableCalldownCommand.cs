@@ -25,7 +25,6 @@ public class DeployableCalldownCommand : Command, ICommand
             var orientation = request.Rotation;
             entityMan.SpawnDeployable(typeId, position, orientation, caller as CharacterEntity);
 
-            // TODO: Set owner?
             return true;
         }
         else

@@ -14,6 +14,7 @@ public class TargetOwnerCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
+        context.FormerTargets = new AptitudeTargets(context.Targets);
         var target = context.Self;
 
         if (target.Owner != null)

@@ -21,7 +21,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
     protected EffectState[] ActiveEffects = new EffectState[MaxEffectCount];
 
-    public BaseAptitudeEntity(IShard shard, ulong eid, CharacterEntity owner)
+    public BaseAptitudeEntity(IShard shard, ulong eid, CharacterEntity owner = null)
     : base(shard, eid)
     {
         Owner = owner;
