@@ -668,8 +668,8 @@ public class Factory
             //     return new RequireInCombatCommand(SDBInterface.GetRequireInCombatCommandDef(commandId));
             // case CommandType.RequireHasItem:
             //     return new RequireHasItemCommand(SDBInterface.GetRequireHasItemCommandDef(commandId));
-            case CommandType.MountVehicle:
-                return new MountVehicleCommand(CustomDBInterface.GetMountVehicleCommandDef(commandId));
+            // case CommandType.MountVehicle:
+            //     return new MountVehicleCommand(CustomDBInterface.GetMountVehicleCommandDef(commandId));
             case CommandType.RequireIsNPC:
                 return new RequireIsNPCCommand(SDBInterface.GetRequireIsNPCCommandDef(commandId));
             // case CommandType.TargetAiTarget:
