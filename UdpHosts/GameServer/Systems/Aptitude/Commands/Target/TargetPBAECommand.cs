@@ -19,6 +19,7 @@ public class TargetPBAECommand : Command, ICommand
 
     public bool Execute(Context context)
     {
+        context.FormerTargets = new AptitudeTargets(context.Targets);
         // Unused:
         // Params.IgnoreWalls
         // Params.ScaleOffset

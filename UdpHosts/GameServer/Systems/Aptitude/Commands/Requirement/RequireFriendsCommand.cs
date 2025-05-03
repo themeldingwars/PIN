@@ -21,7 +21,7 @@ public class RequireFriendsCommand : Command, ICommand
         // NOTE: Investigate target handling
         var target = context.Self;
 
-        if (target is CharacterEntity character)
+        if (target is CharacterEntity { IsPlayerControlled: true } character)
         {
             result = character.Character_BaseController.FriendCountProp >= Params.Friends;
         }

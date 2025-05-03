@@ -30,7 +30,7 @@ public class RequireNeedsAmmoCommand : Command, ICommand
 
             if (Params.CheckSecondary == 1)
             {
-                result = character.Character_CombatController.AltAmmo_0Prop == 0;
+                result = result || character.Character_CombatController.AltAmmo_0Prop == 0;
             }
         }
 

@@ -120,7 +120,7 @@ public class EntityManager
 
         if (vehicleEntity.SpawnAbility != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility);
+            Shard.Abilities.HandleActivateAbility(Shard, owner, vehicleEntity.SpawnAbility, Shard.CurrentTime, new AptitudeTargets(vehicleEntity));
         }
 
         return vehicleEntity;

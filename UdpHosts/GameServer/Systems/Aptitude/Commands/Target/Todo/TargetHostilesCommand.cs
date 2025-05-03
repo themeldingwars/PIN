@@ -14,25 +14,25 @@ public class TargetHostilesCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        foreach (var target in context.Targets)
+        var previousTargets = context.Targets;
+        var newTargets = new AptitudeTargets();
+
+        foreach (var target in previousTargets)
         {
-            // todo aptitude: remove friendlies
+            // add  || (target is friendly)
+            if (
+                (target == context.Self && Params.IncludeSelf == 0)
+                || (target == context.Initiator && Params.IncludeInitiator == 0)
+                || (target == context.Self.Owner && Params.IncludeOwner == 0))
+            {
+                continue;
+            }
+
+            context.Targets.Push(target);
         }
 
-        if (Params.IncludeInitiator == 1)
-        {
-            context.Targets.Push(context.Initiator);
-        }
-
-        if (Params.IncludeOwner == 1)
-        {
-            // todo aptitude: handle owner
-        }
-
-        if (Params.IncludeSelf == 1)
-        {
-            context.Targets.Push(context.Self);
-        }
+        context.FormerTargets = previousTargets;
+        context.Targets = newTargets;
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {

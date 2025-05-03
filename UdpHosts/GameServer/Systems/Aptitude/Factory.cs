@@ -374,8 +374,8 @@ public class Factory
             //     return new DamageFeedbackCommand(CustomDBInterface.GetDamageFeedbackCommandDef(commandId));
             // case CommandType.RequireBackstab:
             //     return new RequireBackstabCommand(SDBInterface.GetRequireBackstabCommandDef(commandId));
-            // case CommandType.CalldownVehicle:
-            //     return new CalldownVehicleCommand(CustomDBInterface.GetCalldownVehicleCommandDef(commandId));
+            case CommandType.CalldownVehicle:
+                return new CalldownVehicleCommand(CustomDBInterface.GetCalldownVehicleCommandDef(commandId));
             // case CommandType.SetProjectileTarget:
             //     return new SetProjectileTargetCommand(SDBInterface.GetSetProjectileTargetCommandDef(commandId));
             // case CommandType.SetScopeBubble:

@@ -14,7 +14,7 @@ public class TargetPreviousCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        context.Targets = new AptitudeTargets(context.FormerTargets.ToArray());
+        context.Targets = new AptitudeTargets(context.FormerTargets);
 
         if (Params.Clearformer == 1)
         {

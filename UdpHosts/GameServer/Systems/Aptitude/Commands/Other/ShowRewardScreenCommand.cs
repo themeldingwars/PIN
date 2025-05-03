@@ -20,7 +20,7 @@ public class ShowRewardScreenCommand : Command, ICommand
 
         foreach (var target in context.Targets)
         {
-            if (target is not CharacterEntity character)
+            if (target is not CharacterEntity { IsPlayerControlled: true } character)
             {
                 continue;
             }
