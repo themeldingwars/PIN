@@ -1,11 +1,11 @@
 [
   {
     "id": 159517,
-    "comment": ""
+    "comment": "33836. Sin Link Reveal - Test 1 ; Testing Sin Link Reveal for bitmask index 1"
   },
   {
     "id": 172838,
-    "comment": ""
+    "comment": "effect 1473. Copacabana SIN Reveal"
   },
   {
     "id": 180577,
@@ -53,63 +53,63 @@
   },
   {
     "id": 180599,
-    "comment": ""
+    "comment": "34095. Melding Defense Base SIN Reveal"
   },
   {
     "id": 194560,
-    "comment": ""
+    "comment": "effect 1919. Reveal Blackwater Outpost"
   },
   {
     "id": 204475,
-    "comment": ""
+    "comment": "effect 2052. Beta Copacabana Reveal"
   },
   {
     "id": 204960,
-    "comment": ""
+    "comment": "effect 2067. Reveal Moisture Farm Skirmish Outpost"
   },
   {
     "id": 421376,
-    "comment": ""
+    "comment": "34073. Trans Hub SIN Reveal"
   },
   {
     "id": 421381,
-    "comment": ""
+    "comment": "34085. Desalination Plant SIN Reveal"
   },
   {
     "id": 421384,
-    "comment": ""
+    "comment": "34093. Bay of Bones SIN Reveal"
   },
   {
     "id": 421387,
-    "comment": ""
+    "comment": "34100. Broken Shores SIN Reveal"
   },
   {
     "id": 421390,
-    "comment": ""
+    "comment": "34094. Biosphere Research Facility SIN Reveal"
   },
   {
     "id": 421393,
-    "comment": ""
+    "comment": "34097. Sigu's Sanctuary SIN Reveal"
   },
   {
     "id": 421396,
-    "comment": ""
+    "comment": "34099. Thump Dump SIN Reveal"
   },
   {
     "id": 421399,
-    "comment": ""
+    "comment": "34098. Sunken Harbor SIN Reveal"
   },
   {
     "id": 421402,
-    "comment": ""
+    "comment": "34096. Shanty Town SIN Reveal"
   },
   {
     "id": 421404,
-    "comment": ""
+    "comment": "34473. Prairie SIN Reveal"
   },
   {
     "id": 421406,
-    "comment": ""
+    "comment": "34474. SCoral Forest SIN Reveal"
   },
   {
     "id": 463305,
@@ -125,7 +125,7 @@
   },
   {
     "id": 899630,
-    "comment": ""
+    "comment": "33881. Copacabana SIN Reveal"
   },
   {
     "id": 901272,
@@ -133,6 +133,6 @@
   },
   {
     "id": 901276,
-    "comment": ""
+    "comment": "effect 9053, probably some NPE, after unlocking job boards (cert 2675)"
   }
 ]
