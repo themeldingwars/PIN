@@ -26,7 +26,7 @@ public class AwardRedBeansCommand : Command, ICommand
                 new WalletData()
                 {
                     Beans = character.Character_BaseController.WalletProp.Beans + Params.Amount,
-                    Epoch = context.Shard.CurrentTime
+                    Epoch = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()
                 };
         }
         else
