@@ -1,3 +1,4 @@
+using System;
 using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;
@@ -21,20 +22,31 @@ public class TargetTrimCommand : Command, ICommand
         if (Params.Former == 1)
         {
             var targetsToRemove = context.FormerTargets.Count - (int)trimSize;
+            if (targetsToRemove < 0)
+            {
+                Console.WriteLine($"Not enough FormerTargets for TargetTrimCommand, investigate if this is expected");
+                targetsToRemove = Math.Abs(targetsToRemove);
+            }
 
             if (Params.FromFront == 1)
-            {
-                context.FormerTargets.RemoveBottomN(targetsToRemove);
-            }
-            else
-            {
-                context.FormerTargets.PopN(targetsToRemove);
-            }
+                {
+                    context.FormerTargets.RemoveBottomN(targetsToRemove);
+                }
+                else
+                {
+                    context.FormerTargets.PopN(targetsToRemove);
+                }
         }
 
         if (Params.Current == 1)
         {
             var targetsToRemove = context.Targets.Count - (int)trimSize;
+            if (targetsToRemove < 0)
+            {
+                // 39360 Heavy Turret
+                Console.WriteLine($"Not enough Targets for TargetTrimCommand, investigate if this is expected");
+                targetsToRemove = Math.Abs(targetsToRemove);
+            }
 
             if (Params.FromFront == 1)
             {
