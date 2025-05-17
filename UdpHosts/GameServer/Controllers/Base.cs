@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;
@@ -35,7 +36,18 @@ public abstract class Base
             return;
         }
 
-        _ = method.Invoke(this, new object[] { client, player, entityId, packet });
+        try
+        {
+            _ = method.Invoke(this, new object[] { client, player, entityId, packet });
+        }
+        catch (TargetInvocationException e)
+        {
+            if (e.InnerException != null)
+            {
+                Console.WriteLine($"HandlePacket Caught {e.InnerException.Message}");
+                Console.WriteLine($"{e.InnerException.StackTrace}");
+            }
+        }
     }
 
     protected void LogMissingImplementation<TController>(string endpointName, ulong entityId, GamePacket packet, ILogger logger)
