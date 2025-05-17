@@ -120,7 +120,7 @@ public class EntityManager
 
         if (vehicleEntity.SpawnAbility != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, owner, vehicleEntity.SpawnAbility, Shard.CurrentTime, new AptitudeTargets(vehicleEntity));
+            Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility);
         }
 
         return vehicleEntity;
@@ -194,7 +194,7 @@ public class EntityManager
             var timer = new Timer(state =>
                  {
                      Console.WriteLine($"deployable: Executing ability {deployableInfo.PoweredOnAbility}");
-                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility, Shard.CurrentTime, new AptitudeTargets());
+                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility);
 
                      ((Timer)state)?.Dispose();
                  });
