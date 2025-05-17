@@ -218,6 +218,9 @@ public class NetworkClient : INetworkClient
                 Factory.Get<BaseController>().Init(this, Player, AssignedShard, Logger);
                 Player.EnterZoneAck();
                 break;
+            case MatrixPacketType.ExitZoneAck:
+                Player.ExitZoneAck();
+                break;
             case MatrixPacketType.KeyframeRequest:
                 var query = packet.Unpack<KeyframeRequest>();
                 Logger.Verbose($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests. Total scoped for player: {AssignedShard.EntityMan.GetNumberOfScopedEntities(Player)}");

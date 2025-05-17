@@ -8,7 +8,7 @@ using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Entities.Outpost;
 
-public class OutpostEntity : BaseEntity
+public sealed class OutpostEntity : BaseEntity
 {
     private static readonly Random Rng = new();
 

@@ -9,7 +9,7 @@
   },
   {
     "id": 415553,
-    "comment": ""
+    "comment": "35027. Use Storm Chamber; probably should remove all other chambers"
   },
   {
     "id": 415562,
@@ -125,7 +125,7 @@
   },
   {
     "id": 607145,
-    "comment": ""
+    "comment": "142. BattleLab - Remove Battleframe Tag ; Removes any status effects tagged with 'Battleframe'"
   },
   {
     "id": 619950,

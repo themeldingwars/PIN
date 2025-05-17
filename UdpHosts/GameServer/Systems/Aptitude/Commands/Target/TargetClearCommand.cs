@@ -21,6 +21,7 @@ public class TargetClearCommand : Command, ICommand
 
         if (Params.Current == 1)
         {
+            context.FormerTargets = new AptitudeTargets(context.Targets);
             context.Targets.Clear();
         }
 

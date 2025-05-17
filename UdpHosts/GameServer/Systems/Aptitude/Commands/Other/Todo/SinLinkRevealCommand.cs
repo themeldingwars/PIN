@@ -14,6 +14,11 @@ public class SinLinkRevealCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
+        foreach (var target in context.Targets)
+        {
+            // todo: reveal for each target
+        }
+
         return true;
     }
 }

@@ -22,7 +22,7 @@ public class OrientationLockCommand : Command, ICommand
     {
         var target = context.Self;
 
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity)
         {
             context.Actives.Add(this, null);
         }
@@ -33,20 +33,16 @@ public class OrientationLockCommand : Command, ICommand
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
         var target = context.Self;
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity { IsPlayerControlled: true } character)
         {
-            var character = target as Entities.Character.CharacterEntity;
-            if (character.IsPlayerControlled)
+            Console.WriteLine($"OrientationLockCommand Sending ForcedMovementCancelled {Params.Id}");
+            var player = character.Player;
+            var message = new ForcedMovementCancelled
             {
-                Console.WriteLine($"OrientationLockCommand Sending ForcedMovementCancelled {Params.Id}");
-                var player = character.Player;
-                var message = new ForcedMovementCancelled
-                {
-                    CommandId = Params.Id,
-                    ShortTime = context.Shard.CurrentShortTime,
-                };
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
-            }
+                CommandId = Params.Id,
+                ShortTime = context.Shard.CurrentShortTime,
+            };
+            player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
         }
     }
 }

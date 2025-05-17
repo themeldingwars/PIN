@@ -6,7 +6,7 @@ using AeroMessages.GSS.V66.MeldingBubble.View;
 
 namespace GameServer.Entities.MeldingBubble;
 
-public class MeldingBubbleEntity : BaseEntity
+public sealed class MeldingBubbleEntity : BaseEntity
 {
     public MeldingBubbleEntity(IShard shard, ulong eid)
         : base(shard, eid)

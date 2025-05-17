@@ -14,32 +14,35 @@ public class TargetTrimCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        // todo aptitude: verify regop param
+        // Keeps <trimSize> targets on the stack, from ability 30187. Guardian Angel - II ; Protect 2 closest allies
+        // todo: meaning of Params.Chomp (0 in 298 instances, 1 in 70 instances)
         var trimSize = AbilitySystem.RegistryOp(context.Register, Params.Trimsize, (Enums.Operand)Params.TrimsizeRegop);
 
         if (Params.Former == 1)
         {
-            if (Params.Chomp == 1)
-            {
-                context.FormerTargets.PopN((int)trimSize);
-            }
+            var targetsToRemove = context.FormerTargets.Count - (int)trimSize;
 
             if (Params.FromFront == 1)
             {
-                context.FormerTargets.RemoveBottomN((int)trimSize);
+                context.FormerTargets.RemoveBottomN(targetsToRemove);
+            }
+            else
+            {
+                context.FormerTargets.PopN(targetsToRemove);
             }
         }
 
         if (Params.Current == 1)
         {
-            if (Params.Chomp == 1)
-            {
-                context.Targets.PopN((int)trimSize);
-            }
+            var targetsToRemove = context.Targets.Count - (int)trimSize;
 
             if (Params.FromFront == 1)
             {
-                context.Targets.RemoveBottomN((int)trimSize);
+                context.Targets.RemoveBottomN(targetsToRemove);
+            }
+            else
+            {
+                context.Targets.PopN(targetsToRemove);
             }
         }
 

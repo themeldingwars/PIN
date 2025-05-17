@@ -301,7 +301,8 @@
 	},
 	{
 		"id": 199566,
-		"comment": "Triggered by Effect 1992  "
+		"comment": "Triggered by Effect 1992, Makes the person who fires it hover!",
+		"hover": true
 	},
 	{
 		"id": 201639,
@@ -2043,7 +2044,8 @@
 	},
 	{
 		"id": 1572554,
-		"comment": "Triggered by Effect 472  "
+		"comment": "30181. Jetpack - Permissions ; Jumpjet module ability for Giving classes permission to use the Jetpack",
+		"jetpack": true
 	},
 	{
 		"id": 1573762,

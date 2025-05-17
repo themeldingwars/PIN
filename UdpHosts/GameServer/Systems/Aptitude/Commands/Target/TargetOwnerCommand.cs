@@ -14,8 +14,14 @@ public class TargetOwnerCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        // todo aptitude: handle owner
-        if (Params.FailNone == 1)
+        context.FormerTargets = new AptitudeTargets(context.Targets);
+        var target = context.Self;
+
+        if (target.Owner != null)
+        {
+            context.Targets.Push(target.Owner);
+        }
+        else if (Params.FailNone == 1)
         {
             return false;
         }

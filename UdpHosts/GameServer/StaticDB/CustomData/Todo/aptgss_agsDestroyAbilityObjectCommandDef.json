@@ -1041,7 +1041,7 @@
   },
   {
     "id": 339043,
-    "comment": ""
+    "comment": "30288. spawn: Small Healthpack ; Ability fired by a spawning healthpack"
   },
   {
     "id": 339053,
@@ -1321,7 +1321,7 @@
   },
   {
     "id": 452323,
-    "comment": ""
+    "comment": "ability 30817, Destroy Self ; Destroys itself with object destroy action"
   },
   {
     "id": 459183,
@@ -3213,7 +3213,7 @@
   },
   {
     "id": 1151850,
-    "comment": ""
+    "comment": "30416. Spawn Treasure Chest Loot ; Spawns loot when the chest is interacted with"
   },
   {
     "id": 1152072,

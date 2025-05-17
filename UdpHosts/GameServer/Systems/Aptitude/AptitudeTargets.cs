@@ -13,6 +13,11 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
         _targets = new();
     }
 
+    public AptitudeTargets(AptitudeTargets initialTargets)
+    {
+        _targets = new List<IAptitudeTarget>(initialTargets);
+    }
+
     public AptitudeTargets(params IAptitudeTarget[] initialTargets)
     {
         _targets = new(initialTargets.Length);

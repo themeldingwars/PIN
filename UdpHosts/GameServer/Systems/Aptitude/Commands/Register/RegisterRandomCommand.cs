@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.apt;
 using GameServer.Enums;
 
@@ -10,10 +7,10 @@ namespace GameServer.Aptitude;
 public class RegisterRandomCommand : Command, ICommand
 {
     private RegisterRandomCommandDef Params;
-    private Random rng = new Random();
+    private Random rng = new();
 
     public RegisterRandomCommand(RegisterRandomCommandDef par)
-: base(par)
+        : base(par)
     {
         Params = par;
     }
@@ -21,24 +18,14 @@ public class RegisterRandomCommand : Command, ICommand
     public bool Execute(Context context)
     {
         float prevValue = context.Register;
-        float randValue = rng.Next((int)Params.MinValue, (int)Params.MaxValue);
+
+        float rand = rng.NextSingle();
+        float range = Params.MaxValue - Params.MinValue;
+        float randValue = Params.MinValue + (range * rand);
         context.Register = AbilitySystem.RegistryOp(prevValue, randValue, (Operand)Params.Regop);
 
-        if (!IsWhole(Params.MinValue) || !IsWhole(Params.MaxValue))
-        {
-            Console.WriteLine($"RegisterRandomCommand {Params.Id} uses floats with decimals, not handled");
-        }
-
-        if (true)
-        {
-            Console.WriteLine($"RegisterRandomCommand: ({prevValue}, {randValue} ({Params.MinValue} - {Params.MaxValue}), {(Operand)Params.Regop}) => {context.Register}");
-        }
+        Console.WriteLine($"RegisterRandomCommand: ({prevValue}, {randValue} ({Params.MinValue} - {Params.MaxValue}), {(Operand)Params.Regop}) => {context.Register}");
 
         return true;
-    }
-
-    private bool IsWhole(float val)
-    {
-        return val % 1 == 0;
     }
 }

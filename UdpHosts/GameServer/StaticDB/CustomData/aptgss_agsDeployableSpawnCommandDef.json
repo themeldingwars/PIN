@@ -9,7 +9,8 @@
     },
     {
         "id": 54246,
-        "comment": "Triggered by Ability 192 "
+        "comment": "Triggered by Ability 192 ",
+        "deployable_type_id": 1671
     },
     {
         "id": 68017,

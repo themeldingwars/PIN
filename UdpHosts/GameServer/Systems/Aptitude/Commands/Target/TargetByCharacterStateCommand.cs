@@ -1,4 +1,5 @@
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 using static AeroMessages.GSS.V66.Character.CharacterStateData;
 
 namespace GameServer.Aptitude;
@@ -19,39 +20,37 @@ public class TargetByCharacterStateCommand : Command, ICommand
         var newTargets = new AptitudeTargets();
         foreach (IAptitudeTarget target in previousTargets)
         {
-            if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+            if (target is CharacterEntity character)
             {
-                var character = target as Entities.Character.CharacterEntity;
-
                 var characterState = character.CharacterState.State;
 
                 if (Params.Respawning == 1 && characterState == CharacterStatus.Respawning)
                 {
-                    newTargets.Push(target);
+                    newTargets.Push(character);
                 }
                 else if (Params.Incapacitated == 1 && characterState == CharacterStatus.Incapacitated)
                 {
-                    newTargets.Push(target);
+                    newTargets.Push(character);
                 }
                 else if (Params.Traumatized == 1 && characterState == CharacterStatus.Traumatized)
                 {
-                    newTargets.Push(target);
+                    newTargets.Push(character);
                 }
                 else if (Params.Ghost == 1 && characterState == CharacterStatus.Ghost)
                 {
-                    newTargets.Push(target);
+                    newTargets.Push(character);
                 }
                 else if (Params.Living == 1 && characterState == CharacterStatus.Living)
                 {
-                    newTargets.Push(target);
+                    newTargets.Push(character);
                 }
                 else if (Params.Dead == 1 && characterState == CharacterStatus.Dead)
                 {
-                    newTargets.Push(target);
+                    newTargets.Push(character);
                 }
                 else if (Params.Spawning == 1 && characterState == CharacterStatus.Spawning)
                 {
-                    newTargets.Push(target);
+                    newTargets.Push(character);
                 }
             }
         }
@@ -63,9 +62,7 @@ public class TargetByCharacterStateCommand : Command, ICommand
         {
             return false;
         }
-        else
-        {
-            return true;
-        }
+
+        return true;
     }
 }

@@ -10,6 +10,7 @@ using AeroMessages.GSS.V66.Deployable.View;
 using GameServer;
 using GameServer.Aptitude;
 using GameServer.Entities;
+using GameServer.Entities.Character;
 
 namespace GameServer.Entities;
 
@@ -20,10 +21,13 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
     protected EffectState[] ActiveEffects = new EffectState[MaxEffectCount];
 
-    public BaseAptitudeEntity(IShard shard, ulong eid)
+    public BaseAptitudeEntity(IShard shard, ulong eid, CharacterEntity owner = null)
     : base(shard, eid)
     {
+        Owner = owner;
     }
+
+    public CharacterEntity Owner { get; }
 
     public List<EffectState> GetActiveEffects() => ActiveEffects.ToList<EffectState>();
 

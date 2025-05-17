@@ -223,7 +223,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, NPCSpawnCommandDef> LoadNPCSpawnCommandDef()
     {
-        return LoadJSON<NPCSpawnCommandDef>("./StaticDB/CustomData/Todo/aptgss_agsNPCSpawnCommandDef.json")
+        return LoadJSON<NPCSpawnCommandDef>("./StaticDB/CustomData/aptgss_agsNPCSpawnCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 
@@ -301,7 +301,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, SlotAbilityCommandDef> LoadSlotAbilityCommandDef()
     {
-        return LoadJSON<SlotAbilityCommandDef>("./StaticDB/CustomData/Todo/aptgss_agsSlotAbilityCommandDef.json")
+        return LoadJSON<SlotAbilityCommandDef>("./StaticDB/CustomData/aptgss_agsSlotAbilityCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 
@@ -361,7 +361,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, TurretControlCommandDef> LoadTurretControlCommandDef()
     {
-        return LoadJSON<TurretControlCommandDef>("./StaticDB/CustomData/Todo/aptgss_agsTurretControlCommandDef.json")
+        return LoadJSON<TurretControlCommandDef>("./StaticDB/CustomData/aptgss_agsTurretControlCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 
@@ -397,7 +397,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, CalldownVehicleCommandDef> LoadCalldownVehicleCommandDef()
     {
-        return LoadJSON<CalldownVehicleCommandDef>("./StaticDB/CustomData/Todo/aptgss_CalldownVehicleCommandDef.json")
+        return LoadJSON<CalldownVehicleCommandDef>("./StaticDB/CustomData/aptgss_CalldownVehicleCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 
@@ -811,7 +811,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, UnlockBattleframesCommandDef> LoadUnlockBattleframesCommandDef()
     {
-        return LoadJSON<UnlockBattleframesCommandDef>("./StaticDB/CustomData/Todo/aptgss_UnlockBattleframesCommandDef.json")
+        return LoadJSON<UnlockBattleframesCommandDef>("./StaticDB/CustomData/aptgss_UnlockBattleframesCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 
@@ -871,7 +871,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, UnpackItemCommandDef> LoadUnpackItemCommandDef()
     {
-        return LoadJSON<UnpackItemCommandDef>("./StaticDB/CustomData/Todo/aptgss_UnpackItemCommandDef.json")
+        return LoadJSON<UnpackItemCommandDef>("./StaticDB/CustomData/aptgss_UnpackItemCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 

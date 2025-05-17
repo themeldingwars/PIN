@@ -12,6 +12,7 @@ using GameServer.Aptitude;
 using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
+using GameServer.Entities.Deployable;
 using GameServer.Enums;
 using GameServer.Systems.Encounters;
 using GameServer.Test;
@@ -28,8 +29,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public const byte MaxMapMarkerCount = 64;
     private MapMarkerState[] MapMarkers = new MapMarkerState[MaxMapMarkerCount];
 
-    public CharacterEntity(IShard shard, ulong eid)
-        : base(shard, eid)
+    public CharacterEntity(IShard shard, ulong eid, CharacterEntity owner = null)
+        : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Character };
         
@@ -134,6 +135,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public AttachedToData? AttachedTo { get; set; } = null;
     public IEntity AttachedToEntity { get; set; } = null;
     public uint SelectedLoadout { get; set; }
+    public List<DeployableEntity> OwnedDeployables { get; set; } = new List<DeployableEntity>();
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -205,74 +207,23 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public Dictionary<StatModifierIdentifier, Dictionary<uint, ActiveStatModifier>> CurrentStatModifiers { get; set; }
     public Dictionary<StatModifierIdentifier, float> BaseStatModifiers { get; set; } = new()
     {
-        {
-            StatModifierIdentifier.RunSpeedMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.FireRateModifier,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.FwdRunSpeedMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.JumpHeightMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.AirControlMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.ThrustStrengthMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.ThrustAirControl,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.Friction,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.AmmoConsumption,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.MaxTurnRate,
-            0.0f
-        },
-        {
-            StatModifierIdentifier.TurnSpeed,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.TimeDilation,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.AccuracyModifier,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.GravityMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.AirResistanceMult,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.WeaponChargeupMod,
-            1.0f
-        },
-        {
-            StatModifierIdentifier.WeaponDamageDealtMod,
-            1.0f
-        },
+        { StatModifierIdentifier.RunSpeedMult,         1.0f },
+        { StatModifierIdentifier.FireRateModifier,     1.0f },
+        { StatModifierIdentifier.FwdRunSpeedMult,      1.0f },
+        { StatModifierIdentifier.JumpHeightMult,       1.0f },
+        { StatModifierIdentifier.AirControlMult,       1.0f },
+        { StatModifierIdentifier.ThrustStrengthMult,   1.0f },
+        { StatModifierIdentifier.ThrustAirControl,     1.0f },
+        { StatModifierIdentifier.Friction,             1.0f },
+        { StatModifierIdentifier.AmmoConsumption,      1.0f },
+        { StatModifierIdentifier.MaxTurnRate,          0.0f },
+        { StatModifierIdentifier.TurnSpeed,            1.0f },
+        { StatModifierIdentifier.TimeDilation,         1.0f },
+        { StatModifierIdentifier.AccuracyModifier,     1.0f },
+        { StatModifierIdentifier.GravityMult,          1.0f },
+        { StatModifierIdentifier.AirResistanceMult,    1.0f },
+        { StatModifierIdentifier.WeaponChargeupMod,    1.0f },
+        { StatModifierIdentifier.WeaponDamageDealtMod, 1.0f },
     };
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
@@ -913,6 +864,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    public void SetNpcType(ushort npcType)
+    {
+        Character_ObserverView.NPCTypeProp = npcType;
+    }
+
     public void SetWeaponIndex(WeaponIndexData value)
     {
         WeaponIndex = value;
@@ -944,6 +900,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         if (Character_CombatController != null)
         {
             Character_CombatController.GliderProfileIdProp = profileId;
+        }
+    }
+
+    public void SetHoverProfileId(uint profileId)
+    {
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.HoverProfileIdProp = profileId;
         }
     }
 
@@ -1464,7 +1428,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             SinFactionsAcquiredByProp = null,
             SinTeamsAcquiredByProp = null,
             ArmyGUIDProp = 0,
-            OwnerIdProp = 0,
+            OwnerIdProp = Owner?.EntityId ?? 0,
             NPCTypeProp = 0,
             DockedParamsProp = DockedParams,
             LookAtTargetProp = null,

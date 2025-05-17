@@ -23,9 +23,8 @@ public class PopTargetsCommand : Command, ICommand
 
         if (Params.Current == 1)
         {
-            var ok = context.Targets.TryPop(out _);
-
-            return ok;
+            context.Targets = new AptitudeTargets(context.FormerTargets);
+            context.FormerTargets = new AptitudeTargets();
         }
 
         return true;

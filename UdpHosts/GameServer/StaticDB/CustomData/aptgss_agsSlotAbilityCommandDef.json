@@ -1,0 +1,34 @@
+[
+  {
+    "id": 57637,
+    "comment": "Part of ability 206. Vehicle - Get Turbo Boost ; Causes a vehicle to gain turbo boost, while this character is inside; 201. Turbo Boost ; Vehicle active ability, increases speeed temporarily",
+    "ability_id": 201
+  },
+  {
+    "id": 57848,
+    "comment": "Part of ability 217. Vehicle - Get Vehicle Stealth ; Causes a vehicle to gain stealth slotted, while this character is inside"
+  },
+  {
+    "id": 58312,
+    "comment": "Part of ability 219. Vehicle - Get Jump Booster ; Causes a vehicle to get Jump Booster, when this player gets inside; 23. Jump Booster ; Causes the vehicle to jump in the air; There's also alt name: Rocket Boost",
+    "ability_id": 23
+  },
+  {
+    "id": 58318,
+    "comment": "Part of ability 221. Vehicle - Get Repair Surge ; Causes a vehicle to get Repair Surge, when this player gets inside; 100. Repair Surge ; Causes this vehicle to repair itself",
+    "ability_id": 100
+  },
+  {
+    "id": 61922,
+    "comment": "Part of ability 230. Vehicle - Get Shield Recharge (not ready) ; Causes a vehicle to get Shield Recharge, when this player gets inside; 231. Shield Recharger ; Recharges the vehicle's shields",
+    "ability_id": 231
+  },
+  {
+    "id": 716501,
+    "comment": "Apply of effect 7367. Target Arcfolding To Destination"
+  },
+  {
+    "id": 982687,
+    "comment": "Apply of effect 10229"
+  }
+]

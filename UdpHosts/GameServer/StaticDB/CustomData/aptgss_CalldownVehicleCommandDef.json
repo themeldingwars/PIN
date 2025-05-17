@@ -1,0 +1,61 @@
+[
+  {
+    "id": 102405,
+    "comment": "Ability 30238, drivable APC",
+    "vehicle_id": 175
+  },
+  {
+    "id": 218262,
+    "comment": "ability 34565, Advanced LGV - Calldown, Deploys a motorbike for the player to ride"
+  },
+  {
+    "id": 218267,
+    "comment": "ability 34564, Improved LGV - Calldown, Deploys a motorbike for the player to ride"
+  },
+  {
+    "id": 275276,
+    "comment": "ability 30237, stock LGV"
+  },
+  {
+    "id": 448976,
+    "comment": "ability 35975. Just a test ability for AI to spawn and own a vehicle"
+  },
+  {
+    "id": 719826,
+    "comment": "ability 37591, spawns vehicle and waits for duration of <max_uint> ms before executing TargetCurrentVehicle"
+  },
+  {
+    "id": 823817,
+    "comment": ""
+  },
+  {
+    "id": 861838,
+    "comment": "ability 38222, Cobra R-54 Rental",
+    "vehicle_id": 124
+  },
+  {
+    "id": 861880,
+    "comment": ""
+  },
+  {
+    "id": 888130,
+    "comment": ""
+  },
+  {
+    "id": 1026149,
+    "comment": ""
+  },
+  {
+    "id": 1052950,
+    "comment": ""
+  },
+  {
+    "id": 1324622,
+    "comment": "ability 38334, Cobra Turbo K-12",
+    "vehicle_id": 133
+  },
+  {
+    "id": 1368843,
+    "comment": "part of chain 1368848, no ability"
+  }
+]

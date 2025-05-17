@@ -10,23 +10,22 @@ using GameServer.Enums;
 
 namespace GameServer.Entities.Thumper;
 
-public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
+public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public ThumperEntity(
         IShard shard,
         ulong eid,
         uint nodeType,
         Vector3 position,
-        BaseEntity owner,
+        CharacterEntity owner,
         ResourceNodeBeaconCalldownCommandDef commandDef)
-        : base(shard, eid)
+        : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.ResourceNode };
         NodeType = nodeType;
         BeaconType = commandDef.ResourceNodeBeaconId;
         Scoping = new ScopingComponent() { Global = true };
         Position = position;
-        Owner = owner;
         LandedAbility = commandDef.LandedAbility;
         CompletedAbility = commandDef.CompletedAbility;
         CalldownTimeMs = commandDef.CalldownTimeMs;
@@ -44,7 +43,6 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerOwned => Player != null;
-    public BaseEntity Owner { get; set; }
     public HostilityInfoData HostilityInfo { get; set; }
 
     public uint NodeType { get; set; }
@@ -57,6 +55,7 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         Layer = 0,
         Unk2 = 1
     };
+    public float Scale { get; set; }
 
     public uint LandedAbility { get; set; } = 0;
     public uint CompletedAbility { get; set; } = 0;
@@ -185,13 +184,12 @@ public class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 
     private void InitFields()
     {
-        var charOwner = (CharacterEntity)Owner;
         HostilityInfo = new HostilityInfoData { Flags = 0 | HostilityInfoData.HostilityFlags.Faction, FactionId = 1 };
         ThumpingCharacterInfo = new ThumpingCharacterInfoStruct
         {
             OwnerId1 = Owner.AeroEntityId,
             OwnerId2 = Owner.AeroEntityId,
-            Owner = charOwner.ToString(),
+            Owner = Owner.ToString(),
             Unk = 0f,
         };
         StateInfo = new StateInfoStruct

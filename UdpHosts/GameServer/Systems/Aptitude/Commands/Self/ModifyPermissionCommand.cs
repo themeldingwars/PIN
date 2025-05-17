@@ -1,7 +1,6 @@
-using System;
-using System.Numerics;
-using AeroMessages.GSS.V66.Character.Event;
+using AeroMessages.GSS.V66.Character.Controller;
 using GameServer.Data.SDB.Records.customdata;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -18,7 +17,7 @@ public class ModifyPermissionCommand : Command, ICommand
     public bool Execute(Context context)
     {
         var target = context.Self; // NOTE: Based on glider, it seems like it should use self, maybe that is reasonable for all 'active' style commands?
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity)
         {
             if (Params.Glider != null)
             {
@@ -26,6 +25,16 @@ public class ModifyPermissionCommand : Command, ICommand
             }
 
             if (Params.GliderHud != null)
+            {
+                context.Actives.Add(this, null);
+            }
+
+            /*if (Params.Hover != null)
+            {
+                context.Actives.Add(this, null);
+            }*/
+
+            if (Params.Jetpack != null)
             {
                 context.Actives.Add(this, null);
             }
@@ -37,18 +46,26 @@ public class ModifyPermissionCommand : Command, ICommand
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
         var target = context.Self;
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity character)
         {
-            var character = target as Entities.Character.CharacterEntity;
-
             if (Params.Glider != null)
             {
-                character.SetPermissionFlag(AeroMessages.GSS.V66.Character.Controller.PermissionFlagsData.CharacterPermissionFlags.glider, (bool)Params.Glider);
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.glider, (bool)Params.Glider);
             }
 
             if (Params.GliderHud != null)
             {
-                character.SetPermissionFlag(AeroMessages.GSS.V66.Character.Controller.PermissionFlagsData.CharacterPermissionFlags.glider_hud, (bool)Params.GliderHud);
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.glider_hud, (bool)Params.GliderHud);
+            }
+
+            /*if (Params.Hover != null)
+            {
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.unk, (bool)Params.Hover);
+            }*/
+
+            if (Params.Jetpack != null)
+            {
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.jetpack, (bool)Params.Jetpack);
             }
         }
     }
@@ -56,18 +73,26 @@ public class ModifyPermissionCommand : Command, ICommand
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
         var target = context.Self;
-        if (target.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (target is CharacterEntity character)
         {
-            var character = target as Entities.Character.CharacterEntity;
-
             if (Params.Glider != null)
             {
-                character.SetPermissionFlag(AeroMessages.GSS.V66.Character.Controller.PermissionFlagsData.CharacterPermissionFlags.glider, (bool)!Params.Glider);
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.glider, (bool)!Params.Glider);
             }
 
             if (Params.GliderHud != null)
             {
-                character.SetPermissionFlag(AeroMessages.GSS.V66.Character.Controller.PermissionFlagsData.CharacterPermissionFlags.glider_hud, (bool)!Params.GliderHud);
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.glider_hud, (bool)!Params.GliderHud);
+            }
+
+            /*if (Params.Hover != null)
+            {
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.unk, (bool)!Params.Hover);
+            }*/
+
+            if (Params.Jetpack != null)
+            {
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.jetpack, (bool)!Params.Jetpack);
             }
         }
     }

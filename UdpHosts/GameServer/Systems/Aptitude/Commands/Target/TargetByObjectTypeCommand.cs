@@ -1,4 +1,7 @@
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
+using GameServer.Entities.Deployable;
+using GameServer.Entities.Vehicle;
 
 namespace GameServer.Aptitude;
 
@@ -20,15 +23,15 @@ public class TargetByObjectTypeCommand : Command, ICommand
         var newTargets = new AptitudeTargets();
         foreach (IAptitudeTarget target in previousTargets)
         {
-            if (Params.Character == 1 && target.GetType() == typeof(Entities.Character.CharacterEntity))
+            if (Params.Character == 1 && target is CharacterEntity)
             {
                 newTargets.Push(target);
             }
-            else if (Params.Deployable == 1 && target.GetType() == typeof(Entities.Deployable.DeployableEntity))
+            else if (Params.Deployable == 1 && target is DeployableEntity)
             {
                 newTargets.Push(target);
             }
-            else if (Params.Vehicle == 1 && target.GetType() == typeof(Entities.Vehicle.VehicleEntity))
+            else if (Params.Vehicle == 1 && target is VehicleEntity)
             {
                 newTargets.Push(target);
             }

@@ -7,15 +7,16 @@ using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Deployable;
 using AeroMessages.GSS.V66.Deployable.View;
 using GameServer.Aptitude;
+using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
 
 namespace GameServer.Entities.Deployable;
 
-public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
+public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     // TODO: Add Deployable Hardpoint support
-    public DeployableEntity(IShard shard, ulong eid, uint type, uint abilitySrcId)
-        : base(shard, eid)
+    public DeployableEntity(IShard shard, ulong eid, uint type, uint abilitySrcId, CharacterEntity owner = null)
+        : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Deployable };
         Type = type;
@@ -28,7 +29,6 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerOwned => Player != null;
-    public BaseEntity Owner { get; set; }
     public Quaternion Orientation { get; set; }
     public Vector3 AimPosition => Position;
     public Vector3 AimDirection { get; set; }
@@ -39,7 +39,10 @@ public class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public uint Type { get; set; }
     public uint AbilitySrcId { get; set; }
     public uint GibVisualsID { get; set; }
+    public float Scale { get; set; }
     public int MaxHealth { get; set; } = 0;
+    public uint PoweredOnAbility { get; set; } = 0;
+    public uint PoweredOffAbility { get; set; } = 0;
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }

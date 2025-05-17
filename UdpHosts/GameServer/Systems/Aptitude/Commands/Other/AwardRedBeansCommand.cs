@@ -20,12 +20,12 @@ public class AwardRedBeansCommand : Command, ICommand
         // todo aptitude: make it permanent
         var target = context.Self;
 
-        if (target is CharacterEntity characterEntity)
+        if (target is CharacterEntity { IsPlayerControlled: true } character)
         {
-            characterEntity.Character_BaseController.WalletProp =
+            character.Character_BaseController.WalletProp =
                 new WalletData()
                 {
-                    Beans = characterEntity.Character_BaseController.WalletProp.Beans + Params.Amount,
+                    Beans = character.Character_BaseController.WalletProp.Beans + Params.Amount,
                     Epoch = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()
                 };
         }

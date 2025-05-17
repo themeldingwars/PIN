@@ -1,4 +1,5 @@
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 
@@ -22,9 +23,8 @@ public class DeployableCalldownCommand : Command, ICommand
             var typeId = Params.DeployableType;
             var position = request.Position;
             var orientation = request.Rotation;
-            entityMan.SpawnDeployable(typeId, position, orientation);
+            entityMan.SpawnDeployable(typeId, position, orientation, caller as CharacterEntity);
 
-            // TODO: Set owner?
             return true;
         }
         else

@@ -9,7 +9,7 @@ public enum StatModifierIdentifier : ushort
     RunSpeedMult = 1,
     FwdRunSpeedMult = 2, // 1189
     JumpHeightMult = 3, // 1189
-    DamageTaken = 4, // Damage Resistance? Boomerang, Heavy Armor
+    DamageTaken = 4, // Damage Resistance? Boomerang, Heavy Armor, invincibility (ability 31333)
     DamageDealt = 5, // 1189
     Health = 6, // 1189
     MaxHealth = 7, // 1189
@@ -35,13 +35,23 @@ public enum StatModifierIdentifier : ushort
     TurnSpeed = 27,
 
     // TODO: Map out these
-    Unknown_26 = 26,
-    Unknown_28 = 28,
+    // ability 30945 (Repair Station - death),
+    // 40536. PvP Healing Ball - Burst ;
+    // Melding Ultra Culex Weapon Burst Ability ;
+    // 39980. Place Mine On Back destroy self ;
+    // 39329. Melding Bomber Ammo Impact Effect ;
+    // 39226. Chosen Warzone Event (SoW) - EMP Pickup ; Ability called from powerup proximity
+    // 34815. Healing Ball - Airburst ;
+    // 34604. Null Healing Grenade Impact Ability ; Nullifies healing done to anyone it hits
+    HealingReceivedMult = 26,
+
+    ExperienceMult = 28,
     Unknown_29 = 29,
     Unknown_30 = 30,
     Unknown_31 = 31,
     Unknown_38 = 38,
     Unknown_39 = 39,
+    Unknown_40 = 40, // appears in effect 12728 together with ApplySinCard
     Unknown_47 = 47,
     
     GravityMult = 50,

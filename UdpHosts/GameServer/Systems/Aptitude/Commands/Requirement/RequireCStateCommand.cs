@@ -1,5 +1,6 @@
 using System;
 using GameServer.Data.SDB.Records.aptfs;
+using GameServer.Entities.Character;
 using static AeroMessages.GSS.V66.Character.CharacterStateData;
 
 namespace GameServer.Aptitude;
@@ -25,9 +26,8 @@ public class RequireCStateCommand : Command, ICommand
             source = context.Initiator;
         }
         
-        if (source.GetType() == typeof(Entities.Character.CharacterEntity))
+        if (source is CharacterEntity character)
         {
-            var character = source as Entities.Character.CharacterEntity;
             var cstate = character.CharacterState.State;
 
             if (Params.Respawning == 1 && (cstate == CharacterStatus.Respawning))
