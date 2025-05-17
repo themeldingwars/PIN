@@ -3,9 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 namespace GameServer.Enums;
 
 [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "TODO")]
+[SuppressMessage("StyleCop", "SA1005", Justification = "<Pending>")]
+[SuppressMessage("StyleCop", "SA1515", Justification = "<Pending>")]
 public enum StatModifierIdentifier : ushort
 {
-    // TODO: Maybe rewrite this, not sure if the mapping is supposed to be 1 to 1
+    // TODO: Map out these
     RunSpeedMult = 1,
     FwdRunSpeedMult = 2, // 1189
     JumpHeightMult = 3, // 1189
@@ -30,11 +32,8 @@ public enum StatModifierIdentifier : ushort
     AmmoConsumption = 22, // Based on Overcharge command 1626508, seems to hold up
     AccuracyModifier = 23,
     CooldownModifier = 24,
-    Progress = 25,
+    Progress = 25, // Unused in 1962?
 
-    TurnSpeed = 27,
-
-    // TODO: Map out these
     // ability 30945 (Repair Station - death),
     // 40536. PvP Healing Ball - Burst ;
     // Melding Ultra Culex Weapon Burst Ability ;
@@ -45,18 +44,35 @@ public enum StatModifierIdentifier : ushort
     // 34604. Null Healing Grenade Impact Ability ; Nullifies healing done to anyone it hits
     HealingReceivedMult = 26,
 
+    TurnSpeed = 27,
     ExperienceMult = 28,
     Unknown_29 = 29,
     Unknown_30 = 30,
     Unknown_31 = 31,
+    Unknown_32 = 32,
+    Unknown_33 = 33,
+    Unknown_34 = 34,
+    Unknown_35 = 35,
+    Unknown_36 = 36,
+    Unknown_37 = 37,
     Unknown_38 = 38,
     Unknown_39 = 39,
     Unknown_40 = 40, // appears in effect 12728 together with ApplySinCard
+    Unknown_41 = 41,
+    Unknown_42 = 42,
+    Unknown_43 = 43, // VIP Related
+    Unknown_44 = 44, // No modifiers in 1962?
+    Unknown_45 = 45, // VIP Related
     Unknown_47 = 47,
-    
+    Unknown_48 = 48, //  No modifiers 1962?
+    Unknown_49 = 49, //  No modifiers 1962?
     GravityMult = 50,
+    Unknown_54 = 54, // VIP Related
+    Unknown_55 = 55, //  No modifiers 1962?
     Unknown_56 = 56, // Jet Energy Consumption? Damage Resistance? Heavy Armor // AirResMult?
     Unknown_57 = 57,
+
+    // FIXME: These are on the combat controller and we use fake ids until we've mapped them to the correct indexes above so that we can reference them by name instead.
     WeaponChargeupMod = 9914,
     WeaponDamageDealtMod = 9915,
     AirResistanceMult = 9913,
