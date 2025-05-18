@@ -32,6 +32,7 @@ public interface IPlayer
     uint LastRequestedUpdate { get; set; }
     uint RequestedClientTime { get; set; }
     bool FirstUpdateRequested { get; set; }
+    bool CanReceiveGSS { get; }
 
     /// <summary>
     ///     The player's user id on steam

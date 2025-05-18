@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
@@ -18,12 +19,13 @@ public enum Status
 
 public interface INetworkClient
 {
-    Status NetClientStatus { get; }
+    ClientStatus NetClientStatus { get; }
     uint SocketId { get; }
     IPEndPoint RemoteEndpoint { get; }
     DateTime NetLastActive { get; }
     ImmutableDictionary<ChannelType, Channel> NetChannels { get; }
     IShard AssignedShard { get; }
+    ConcurrentQueue<Memory<byte>> SequencedMessages { get; }
 
     void Init(IPlayer player, IShard shard, IPacketSender sender);
     void HandlePacket(ReadOnlyMemory<byte> data, Packet packet);

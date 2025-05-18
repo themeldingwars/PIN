@@ -52,7 +52,7 @@ public class EntityManager
     private ulong LifetimeCheckIntervalMs = 1000;
     private bool hasSpawnedTestEntities = false;
 
-    private Dictionary<ulong, HashSet<INetworkPlayer>> ScopedPlayersByEntity = new Dictionary<ulong, HashSet<INetworkPlayer>>();
+    private ConcurrentDictionary<ulong, HashSet<INetworkPlayer>> ScopedPlayersByEntity = new ConcurrentDictionary<ulong, HashSet<INetworkPlayer>>();
     
     private ConcurrentQueue<ScopeInRequest> QueuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
     private ConcurrentDictionary<ulong, Lifetime> LifetimeByEntity = new ConcurrentDictionary<ulong, Lifetime>();
@@ -135,7 +135,6 @@ public class EntityManager
         deployableEntity.SetOrientation(orientation);
         deployableEntity.SetAimDirection(aimDirection);
         deployableEntity.Scale = deployableInfo.Scale;
-        Add(deployableEntity.EntityId, deployableEntity);
 
         if (deployableInfo.InteractionType != 0)
         {
@@ -155,6 +154,8 @@ public class EntityManager
             // TODO: What does ScopeRange 0 mean? Anyway, it will get a default from the component if so.
             deployableEntity.Scoping = new ScopingComponent() { Range = deployableInfo.ScopeRange };
         }
+
+        Add(deployableEntity.EntityId, deployableEntity);
 
         if (deployableInfo.SpawnAbilityid != 0)
         {
@@ -391,7 +392,7 @@ public class EntityManager
         if (currentTime > LastScopeCheck + ScopeCheckIntervalMs)
         {
             LastScopeCheck = currentTime;
-            var players = Shard.Clients.Values.Where((client) => (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected));
+            var players = Shard.Clients.Values.Where((client) => client.CanReceiveGSS);
             var entities = Shard.Entities.Values;
 
             foreach (var entity in entities)
@@ -451,7 +452,7 @@ public class EntityManager
 
     public void Add(ulong guid, IEntity entity)
     {
-        ScopedPlayersByEntity.Add(guid, new());
+        ScopedPlayersByEntity.TryAdd(guid, new());
         Shard.Entities.Add(guid, entity);
         OnAddedEntity(entity);
     }
@@ -459,7 +460,7 @@ public class EntityManager
     public void Add(IEntity entity)
     {
         var guid = new Core.Data.EntityGuid(ServerId, Shard.CurrentTime, Counter++, (byte)Enums.GSS.Controllers.Character);
-        ScopedPlayersByEntity.Add(guid.Full, new());
+        ScopedPlayersByEntity.TryAdd(guid.Full, new());
         Shard.Entities.Add(guid.Full, entity);
         OnAddedEntity(entity);
     }
@@ -481,7 +482,7 @@ public class EntityManager
         {
             OnRemovedEntity(entity);
             Shard.Entities.Remove(guid);
-            ScopedPlayersByEntity.Remove(guid);
+            ScopedPlayersByEntity.TryRemove(guid, out var v);
         }
     }
 
@@ -1030,7 +1031,7 @@ public class EntityManager
     public void ScopeIn(INetworkPlayer player, IEntity entity)
     {
         // Avoid sending messages if player is not in the appropriate state
-        if (!(player.Status.Equals(IPlayer.PlayerStatus.Playing) || player.Status.Equals(IPlayer.PlayerStatus.Loading)) && player.NetClientStatus.Equals(Status.Connected))
+        if (!player.CanReceiveGSS)
         {
             return;
         }
@@ -1144,7 +1145,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity is TurretEntity turret)
@@ -1176,7 +1177,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity is ThumperEntity thumper)
@@ -1185,7 +1186,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity is CarryableEntity carryable)
@@ -1194,7 +1195,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
             }
         }
         else if (entity is AreaVisualDataEntity avd)
@@ -1239,13 +1240,13 @@ public class EntityManager
 
     public void ScopeOut(INetworkPlayer player, IEntity entity)
     {
-        ScopedPlayersByEntity[entity.EntityId].Remove(player);
-        
         // Avoid sending messages if player is not in the appropriate state
-        if (!(player.Status.Equals(IPlayer.PlayerStatus.Playing) || player.Status.Equals(IPlayer.PlayerStatus.Loading)) && player.NetClientStatus.Equals(Status.Connected))
+        if (!player.CanReceiveGSS)
         {
             return;
         }
+
+        ScopedPlayersByEntity[entity.EntityId].Remove(player);
 
         if (entity is CharacterEntity character)
         {
@@ -1267,7 +1268,7 @@ public class EntityManager
                 {
                     player.NetChannels[ChannelType.ReliableGss].SendControllerRemove(baseController, entity.EntityId, player.PlayerId);
                 }
-                
+
                 if (haveCombatController)
                 {
                     player.NetChannels[ChannelType.ReliableGss].SendControllerRemove(combatController, entity.EntityId, player.PlayerId);
@@ -1332,7 +1333,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
         else if (entity is MeldingBubbleEntity meldingBubble)
@@ -1341,7 +1342,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
         else if (entity is VehicleEntity vehicle)
@@ -1394,7 +1395,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
+                player.NetChannels[ChannelType.UnreliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
         else if (entity is TurretEntity turret)
@@ -1426,7 +1427,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
         else if (entity is ThumperEntity thumper)
@@ -1435,7 +1436,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
         else if (entity is CarryableEntity carryable)
@@ -1444,7 +1445,7 @@ public class EntityManager
             bool haveObserver = observer != null;
             if (haveObserver)
             {
-                 player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
+                player.NetChannels[ChannelType.ReliableGss].SendViewScopeOut(observer, entity.EntityId);
             }
         }
         else if (entity is AreaVisualDataEntity avd)
@@ -1541,18 +1542,18 @@ public class EntityManager
             }
 
             // We don't flush Character_MovementView as those changes are basically handled entirely by CurrentPoseUpdate
-            FlushViewChangesToEveryone(character.Character_ObserverView, character.EntityId);
-            FlushViewChangesToEveryone(character.Character_EquipmentView, character.EntityId);
-            FlushViewChangesToEveryone(character.Character_CombatView, character.EntityId);
-            FlushViewChangesToEveryone(character.Character_TinyObjectView, character.EntityId);
+            FlushViewChangesToScoped(character.Character_ObserverView, character.EntityId);
+            FlushViewChangesToScoped(character.Character_EquipmentView, character.EntityId);
+            FlushViewChangesToScoped(character.Character_CombatView, character.EntityId);
+            FlushViewChangesToScoped(character.Character_TinyObjectView, character.EntityId);
         }
         else if (entity is MeldingEntity melding)
         {
-            FlushViewChangesToEveryone(melding.Melding_ObserverView, melding.EntityId);
+            FlushViewChangesToScoped(melding.Melding_ObserverView, melding.EntityId);
         }
         else if (entity is MeldingBubbleEntity meldingBubble)
         {
-            FlushViewChangesToEveryone(meldingBubble.MeldingBubble_ObserverView, meldingBubble.EntityId);
+            FlushViewChangesToScoped(meldingBubble.MeldingBubble_ObserverView, meldingBubble.EntityId);
         }
         else if (entity is VehicleEntity vehicle)
         {
@@ -1562,13 +1563,13 @@ public class EntityManager
                 FlushViewChangesToPlayer(vehicle.Vehicle_CombatController, vehicle.EntityId, vehicle.ControllingPlayer);
             }
 
-            FlushViewChangesToEveryone(vehicle.Vehicle_ObserverView, vehicle.EntityId);
-            FlushViewChangesToEveryone(vehicle.Vehicle_CombatView, vehicle.EntityId);
-            FlushViewChangesToEveryone(vehicle.Vehicle_MovementView, vehicle.EntityId);
+            FlushViewChangesToScoped(vehicle.Vehicle_ObserverView, vehicle.EntityId);
+            FlushViewChangesToScoped(vehicle.Vehicle_CombatView, vehicle.EntityId);
+            FlushViewChangesToScoped(vehicle.Vehicle_MovementView, vehicle.EntityId);
         }
         else if (entity is DeployableEntity deployable)
         {
-            FlushViewChangesToEveryone(deployable.Deployable_ObserverView, deployable.EntityId);
+            FlushViewChangesToScoped(deployable.Deployable_ObserverView, deployable.EntityId);
         }
         else if (entity is TurretEntity turret)
         {
@@ -1577,20 +1578,20 @@ public class EntityManager
                 FlushViewChangesToPlayer(turret.Turret_BaseController, turret.EntityId, turret.ControllingPlayer);
             }
 
-            FlushViewChangesToEveryone(turret.Turret_ObserverView, turret.EntityId);
+            FlushViewChangesToScoped(turret.Turret_ObserverView, turret.EntityId);
         }
         else if (entity is ThumperEntity thumper)
         {
-            FlushViewChangesToEveryone(thumper.ResourceNode_ObserverView, thumper.EntityId);
+            FlushViewChangesToScoped(thumper.ResourceNode_ObserverView, thumper.EntityId);
         }
         else if (entity is AreaVisualDataEntity avd)
         {
-            FlushViewChangesToEveryone(avd.AreaVisualData_ObserverView, avd.EntityId);
-            FlushViewChangesToEveryone(avd.AreaVisualData_ParticleEffectsView, avd.EntityId);
-            FlushViewChangesToEveryone(avd.AreaVisualData_MapMarkerView, avd.EntityId);
-            FlushViewChangesToEveryone(avd.AreaVisualData_TinyObjectView, avd.EntityId);
-            FlushViewChangesToEveryone(avd.AreaVisualData_LootObjectView, avd.EntityId);
-            FlushViewChangesToEveryone(avd.AreaVisualData_ForceShieldView, avd.EntityId);
+            FlushViewChangesToScoped(avd.AreaVisualData_ObserverView, avd.EntityId);
+            FlushViewChangesToScoped(avd.AreaVisualData_ParticleEffectsView, avd.EntityId);
+            FlushViewChangesToScoped(avd.AreaVisualData_MapMarkerView, avd.EntityId);
+            FlushViewChangesToScoped(avd.AreaVisualData_TinyObjectView, avd.EntityId);
+            FlushViewChangesToScoped(avd.AreaVisualData_LootObjectView, avd.EntityId);
+            FlushViewChangesToScoped(avd.AreaVisualData_ForceShieldView, avd.EntityId);
         }
     }
 
@@ -1606,7 +1607,7 @@ public class EntityManager
         }
     }
 
-    public void FlushViewChangesToEveryone<TPacket>(TPacket view, ulong entityId)
+    public void FlushViewChangesToScoped<TPacket>(TPacket view, ulong entityId)
     where TPacket : class, IAeroViewInterface
     {
         // We can only call SerializeChangesToMemory once but we need to send to multiple players.
@@ -1614,7 +1615,7 @@ public class EntityManager
         if (shouldFlush)
         {
             view.SerializeChangesToMemory(out var update);
-            foreach (var client in Shard.Clients.Values)
+            foreach (var client in ScopedPlayersByEntity[entityId])
             {
                 bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
                 if (shouldSend)
@@ -1631,7 +1632,7 @@ public class EntityManager
         foreach (var client in Shard.Clients.Values)
         {
             // We don't want to inform players that are still in the early steps of connecting
-            if ((client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected))
+            if (client.CanReceiveGSS)
             {
                 ScopeIn(client, entity);
             }

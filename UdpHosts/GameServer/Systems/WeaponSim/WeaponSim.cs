@@ -249,7 +249,7 @@ public class WeaponSim
             return;
         }
 
-        if (!(client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected))
+        if (!client.CanReceiveGSS)
         {
             return;
         }
@@ -299,7 +299,7 @@ public class WeaponSim
 
     private IEnumerable<INetworkPlayer> GetWeaponSimPlayers()
     {
-        return _shard.Clients.Values.Where((client) => (client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading)) && client.NetClientStatus.Equals(Status.Connected));
+        return _shard.Clients.Values.Where((client) => client.CanReceiveGSS);
     }
 
     private IEnumerable<IEntity> GetWeaponSimPlayersEntities()

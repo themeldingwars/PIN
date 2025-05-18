@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -28,16 +29,17 @@ public class NetworkClient : INetworkClient
         Logger = logger;
         SocketId = socketId;
         RemoteEndpoint = endPoint;
-        NetClientStatus = Status.Unknown;
+        NetClientStatus = ClientStatus.Unknown;
         NetLastActive = DateTime.Now;
     }
 
-    public Status NetClientStatus { get; private set; }
+    public ClientStatus NetClientStatus { get; private set; }
     public uint SocketId { get; }
     public IPEndPoint RemoteEndpoint { get; }
     public DateTime NetLastActive { get; private set; }
     public ImmutableDictionary<ChannelType, Channel> NetChannels { get; private set; }
     public IShard AssignedShard { get; private set; }
+    public ConcurrentQueue<Memory<byte>> SequencedMessages { get; private set; }
 
     protected IPacketSender Sender { get; private set; }
     protected IPlayer Player { get; private set; }
@@ -46,8 +48,9 @@ public class NetworkClient : INetworkClient
     {
         Player = player;
         Sender = sender;
-        NetClientStatus = Status.Connecting;
+        NetClientStatus = ClientStatus.Connecting;
         AssignedShard = shard;
+        SequencedMessages = new();
 
         NetChannels = Channel.GetChannels(this, Logger).ToImmutableDictionary();
         NetChannels[ChannelType.Control].PacketAvailable += Control_PacketAvailable;
@@ -58,12 +61,12 @@ public class NetworkClient : INetworkClient
 
     public void HandlePacket(ReadOnlyMemory<byte> data, Packet packet)
     {
-        if (NetClientStatus == Status.Connecting)
+        if (NetClientStatus == ClientStatus.Connecting)
         {
-            NetClientStatus = Status.Connected; // the connection must have been established in order to receive a packet, so we must now be connected
+            NetClientStatus = ClientStatus.Connected; // the connection must have been established in order to receive a packet, so we must now be connected
         }
 
-        if (NetClientStatus != Status.Connected && NetClientStatus != Status.Idle)
+        if (NetClientStatus != ClientStatus.Connected && NetClientStatus != ClientStatus.Idle)
         {
             return; // can't do anything if we're not ready yet!
         }
@@ -92,6 +95,11 @@ public class NetworkClient : INetworkClient
 
     public virtual void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
+        while (SequencedMessages.TryDequeue(out var qi))
+        {
+            Send(qi);
+        }
+
         foreach (var channel in NetChannels.Values)
         {
             channel.Process(ct);
@@ -143,7 +151,7 @@ public class NetworkClient : INetworkClient
 
     public void Send(Memory<byte> packet)
     {
-        if (NetClientStatus == Status.Disconnecting || NetClientStatus == Status.Aborted)
+        if (NetClientStatus == ClientStatus.Disconnecting || NetClientStatus == ClientStatus.Aborted)
         {
             return;
         }
@@ -270,7 +278,7 @@ public class NetworkClient : INetworkClient
         {
             case ControlPacketType.CloseConnection:
                 Logger.Information("RECEIVED CloseConnection");
-                NetClientStatus = Status.Disconnecting;
+                NetClientStatus = ClientStatus.Disconnecting;
                 AssignedShard.MigrateOut((INetworkPlayer)this);
                 break;
             case ControlPacketType.MatrixAck:

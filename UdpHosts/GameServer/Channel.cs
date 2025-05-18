@@ -29,11 +29,12 @@ public class Channel
     private readonly ConcurrentQueue<Memory<byte>> _outgoingPackets;
     private SortedDictionary<ushort, GamePacket> _incomingSplitMessagePackets;
 
-    private Channel(ChannelType channelType, bool isSequenced, bool isReliable, INetworkClient networkClient, ILogger logger)
+    private Channel(ChannelType channelType, bool isSequenced, bool isReliable,  bool isGSS, INetworkClient networkClient, ILogger logger)
     {
         Type = channelType;
         IsSequenced = isSequenced;
         IsReliable = isReliable;
+        IsGSS = isGSS;
         _client = networkClient;
         _logger = logger;
         CurrentSequenceNumber = 1;
@@ -51,6 +52,7 @@ public class Channel
     private ChannelType Type { get; }
     private bool IsSequenced { get; }
     private bool IsReliable { get; }
+    private bool IsGSS { get; }
     private ushort CurrentSequenceNumber { get; set; }
     private DateTime LastActivity { get; set; }
     private ushort LastAck { get; set; }
@@ -60,10 +62,10 @@ public class Channel
     {
         return new Dictionary<ChannelType, Channel>
                {
-                   { ChannelType.Control, new Channel(ChannelType.Control, false, false, client, logger) },
-                   { ChannelType.Matrix, new Channel(ChannelType.Matrix, true, true, client, logger) },
-                   { ChannelType.ReliableGss, new Channel(ChannelType.ReliableGss, true, true, client, logger) },
-                   { ChannelType.UnreliableGss, new Channel(ChannelType.UnreliableGss, true, false, client, logger) }
+                   { ChannelType.Control, new Channel(ChannelType.Control, false, false, false, client, logger) },
+                   { ChannelType.Matrix, new Channel(ChannelType.Matrix, true, true,  false, client, logger) },
+                   { ChannelType.ReliableGss, new Channel(ChannelType.ReliableGss, true, true, true, client, logger) },
+                   { ChannelType.UnreliableGss, new Channel(ChannelType.UnreliableGss, true, false, true, client, logger) }
                };
     }
 
@@ -493,7 +495,14 @@ public class Channel
             var headerData = Serializer.WritePrimitive(Utils.SimpleFixEndianness(header.PacketHeader));
             headerData.CopyTo(t);
 
-            _outgoingPackets.Enqueue(t);
+            if (IsGSS)
+            {
+                _client.SequencedMessages.Enqueue(t);
+            }
+            else
+            {
+                _outgoingPackets.Enqueue(t);
+            }
 
             packetData = packetData[(length - headerLength)..];
         }

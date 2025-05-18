@@ -19,8 +19,6 @@ namespace GameServer;
 
 public class NetworkPlayer : NetworkClient, INetworkPlayer
 {
-    private double _lastKeyFrame;
-
     public NetworkPlayer(IPEndPoint endPoint, uint socketId, ILogger logger)
         : base(endPoint, socketId, logger)
     {
@@ -42,6 +40,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public ulong SteamUserId { get; set; }
     public CharacterInventory Inventory { get; set; }
     public uint ConnectedAt { get; }
+    public bool CanReceiveGSS => (Status.Equals(IPlayer.PlayerStatus.Playing) || Status.Equals(IPlayer.PlayerStatus.Loading)) && NetClientStatus.Equals(ClientStatus.Connected);
 
     public void Init(IShard shard)
     {
@@ -337,6 +336,5 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         NetChannels[ChannelType.Matrix].SendMessage(msg);
 
         Status = IPlayer.PlayerStatus.Loading;
-        _lastKeyFrame = AssignedShard.CurrentTime;
     }
 }
