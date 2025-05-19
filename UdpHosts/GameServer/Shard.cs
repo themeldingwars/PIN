@@ -7,14 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using GameServer.Aptitude;
 using GameServer.Data;
-using GameServer.Data.SDB.Records.dbitems;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
 using GameServer.Systems.Chat;
 using GameServer.Systems.Encounters;
-using Microsoft.Extensions.Logging;
-using Serilog;
 using Shared.Common;
 using Shared.Udp;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 
 namespace GameServer.Data.SDB.Records.customdata;

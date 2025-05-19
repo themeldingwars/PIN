@@ -5,7 +5,6 @@ using AeroMessages.Control;
 using AeroMessages.GSS.V66.Generic;
 using GameServer.Aptitude;
 using GameServer.Entities;
-using GameServer.Enums;
 using GameServer.Enums.GSS.Generic;
 using GameServer.Extensions;
 using GameServer.GRPC;

@@ -1,8 +1,4 @@
-using System;
-using AeroMessages.GSS.V66.Character;
-using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.apt;
-using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
 

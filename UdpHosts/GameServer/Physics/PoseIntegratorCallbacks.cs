@@ -1,10 +1,6 @@
 using System;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using BepuPhysics;
-using BepuPhysics.Collidables;
-using BepuPhysics.CollisionDetection;
-using BepuPhysics.Constraints;
 using BepuUtilities;
 
 namespace GameServer.Physics;

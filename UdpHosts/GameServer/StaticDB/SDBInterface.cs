@@ -1,15 +1,14 @@
 namespace GameServer.Data.SDB;
 
 using System.Collections.Generic;
+using System.Linq;
 using FauFau.Formats;
-using Records.dbitems;
-using Records.dbviusalrecords;
 using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
+using Records.dbitems;
+using Records.dbviusalrecords;
 using Records.vcs;
-using Records;
-using System.Linq;
 
 public class SDBInterface
 {

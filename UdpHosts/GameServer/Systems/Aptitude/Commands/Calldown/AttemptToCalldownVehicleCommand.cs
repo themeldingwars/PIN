@@ -1,4 +1,3 @@
-using System.Numerics;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 

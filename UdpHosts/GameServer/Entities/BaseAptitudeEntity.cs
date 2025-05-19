@@ -1,15 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using AeroMessages.Common;
 using AeroMessages.GSS.V66;
-using AeroMessages.GSS.V66.Deployable;
-using AeroMessages.GSS.V66.Deployable.View;
-using GameServer;
 using GameServer.Aptitude;
-using GameServer.Entities;
 using GameServer.Entities.Character;
 
 namespace GameServer.Entities;

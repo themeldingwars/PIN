@@ -1,6 +1,3 @@
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-
 namespace GameServer.Entities;
 
 public class InteractionComponent

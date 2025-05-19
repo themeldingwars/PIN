@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using FauFau.Formats;
 using GameServer.Controllers;
 using GameServer.Data.SDB;
 using GameServer.GRPC;

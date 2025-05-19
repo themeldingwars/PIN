@@ -12,7 +12,6 @@ using GameServer.Controllers;
 using GameServer.Controllers.Character;
 using GameServer.Entities;
 using GameServer.Enums;
-using GameServer.Enums.GSS;
 using GameServer.Extensions;
 using GameServer.Packets;
 using Serilog;

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.apt;
 using GameServer.Entities.Character;

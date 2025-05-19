@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using GameServer.Data.SDB.Records.apt;
 
 namespace GameServer.Aptitude;

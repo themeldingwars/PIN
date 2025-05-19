@@ -1,17 +1,12 @@
 namespace GameServer.Data.SDB;
 
+using System;
 using System.Collections.Generic;
-using FauFau.Formats;
+using System.Linq;
+using AeroMessages.GSS.V66.Character;
 using Records.dbcharacter;
 using Records.dbitems;
-using Records.dbviusalrecords;
-using Records.apt;
-using Records.aptfs;
 using Records.vcs;
-using Records;
-using System;
-using AeroMessages.GSS.V66.Character;
-using System.Linq;
 
 public class SDBUtils
 {

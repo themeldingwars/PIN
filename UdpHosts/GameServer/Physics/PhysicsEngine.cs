@@ -9,7 +9,6 @@ using BepuPhysics.Collidables;
 using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
-using GameServer.Entities;
 using GameServer.Entities.Character;
 using Serilog;
 

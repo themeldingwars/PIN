@@ -1,14 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
-using AeroMessages.GSS.V66.CarryableObject;
 using AeroMessages.GSS.V66.CarryableObject.View;
 using GameServer.Aptitude;
 using GameServer.Entities.Character;
-using GameServer.Enums;
 
 namespace GameServer.Entities.Carryable;
 

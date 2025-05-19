@@ -1,18 +1,17 @@
 namespace GameServer.Data.SDB;
 
-using FauFau.Formats;
-using Records.apt;
-using Records.aptfs;
-using Records.dbitems;
-using Records.dbviusalrecords;
-using Records.dbcharacter;
-using Records.vcs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static FauFau.Formats.StaticDB;
+using FauFau.Formats;
+using Records.apt;
+using Records.aptfs;
+using Records.dbcharacter;
+using Records.dbitems;
+using Records.dbviusalrecords;
+using Records.vcs;
 using Shared.Common;
-using System.Reflection;
+using static FauFau.Formats.StaticDB;
 
 public class StaticDBLoader : ISDBLoader
 {

@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;

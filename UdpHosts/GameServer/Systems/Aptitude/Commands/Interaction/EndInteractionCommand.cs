@@ -1,8 +1,6 @@
-using System;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Entities;
 using GameServer.Entities.Character;
-using GameServer.Entities.Deployable;
 using GameServer.Entities.Vehicle;
 using GameServer.Systems.Encounters;
 

@@ -2,7 +2,6 @@
 using System.Net;
 using System.Numerics;
 using System.Threading;
-using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Controller;
@@ -15,7 +14,6 @@ using GameServer.Test;
 using GrpcGameServerAPIClient;
 using Serilog;
 using CharacterEntity = GameServer.Entities.Character.CharacterEntity;
-using Loadout = AeroMessages.GSS.V66.Character.Event.Loadout;
 
 namespace GameServer;
 

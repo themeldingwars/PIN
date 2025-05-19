@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities;
 

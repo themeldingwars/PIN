@@ -4,10 +4,7 @@ using System.Linq;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
-using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.dbcharacter;
-using GameServer.Enums.Visuals;
 
 namespace GameServer.Data;
 

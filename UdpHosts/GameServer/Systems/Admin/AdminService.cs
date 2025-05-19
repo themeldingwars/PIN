@@ -3,17 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading;
-using AeroMessages.Common;
-using AeroMessages.GSS.V66;
-using AeroMessages.GSS.V66.Character;
-using AeroMessages.GSS.V66.Character.Command;
-using AeroMessages.GSS.V66.Character.Event;
-using AeroMessages.GSS.V66.Generic;
 using GameServer.Admin;
 using GameServer.Entities;
-using GameServer.Entities.Character;
-using GameServer.Enums;
 
 namespace GameServer;
 

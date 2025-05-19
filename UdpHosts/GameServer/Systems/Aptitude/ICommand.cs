@@ -1,5 +1,3 @@
-using GameServer.Data.SDB.Records;
-
 namespace GameServer.Aptitude;
 
 public interface ICommand

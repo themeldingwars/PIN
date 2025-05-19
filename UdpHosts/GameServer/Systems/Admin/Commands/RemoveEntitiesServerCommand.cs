@@ -1,11 +1,4 @@
-using System;
-using System.Numerics;
-using AeroMessages.GSS.V66.Character;
 using GameServer.Entities.Character;
-using GameServer.Entities.Deployable;
-using GameServer.Entities.Turret;
-using GameServer.Entities.Vehicle;
-using static AeroMessages.GSS.V66.Character.Controller.PermissionFlagsData;
 
 namespace GameServer.Admin;
 

@@ -1,5 +1,3 @@
-using AeroMessages.GSS.V66;
-
 namespace GameServer.Aptitude;
 
 public class Effect

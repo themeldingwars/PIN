@@ -5,13 +5,9 @@ using System.Numerics;
 using System.Text.Json;
 using System.Threading;
 using AeroMessages.GSS.V66.Generic;
-using BepuUtilities;
-using FauFau.Util;
 using GameServer.Data.SDB;
 using GameServer.Entities;
 using GameServer.Entities.Character;
-using GameServer.Enums;
-using static GameServer.Entities.Character.CharacterEntity;
 
 namespace GameServer;
 

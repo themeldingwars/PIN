@@ -1,4 +1,3 @@
-using AeroMessages.GSS.V66.Generic;
 using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;

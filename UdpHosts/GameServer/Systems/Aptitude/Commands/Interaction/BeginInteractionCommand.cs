@@ -1,4 +1,3 @@
-using System;
 using GameServer.Entities;
 
 namespace GameServer.Aptitude;

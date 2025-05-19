@@ -1,6 +1,4 @@
-﻿using Aero.Gen.Attributes;
-
-namespace GameServer.Data.SDB.Records.customdata;
+﻿namespace GameServer.Data.SDB.Records.customdata;
 
 public record NPCSpawnCommandDef : ICommandDef
 {

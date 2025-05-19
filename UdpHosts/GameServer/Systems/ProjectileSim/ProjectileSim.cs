@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Threading;
 using GameServer.Data.SDB.Records.dbitems;
 using GameServer.Entities.Character;
 

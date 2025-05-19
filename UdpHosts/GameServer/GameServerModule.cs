@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Configuration;
 using Autofac;
-using GameServer.Physics.ZoneLoader;
 using Serilog;
 using Shared.Common;
 using SDB = FauFau.Formats.StaticDB;

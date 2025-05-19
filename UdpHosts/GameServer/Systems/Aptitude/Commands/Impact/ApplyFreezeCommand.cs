@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Numerics;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
-using GameServer.Enums;
 
 namespace GameServer.Aptitude;
 

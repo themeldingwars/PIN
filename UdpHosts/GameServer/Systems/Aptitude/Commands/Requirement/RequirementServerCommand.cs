@@ -1,6 +1,5 @@
 using System;
 using GameServer.Data.SDB.Records.aptfs;
-using static AeroMessages.GSS.V66.Character.CharacterStateData;
 
 namespace GameServer.Aptitude;
 
