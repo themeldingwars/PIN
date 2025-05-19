@@ -1,5 +1,92 @@
 ﻿<?xml version="1.0"?>
-<RuleSet Name="PIN Analyzer Rules" Description="StyleCop Analyzers rules" ToolsVersion="17.0">
+<RuleSet Name="PIN Analyzer Rules" Description="StyleCop and Microsoft Analyzers rules" ToolsVersion="17.0">
+    <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
+        <Rule Id="CS0067" Action="None" />
+        <Rule Id="CS1718" Action="None" />
+        <Rule Id="CS8020" Action="Warning" />
+        <Rule Id="CS8040" Action="Warning" />
+    </Rules>
+
+    <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
+        <Rule Id="IDE0001" Action="None" />
+        <Rule Id="IDE0002" Action="Warning" />
+        <Rule Id="IDE0003" Action="Warning" />
+        <Rule Id="IDE0004" Action="Warning" />
+        <Rule Id="IDE0005" Action="Warning" />
+        <Rule Id="IDE1005" Action="Warning" />
+    </Rules>
+
+    <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.CSharp.NetAnalyzers">
+        <Rule Id="CA1001" Action="None" />
+        <Rule Id="CA1309" Action="None" />
+        <Rule Id="CA1507" Action="None" />
+        <Rule Id="CA1805" Action="Info" />
+        <Rule Id="CA1824" Action="None" />
+        <Rule Id="CA1825" Action="None" />
+        <Rule Id="CA2016" Action="Warning" />
+        <Rule Id="CA2234" Action="Warning" />
+    </Rules>
+
+    <Rules AnalyzerId="Microsoft.CodeAnalysis.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.NetAnalyzers">
+        <Rule Id="CA1000" Action="None" />
+        <Rule Id="CA1010" Action="None" />
+        <Rule Id="CA1016" Action="None" />
+        <Rule Id="CA1018" Action="None" />
+        <Rule Id="CA1028" Action="None" />
+        <Rule Id="CA1036" Action="None" />
+        <Rule Id="CA1041" Action="Warning" />
+        <Rule Id="CA1050" Action="None" />
+        <Rule Id="CA1051" Action="None" />
+        <Rule Id="CA1054" Action="Warning" />
+        <Rule Id="CA1055" Action="Warning" />
+        <Rule Id="CA1056" Action="None" />
+        <Rule Id="CA1061" Action="Warning" />
+        <Rule Id="CA1067" Action="None" />
+        <Rule Id="CA1068" Action="None" />
+        <Rule Id="CA1069" Action="None" />
+        <Rule Id="CA1070" Action="Warning" />
+        <Rule Id="CA1304" Action="None" />
+        <Rule Id="CA1305" Action="None" />
+        <Rule Id="CA1310" Action="Info" />
+        <Rule Id="CA1401" Action="None" />
+        <Rule Id="CA1419" Action="Warning" />
+        <Rule Id="CA1707" Action="None" />
+        <Rule Id="CA1708" Action="None" />
+        <Rule Id="CA1710" Action="None" />
+        <Rule Id="CA1711" Action="None" />
+        <Rule Id="CA1712" Action="Warning" />
+        <Rule Id="CA1713" Action="Warning" />
+        <Rule Id="CA1715" Action="Warning" />
+        <Rule Id="CA1716" Action="None" />
+        <Rule Id="CA1720" Action="None" />
+        <Rule Id="CA1725" Action="None" />
+        <Rule Id="CA1727" Action="None" />
+        <Rule Id="CA1806" Action="None" />
+        <Rule Id="CA1816" Action="None" />
+        <Rule Id="CA1821" Action="Warning" />
+        <Rule Id="CA1822" Action="None" />
+        <Rule Id="CA1826" Action="None" />
+        <Rule Id="CA1827" Action="Warning" />
+        <Rule Id="CA1828" Action="Warning" />
+        <Rule Id="CA1829" Action="Warning" />
+        <Rule Id="CA1830" Action="Warning" />
+        <Rule Id="CA1832" Action="Warning" />
+        <Rule Id="CA1833" Action="Warning" />
+        <Rule Id="CA1834" Action="Warning" />
+        <Rule Id="CA1835" Action="Warning" />
+        <Rule Id="CA1836" Action="Warning" />
+        <Rule Id="CA1837" Action="Warning" />
+        <Rule Id="CA1838" Action="None" />
+        <Rule Id="CA2002" Action="Warning" />
+        <Rule Id="CA2208" Action="None" />
+        <Rule Id="CA2214" Action="Warning" />
+        <Rule Id="CA2219" Action="Warning" />
+        <Rule Id="CA2229" Action="None" />
+        <Rule Id="CA2231" Action="None" />
+        <Rule Id="CA3075" Action="None" />
+        <Rule Id="CA3147" Action="None" />
+    </Rules>
+
     <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers.SpecialRules">
         <Rule Id="SA0001"  Action="None" />    <!-- XML comment analysis disabled -->
         <Rule Id="SA0002"  Action="Warning" /> <!-- Invalid settings file -->

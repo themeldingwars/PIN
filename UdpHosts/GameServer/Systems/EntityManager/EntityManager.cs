@@ -353,7 +353,7 @@ public class EntityManager
         }
 
         // Process queued scope-ins
-        if (QueuedScopeIn.Count > 0 && currentTime > LastScopeIn + ScopeInIntervalMs)
+        if (!QueuedScopeIn.IsEmpty && currentTime > LastScopeIn + ScopeInIntervalMs)
         {
             bool ok = QueuedScopeIn.TryDequeue(out ScopeInRequest request);
             if (ok)

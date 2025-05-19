@@ -2,6 +2,13 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(MSBuildProjectName)' != 'AeroMessages' And
+                              '$(MSBuildProjectName)' != 'BepuPhysics' And
+                              '$(MSBuildProjectName)' != 'BepuUtilities' And
+                              '$(MSBuildProjectName)' != 'Bitter'">
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
         <CodeAnalysisRuleSet>$(SolutionDir)/stylecop.ruleset</CodeAnalysisRuleSet>
     </PropertyGroup>
     <PropertyGroup>

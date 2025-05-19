@@ -48,7 +48,7 @@ public static class GRPCService
 
     public static async Task ListenAsync(ConcurrentDictionary<uint, INetworkPlayer> clientMap, CancellationToken ct)
     {
-        _stream = _client.Stream();
+        _stream = _client.Stream(cancellationToken: ct);
 
         await foreach (var evt in _stream.ResponseStream.ReadAllAsync(ct))
         {
