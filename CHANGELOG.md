@@ -4,12 +4,28 @@
 
 ### Added
 
-- Add support for StyleCop
+- Add support for StyleCop & .NET Analyzers
+- Use RIN via gRPC for the player management
+- Add many items to the game
+  - Deployables
+  - Battlestation
+  - Vehicles
+  - Gliders
+  - Abilities
+  - Thumbers
+  - Turrets
+  - Melding Repulsor
+- Add Bepu as physics engine
 
 ### Changed
 
-- Update build pipeline to support .NET 8 and the latest macOS version
-- Update dependencies, incl. AeroMessages
+- Update build pipeline to support .NET 8 & 9 and the latest macOS version
+- Update most dependencies
+
+### Fixed
+
+- Make the server handling code more robust
+- Many improvements in the entity definitions
 
 ## [1.2.0] - 2023-06-02
 
