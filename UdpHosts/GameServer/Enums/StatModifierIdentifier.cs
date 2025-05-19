@@ -1,10 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace GameServer.Enums;
 
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "TODO")]
-[SuppressMessage("StyleCop", "SA1005", Justification = "<Pending>")]
-[SuppressMessage("StyleCop", "SA1515", Justification = "<Pending>")]
 public enum StatModifierIdentifier : ushort
 {
     // TODO: Map out these
@@ -64,11 +59,11 @@ public enum StatModifierIdentifier : ushort
     Unknown_44 = 44, // No modifiers in 1962?
     Unknown_45 = 45, // VIP Related
     Unknown_47 = 47,
-    Unknown_48 = 48, //  No modifiers 1962?
-    Unknown_49 = 49, //  No modifiers 1962?
+    Unknown_48 = 48, // No modifiers 1962?
+    Unknown_49 = 49, // No modifiers 1962?
     GravityMult = 50,
     Unknown_54 = 54, // VIP Related
-    Unknown_55 = 55, //  No modifiers 1962?
+    Unknown_55 = 55, // No modifiers 1962?
     Unknown_56 = 56, // Jet Energy Consumption? Damage Resistance? Heavy Armor // AirResMult?
     Unknown_57 = 57,
 

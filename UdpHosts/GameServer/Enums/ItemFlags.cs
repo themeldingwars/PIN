@@ -1,9 +1,7 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GameServer.Enums;
 
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "TODO")]
 [Flags]
 public enum ItemFlags : uint
 {

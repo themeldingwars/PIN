@@ -1,10 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace GameServer;
 
-[SuppressMessage("StyleCop.CSharp.DocumentationRules",
-"SA1602:EnumerationItemsMustBeDocumented",
-Justification = "We don't know much about these other than that they affect animations. See the wiki: https://github.com/themeldingwars/Documentation/wiki/Interaction-Types")]
+// See the wiki: https://github.com/themeldingwars/Documentation/wiki/Interaction-Types
 public enum InteractionType : byte
 {
     Execute = 1,

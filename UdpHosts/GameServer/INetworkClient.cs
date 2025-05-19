@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading;
 using Shared.Udp;
 
 namespace GameServer;
 
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Still figuring it out")]
 public enum Status
 {
     Unknown = 0,

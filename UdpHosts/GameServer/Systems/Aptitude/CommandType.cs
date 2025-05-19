@@ -1,13 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace GameServer.Aptitude;
 
 /// <summary>
 /// Aptitude Command Types
+/// See https://github.com/themeldingwars/Documentation/wiki/Aptitude for cursory overview.
 /// </summary>
-[SuppressMessage("StyleCop.CSharp.DocumentationRules",
-"SA1602:EnumerationItemsMustBeDocumented",
-Justification = "See https://github.com/themeldingwars/Documentation/wiki/Aptitude for cursory overview.")]
 public enum CommandType : uint
 {
     /// <summary>

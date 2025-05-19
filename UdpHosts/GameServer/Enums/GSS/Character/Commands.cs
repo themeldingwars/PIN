@@ -1,8 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace GameServer.Enums.GSS.Character;
 
-namespace GameServer.Enums.GSS.Character;
-
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Character#commands")]
+// https://github.com/themeldingwars/Documentation/wiki/Messages-Character#commands
 internal enum Commands : byte
 {
     UiQueryResponse = 59,

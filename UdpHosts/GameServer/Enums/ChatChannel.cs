@@ -1,8 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace GameServer.Enums;
 
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "TODO")]
 public enum ChatChannel : byte
 {
     Invalid = 0,

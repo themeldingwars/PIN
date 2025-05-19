@@ -1,8 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace GameServer.Enums;
 
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Based on FUN_00bc1130")]
+// Based on FUN_00bc1130
 public enum Operand : byte
 {
     // Add and multiply appear twice in a switch inside client

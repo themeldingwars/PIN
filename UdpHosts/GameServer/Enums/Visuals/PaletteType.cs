@@ -1,11 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace GameServer.Enums.Visuals;
+﻿namespace GameServer.Enums.Visuals;
 
 /// <summary>
 /// Types of Warpaint Palettes for VisualsPaletteBlock.
+/// https://github.com/themeldingwars/Documentation/wiki/Warpaint-Palette-Types
 /// </summary>
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Warpaint-Palette-Types")]
 public enum PaletteType : byte
 {
     FullBody = 0x0,

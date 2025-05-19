@@ -1,8 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace GameServer.Enums;
 
-namespace GameServer.Enums;
-
-[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "https://github.com/themeldingwars/Documentation/wiki/Messages-Control")]
+// https://github.com/themeldingwars/Documentation/wiki/Messages-Control
 public enum ControlPacketType : byte
 {
     CloseConnection = 0,

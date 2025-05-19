@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Threading;
 using GameServer.Data;
 using CharacterEntity = GameServer.Entities.Character.CharacterEntity;
@@ -8,7 +7,6 @@ namespace GameServer;
 
 public interface IPlayer
 {
-    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Still figuring it out")]
     public enum PlayerStatus
     {
         Invalid = -1,
