@@ -153,7 +153,7 @@ public static class Deserializer
                 return null;
             }
 
-            data = data[Marshal.SizeOf(exists.ExistsType) ..];
+            data = data[Marshal.SizeOf(exists.ExistsType)..];
         }
 
         if (typeof(IEnumerable).IsAssignableFrom(type) && type.GenericTypeArguments is { Length: > 0 })
@@ -162,7 +162,7 @@ public static class Deserializer
             if (prefixLength != null)
             {
                 l = (int)Convert.ChangeType(Read(ref data, prefixLength.LengthType), typeof(int));
-                data = data[Marshal.SizeOf(prefixLength.LengthType) ..];
+                data = data[Marshal.SizeOf(prefixLength.LengthType)..];
             }
             else if (length != null)
             {
@@ -192,7 +192,7 @@ public static class Deserializer
 
             l++; // null terminator
 
-            ret = Encoding.ASCII.GetString(data[.. (l - 1)].Span.ToArray());
+            ret = Encoding.ASCII.GetString(data[..(l - 1)].Span.ToArray());
             data = data[l..];
         }
         else if (type.IsClass)

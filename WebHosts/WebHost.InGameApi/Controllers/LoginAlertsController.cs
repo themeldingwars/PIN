@@ -27,7 +27,8 @@ public class LoginAlertsController : ControllerBase
 <body>
 
 </body>
-</html>", Encoding.UTF8, 
+</html>",
+                                               Encoding.UTF8, 
                                                "text/html")
                };
     }

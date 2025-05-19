@@ -9,5 +9,4 @@ public record class EmoteRecord
     public string Name { get; set; }
     public uint AnimOverrideId { get; set; }
     public ushort Id { get; set; }
-    
 }

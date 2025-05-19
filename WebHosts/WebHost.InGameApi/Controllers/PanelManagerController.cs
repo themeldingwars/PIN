@@ -27,7 +27,8 @@ public class PanelManagerController : ControllerBase
 <body>
 Hello World
 </body>
-</html>", Encoding.UTF8, 
+</html>",
+                                               Encoding.UTF8, 
                                                "text/html")
                };
     }

@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0"?>
-<RuleSet Name="StyleCop.Analyzers rules with default action" Description="StyleCop.Analyzers with default action. Rules with IsEnabledByDefault = false are disabled." ToolsVersion="14.0">
+<RuleSet Name="PIN Analyzer Rules" Description="StyleCop Analyzers rules" ToolsVersion="17.0">
     <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers.SpecialRules">
         <Rule Id="SA0001"  Action="None" />    <!-- XML comment analysis disabled -->
         <Rule Id="SA0002"  Action="Warning" /> <!-- Invalid settings file -->
     </Rules>
+
     <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers.SpacingRules">
         <Rule Id="SA1000"  Action="None" />    <!-- Keywords should be spaced correctly -->
         <Rule Id="SA1001"  Action="Warning" /> <!-- Commas should be spaced correctly -->
@@ -71,7 +72,7 @@
         <Rule Id="SA1132"  Action="Warning" /> <!-- Do not combine fields -->
         <Rule Id="SA1133"  Action="Warning" /> <!-- Do not combine attributes -->
         <Rule Id="SA1134"  Action="Warning" /> <!-- Attributes should not share line -->
-        <Rule Id="SA1135"  Action="Warning" /> <!-- Using directives should be qualified -->
+        <Rule Id="SA1135"  Action="None" />    <!-- Using directives should be qualified -->
         <Rule Id="SA1136"  Action="Warning" /> <!-- Enum values should be on separate lines -->
         <Rule Id="SA1137"  Action="Warning" /> <!-- Elements should have the same indentation -->
         <Rule Id="SA1139"  Action="Warning" /> <!-- Use literal suffix notation instead of casting -->
@@ -99,7 +100,7 @@
     </Rules>
 
     <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers.NamingRules">
-        <Rule Id="SA1300"  Action="Warning" /> <!-- Element should begin with upper-case letter -->
+        <Rule Id="SA1300"  Action="None" />    <!-- Element should begin with upper-case letter -->
         <Rule Id="SA1301"  Action="None" />    <!-- Element should begin with lower-case letter -->
         <Rule Id="SA1302"  Action="Warning" /> <!-- Interface names should begin with I -->
         <Rule Id="SA1303"  Action="Warning" /> <!-- Const field names should begin with upper-case letter -->
@@ -114,6 +115,7 @@
         <Rule Id="SA1312"  Action="Warning" /> <!-- Variable names should begin with lower-case letter -->
         <Rule Id="SA1313"  Action="Warning" /> <!-- Parameter names should begin with lower-case letter -->
         <Rule Id="SA1314"  Action="Warning" /> <!-- Type parameter names should begin with T -->
+        <Rule Id="SA1316"  Action="None" />    <!-- Tuple element names should use correct casing -->
         <Rule Id="SX1309"  Action="None" />    <!-- Field names should begin with underscore -->
         <Rule Id="SX1309S" Action="None" />    <!-- Static field names should begin with underscore -->
     </Rules>
@@ -122,7 +124,7 @@
         <Rule Id="SA1119"  Action="Warning" /> <!-- Statement should not use unnecessary parenthesis -->
         <Rule Id="SA1400"  Action="Warning" /> <!-- Access modifier should be declared -->
         <Rule Id="SA1401"  Action="None" />    <!-- Fields should be private -->
-        <Rule Id="SA1402"  Action="Warning" /> <!-- File may only contain a single type -->
+        <Rule Id="SA1402"  Action="None" />    <!-- File may only contain a single type -->
         <Rule Id="SA1403"  Action="Warning" /> <!-- File may only contain a single namespace -->
         <Rule Id="SA1404"  Action="Warning" /> <!-- Code analysis suppression should have justification -->
         <Rule Id="SA1405"  Action="Warning" /> <!-- Debug.Assert should provide message text -->
@@ -134,6 +136,7 @@
         <Rule Id="SA1411"  Action="Warning" /> <!-- Attribute constructor should not use unnecessary parenthesis -->
         <Rule Id="SA1412"  Action="None"    /> <!-- Store files as UTF-8 with byte order mark -->
         <Rule Id="SA1413"  Action="None" />    <!-- Use trailing comma in multi-line initializers -->
+        <Rule Id="SA1414"  Action="None" />    <!-- Tuple types in signature should have element names -->
     </Rules>
 	
     <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers.LayoutRules">
@@ -155,7 +158,7 @@
         <Rule Id="SA1515"  Action="Warning" /> <!-- Single-line comment should be preceded by blank line -->
         <Rule Id="SA1516"  Action="None" />    <!-- Elements should be separated by blank line -->
         <Rule Id="SA1517"  Action="Warning" /> <!-- Code should not contain blank lines at start of file -->
-        <Rule Id="SA1518"  Action="Warning" /> <!-- Use line endings correctly at end of file -->
+        <Rule Id="SA1518"  Action="None" />    <!-- Use line endings correctly at end of file -->
         <Rule Id="SA1519"  Action="Warning" /> <!-- Braces should not be omitted from multi-line child statement -->
         <Rule Id="SA1520"  Action="Warning" /> <!-- Use braces consistently -->
     </Rules>
@@ -210,7 +213,7 @@
         <Rule Id="SA1646"  Action="None" />    <!-- Included documentation XPath does not exist -->
         <Rule Id="SA1647"  Action="None" />    <!-- Include node does not contain valid file and path -->
         <Rule Id="SA1648"  Action="Warning" /> <!-- Inheritdoc should be used with inheriting class -->
-        <Rule Id="SA1649"  Action="Warning" /> <!-- File name should match first type name -->
+        <Rule Id="SA1649"  Action="None" />    <!-- File name should match first type name -->
         <Rule Id="SA1650"  Action="None" />    <!-- Element documentation should be spelled correctly -->
         <Rule Id="SA1651"  Action="Warning" /> <!-- Do not use placeholder elements -->
     </Rules>

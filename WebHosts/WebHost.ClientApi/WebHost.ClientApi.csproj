@@ -5,4 +5,17 @@
         <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Zones\Models\ZoneImages.cs" />
+      <Compile Remove="Zones\Models\RewardLoser.cs" />
+      <Compile Remove="Zones\Models\DifficultyLevels.cs" />
+      <Compile Remove="Zones\Models\CertRequirements.cs" />
+      <Compile Remove="Characters\Models\Warpaintpatterns.cs" />
+      <Compile Remove="Characters\Models\ItemLimits.cs" />
+      <Compile Remove="Characters\Models\GarageSlotPerks.cs" />
+      <Compile Remove="Characters\Models\Equippedslots.cs" />
+      <Compile Remove="Characters\Models\Decals.cs" />
+      <Compile Remove="Characters\Models\CharacterData.cs" />
+    </ItemGroup>
+
 </Project>

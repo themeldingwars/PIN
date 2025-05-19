@@ -7,5 +7,4 @@ public record class PerkCraftingModule
     public uint PointsCost { get; set; }
     public uint Id { get; set; }
     public byte PerkCrafting { get; set; }
-
 }

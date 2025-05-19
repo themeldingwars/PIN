@@ -60,7 +60,8 @@ public sealed class TurretEntity : BaseEntity
                     Role = AttachedToData.AttachmentRoleType.Turret,
                     Unk2 = Posture,
                     Unk3 = 0,
-                }, this);
+                },
+                                    this);
 
             ControllingPlayer = player;
             InitControllers();

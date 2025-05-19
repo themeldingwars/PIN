@@ -473,7 +473,7 @@ public class Channel
             var length = Math.Min(packetData.Length + headerLength, MaxPacketSize);
 
             var t = new Memory<byte>(new byte[length]);
-            packetData[.. (length - headerLength)].CopyTo(t[headerLength..]);
+            packetData[..(length - headerLength)].CopyTo(t[headerLength..]);
 
             if (IsSequenced)
             {
@@ -495,7 +495,7 @@ public class Channel
 
             _outgoingPackets.Enqueue(t);
 
-            packetData = packetData[(length - headerLength) ..];
+            packetData = packetData[(length - headerLength)..];
         }
 
         return true;

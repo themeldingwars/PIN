@@ -7,5 +7,4 @@ public record class TimeCooldownCommandDef : ICommandDef
     public byte CheckCategory { get; set; }
     public byte CheckGlobal { get; set; }
     public byte CheckLocal { get; set; }
-    
 }

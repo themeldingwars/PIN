@@ -44,14 +44,6 @@ public enum AttachmentRole : byte
     Turret = 4
 }
 
-public class SeatConfig
-{
-    public IEntity Occupant;
-    public AttachmentRole Role;
-    public byte Posture;
-    public byte TurretIndex;
-}
-
 public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public VehicleEntity(IShard shard, ulong eid, CharacterEntity owner = null)
@@ -512,7 +504,8 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
                                     Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
                                     Unk2 = seatConfig.Posture,
                                     Unk3 = 1, // mostly 1 in replays
-                                }, this);
+                                },
+                                this);
 
         if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Driver)
         {
@@ -573,7 +566,8 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
                                     Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
                                     Unk2 = seatConfig.Posture,
                                     Unk3 = 1, // mostly 1 in replays
-                                }, this);
+                                },
+                                this);
 
         if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Driver)
         {
@@ -767,4 +761,12 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             Vehicle_BaseController.SnapMountProp = 0;
         }
     }
+}
+
+public class SeatConfig
+{
+    public IEntity Occupant;
+    public AttachmentRole Role;
+    public byte Posture;
+    public byte TurretIndex;
 }

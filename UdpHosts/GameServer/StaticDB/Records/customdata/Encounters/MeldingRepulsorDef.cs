@@ -16,5 +16,5 @@ public record MeldingRepulsorDef : IEncounterDef
 public record MeldingPosition
 {
     public uint ControlPointIndex { get; set; }
-    public Vector3 Position;
+    public Vector3 Position { get; set; }
 }

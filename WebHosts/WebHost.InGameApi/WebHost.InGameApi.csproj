@@ -5,4 +5,13 @@
         <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Controllers\Item.cs" />
+      <Compile Remove="Controllers\Equipped.cs" />
+      <Compile Remove="Controllers\Data.cs" />
+      <Compile Remove="Controllers\Constraints.cs" />
+      <Compile Remove="Controllers\CharacterSheet.cs" />
+      <Compile Remove="Controllers\Battleframe.cs" />
+    </ItemGroup>
+
 </Project>

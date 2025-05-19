@@ -38,7 +38,8 @@ public class DebugAttachedToServerCommand : ServerCommand
             Role = prevData.Role,
             Unk2 = value1,
             Unk3 = value2,
-        }, character.AttachedToEntity);
+        },
+                                character.AttachedToEntity);
         SourceFeedback($"Setting Unk2 = {value1}, Unk3 = {value2} (Role {prevData.Role})", context);
     }
 }
