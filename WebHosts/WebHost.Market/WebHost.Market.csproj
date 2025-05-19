@@ -1,7 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\PIN.targets" />
-
     <ItemGroup>
         <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />
         <ProjectReference Include="..\..\Lib\Shared.Web\Shared.Web.csproj" />

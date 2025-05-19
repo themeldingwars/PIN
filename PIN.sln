@@ -51,9 +51,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 		PIN.sln.DotSettings = PIN.sln.DotSettings
 		README.md = README.md
 		Start.cmd = Start.cmd
-		PIN.targets = PIN.targets
 		stylecop.ruleset = stylecop.ruleset
 		.gitmodules = .gitmodules
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AeroMessages", "Lib\AeroMessages\AeroMessages\AeroMessages.csproj", "{A2AF6A0E-BF9C-4CE1-A433-236BDD4043FE}"

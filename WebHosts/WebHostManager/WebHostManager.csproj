@@ -4,8 +4,6 @@
         <OutputType>Exe</OutputType>
     </PropertyGroup>
 
-    <Import Project="..\..\PIN.targets" />
-
     <ItemGroup>
         <None Remove="cert.pfx" />
         <None Remove="config\appsettings.Development.json" />

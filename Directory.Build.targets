@@ -1,0 +1,13 @@
+<Project>
+    <ItemGroup>
+        <PackageReference Include="StyleCop.Analyzers"
+                          Version="1.1.118"
+                          Condition="'$(MSBuildProjectName)' != 'AeroMessages' And
+                                    '$(MSBuildProjectName)' != 'BepuPhysics' And
+                                    '$(MSBuildProjectName)' != 'BepuUtilities' And
+                                    '$(MSBuildProjectName)' != 'Bitter'">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+</Project>

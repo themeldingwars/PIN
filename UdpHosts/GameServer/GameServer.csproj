@@ -3,7 +3,6 @@
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <Import Project="..\..\PIN.targets" />
   <ItemGroup>
     <PackageReference Include="Aero.Gen" Version="1.3.0" />
     <PackageReference Include="Autofac" Version="8.0.0" />

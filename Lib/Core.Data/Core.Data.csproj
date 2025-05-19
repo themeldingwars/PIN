@@ -1,7 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="..\..\PIN.targets"/>
-
     <ItemGroup>
         <PackageReference Include="System.Data.Common" Version="4.3.0"/>
     </ItemGroup>
