@@ -57,6 +57,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         InitFields();
         InitViews();
         InitControllers();
+      /*  InitCommand(); */
     }
 
     public BaseController Vehicle_BaseController { get; set; }
@@ -64,7 +65,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public ObserverView Vehicle_ObserverView { get; set; }
     public CombatView Vehicle_CombatView { get; set; }
     public MovementView Vehicle_MovementView { get; set; }
-
+    public ReceiveCollisionDamage Vehicle_ReceiveCollisionDamage { get; set; } = new ReceiveCollisionDamage();
     public INetworkPlayer ControllingPlayer { get; set; }
     public bool IsPlayerControlled => ControllingPlayer != null;
     public INetworkPlayer OwningPlayer { get; set; }
@@ -123,6 +124,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         { 8, 0 },
     };
 
+  //  public EntityId WhoDid { get; set; }
     public SpawnPoseData SpawnPose { get; set; }
     public Vector3 SpawnVelocity { get; set; } = Vector3.Zero;
     public CurrentPoseData CurrentPose { get; set; }
@@ -141,7 +143,9 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public byte EffectsFlags { get; set; }
     public byte SinFlags { get; set; }
     public byte SinFlagsPrivate { get; set; }
+ //   public byte Impact { get; set; }
 
+ //   public ushort ImpactTime { get; set; } 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
     public ushort StatusEffectsChangeTime_2 { get; set; }
@@ -345,6 +349,22 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             Vehicle_BaseController.SpawnVelocityProp = SpawnVelocity;
         }
     }
+
+  /*  public void ReceiveCollisionDamage(ushort newShortTime, byte newHaveEntity, EntityId collidedWithEntity)
+    {
+        ImpactTime = newShortTime;
+        Impact = newHaveEntity;
+        WhoDid = collidedWithEntity;
+        Vehicle_ReceiveCollisionDamage.ShortTime = newShortTime;
+        Vehicle_ReceiveCollisionDamage.HaveEntity = newHaveEntity;
+        Vehicle_ReceiveCollisionDamage.CollidedWithEntity = collidedWithEntity;
+        if (Vehicle_ReceiveCollisionDamage != null)
+        {
+            Vehicle_ReceiveCollisionDamage.ShortTime = ImpactTime;
+            Vehicle_ReceiveCollisionDamage.HaveEntity = Impact;
+            Vehicle_ReceiveCollisionDamage.CollidedWithEntity = collidedWithEntity;
+        }
+    } */
 
     public void SetWaterLevelAndDesc(byte newValue)
     {
@@ -593,6 +613,16 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         ScopeBubble = new ScopeBubbleInfoData { Layer = 0, Unk2 = 0 };
     }
 
+  /*  private void InitCommand()
+    {
+        Vehicle_ReceiveCollisionDamage = new ReceiveCollisionDamage()
+        {
+            ShortTime = 0,
+            HaveEntity = 0,
+            CollidedWithEntity = new EntityId { Backing = 0 }
+        };
+    } */
+
     private void InitControllers()
     {
         Vehicle_BaseController = new BaseController()
@@ -696,6 +726,9 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             SinFlagsProp = SinFlags,
             SinFactionsAcquiredByProp = null,
             SinTeamsAcquiredByProp = null,
+          /*  ImpactProp = Impact,
+            ImpactTimeProp = ImpactTime,
+            ColliededWithEntityProp = WhoDid, */
             WaterLevelAndDescProp = WaterLevelAndDesc,
             EffectsFlagsProp = EffectsFlags,
             SinCardTypeProp = 0,

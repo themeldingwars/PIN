@@ -1217,7 +1217,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             AttributeCategories2 = Array.Empty<StatsData>()
         };
 
-        EnergyParams = new EnergyParamsData { Max = 1000.0f, Delay = 500, Recharge = 156.0f, Time = Shard.CurrentTime };
+        EnergyParams = new EnergyParamsData { Max = 10000.0f, Delay = 500, Recharge = 1560.0f, Time = Shard.CurrentTime };
         ScopeBubble = new ScopeBubbleInfoData { Layer = 0, Unk2 = 0 };
         SpawnPose = new CharacterSpawnPose
         {
@@ -1376,11 +1376,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         Character_CombatController = new CombatController
         {
-            RunSpeedMultProp = new StatMultiplierData { Value = 1.0f, Time = Shard.CurrentTime },
-            FwdRunSpeedMultProp = new StatMultiplierData { Value = 1.0f, Time = Shard.CurrentTime },
-            JumpHeightMultProp = new StatMultiplierData { Value = 1.0f, Time = Shard.CurrentTime },
+            RunSpeedMultProp = new StatMultiplierData { Value = 3.0f, Time = Shard.CurrentTime },
+            FwdRunSpeedMultProp = new StatMultiplierData { Value = 2.0f, Time = Shard.CurrentTime },
+            JumpHeightMultProp = new StatMultiplierData { Value = 5.0f, Time = Shard.CurrentTime },
             AirControlMultProp = new StatMultiplierData { Value = 1.0f, Time = Shard.CurrentTime },
-            ThrustStrengthMultProp = new StatMultiplierData { Value = 1.0f, Time = Shard.CurrentTime },
+            ThrustStrengthMultProp = new StatMultiplierData { Value = 5.0f, Time = Shard.CurrentTime },
             ThrustAirControlProp = new StatMultiplierData { Value = 1.0f, Time = Shard.CurrentTime },
             FrictionProp = new StatMultiplierData { Value = 1.0f, Time = Shard.CurrentTime },
             AmmoConsumptionProp = new StatMultiplierData { Value = 1.0f, Time = Shard.CurrentTime },

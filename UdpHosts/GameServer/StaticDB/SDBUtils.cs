@@ -611,6 +611,7 @@ public class VehicleInfoResult
     public uint DeathAbility;
     public float MaxHitPoints;
     public uint DamageResponse;
+    public List<DamageComponentDef> ReceiveCollisionDamage;
     public uint StatusFxId;
     public List<TurretComponentDef> Turrets;
     public List<DeployableComponentDef> Deployables;
