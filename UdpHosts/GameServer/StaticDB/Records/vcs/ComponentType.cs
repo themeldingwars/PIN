@@ -19,7 +19,7 @@ public enum ComponentType : uint
     WheelBase = 2550758801,
     Transmission = 3101116909,
     Suspension = 2505221195,
-    Engine  = 868401361,
+    Engine = 868401361,
     Steering = 4196128104,
     Braking = 3431260985,
     Aerodynamics = 1921341588,
@@ -35,4 +35,12 @@ public enum ComponentType : uint
     SimpleShieldGenerator = 22217899,
     DropPod = 1851570801,
     Cloak = 3678315516,
+
+    // Legacy/unused
+    WeaponComponent = 3923916805,
+    CargoComponent = 4234923691,
+    PerformanceUpgrade = 573822788,
+    TrainComponent = 1437834493,
+    ShieldGenerator = 2972726573,
+    Hover = 1929412160
 }
