@@ -7,7 +7,7 @@ using Shared.Udp;
 
 namespace GameServer;
 
-public enum Status
+public enum ClientStatus
 {
     Unknown = 0,
     Connecting = 1,

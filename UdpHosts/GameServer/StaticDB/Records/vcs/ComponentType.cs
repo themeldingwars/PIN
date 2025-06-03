@@ -37,10 +37,11 @@ public enum ComponentType : uint
     Cloak = 3678315516,
 
     // Legacy/unused
-    WeaponComponent = 3923916805,
-    CargoComponent = 4234923691,
+    Weapon = 3923916805,
+    Cargo = 4234923691,
     PerformanceUpgrade = 573822788,
-    TrainComponent = 1437834493,
+    Train = 1437834493,
     ShieldGenerator = 2972726573,
-    Hover = 1929412160
+    Hover = 1929412160,
+    Helicopter = 315685520,
 }
