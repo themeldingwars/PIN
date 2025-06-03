@@ -31,6 +31,20 @@ public class BaseController : Base
         }
     }
 
+    [MessageID((byte)Commands.ReceiveCollisionDamage)]
+    public void ReceiveCollisionDamage(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var query = packet.Unpack<ReceiveCollisionDamage>();
+        client.AssignedShard.Entities.TryGetValue(entityId & 0xffffffffffffff00, out IEntity entity);
+        if (entity == null)
+        {
+            return;
+        }
+
+        var vehicle = entity as Entities.Vehicle.VehicleEntity;
+        vehicle.ReceiveCollisionDamage(query.ShortTime, query.HaveEntity, query.CollidedWithEntity);
+    }
+
     [MessageID((byte)Commands.SetWaterLevelAndDesc)]
     public void SetWaterLevelAndDesc(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
