@@ -3,19 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
-using System.Timers;
 using Aero.Gen;
-using AeroMessages.Common;
 using AeroMessages.GSS.V66.Character;
-using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
-using AeroMessages.GSS.V66.Character.View;
 using AeroMessages.GSS.V66.Melding.View;
-using FauFau.Util;
-using GameServer.Aptitude;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Data.SDB.Records.customdata;
@@ -30,7 +22,6 @@ using GameServer.Entities.Outpost;
 using GameServer.Entities.Thumper;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
-using GameServer.Enums.GSS;
 using GameServer.Extensions;
 using Timer = System.Threading.Timer;
 
@@ -308,13 +299,13 @@ public class EntityManager
             var melding = entry.Value;
             SpawnMelding(melding.PerimiterSetName, new ActiveDataStruct()
             {
-                Unk1 = melding.Unk1,
+                TimestampMicro = melding.Unk1,
                 Unk2 = melding.Unk2,
                 Unk3 = melding.Unk3,
-                ControlPoints_1 = melding.ControlPoints,
-                Offsets_1 = melding.Offsets,
-                ControlPoints_2 = melding.ControlPoints,
-                Offsets_2 = melding.Offsets,
+                FromPoints = melding.ControlPoints,
+                FromTangents = melding.Offsets,
+                ToPoints = melding.ControlPoints,
+                ToTangets = melding.Offsets,
             });
         }
 

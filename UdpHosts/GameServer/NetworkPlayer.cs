@@ -84,7 +84,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         // Use remote data or fallback to setup character
         bool useRemoteData = true;
-        uint loadoutId;
+        int loadoutId;
         if (remoteData != null && useRemoteData)
         {
             CharacterEntity.LoadRemote(remoteData);
@@ -309,15 +309,15 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         {
             InstanceId = AssignedShard.InstanceId,
             ZoneId = CurrentZone.ID,
-            ZoneTimestamp = CurrentZone.Timestamp,
-            PreviewModeFlag = 0,
+            ZoneTimestamp = (long)CurrentZone.Timestamp,
+            ZoneFlags = 0,
             ZoneOwner = "r5_exec",
             StreamingProtocol = 0x4c5f,
-            Unk1_2 = 0x0c9f5,
+            SvnRevision = 0x0c9f5,
             HotfixLevel = 0,
             MatchId = 0,
             Unk2 = 0,
-            Unk3_Millis = 0x63e2db5e,
+            SimulationSeedMs = 0x63e2db5e,
             ZoneName = CurrentZone.Name,
             HaveDevZoneInfo = 0,
             ZoneTimeSyncInfo = new ZoneTimeSyncData { FictionDateTimeOffsetMicros = 0, DayLengthFactor = 12.0F, DayPhaseOffset = 0.896445870399F },

@@ -64,10 +64,10 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
         _controlPointIndex = repulsorDef.MeldingPosition.ControlPointIndex;
 
         _startPosition = repulsorDef.MeldingPosition.Position;
-        _endPosition = adp.ControlPoints_1[_controlPointIndex];
+        _endPosition = adp.FromPoints[_controlPointIndex];
 
-        adp.ControlPoints_1[_controlPointIndex] = _startPosition;
-        adp.ControlPoints_2[_controlPointIndex] = _startPosition;
+        adp.FromPoints[_controlPointIndex] = _startPosition;
+        adp.ToPoints[_controlPointIndex] = _startPosition;
         _melding.SetActiveData(adp);
     }
 
@@ -176,8 +176,8 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
 
         var activeData = _melding.Melding_ObserverView.ActiveDataProp;
 
-        activeData.ControlPoints_1[_controlPointIndex] = newPosition;
-        activeData.ControlPoints_2[_controlPointIndex] = newPosition;
+        activeData.FromPoints[_controlPointIndex] = newPosition;
+        activeData.ToPoints[_controlPointIndex] = newPosition;
 
         _melding.SetActiveData(activeData);
 

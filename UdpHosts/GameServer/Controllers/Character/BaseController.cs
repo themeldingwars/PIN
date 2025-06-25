@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
-using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
-using AeroMessages.GSS.V66.Character.View;
 using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
-using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS.Character;
@@ -485,7 +480,7 @@ public class BaseController : Base
                        {
                            ConfigId = 1,
                            SlotIdx = request.SlotIdx2,
-                           LoadoutId = (int)request.LoadoutId,
+                           LoadoutId = request.LoadoutId,
                            Result = 1,
                        };
         

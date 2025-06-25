@@ -2,7 +2,7 @@ namespace GameServer;
 
 public class PlayerPreferences
 {
-    public byte DebugWeapon { get; set; }
-    public byte DebugEvent { get; set; }
-    public byte DebugLag { get; set; }
+    public int DebugWeapon { get; set; }
+    public int DebugEvent { get; set; }
+    public int DebugLag { get; set; }
 }

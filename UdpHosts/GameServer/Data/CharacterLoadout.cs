@@ -144,7 +144,7 @@ public class CharacterLoadout
         InitFromLoadoutReferenceData(refData);
     }
 
-    public uint LoadoutID { get; set; }
+    public int LoadoutID { get; set; }
     public uint VehicleID { get; set; }
     public uint GliderID { get; set; }
     public uint ChassisID { get; set; }

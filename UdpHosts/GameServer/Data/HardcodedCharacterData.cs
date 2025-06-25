@@ -12,11 +12,11 @@ public static class HardcodedCharacterData
 {
     public static string ArmyTag = "ARMY";
     public static ulong ArmyGUID = 1u;
-    public static uint SelectedLoadout = 184538131;
+    public static int SelectedLoadout = 184538131;
     public static byte Level = 45;
     public static byte EffectiveLevel = 45;
-    public static uint MaxHealth = 19192;
-    public static uint GeneratedLoadoutCounter = 20001;
+    public static int MaxHealth = 19192;
+    public static int GeneratedLoadoutCounter = 20001;
     public static HashSet<uint> HostileFactionIds = new() { 2, 3, 5, 6, 7, 8, 17, 22, 42, 43, 45, 46, 47, 48 };
 
     public static BasicCharacterData FallbackData = new BasicCharacterData()
@@ -959,7 +959,7 @@ public class BasicCharacterInfo
     public string ArmyTag { get; set; }
     public ulong ArmyGuid { get; set; }
     public bool ArmyIsOfficer { get; set; }
-    public uint TimePlayed { get; set; }
+    public int TimePlayed { get; set; }
 }
 
 public class BasicCharacterVisuals
@@ -986,7 +986,7 @@ public class BasicCharacterData
 
 public class LoadoutReferenceData
 {
-    public uint LoadoutId;
+    public int LoadoutId;
     public uint ChassisId;
     public Dictionary<LoadoutSlotType, uint> SlottedItemsPvE = new Dictionary<LoadoutSlotType, uint>();
     public Dictionary<LoadoutSlotType, uint> SlottedItemsPvP = new Dictionary<LoadoutSlotType, uint>();

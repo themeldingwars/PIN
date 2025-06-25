@@ -33,7 +33,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Character };
-        
+
         CurrentStatModifiers = new Dictionary<StatModifierIdentifier, Dictionary<uint, ActiveStatModifier>>();
         foreach(StatModifierIdentifier stat in Enum.GetValues(typeof(StatModifierIdentifier)))
         {
@@ -109,9 +109,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public StaticInfoData StaticInfo { get; set; }
     public ulong ArmyGUID { get; set; }
-    public byte ArmyIsOfficer { get; set; }
+    public sbyte ArmyIsOfficer { get; set; }
     public CharacterStateData CharacterState { get; set; }
-    public uint TimePlayed { get; set; }
+    public int TimePlayed { get; set; }
     public HostilityInfoData HostilityInfo { get; set; }
     public MaxVital MaxShields { get; set; }
     public MaxVital MaxHealth { get; set; }
@@ -134,7 +134,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public AuthorizedTerminalData AuthorizedTerminal { get; set; } = new AuthorizedTerminalData { TerminalType = 0, TerminalId = 0, TerminalEntityId = 0 };
     public AttachedToData? AttachedTo { get; set; } = null;
     public IEntity AttachedToEntity { get; set; } = null;
-    public uint SelectedLoadout { get; set; }
+    public int SelectedLoadout { get; set; }
     public List<DeployableEntity> OwnedDeployables { get; set; } = new List<DeployableEntity>();
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
@@ -342,7 +342,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 ArmyGuid = remoteData.CharacterInfo.ArmyGuid,
                 ArmyTag = remoteData.CharacterInfo.ArmyTag,
                 ArmyIsOfficer = remoteData.CharacterInfo.ArmyIsOfficer,
-                TimePlayed = remoteData.CharacterInfo.TimePlayed,
+                TimePlayed = (int)remoteData.CharacterInfo.TimePlayed,
             },
             CharacterVisuals = new Data.BasicCharacterVisuals()
             {
@@ -415,7 +415,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         SetTimePlayed(info.TimePlayed);
         SetArmyGUID(info.ArmyGuid);
-        SetArmyIsOfficer((byte)(info.ArmyIsOfficer ? 1 : 0));
+        SetArmyIsOfficer((sbyte)(info.ArmyIsOfficer ? 1 : 0));
     }
 
     public void ApplyLoadout(CharacterLoadout loadout)
@@ -670,7 +670,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
-    public void SetTimePlayed(uint value)
+    public void SetTimePlayed(int value)
     {
         TimePlayed = value;
         if (Character_BaseController != null)
@@ -689,7 +689,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
-    public void SetArmyIsOfficer(byte value)
+    public void SetArmyIsOfficer(sbyte value)
     {
         ArmyIsOfficer = value;
         if (Character_BaseController != null)
@@ -926,8 +926,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Console.WriteLine($"Character.SetStatusEffect Index {index}, Time {time}, Id {data.Id}");
 
         // Member
-        this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
-        this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
+        GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+        GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
         
         // CombatController
         if (Character_CombatController != null)
@@ -946,8 +946,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}");
 
         // Member
-        this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
-        this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
+        GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+        GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
         
         // CombatController
         if (Character_CombatController != null)
@@ -993,8 +993,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}");
 
             // Member
-            this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
-            this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
+            GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+            GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
             
             // CombatController
             if (Character_CombatController != null)
@@ -1068,7 +1068,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         ApplyLoadout(CurrentLoadout);
     }
     
-    public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)
+    public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)
     {
         Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
         Player.CharacterEntity.CurrentLoadout.GliderID = sdb_id;
@@ -1536,8 +1536,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         for (int i = 0; i < 32; i++)
         {
-            var sourceTime = this.GetType().GetProperty($"StatusEffectsChangeTime_{i}").GetValue(this);
-            var sourceData = this.GetType().GetProperty($"StatusEffects_{i}").GetValue(this);
+            var sourceTime = GetType().GetProperty($"StatusEffectsChangeTime_{i}").GetValue(this);
+            var sourceData = GetType().GetProperty($"StatusEffects_{i}").GetValue(this);
 
             Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{i}Prop").SetValue(Character_CombatView, sourceTime, null);
             Character_CombatView.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatView, sourceData, null);

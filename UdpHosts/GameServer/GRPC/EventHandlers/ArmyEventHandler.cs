@@ -51,7 +51,7 @@ public static class ArmyEventHandler
         playerEntity.SetStaticInfo(staticInfo);
 
         playerEntity.Character_BaseController.ArmyGUIDProp = e.ArmyGuid;
-        playerEntity.Character_BaseController.ArmyIsOfficerProp = (byte)(e.IsOfficer ? 1 : 0);
+        playerEntity.Character_BaseController.ArmyIsOfficerProp = (sbyte)(e.IsOfficer ? 1 : 0);
     }
 
     public static void HandleEvent(ArmyInfoUpdated e, IDictionary<uint, INetworkPlayer> clients)

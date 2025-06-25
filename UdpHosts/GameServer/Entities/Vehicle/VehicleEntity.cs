@@ -87,7 +87,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public byte[] Flags { get; set; } = { 0x00, 0x04, 0x00, 0x00 };
     public byte EngineState { get; set; } = 2; // TEMP
     public byte PathState { get; set; } = 1;
-    public Dictionary<byte, SeatConfig> Occupants { get; set; } = new Dictionary<byte, SeatConfig>()
+    public Dictionary<sbyte, SeatConfig> Occupants { get; set; } = new Dictionary<sbyte, SeatConfig>()
     {
         { 0, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
         { 1, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
@@ -220,7 +220,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         CurrentHealth = (uint)vehicleInfo.MaxHitPoints;
         MaxHealth = (uint)vehicleInfo.MaxHitPoints;
 
-        byte emptySeatIdx = 0;
+        sbyte emptySeatIdx = 0;
 
         // Create seat configuration
         if (vehicleInfo.HasDriverSeat)
@@ -536,7 +536,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         }
     }
 
-    public void ChangeOccupantSeat(CharacterEntity character, byte requestedSeatIndex)
+    public void ChangeOccupantSeat(CharacterEntity character, sbyte requestedSeatIndex)
     {
         var seatExists = Occupants.TryGetValue(requestedSeatIndex, out var seatConfig);
         if (!seatExists

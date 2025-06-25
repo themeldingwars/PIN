@@ -16,7 +16,7 @@ public class CharacterInventory
 
     private Dictionary<ulong, Item> _items; // By guid
     private Dictionary<uint, Resource> _resources; // By typeid
-    private Dictionary<uint, Loadout> _loadouts; // By loadoutid
+    private Dictionary<int, Loadout> _loadouts; // By loadoutid
 
     private IShard _shard;
     private INetworkClient _player;
@@ -55,7 +55,7 @@ public class CharacterInventory
         }
     }
 
-    public uint GetLoadoutIdForChassis(uint chassisId)
+    public int GetLoadoutIdForChassis(uint chassisId)
     {
         foreach (var (loadoutId, loadout) in _loadouts)
         {
@@ -73,7 +73,7 @@ public class CharacterInventory
     /// </summary>
     /// <param name="loadoutId">The id of the loadout to get</param>
     /// <returns>The loadout data as LoadoutReferenceData or null if the loadoutId was invalid</returns>
-    public LoadoutReferenceData GetLoadoutReferenceData(uint loadoutId)
+    public LoadoutReferenceData GetLoadoutReferenceData(int loadoutId)
     {
         if (!_loadouts.ContainsKey(loadoutId))
         {
@@ -189,7 +189,7 @@ public class CharacterInventory
 
     public void AddLoadout(Loadout loadout)
     {
-        _loadouts.Add(loadout.FrameLoadoutId, loadout);
+        _loadouts.Add((int)loadout.FrameLoadoutId, loadout);
     }
 
     public void SendFullInventory()
@@ -361,10 +361,10 @@ public class CharacterInventory
         ulong changedNewItemGUID = guid;
         
         // Unequip old Item (if any)
-        if (_loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Any((e) => e.SlotIndex == (byte)slot))
+        if (_loadouts[loadoutId].LoadoutConfigs[0].Items.Any((e) => e.SlotIndex == (byte)slot))
         {
             // Set Item to unequipped
-            var oldItemGUID = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.First((e) => e.SlotIndex == (byte)slot).ItemGUID;
+            var oldItemGUID = _loadouts[loadoutId].LoadoutConfigs[0].Items.First((e) => e.SlotIndex == (byte)slot).ItemGUID;
             changedOldItemGUID = oldItemGUID;
             var oldItem = _items[oldItemGUID];
             oldItem.DynamicFlags = (byte)(oldItem.DynamicFlags ^ (byte)ItemDynamicFlags.IsEquipped);
@@ -374,7 +374,7 @@ public class CharacterInventory
             _character.CurrentLoadout.SlottedItems[slot] = 0;
             
             // Update LoadoutConfigs
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items
+            _loadouts[loadoutId].LoadoutConfigs[0].Items = _loadouts[loadoutId].LoadoutConfigs[0].Items
                 .Where(e => e.SlotIndex != (byte)slot).ToArray();
         }
         
@@ -390,7 +390,7 @@ public class CharacterInventory
             _character.CurrentLoadout.SlottedItems[slot] = item.SdbId;
 
             // Update LoadoutConfig
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Items.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
+            _loadouts[loadoutId].LoadoutConfigs[0].Items = _loadouts[loadoutId].LoadoutConfigs[0].Items.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
         }
         
         // Update StaticInfo when visuals are changed
@@ -408,7 +408,7 @@ public class CharacterInventory
         SendEquipmentChanges(changedOldItemGUID, changedNewItemGUID);
     }
     
-    public void EquipVisualBySdbId(uint loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
+    public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
     {
         // Unequip old item (if any)
         if (_loadouts[loadoutId].LoadoutConfigs[0].Visuals.Any(i => i.VisualType == visual))
@@ -422,12 +422,12 @@ public class CharacterInventory
         if (sdb_id != 0)
         {
             // Update Visuals
-            _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals = _loadouts[(uint)loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = Array.Empty<float>() }).ToArray();
+            _loadouts[loadoutId].LoadoutConfigs[0].Visuals = _loadouts[loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = Array.Empty<float>() }).ToArray();
             var item = _items.First(e => e.Value.SdbId == sdb_id).Value;
         }
 
         var equippedGUID = (sdb_id != 0) ? _items.First(e => e.Value.SdbId == sdb_id).Value.GUID : 0;
-        EquipItemByGUID((int)loadoutId, slot, equippedGUID);
+        EquipItemByGUID(loadoutId, slot, equippedGUID);
     }
     
     private byte GetInventoryTypeByItemTypeId(uint sdbId)

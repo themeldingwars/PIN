@@ -34,13 +34,13 @@ public sealed class MeldingEntity : BaseEntity
     {
         ActiveData = new ActiveDataStruct()
         {
-            Unk1 = 0,
+            TimestampMicro = 0,
             Unk2 = 0,
             Unk3 = 0,
-            ControlPoints_1 = Array.Empty<Vector3>(),
-            Offsets_1 = Array.Empty<Vector3>(),
-            ControlPoints_2 = Array.Empty<Vector3>(),
-            Offsets_2 = Array.Empty<Vector3>(),
+            FromPoints = Array.Empty<Vector3>(),
+            FromTangents = Array.Empty<Vector3>(),
+            ToPoints = Array.Empty<Vector3>(),
+            ToTangets = Array.Empty<Vector3>(),
         };
         ScopeBubbleInfo = new ScopeBubbleInfoData()
         {

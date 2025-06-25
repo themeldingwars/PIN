@@ -75,7 +75,7 @@ public class CombatController : Base
         var query = packet.Unpack<UseScope>();
         player.CharacterEntity.SetFireMode(1, new FireModeData
         {
-           Mode = query.InScope,
+           Mode = (byte)query.InScope,
            Time = query.Time,
         });
     }
