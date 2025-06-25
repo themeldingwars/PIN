@@ -9,7 +9,7 @@
                               '$(MSBuildProjectName)' != 'Bitter'">
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <AnalysisLevel>latest</AnalysisLevel>
-        <CodeAnalysisRuleSet>$(SolutionDir)/stylecop.ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/stylecop.ruleset</CodeAnalysisRuleSet>
     </PropertyGroup>
     <PropertyGroup>
         <Version>1.2.0</Version>
