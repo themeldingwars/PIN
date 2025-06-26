@@ -3,6 +3,7 @@ using System.Configuration;
 using Autofac;
 using Serilog;
 using Shared.Common;
+using Shared.Udp;
 using SDB = FauFau.Formats.StaticDB;
 
 namespace GameServer;
@@ -21,7 +22,9 @@ public class GameServerModule : Module
     {
         builder.RegisterType<GameServerSettings>().SingleInstance();
         builder.RegisterType<SDB>().SingleInstance();
-        builder.RegisterType<GameServer>();
+        builder.RegisterType<GameServer>().AsSelf().As<IPacketSender>().SingleInstance();
+        builder.RegisterType<ShardFactory>().As<IShardFactory>().SingleInstance();
+        builder.RegisterType<Shard>().SingleInstance();
     }
 
     private static void RegisterInstances(ContainerBuilder builder)
@@ -103,7 +106,6 @@ public class GameServerModule : Module
         builder.Register(ctx =>
         {
             var settings = ctx.Resolve<GameServerSettings>();
-            
             Console.WriteLine($"Opening SDB from {settings.StaticDBPath}");
             var sdb = new SDB();
             sdb.Read(settings.StaticDBPath);

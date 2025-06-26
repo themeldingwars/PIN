@@ -17,7 +17,6 @@ namespace GameServer;
 
 internal class GameServer : PacketServer
 {
-    private const double GameTickRate = 1.0 / 60.0;
     private const int MinPlayersPerShard = 16;
     private const int MaxPlayersPerShard = 64;
 
@@ -25,13 +24,15 @@ internal class GameServer : PacketServer
     private readonly ConcurrentDictionary<ulong, IShard> _shards;
 
     private readonly ulong _serverId;
-    private GameServerSettings  _settings;
+    private readonly GameServerSettings _settings;
+    private readonly IShardFactory _shardFactory;
 
     private byte _nextShardId;
 
     public GameServer(GameServerSettings serverSettings,
                       ILogger logger,
-                      SDB sdb)
+                      SDB sdb,
+                      IShardFactory shardFactory)
         : base(serverSettings.Port, logger)
     {
         _clientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
@@ -41,6 +42,7 @@ internal class GameServer : PacketServer
         _serverId = GenerateServerId();
 
         _settings = serverSettings;
+        _shardFactory = shardFactory;
 
         Logger.Information("Reading from SDB");
         SDBInterface.Init(sdb);
@@ -126,7 +128,7 @@ internal class GameServer : PacketServer
     private IShard NewShard(CancellationToken ct)
     {
         var id = _serverId | (uint)(_nextShardId++ << 8) | (byte)Enums.GSS.Controllers.GenericShard;
-        var shard = _shards.AddOrUpdate(id, new Shard(GameTickRate, id, _settings, this, Logger), (_, old) => old);
+        var shard = _shards.AddOrUpdate(id, _shardFactory.Create(id), (_, old) => old);
 
         shard.Run(ct);
 

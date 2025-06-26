@@ -25,7 +25,7 @@ public class Shard : IShard
     private double _lastNetTick;
     private ushort _lastEntityRefId;
 
-    public Shard(double gameTickRate, ulong instanceId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
+    public Shard(ulong instanceId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
     {
         _lastEntityRefId = 0;
         InstanceId = instanceId;
