@@ -5,18 +5,21 @@ using System.Reflection;
 using System.Text;
 using GameServer.Admin;
 using GameServer.Entities;
+using Serilog;
 
 namespace GameServer;
 
 public class AdminService
 {
+    private readonly IShard _shard;
+    private readonly ILogger _logger;
     private readonly Dictionary<string, Type> _commandDictionary;
     private Dictionary<INetworkPlayer, IEntity> _targetDictionary;
-    private Shard _shard;
 
-    public AdminService(Shard shard)
+    public AdminService(IShard shard, ILogger logger)
     {
         _shard = shard;
+        _logger = logger;
         _commandDictionary = new Dictionary<string, Type>();
         _targetDictionary = new Dictionary<INetworkPlayer, IEntity>();
 

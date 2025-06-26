@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Configuration;
 using Autofac;
+using GameServer.Aptitude;
+using GameServer.Physics;
+using GameServer.Systems.Chat;
+using GameServer.Systems.Encounters;
 using Serilog;
 using Shared.Common;
 using Shared.Udp;
@@ -25,6 +29,15 @@ public class GameServerModule : Module
         builder.RegisterType<GameServer>().AsSelf().As<IPacketSender>().SingleInstance();
         builder.RegisterType<ShardFactory>().As<IShardFactory>().SingleInstance();
         builder.RegisterType<Shard>().SingleInstance();
+        builder.RegisterType<PhysicsEngine>();
+        builder.RegisterType<MovementRelay>();
+        builder.RegisterType<AbilitySystem>();
+        builder.RegisterType<EntityManager>();
+        builder.RegisterType<EncounterManager>();
+        builder.RegisterType<WeaponSim>();
+        builder.RegisterType<ProjectileSim>();
+        builder.RegisterType<ChatService>();
+        builder.RegisterType<AdminService>();
     }
 
     private static void RegisterInstances(ContainerBuilder builder)

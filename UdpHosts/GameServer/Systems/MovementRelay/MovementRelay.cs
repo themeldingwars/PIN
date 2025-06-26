@@ -1,16 +1,19 @@
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Entities;
+using Serilog;
 
 namespace GameServer;
 
 public class MovementRelay
 {
-    private Shard Shard;
+    private readonly IShard _shard;
+    private readonly ILogger _logger;
 
-    public MovementRelay(Shard shard)
+    public MovementRelay(IShard shard, ILogger logger)
     {
-        Shard = shard;
+        _shard = shard;
+        _logger = logger;
     }
 
     public void CharacterMovementInput(INetworkClient client, IEntity entity, AeroMessages.GSS.V66.Character.Command.MovementInput input)
@@ -68,7 +71,7 @@ public class MovementRelay
                 Aim = character.AimDirection,
             }
         };
-        foreach (var remoteClient in Shard.Clients.Values)
+        foreach (var remoteClient in _shard.Clients.Values)
         {
             if (remoteClient.Status.Equals(IPlayer.PlayerStatus.Playing))
             {

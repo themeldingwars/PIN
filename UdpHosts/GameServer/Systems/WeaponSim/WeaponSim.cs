@@ -8,19 +8,22 @@ using AeroMessages.GSS.V66.Generic;
 using GameServer.Data.SDB;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using Serilog;
 
 namespace GameServer;
 
 public class WeaponSim
 {
+    private readonly IShard _shard;
+    private readonly ILogger _logger;
     private readonly Dictionary<ulong, WeaponSimState> _weaponSimState;
-    private Shard _shard;
     private ulong LastUpdate = 0;
     private ulong UpdateIntervalMs = 50;
 
-    public WeaponSim(Shard shard)
+    public WeaponSim(IShard shard, ILogger logger)
     {
         _shard = shard;
+        _logger = logger;
         _weaponSimState = new();
     }
 

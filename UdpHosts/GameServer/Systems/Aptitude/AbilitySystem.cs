@@ -4,13 +4,17 @@ using System.Threading;
 using AeroMessages.GSS.V66.Character.Command;
 using GameServer.Data.SDB;
 using GameServer.Enums;
+using Serilog;
 
 namespace GameServer.Aptitude;
 
 public class AbilitySystem
 {
     public Factory Factory;
-    private Shard Shard;
+
+    private readonly IShard _shard;
+    private readonly ILogger _logger;
+
     private Dictionary<ulong, VehicleCalldownRequest> PlayerVehicleCalldownRequests;
     private Dictionary<ulong, DeployableCalldownRequest> PlayerDeployableCalldownRequests;
     private Dictionary<ulong, ResourceNodeBeaconCalldownRequest> PlayerThumperCalldownRequests;
@@ -18,9 +22,10 @@ public class AbilitySystem
     private ulong LastUpdate = 0;
     private ulong UpdateIntervalMs = 20;
 
-    public AbilitySystem(Shard shard)
+    public AbilitySystem(IShard shard, ILogger logger)
     {
-        Shard = shard;
+        _shard = shard;
+        _logger = logger;
         Factory = new Factory();
         PlayerVehicleCalldownRequests = new();
         PlayerDeployableCalldownRequests = new();
@@ -65,7 +70,7 @@ public class AbilitySystem
         if (currentTime > LastUpdate + UpdateIntervalMs)
         {
             LastUpdate = currentTime;
-            foreach (var entity in Shard.Entities.Values)
+            foreach (var entity in _shard.Entities.Values)
             {
                 if (entity is IAptitudeTarget target)
                 {
@@ -261,7 +266,7 @@ public class AbilitySystem
 
     public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId)
     {
-        HandleActivateAbility(shard, initiator, abilityId, Shard.CurrentTime, new AptitudeTargets());
+        HandleActivateAbility(shard, initiator, abilityId, _shard.CurrentTime, new AptitudeTargets());
     }
 
     public void HandleTargetAbility()

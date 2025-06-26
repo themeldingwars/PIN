@@ -5,7 +5,7 @@ using LgvRace = GameServer.Systems.Encounters.Encounters.LgvRace;
 
 namespace GameServer.Systems.Encounters;
 
-public class Factory(Shard shard)
+public class Factory(IShard shard)
 {
     public void SpawnEncounter(IEncounterDef def, CharacterEntity initiator)
     {

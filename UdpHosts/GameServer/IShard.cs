@@ -39,7 +39,7 @@ public interface IShard : IPacketSender
     ushort CurrentShortTime => unchecked((ushort)CurrentTime);
     IDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>> EntityRefMap { get; }
 
-    ulong GetNextGuid(byte type);
+    ulong GetNextGuid(byte type = (byte)Enums.GSS.Controllers.Generic);
     void Run(CancellationToken ct);
     bool Tick(double deltaTime, ulong currentTime, CancellationToken ct);
     void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct);

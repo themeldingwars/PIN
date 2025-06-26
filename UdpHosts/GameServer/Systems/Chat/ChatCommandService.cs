@@ -9,9 +9,9 @@ namespace GameServer.Systems.Chat;
 public class ChatCommandService
 {
     private readonly Dictionary<string, Type> _commandDictionary;
-    private Shard _shard;
+    private readonly IShard _shard;
 
-    public ChatCommandService(Shard shard)
+    public ChatCommandService(IShard shard)
     {
         _shard = shard;
         _commandDictionary = new Dictionary<string, Type>();

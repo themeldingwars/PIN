@@ -37,16 +37,9 @@ public class Shard : IShard
         Entities = new ConcurrentDictionary<ulong, IEntity>();
         Encounters = new ConcurrentDictionary<ulong, IEncounter>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
-        Physics = new PhysicsEngine(this);
+
         AI = new AIEngine();
-        Movement = new MovementRelay(this);
-        Abilities = new AbilitySystem(this);
-        EntityMan = new EntityManager(this);
-        EncounterMan = new EncounterManager(this);
-        WeaponSim = new WeaponSim(this);
-        ProjectileSim = new ProjectileSim(this);
-        Chat = new ChatService(this);
-        Admin = new AdminService(this);
+
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
     }
 
@@ -55,16 +48,16 @@ public class Shard : IShard
     public IDictionary<ulong, IEncounter> Encounters { get; protected set; }
     public IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; protected set; }
     public IDictionary<uint, INetworkPlayer> Clients { get; }
-    public PhysicsEngine Physics { get; }
     public AIEngine AI { get; }
-    public MovementRelay Movement { get; }
-    public EntityManager EntityMan { get; }
-    public EncounterManager EncounterMan { get; }
-    public AbilitySystem Abilities { get; }
-    public ProjectileSim ProjectileSim { get; }
-    public WeaponSim WeaponSim { get; }
-    public ChatService Chat { get; }
-    public AdminService Admin { get; }
+    public PhysicsEngine Physics { get; private set; } = null!;
+    public MovementRelay Movement { get; private set; } = null!;
+    public EntityManager EntityMan { get; private set; } = null!;
+    public EncounterManager EncounterMan { get; private set; } = null!;
+    public AbilitySystem Abilities { get; private set; } = null!;
+    public ProjectileSim ProjectileSim { get; private set; } = null!;
+    public WeaponSim WeaponSim { get; private set; } = null!;
+    public ChatService Chat { get; private set; } = null!;
+    public AdminService Admin { get; private set; } = null!;
     public ulong InstanceId { get; }
     public uint ZoneId { get; private set; }
     public ulong CurrentTimeLong { get; private set; }
@@ -74,6 +67,19 @@ public class Shard : IShard
     public Serilog.ILogger Logger { get; }
     public GameServerSettings Settings { get; }
     private IPacketSender Sender { get; }
+
+    public void SetSystems(PhysicsEngine physics, MovementRelay movement, AbilitySystem abilities, EntityManager entityMan, EncounterManager encounterMan, WeaponSim weaponSim, ProjectileSim projectileSim, ChatService chat, AdminService admin)
+    {
+        Physics = physics;
+        Movement = movement;
+        Abilities = abilities;
+        EntityMan = entityMan;
+        EncounterMan = encounterMan;
+        WeaponSim = weaponSim;
+        ProjectileSim = projectileSim;
+        Chat = chat;
+        Admin = admin;
+    }
 
     public void Run(CancellationToken ct)
     {

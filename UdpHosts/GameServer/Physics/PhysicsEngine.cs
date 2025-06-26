@@ -18,15 +18,18 @@ public class PhysicsEngine
 {    
     public const float TargetTimestepDuration = 50; // (1/20f)
 
-    private Shard _shard;
-    private ILogger _logger;
+    private readonly IShard _shard;
+    private readonly ILogger _logger;
+    private readonly GameServerSettings _settings;
+
     private TypedIndex _defaultCharacterShape;
     private Dictionary<BodyHandle, ulong> _bodyToEntityId = new();
 
-    public PhysicsEngine(Shard shard)
+    public PhysicsEngine(IShard shard, ILogger logger, GameServerSettings settings)
     {
         _shard = shard;
-        _logger = shard.Logger;
+        _logger = logger;
+        _settings = settings;
 
         // Determine number of threads to use
         var targetThreadCount = int.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
@@ -40,9 +43,9 @@ public class PhysicsEngine
         _defaultCharacterShape = Simulation.Shapes.Add(new Sphere(0.9f));
         
         // Load zone
-        if (_shard.Settings.LoadMapsCollision)
+        if (_settings.LoadMapsCollision)
         {
-            new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(_shard.Settings.MapsPath, _shard.ZoneId);
+            new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(_settings.MapsPath, _shard.ZoneId);
         }
     }
 

@@ -23,6 +23,7 @@ using GameServer.Entities.Thumper;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Extensions;
+using Serilog;
 using Timer = System.Threading.Timer;
 
 namespace GameServer;
@@ -30,7 +31,11 @@ namespace GameServer;
 public class EntityManager
 {
     private const byte ServerId = 31;
-    private Shard Shard;
+
+    private readonly IShard _shard;
+    private readonly ILogger _logger;
+    private readonly GameServerSettings _settings;
+
     private uint Counter = 0;
 
     private ulong LastUpdateFlush = 0;
@@ -48,9 +53,11 @@ public class EntityManager
     private ConcurrentQueue<ScopeInRequest> QueuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
     private ConcurrentDictionary<ulong, Lifetime> LifetimeByEntity = new ConcurrentDictionary<ulong, Lifetime>();
 
-    public EntityManager(Shard shard)
+    public EntityManager(IShard shard, ILogger logger, GameServerSettings settings)
     {
-        Shard = shard;
+        _shard = shard;
+        _logger = logger;
+        _settings = settings;
     }
 
     public int GetNumberOfScopedEntities(IPlayer player)
@@ -65,9 +72,9 @@ public class EntityManager
 
     public CharacterEntity SpawnCharacter(uint typeId, Vector3 position, CharacterEntity owner = null)
     {
-        var characterEntity = new CharacterEntity(Shard, Shard.GetNextGuid(), owner);
+        var characterEntity = new CharacterEntity(_shard, _shard.GetNextGuid(), owner);
         characterEntity.LoadMonster(typeId);
-        characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, Shard.CurrentTime);
+        characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, _shard.CurrentTime);
         characterEntity.SetPosition(position);
         characterEntity.SetSpawnPose();
         Add(characterEntity.EntityId, characterEntity);
@@ -77,7 +84,7 @@ public class EntityManager
     public VehicleEntity SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, CharacterEntity owner, bool autoMount = false)
     {
         var vehicleInfo = SDBUtils.GetDetailedVehicleInfo(typeId);
-        var vehicleEntity = new VehicleEntity(Shard, Shard.GetNextGuid(), owner);
+        var vehicleEntity = new VehicleEntity(_shard, _shard.GetNextGuid(), owner);
         vehicleEntity.Position = position;
         vehicleEntity.Load(vehicleInfo);
         position.Z += vehicleInfo.SpawnHeight;
@@ -86,7 +93,7 @@ public class EntityManager
             Position = position,
             Rotation = orientation,
             Direction = vehicleEntity.AimDirection,
-            Time = Shard.CurrentTime,
+            Time = _shard.CurrentTime,
         });
         vehicleEntity.SetPoseData(new AeroMessages.GSS.V66.Vehicle.Command.MovementInput()
         {
@@ -94,7 +101,7 @@ public class EntityManager
             Rotation = orientation,
             Direction = vehicleEntity.AimDirection,
             MovementState = 0x1000,
-            Time = Shard.CurrentTime,
+            Time = _shard.CurrentTime,
         });
         vehicleEntity.Scoping = new ScopingComponent() { Range = vehicleInfo.ScopeRange };
         if (owner is { IsPlayerControlled: true })
@@ -111,7 +118,7 @@ public class EntityManager
 
         if (vehicleEntity.SpawnAbility != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility);
+            _shard.Abilities.HandleActivateAbility(_shard, vehicleEntity, vehicleEntity.SpawnAbility);
         }
 
         return vehicleEntity;
@@ -120,7 +127,7 @@ public class EntityManager
     public DeployableEntity SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation, CharacterEntity owner = null)
     {
         var deployableInfo = SDBInterface.GetDeployable(typeId);
-        var deployableEntity = new DeployableEntity(Shard, Shard.GetNextGuid(), typeId, 0, owner);
+        var deployableEntity = new DeployableEntity(_shard, _shard.GetNextGuid(), typeId, 0, owner);
         var aimDirection = new Vector3(deployableInfo.AimDirection.x, deployableInfo.AimDirection.y, deployableInfo.AimDirection.z);
         deployableEntity.SetPosition(position);
         deployableEntity.SetOrientation(orientation);
@@ -150,14 +157,14 @@ public class EntityManager
 
         if (deployableInfo.SpawnAbilityid != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid);
+            _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, deployableInfo.SpawnAbilityid);
         }
 
         if (deployableInfo.ConstructedAbilityid != 0)
         {
             var timer = new Timer(state =>
                  {
-                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid);
+                     _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, deployableInfo.ConstructedAbilityid);
 
                      ((Timer)state)?.Dispose();
                  });
@@ -186,7 +193,7 @@ public class EntityManager
             var timer = new Timer(state =>
                  {
                      Console.WriteLine($"deployable: Executing ability {deployableInfo.PoweredOnAbility}");
-                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility);
+                     _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, poweredOnAbility);
 
                      ((Timer)state)?.Dispose();
                  });
@@ -208,7 +215,7 @@ public class EntityManager
             posture = SDBInterface.GetTurret(typeId).Posture;
         }
 
-        var turretEntity = new TurretEntity(Shard, Shard.GetNextGuid(), typeId, parent, parentChildIndex, posture);
+        var turretEntity = new TurretEntity(_shard, _shard.GetNextGuid(), typeId, parent, parentChildIndex, posture);
 
         Add(turretEntity.EntityId, turretEntity);
 
@@ -217,7 +224,7 @@ public class EntityManager
 
     public MeldingEntity SpawnMelding(string perimiterSetName, ActiveDataStruct activeData)
     {
-        var meldingEntity = new MeldingEntity(Shard, Shard.GetNextGuid(), perimiterSetName);
+        var meldingEntity = new MeldingEntity(_shard, _shard.GetNextGuid(), perimiterSetName);
         meldingEntity.SetActiveData(activeData);
         Add(meldingEntity.EntityId, meldingEntity);
         return meldingEntity;
@@ -225,7 +232,7 @@ public class EntityManager
 
     public AreaVisualDataEntity SpawnAreaVisualData(Vector3 position, ScopingComponent scoping)
     {
-        var areaVisualData = new AreaVisualDataEntity(Shard, Shard.GetNextGuid())
+        var areaVisualData = new AreaVisualDataEntity(_shard, _shard.GetNextGuid())
             {
                 Scoping = scoping, Position = position,
             };
@@ -235,13 +242,13 @@ public class EntityManager
 
     public OutpostEntity SpawnOutpost(Outpost outpost)
     {
-        var outpostEntity = new OutpostEntity(Shard, Shard.GetNextGuid(), outpost);
+        var outpostEntity = new OutpostEntity(_shard, _shard.GetNextGuid(), outpost);
         Add(outpostEntity.EntityId, outpostEntity);
 
-        if (!Shard.Outposts.TryGetValue(outpost.ZoneId, out var zoneOutposts))
+        if (!_shard.Outposts.TryGetValue(outpost.ZoneId, out var zoneOutposts))
         {
             zoneOutposts = new ConcurrentDictionary<uint, OutpostEntity>();
-            Shard.Outposts[outpost.ZoneId] = zoneOutposts;
+            _shard.Outposts[outpost.ZoneId] = zoneOutposts;
         }
 
         zoneOutposts[outpost.Id] = outpostEntity;
@@ -255,7 +262,7 @@ public class EntityManager
         ResourceNodeBeaconCalldownCommandDef commandDef)
     {
         var beacon = SDBInterface.GetResourceNodeBeacon(commandDef.ResourceNodeBeaconId);
-        var thumperEntity = new ThumperEntity(Shard, Shard.GetNextGuid(), nodeType, position, owner, commandDef);
+        var thumperEntity = new ThumperEntity(_shard, _shard.GetNextGuid(), nodeType, position, owner, commandDef);
         thumperEntity.Scale = beacon.Scale;
         Add(thumperEntity.EntityId, thumperEntity);
         return thumperEntity;
@@ -263,7 +270,7 @@ public class EntityManager
 
     public CarryableEntity SpawnCarryable(uint type, Vector3 position)
     {
-        var carryableEntity = new CarryableEntity(Shard, Shard.GetNextGuid(), type);
+        var carryableEntity = new CarryableEntity(_shard, _shard.GetNextGuid(), type);
         carryableEntity.SetPosition(position);
         Add(carryableEntity.EntityId, carryableEntity);
         return carryableEntity;
@@ -278,7 +285,7 @@ public class EntityManager
         SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
 
         // Thumper
-        Shard.EncounterMan.CreateThumper(20, new Vector3(158.3f, 249.3f, 491.93f), aero, SDBInterface.GetResourceNodeBeaconCalldownCommandDef(766269));
+        _shard.EncounterMan.CreateThumper(20, new Vector3(158.3f, 249.3f, 491.93f), aero, SDBInterface.GetResourceNodeBeaconCalldownCommandDef(766269));
 
         // Datapad
         SpawnCarryable(26, new Vector3(160.3f, 250.3f, 491.93f));
@@ -321,7 +328,7 @@ public class EntityManager
     {
         var tracker = LifetimeByEntity.TryGetValue(entity.EntityId, out var value) ? value : new Lifetime();
 
-        tracker.ExpireAt = Shard.CurrentTimeLong + timeMs;
+        tracker.ExpireAt = _shard.CurrentTimeLong + timeMs;
         LifetimeByEntity[entity.EntityId] = tracker;
     }
 
@@ -332,12 +339,12 @@ public class EntityManager
         {
             hasSpawnedTestEntities = true;
 
-            if (Shard.Settings.LoadZoneEntities)
+            if (_settings.LoadZoneEntities)
             {
-                SpawnZoneEntities(Shard.ZoneId);
+                SpawnZoneEntities(_shard.ZoneId);
 
                 // TODO: Remove these in favor of using the files instead
-                if (Shard.ZoneId == 448)
+                if (_shard.ZoneId == 448)
                 {
                     TempSpawnTestEntities();
                 }
@@ -360,7 +367,7 @@ public class EntityManager
         if (currentTime > LastUpdateFlush + UpdateFlushIntervalMs)
         {
             LastUpdateFlush = currentTime;
-            foreach (var entity in Shard.Entities.Values)
+            foreach (var entity in _shard.Entities.Values)
             {
                 FlushChanges(entity);
             }
@@ -383,8 +390,8 @@ public class EntityManager
         if (currentTime > LastScopeCheck + ScopeCheckIntervalMs)
         {
             LastScopeCheck = currentTime;
-            var players = Shard.Clients.Values.Where((client) => client.CanReceiveGSS);
-            var entities = Shard.Entities.Values;
+            var players = _shard.Clients.Values.Where((client) => client.CanReceiveGSS);
+            var entities = _shard.Entities.Values;
 
             foreach (var entity in entities)
             {
@@ -444,15 +451,15 @@ public class EntityManager
     public void Add(ulong guid, IEntity entity)
     {
         ScopedPlayersByEntity.TryAdd(guid, new());
-        Shard.Entities.Add(guid, entity);
+        _shard.Entities.Add(guid, entity);
         OnAddedEntity(entity);
     }
 
     public void Add(IEntity entity)
     {
-        var guid = new Core.Data.EntityGuid(ServerId, Shard.CurrentTime, Counter++, (byte)Enums.GSS.Controllers.Character);
+        var guid = new Core.Data.EntityGuid(ServerId, _shard.CurrentTime, Counter++, (byte)Enums.GSS.Controllers.Character);
         ScopedPlayersByEntity.TryAdd(guid.Full, new());
-        Shard.Entities.Add(guid.Full, entity);
+        _shard.Entities.Add(guid.Full, entity);
         OnAddedEntity(entity);
     }
 
@@ -468,11 +475,11 @@ public class EntityManager
 
     public void Remove(ulong guid)
     {
-        Shard.Entities.TryGetValue(guid, out IEntity entity);
+        _shard.Entities.TryGetValue(guid, out IEntity entity);
         if (entity != null)
         {
             OnRemovedEntity(entity);
-            Shard.Entities.Remove(guid);
+            _shard.Entities.Remove(guid);
             ScopedPlayersByEntity.TryRemove(guid, out var v);
         }
     }
@@ -1620,7 +1627,7 @@ public class EntityManager
     private void OnAddedEntity(IEntity entity)
     {
         // TEMP: Hack to introduce new entities to connected players. This should be replaced with tick logic that sends down entities based on scope and distance.
-        foreach (var client in Shard.Clients.Values)
+        foreach (var client in _shard.Clients.Values)
         {
             // We don't want to inform players that are still in the early steps of connecting
             if (client.CanReceiveGSS)

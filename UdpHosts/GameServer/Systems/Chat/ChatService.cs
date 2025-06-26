@@ -7,6 +7,7 @@ using AeroMessages.GSS.V66.Generic;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using Serilog;
 
 namespace GameServer.Systems.Chat;
 
@@ -20,13 +21,16 @@ public class ChatService
         ChatChannel.Yell,
     };
 
-    private Shard Shard;
+    private readonly IShard _shard;
+    private readonly ILogger _logger;
+
     private ChatCommandService CommandService;
 
-    public ChatService(Shard shard)
+    public ChatService(IShard shard, ILogger logger)
     {
-        Shard = shard;
-        CommandService = new ChatCommandService(shard);
+        _shard = shard;
+        _logger = logger;
+        CommandService = new ChatCommandService(_shard);
     }
 
     public void CharacterPerformTextChat(INetworkClient client, IEntity entity, PerformTextChat query)
@@ -51,7 +55,7 @@ public class ChatService
         }
         else if (queryChannel == ChatChannel.Admin)
         {
-            Shard.Admin.ExecuteCommand(query.Message, ((CharacterEntity)entity).Player);
+            _shard.Admin.ExecuteCommand(query.Message, ((CharacterEntity)entity).Player);
         }
         else
         {
@@ -63,17 +67,17 @@ public class ChatService
     public void SendToPlayer(string message, ChatChannel channel, INetworkClient player)
     {
         var response = PrepareSingleMessage(message, channel, null);
-        player.NetChannels[ChannelType.UnreliableGss].SendMessage(response, Shard.InstanceId);
+        player.NetChannels[ChannelType.UnreliableGss].SendMessage(response, _shard.InstanceId);
     }
 
     public void SendToAll(string message, ChatChannel channel, IEntity sender)
     {
         var response = PrepareSingleMessage(message, channel, sender);
-        foreach (var client in Shard.Clients.Values)
+        foreach (var client in _shard.Clients.Values)
         {
             if (client.Status.Equals(IPlayer.PlayerStatus.Playing))
             {
-                client.NetChannels[ChannelType.UnreliableGss].SendMessage(response, Shard.InstanceId);
+                client.NetChannels[ChannelType.UnreliableGss].SendMessage(response, _shard.InstanceId);
             }
         }
     }
@@ -85,7 +89,7 @@ public class ChatService
 
     private ChatMessageList PrepareSingleMessage(string message, ChatChannel channel, IEntity sender)
     {
-        var senderId = sender != null ? sender.AeroEntityId : new EntityId() { Backing = Shard.InstanceId };
+        var senderId = sender != null ? sender.AeroEntityId : new EntityId() { Backing = _shard.InstanceId };
         var senderName = sender != null ? ((CharacterEntity)sender).StaticInfo.DisplayName : "Server";
         byte chatIconFlags = (byte)(sender != null ? 0 : 1);
 
