@@ -64,7 +64,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public ObserverView Vehicle_ObserverView { get; set; }
     public CombatView Vehicle_CombatView { get; set; }
     public MovementView Vehicle_MovementView { get; set; }
-
+    public ReceiveCollisionDamage Vehicle_ReceiveCollisionDamage { get; set; } = new ReceiveCollisionDamage();
     public INetworkPlayer ControllingPlayer { get; set; }
     public bool IsPlayerControlled => ControllingPlayer != null;
     public INetworkPlayer OwningPlayer { get; set; }
@@ -123,14 +123,15 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         { 8, 0 },
     };
 
+    public EntityId WhoDid { get; set; }
     public SpawnPoseData SpawnPose { get; set; }
     public Vector3 SpawnVelocity { get; set; } = Vector3.Zero;
     public CurrentPoseData CurrentPose { get; set; }
     public HostilityInfoData HostilityInfo { get; set; }
     public ProcessDelayData ProcessDelay { get; set; }
     public ScopeBubbleInfoData ScopeBubble { get; set; }
-    public uint ScalingLevel { get; set; }
 
+    public uint ScalingLevel { get; set; }
     public uint CurrentHealth { get; set; }
     public uint MaxHealth { get; set; }
     public uint CurrentShields { get; set; } = 0;
@@ -141,7 +142,9 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public byte EffectsFlags { get; set; }
     public byte SinFlags { get; set; }
     public byte SinFlagsPrivate { get; set; }
+    public byte Impact { get; set; }
 
+    public ushort ImpactTime { get; set; }
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
     public ushort StatusEffectsChangeTime_2 { get; set; }
@@ -343,6 +346,22 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         if (Vehicle_BaseController != null)
         {
             Vehicle_BaseController.SpawnVelocityProp = SpawnVelocity;
+        }
+    }
+
+    public void ReceiveCollisionDamage(ushort newShortTime, byte newHaveEntity, EntityId collidedWithEntity)
+    {
+        ImpactTime = newShortTime;
+        Impact = newHaveEntity;
+        WhoDid = collidedWithEntity;
+        Vehicle_ReceiveCollisionDamage.ShortTime = newShortTime;
+        Vehicle_ReceiveCollisionDamage.HaveEntity = newHaveEntity;
+        Vehicle_ReceiveCollisionDamage.CollidedWithEntity = collidedWithEntity;
+        if (Vehicle_ReceiveCollisionDamage != null)
+        {
+            Vehicle_ReceiveCollisionDamage.ShortTime = ImpactTime;
+            Vehicle_ReceiveCollisionDamage.HaveEntity = Impact;
+            Vehicle_ReceiveCollisionDamage.CollidedWithEntity = collidedWithEntity;
         }
     }
 
