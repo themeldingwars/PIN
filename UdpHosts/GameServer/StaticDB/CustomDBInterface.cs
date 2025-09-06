@@ -462,9 +462,9 @@ public class CustomDBInterface
     public static UnpackItemCommandDef GetUnpackItemCommandDef(uint id) => UnpackItemCommandDef.GetValueOrDefault(id);
 
     // custom
-    public static Dictionary<uint, Deployable> GetZoneDeployables(uint zoneId) => Deployable.GetValueOrDefault(zoneId);
-    public static Dictionary<uint, Melding> GetZoneMeldings(uint zoneId) => Melding.GetValueOrDefault(zoneId);
-    public static Dictionary<uint, Outpost> GetZoneOutposts(uint zoneId) => Outpost.GetValueOrDefault(zoneId);
-    public static Dictionary<uint, MeldingRepulsorDef> GetZoneMeldingRepulsors(uint zoneId) => MeldingRepulsor.GetValueOrDefault(zoneId);
-    public static Dictionary<uint, LgvRaceDef> GetZoneLgvRaces(uint zoneId) => LgvRace.GetValueOrDefault(zoneId);
+    public static Dictionary<uint, Deployable> GetZoneDeployables(uint zoneId) => Deployable.GetValueOrDefault(zoneId) ?? new Dictionary<uint, Deployable>();
+    public static Dictionary<uint, Melding> GetZoneMeldings(uint zoneId) => Melding.GetValueOrDefault(zoneId) ?? new Dictionary<uint, Melding>();
+    public static Dictionary<uint, Outpost> GetZoneOutposts(uint zoneId) => Outpost.GetValueOrDefault(zoneId) ?? new Dictionary<uint, Outpost>();
+    public static Dictionary<uint, MeldingRepulsorDef> GetZoneMeldingRepulsors(uint zoneId) => MeldingRepulsor.GetValueOrDefault(zoneId) ?? new Dictionary<uint, MeldingRepulsorDef>();
+    public static Dictionary<uint, LgvRaceDef> GetZoneLgvRaces(uint zoneId) => LgvRace.GetValueOrDefault(zoneId) ?? new Dictionary<uint, LgvRaceDef>();
 }
