@@ -19,7 +19,7 @@ public class PushTargetsCommand : Command, ICommand
         if (Params.Former == 1 && context.FormerTargets.Count > 0)
         {
             // assuming push == saving for later, this shouldnt occur and it doesnt in 1962
-            Console.WriteLine($"[PushTargets] Former = 1, FormerTargets count {context.FormerTargets.Count}");
+            Logger.Debug("[PushTargets] Former = 1, FormerTargets count {count}", context.FormerTargets.Count);
         }
 
         if (Params.Current == 1)

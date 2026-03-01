@@ -1,13 +1,16 @@
 using System;
 using System.Numerics;
+using Serilog;
 
-namespace GameServer;
+namespace GameServer.Systems.PRNG;
 
 /// <summary>
 /// Provides PRNG functions used for weapons and projectiles, etc.
 /// </summary>
 public static partial class PRNG
 {
+    private static readonly ILogger _logger = Log.ForContext(typeof(PRNG));
+
     private static readonly float _slMinSpreadVariance = 0.699999988079f; // 0x3f333333
 
     public static void TestSpread()
@@ -30,11 +33,11 @@ public static partial class PRNG
         result = Vector3.Normalize(result);
 
         Vector3 finalResult = new Vector3(aim.X, aim.Y, aim.Z) + (result * speed);
-        Console.WriteLine($"RES Generated ({result.X}, {result.Y}, {result.Z})");
-        Console.WriteLine($"RES Expected ({dir.X}, {dir.Y}, {dir.Z})");
+        _logger.Debug("RES Generated ({X}, {Y}, {Z})", result.X, result.Y, result.Z);
+        _logger.Debug("RES Expected ({X}, {Y}, {Z})", dir.X, dir.Y, dir.Z);
 
-        Console.WriteLine($"FIN Generated ({finalResult.X}, {finalResult.Y}, {finalResult.Z})");
-        Console.WriteLine($"FIN Expected ({final.X}, {final.Y}, {final.Z})");
+        _logger.Debug("FIN Generated ({X}, {Y}, {Z})", finalResult.X, finalResult.Y, finalResult.Z);
+        _logger.Debug("FIN Expected ({X}, {Y}, {Z})", final.X, final.Y, final.Z);
 
         throw new Exception("Check");
     }
@@ -83,7 +86,7 @@ public static partial class PRNG
                 return;
             }
 
-            retry++;   
+            retry++;
         }
         while (retry < 4);
     }
@@ -98,7 +101,7 @@ public static partial class PRNG
             uint uVar2 = GetUVar(modulator - 0x3df);
             int iVar1 = GetIVar(uVar1);
             int iVar2 = GetIVar(uVar2);
-            
+
             v1 = GetV(uVar1, iVar1);
             v2 = GetV(uVar2, iVar2);
             if ((v2 * v2) + (v1 * v1) < 1.0)

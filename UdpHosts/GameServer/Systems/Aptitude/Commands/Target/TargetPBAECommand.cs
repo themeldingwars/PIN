@@ -30,26 +30,26 @@ public class TargetPBAECommand : Command, ICommand
         // Params.UseBodyPosition
         if (context.Targets.Count >= Params.MaxTargets)
         {
-            Console.WriteLine($"TargetPBAECommand {Id} The context target count exceeds the MaxTargets BEFORE command executes, investigate if this happens");
+            Logger.Warning("The context target count exceeds the MaxTargets BEFORE command executes");
         }
 
         float radius = AbilitySystem.RegistryOp(context.Register, Params.Radius, (Operand)Params.RadiusRegop);
         if (Params.UseWeaponRadius == 1)
         {
-            Console.WriteLine($"TargetPBAECommand {Id} has UseWeaponRadius set to 1, investigate what to do");
+            Logger.Debug("{Command} {CommandId} has UseWeaponRadius set to 1, investigate what to do", nameof(TargetPBAECommand), Params.Id);
         }
 
         if (Params.Filter == 1)
         {
             // 2202 commands have value 0, 5 commands have value 1
             // Probably remove from context.Targets all targets selected using other Params
-            Console.WriteLine($"TargetPBAECommand {Id} has Filter set to 1, investigate what to do");
+            Logger.Debug("{Command} {CommandId} has Filter set to 1, investigate what to do", nameof(TargetPBAECommand), Params.Id);
         }
 
         if (Params.IncludeInteractives == 1)
         {
             // Presumably targets with interactions can or can not be targeted?
-            Console.WriteLine($"TargetPBAECommand {Id} has IncludeInteractives set to 1, investigate what to do");
+            Logger.Debug("{Command} {CommandId} has IncludeInteractives set to 1, investigate what to do", nameof(TargetPBAECommand), Params.Id);
         }
 
         // It seems that all 4 combos of UseInitPos and UseBodyPosition are possible (e.g. they can both be 0, both be 1 or be exclusive)
@@ -81,12 +81,12 @@ public class TargetPBAECommand : Command, ICommand
 
         if (context.Targets.Count >= Params.MaxTargets)
         {
-            Console.WriteLine($"TargetPBAECommand {Id} The context target count exceeds the MaxTargets AFTER command executes, now what?");
+            Logger.Warning("The context target count exceeds the MaxTargets AFTER command executes");
         }
 
         if (context.Targets.Count < Params.MinTargets)
         {
-            Console.WriteLine($"TargetPBAECommand {Id} The context target count is below the MinTargets AFTER command executes, returning false");
+            Logger.Debug("{Command} {CommandId} The context target count is below the MinTargets ({Min}) AFTER command executes, returning false", nameof(TargetPBAECommand), Params.Id, Params.MinTargets);
             return false;
         }
 

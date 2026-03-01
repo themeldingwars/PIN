@@ -14,7 +14,7 @@ public class RequireHasEffectCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        // Console.WriteLine($"EffectID: {Params.EffectId}");
+        // Logger.Debug("EffectID: {EffectId}", Params.EffectId);
         bool result = false;
 
         // TODO: Handle Params.SameInitiator

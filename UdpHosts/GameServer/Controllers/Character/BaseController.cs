@@ -9,6 +9,7 @@ using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
+using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS.Character;
@@ -28,7 +29,7 @@ public class BaseController : Base
 
     public override void Init(INetworkClient client, IPlayer player, IShard shard, ILogger logger)
     {
-        _logger = logger;
+        _logger = logger.ForContext<CharacterEntity>();
     }
 
     [MessageID((byte)Commands.FetchQueueInfo)]
@@ -167,7 +168,7 @@ public class BaseController : Base
     {
         var setSteamIdPacket = packet.Unpack<SetSteamUserId>();
         player.SteamUserId = setSteamIdPacket.SteamUserId;
-        _logger.Verbose("Entity {0:x8} Steam user id (Aero): {1}", entityId, player.SteamUserId);
+        _logger.Debug("Entity {EntityId:x8} Steam user id (Aero): {SteamUserId}", entityId, player.SteamUserId);
         
         // var conventional = packet.Read<SetSteamIdRequest>();
         // _logger.Verbose("Packet Data: {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
@@ -261,7 +262,7 @@ public class BaseController : Base
         }
         else
         {
-            _logger.Verbose("ClientQueryInteractionStatus entity {0:x8} not found!", requestedEntityId);
+            _logger.Debug("ClientQueryInteractionStatus entity {EntityId:x8} not found!", requestedEntityId);
         }
     }
 

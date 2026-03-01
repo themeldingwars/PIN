@@ -36,7 +36,7 @@ public class ConsumeSuperChargeCommand : Command, ICommand
             return true;
         }
 
-        Console.WriteLine("ConsumeSuperChargeCommand fails because target is not a Character. If this is happening, we should investigate why.");
+        Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(ConsumeSuperChargeCommand), Params.Id);
 
         return false;
     }

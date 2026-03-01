@@ -31,8 +31,8 @@ public abstract class Base
 
         if (method == null)
         {
-            logger.Warning("---> Unrecognized MsgID for GSS Packet; Controller = {0} Entity = 0x{1:X8} MsgID = {2}!", ControllerID, entityId, msgId);
-            logger.Warning(">  {0}", BitConverter.ToString(packet.Peek(packet.BytesRemaining).ToArray()).Replace("-", " "));
+            logger.Warning("---> Unrecognized MsgID for GSS Packet; Controller = {Controller} Entity = 0x{EntityId:X8} MsgID = {MessageId}!", ControllerID, entityId, msgId);
+            logger.Warning(">  {PacketData}", BitConverter.ToString(packet.Peek(packet.BytesRemaining).ToArray()).Replace("-", " "));
             return;
         }
 
@@ -44,15 +44,15 @@ public abstract class Base
         {
             if (e.InnerException != null)
             {
-                Console.WriteLine($"HandlePacket Caught {e.InnerException.Message}");
-                Console.WriteLine($"{e.InnerException.StackTrace}");
+                logger.Error("HandlePacket Caught {ExceptionMessage}", e.InnerException.Message);
+                logger.Error("{StackTrace}", e.InnerException.StackTrace);
             }
         }
     }
 
     protected void LogMissingImplementation<TController>(string endpointName, ulong entityId, GamePacket packet, ILogger logger)
     {
-        logger.Warning($"Unimplemented Endpoint was called by entity 0x{{0:X8}}: {typeof(TController).FullName}.{endpointName}", entityId);
-        logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+        logger.Warning("Unimplemented Endpoint was called by entity 0x{EntityId:X8}: {ControllerFullName}.{Endpoint}", entityId, typeof(TController).FullName, endpointName);
+        logger.Warning(">  {PacketData}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
     }
 }

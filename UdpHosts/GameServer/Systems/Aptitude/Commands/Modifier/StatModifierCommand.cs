@@ -19,7 +19,7 @@ public class StatModifierCommand : Command, ICommand
     {
         if (Params.Permanent == 1)
         {
-            Console.WriteLine($"StatModifierCommand {Params.Id} has unhandled param Permanent");
+            Logger.Warning("{Command} {CommandId} has unhandled param Permanent", nameof(StatModifierCommand), Params.Id);
         }
 
         if (context.Self is CharacterEntity)
@@ -28,7 +28,7 @@ public class StatModifierCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine($"StatModifierCommand {Id} does nothing because self is not a Character. Self is {context.Self.GetType().Name}. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} does nothing because self is not a Character. Self is {sourceType}. If this is happening, we should investigate why.", nameof(StatModifierCommand), Params.Id, context.Self.GetType().Name);
         }
 
         return true;

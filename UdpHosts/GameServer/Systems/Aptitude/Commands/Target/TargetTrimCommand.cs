@@ -24,7 +24,7 @@ public class TargetTrimCommand : Command, ICommand
             var targetsToRemove = context.FormerTargets.Count - (int)trimSize;
             if (targetsToRemove < 0)
             {
-                Console.WriteLine($"Not enough FormerTargets for TargetTrimCommand, investigate if this is expected");
+                Logger.Debug("{Command} {CommandId} Not enough FormerTargets for TargetTrimCommand, investigate if this is expected", nameof(TargetTrimCommand), Params.Id);
                 targetsToRemove = Math.Abs(targetsToRemove);
             }
 
@@ -44,7 +44,7 @@ public class TargetTrimCommand : Command, ICommand
             if (targetsToRemove < 0)
             {
                 // 39360 Heavy Turret
-                Console.WriteLine($"Not enough Targets for TargetTrimCommand, investigate if this is expected");
+                Logger.Debug("{Command} {CommandId} Not enough Targets for TargetTrimCommand, investigate if this is expected", nameof(TargetTrimCommand), Params.Id);
                 targetsToRemove = Math.Abs(targetsToRemove);
             }
 

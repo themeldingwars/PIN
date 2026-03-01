@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using AeroMessages.GSS.V66;
@@ -60,7 +59,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
         if (firstFreeIndex == InvalidIndex)
         {
             // fail!
-            Console.WriteLine($"AddEffect but there are too many active effects!");
+            Logger.Warning("AddEffect but there are too many active effects!");
             firstFreeIndex = 31; // Lets not crash
         }
 

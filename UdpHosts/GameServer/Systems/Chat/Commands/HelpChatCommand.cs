@@ -15,7 +15,7 @@ public class HelpChatCommand : ChatCommand
         }
         else
         {
-            Console.WriteLine(message);
+            Logger.Information(message);
         }
     }
 }

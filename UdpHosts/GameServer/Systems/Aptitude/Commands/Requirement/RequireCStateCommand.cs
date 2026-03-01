@@ -61,7 +61,7 @@ public class RequireCStateCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine($"RequireCStateCommand {Id} fails because source is not a Character. Source is {source.GetType().Name}. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because source is not a Character. Source is {sourceType}. If this is happening, we should investigate why.", nameof(RequireCStateCommand), Params.Id, source.GetType().Name);
             result = false;
         }
 

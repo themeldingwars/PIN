@@ -364,7 +364,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        Console.WriteLine($"Vehicle.SetStatusEffect Index {index}, Time {time}, Id {data.Id}");
+        Logger.Debug("Vehicle.SetStatusEffect Index {index}, Time {time}, Id {id}", index, time, data.Id);
 
         // Member
         this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -384,7 +384,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}");
+        Logger.Debug("Vehicle.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}", index, time, debugEffectId);
 
         // Member
         this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);

@@ -34,7 +34,7 @@ public class RequireMovementFlagsCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine($"RequireMovementFlagsCommand fails because target is not a Character. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireMovementFlagsCommand), Params.Id);
         }
 
         if (Params.Negate == 1)

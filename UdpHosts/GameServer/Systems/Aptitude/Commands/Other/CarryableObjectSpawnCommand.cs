@@ -25,7 +25,7 @@ public class CarryableObjectSpawnCommand : Command, ICommand
 
             if (entity == null)
             {
-                Console.WriteLine($"CarryableObjectSpawnCommand {Params.Id}, Failed to spawn?");
+                Logger.Warning("{Command} {CommandId}, Failed to spawn?", nameof(CarryableObjectSpawnCommand), Params.Id);
                 return false;
             }
 
@@ -38,7 +38,7 @@ public class CarryableObjectSpawnCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine($"Don't know which carryable to spawn in CarryableObjectSpawnCommand {Params.Id}, failing.");
+            Logger.Warning("Don't know which carryable to spawn in {Command} {CommandId}, failing.", nameof(CarryableObjectSpawnCommand), Params.Id);
             return false;
         }
     }

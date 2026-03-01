@@ -1,4 +1,3 @@
-using System;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
@@ -32,7 +31,7 @@ public class OrientationLockCommand : Command, ICommand
         var target = context.Self;
         if (target is CharacterEntity { IsPlayerControlled: true } character)
         {
-            Console.WriteLine($"OrientationLockCommand Sending ForcedMovementCancelled {Params.Id}");
+            Logger.Information("{Command} Sending ForcedMovementCancelled {CommandId}", nameof(OrientationLockCommand), Params.Id);
             var player = character.Player;
             var message = new ForcedMovementCancelled
             {

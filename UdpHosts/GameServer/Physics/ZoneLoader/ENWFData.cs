@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text.Json.Nodes;
+using Serilog;
 
 namespace GameServer.Physics.ZoneLoader;
 
 public class ENWFData
 {
+    private static readonly ILogger _logger = Log.ForContext<ENWFData>();
+
     public struct VertBlockContent
     {
         public Vector3[] Verts;
@@ -46,7 +49,7 @@ public class ENWFData
                 return result;
             }
 
-            Console.WriteLine($"Failed to find TagfileObject with query {query}");
+            _logger.Warning("Failed to find TagfileObject with query {Query}", query);
             return null;
         }
     }

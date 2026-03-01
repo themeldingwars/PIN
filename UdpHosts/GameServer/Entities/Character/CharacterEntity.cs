@@ -560,7 +560,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Time = Shard.CurrentTime,
             };
 
-            Console.WriteLine($"StatModifier {stat} set to {value.Value}");
+            Logger.Debug("StatModifier {Stat} set to {Value}", stat, value.Value);
 
             switch (stat)
             {
@@ -628,7 +628,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
         catch
         {
-            Console.WriteLine($"MISSING BaseStatModifier for {stat}");
+            Logger.Warning("MISSING BaseStatModifier for {Stat}", stat);
         }
 
         foreach (ActiveStatModifier mod in CurrentStatModifiers[stat].Values)
@@ -643,7 +643,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             }
             else
             {
-                Console.WriteLine($"GetCurrentStatModifierValue Unknown Op {mod.Op}");
+                Logger.Warning("GetCurrentStatModifierValue Unknown Op {Op}", mod.Op);
             }
         }
 
@@ -923,7 +923,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        Console.WriteLine($"Character.SetStatusEffect Index {index}, Time {time}, Id {data.Id}");
+        Logger.Debug("Character.SetStatusEffect Index {Index}, Time {Time}, Id {Id}", index, time, data.Id);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -943,7 +943,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}");
+        Logger.Debug("Character.ClearStatusEffect Index {Index}, Time {Time}, Id {DebugEffectId}", index, time, debugEffectId);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -990,7 +990,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         var time = Shard.CurrentShortTime;
         for (int index = 0; index < 32; index++)
         {
-            Console.WriteLine($"Character.ClearStatusEffect Index {index}, Time {time}");
+            Logger.Debug("Character.ClearStatusEffect Index {Index}, Time {Time}", index, time);
 
             // Member
             GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -1025,7 +1025,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         if (firstFreeIndex == InvalidIndex)
         {
-            Console.WriteLine("AddMapMarkers but there are too many active map markers!");
+            Logger.Warning("AddMapMarkers but there are too many active map markers!");
             firstFreeIndex = MaxMapMarkerCount - 1; // Lets not crash
         }
 
@@ -1101,7 +1101,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         if (weaponId == 0)
         {
-            Console.WriteLine($"GetActiveWeaponDetails failed to get selected weapon id from loadout");
+            Logger.Warning("GetActiveWeaponDetails failed to get selected weapon id from loadout");
             return null;
         }
 
@@ -1122,7 +1122,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
         catch (Exception)
         {
-            Console.WriteLine($"Failed to get WeaponSpread Attribute");
+            Logger.Warning("Failed to get WeaponSpread Attribute");
         }
 
         try
@@ -1131,7 +1131,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
         catch (Exception)
         {
-            Console.WriteLine($"Failed to get RateOfFire Attribute");
+            Logger.Warning("Failed to get RateOfFire Attribute");
         }
 
         // Calculate spread factor using Main even for Underbarrel, based on testing in-game.

@@ -1,5 +1,4 @@
-﻿using System;
-using GameServer.Data.SDB.Records.aptfs;
+﻿using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
@@ -32,13 +31,13 @@ public class RequireMovingCommand : Command, ICommand
                 else
                 {
                     // todo
-                    Console.WriteLine($"[RequireMovingCommand] velocity tolerance: {Params.Velocitytol}, negate: {Params.Negate}");
+                    Logger.Debug("[{Command} {CommandId}] velocity tolerance: {VelocityTol}, negate: {Negate}", nameof(RequireMovingCommand), Params.Id, Params.Velocitytol, Params.Negate);
                 }
             }
         }
         else
         {
-            Console.WriteLine($"RequireMovingCommand fails because target is not a Character. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireMovingCommand), Params.Id);
         }
 
         if (Params.Negate == 1)

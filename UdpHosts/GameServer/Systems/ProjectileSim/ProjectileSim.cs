@@ -2,7 +2,7 @@ using System.Numerics;
 using GameServer.Data.SDB.Records.dbitems;
 using GameServer.Entities.Character;
 
-namespace GameServer;
+namespace GameServer.Systems.ProjectileSim;
 
 public class ProjectileSim
 {

@@ -10,6 +10,7 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using Serilog;
 using static GameServer.Physics.ZoneLoader.BepuData;
 using static GameServer.Physics.ZoneLoader.ENWFData;
 
@@ -17,6 +18,8 @@ namespace GameServer.Physics.ZoneLoader;
 
 public class ZoneLoader
 {
+    private static readonly ILogger _logger = Log.ForContext<ZoneLoader>();
+
     private readonly JsonSerializerOptions _serializerOptions = new()
     {
         IncludeFields = true,
@@ -48,17 +51,17 @@ public class ZoneLoader
         PinZone zoneData = LoadZoneJSON(zoneFilePath);
         if (zoneData == null)
         {
-            Console.WriteLine($"ZoneLoader Failed to load {zoneFilePath}");
+            _logger.Error("ZoneLoader Failed to load {zoneFilePath}", zoneFilePath);
             return;
         }
 
-        Console.WriteLine($"Loading {zoneData.Chunks.Length} chunks");
+        _logger.Information("Loading {ChunkCount} chunks", zoneData.Chunks.Length);
         var counter = 0;
         foreach (var chunk in zoneData.Chunks)
         {
             var chunkFilePath = $"{mapsPath}\\chunks\\{chunk.Name}.pinchunk.json";
             var success = LoadChunkJSON(chunk.Origin, chunkFilePath);
-            Console.WriteLine($"({++counter}/{zoneData.Chunks.Length}) Chunk {chunk.Name} {(success ? "Loaded" : "Failed")}");
+            _logger.Information("({Counter}/{ChunkCount}) Chunk {ChunkName} {Status}", ++counter, zoneData.Chunks.Length, chunk.Name, success ? "Loaded" : "Failed");
         }
 
         stopWatch.Stop();
@@ -69,12 +72,12 @@ public class ZoneLoader
             ts.Seconds,
             ts.Milliseconds / 10);
         
-        Console.WriteLine($"ZoneLoader LoadCollision Finished in {elapsedTime}");
+        _logger.Information("ZoneLoader LoadCollision Finished in {ElapsedTime}", elapsedTime);
     }
 
     private PinZone LoadZoneJSON(string path)
     {
-        Console.WriteLine($"ZoneLoader LoadZoneJSON {path}");
+        _logger.Information("ZoneLoader LoadZoneJSON {Path}", path);
         try
         {
             string json = File.ReadAllText(path);
@@ -82,7 +85,7 @@ public class ZoneLoader
         }
         catch (Exception e)
         {
-            Console.WriteLine($"ZoneLoader LoadZoneJSON Failed: {e.Message} ({e.GetType().Name})");
+            _logger.Error("ZoneLoader LoadZoneJSON Failed: {Message} ({Type})", e.Message, e.GetType().Name);
             return null;
         }
     }
@@ -117,7 +120,7 @@ public class ZoneLoader
         }
         catch (Exception e)
         {
-            Console.WriteLine($"ZoneLoader LoadChunkJSON Failed: {e.Message} ({e.GetType().Name}) on {path}");
+            _logger.Error("ZoneLoader LoadChunkJSON Failed: {Message} ({Type}) on {Path}", e.Message, e.GetType().Name, path);
             return false;
         }
     }
@@ -176,7 +179,7 @@ public class ZoneLoader
             }
             catch (NotImplementedException)
             {
-                Console.WriteLine($"Ignoring child {childObj} of {obj} because support is not implemented");
+                _logger.Warning("Ignoring child {Child} of {Parent} because support is not implemented", childObj, obj);
             }
         }
 
@@ -300,8 +303,8 @@ public class ZoneLoader
         // TEMP
         if (float.IsNaN(stat.Pose.Orientation.X))
         {
-            Console.WriteLine($"CAPSULE {obj.Name} {rot}");
-            Console.WriteLine($"CAPSULE {obj.Name} STAT {stat.Pose.Orientation}");
+            _logger.Error("CAPSULE {Name} {Rot}", obj.Name, rot);
+            _logger.Error("CAPSULE {Name} STAT {Orientation}", obj.Name, stat.Pose.Orientation);
             throw new Exception();
         }
 

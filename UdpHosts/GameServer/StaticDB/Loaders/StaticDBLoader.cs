@@ -10,12 +10,14 @@ using Records.dbcharacter;
 using Records.dbitems;
 using Records.dbviusalrecords;
 using Records.vcs;
+using Serilog;
 using Shared.Common;
 using static FauFau.Formats.StaticDB;
 
 public class StaticDBLoader : ISDBLoader
 {
     private static readonly SnakeCasePropertyNamingPolicy Policy = new SnakeCasePropertyNamingPolicy();
+    private static readonly ILogger _logger = Log.ForContext<StaticDBLoader>();
     private static readonly Dictionary<string, string> ManualNameConversions = new()
     {
         { "DamageType", "damageType" }, // InflictDamageCommandDef and HealDamageCommandDef
@@ -1357,7 +1359,7 @@ public class StaticDBLoader : ISDBLoader
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Exception when loading {tableName}, {prop.PropInfo.Name}: {ex.Message}");
+                    _logger.Error("Exception when loading {tableName}, {PropName}: {Message}", tableName, prop.PropInfo.Name, ex.Message);
                 }
             }
 
@@ -1366,7 +1368,7 @@ public class StaticDBLoader : ISDBLoader
 
         foreach(string text in warningsSet)
         {
-            Console.WriteLine(text);
+            _logger.Warning(text);
         }
 
         return list.ToArray();

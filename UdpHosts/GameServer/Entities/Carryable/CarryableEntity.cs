@@ -105,7 +105,7 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        Console.WriteLine($"Carryable.SetStatusEffect Index {index}, Time {time}, Id {data.Id}");
+        Logger.Debug("Carryable.SetStatusEffect Index {index}, Time {time}, Id {effectId}", index, time, data.Id);
 
         // Member
         this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -118,7 +118,7 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        Console.WriteLine($"Carryable.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}");
+        Logger.Debug("Carryable.ClearStatusEffect Index {index}, Time {time}, Id {effectId}", index, time, debugEffectId);
 
         // Member
         this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);

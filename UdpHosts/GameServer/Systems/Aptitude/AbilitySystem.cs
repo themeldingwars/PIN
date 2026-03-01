@@ -4,11 +4,13 @@ using System.Threading;
 using AeroMessages.GSS.V66.Character.Command;
 using GameServer.Data.SDB;
 using GameServer.Enums;
+using Serilog;
 
 namespace GameServer.Aptitude;
 
 public class AbilitySystem
 {
+    private static readonly ILogger _logger = Log.ForContext<AbilitySystem>();
     public Factory Factory;
     private Shard Shard;
     private Dictionary<ulong, VehicleCalldownRequest> PlayerVehicleCalldownRequests;
@@ -21,7 +23,7 @@ public class AbilitySystem
     public AbilitySystem(Shard shard)
     {
         Shard = shard;
-        Factory = new Factory();
+        Factory = new Factory(shard);
         PlayerVehicleCalldownRequests = new();
         PlayerDeployableCalldownRequests = new();
         PlayerThumperCalldownRequests = new();
@@ -40,22 +42,22 @@ public class AbilitySystem
             case Operand.MULTIPLY_ALT:
                 return second * first;
             case Operand.EXPONENTIATE:
-                Console.WriteLine($"Uncertain RegistryOp {op}. {second} ^ {first} = {(float)Math.Pow(second, first)}");
+                _logger.Debug("Uncertain RegistryOp {op}. {second} ^ {first} = {result}", op, second, first, (float)Math.Pow(second, first));
                 return (float)Math.Pow(second, first);
             case Operand.SUBTRACT:
-                Console.WriteLine($"Uncertain RegistryOp {op}. {second} - {first} = {second - first}");
+                _logger.Debug("Uncertain RegistryOp {op}. {second} - {first} = {result}", op, second, first, second - first);
                 return second - first;
             case Operand.DIVIDE:
-                Console.WriteLine($"Uncertain RegistryOp {op}. {second} / {first} = {second / first}");
+                _logger.Debug("Uncertain RegistryOp {op}. {second} / {first} = {result}", op, second, first, second / first);
                 return second / first;
             case Operand.MINIMUM:
-                Console.WriteLine($"Uncertain RegistryOp {op}. Min({second}, {first}) = {((first <= second) ? first : second)}");
+                _logger.Debug("Uncertain RegistryOp {op}. Min({second}, {first}) = {result}", op, second, first, ((first <= second) ? first : second));
                 return (first <= second) ? first : second;
             case Operand.MAXIMUM:
-                Console.WriteLine($"Uncertain RegistryOp {op}. Max({second}, {first}) = {((first >= second) ? first : second)}");
+                _logger.Debug("Uncertain RegistryOp {op}. Max({second}, {first}) = {result}", op, second, first, ((first >= second) ? first : second));
                 return (first >= second) ? first : second;
             default:
-                Console.WriteLine($"Unknown RegistryOp {op}");
+                _logger.Warning("Unknown RegistryOp {op}", op);
                 return second;
         }
     }
@@ -187,7 +189,7 @@ public class AbilitySystem
     {
         if (PlayerVehicleCalldownRequests.ContainsKey(entityId))
         {
-            Console.WriteLine($"Discarded an unconsumed vehicle calldown request");
+            _logger.Information("Discarded an unconsumed vehicle calldown request for {entityId}", entityId);
             PlayerVehicleCalldownRequests.Remove(entityId);
         }
         
@@ -198,7 +200,7 @@ public class AbilitySystem
     {
         if (PlayerDeployableCalldownRequests.ContainsKey(entityId))
         {
-            Console.WriteLine($"Discarded an unconsumed deployable calldown request");
+            _logger.Information("Discarded an unconsumed deployable calldown request for {entityId}", entityId);
             PlayerDeployableCalldownRequests.Remove(entityId);
         }
         
@@ -209,7 +211,7 @@ public class AbilitySystem
     {
         if (PlayerThumperCalldownRequests.ContainsKey(entityId))
         {
-            Console.WriteLine($"Discarded an unconsumed thumper calldown request");
+            _logger.Information("Discarded an unconsumed thumper calldown request for {entityId}", entityId);
             PlayerThumperCalldownRequests.Remove(entityId);
         }
         
@@ -218,7 +220,7 @@ public class AbilitySystem
 
     public void HandleLocalProximityAbilitySuccess(IShard shard, IAptitudeTarget source, uint commandId, uint time, AptitudeTargets targets)
     {
-        Console.WriteLine($"HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, Targets {string.Join(Environment.NewLine, targets)} ({targets.Count})");
+        _logger.Information("HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, TargetsCount {targetsCount}", source, commandId, time, targets.Count);
 
         var commandDef = SDBInterface.GetRegisterClientProximityCommandDef(commandId);
 
@@ -247,6 +249,8 @@ public class AbilitySystem
         {
             return;
         }
+
+        _logger.Information("HandleActivateAbility: Ability {AbilityId} starting Chain {ChainId}", abilityId, chainId);
 
         var chain = Factory.LoadChain(chainId);
         chain.Execute(new Context(shard, initiator)

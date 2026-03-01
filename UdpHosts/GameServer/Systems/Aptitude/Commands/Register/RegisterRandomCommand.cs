@@ -24,7 +24,7 @@ public class RegisterRandomCommand : Command, ICommand
         float randValue = Params.MinValue + (range * rand);
         context.Register = AbilitySystem.RegistryOp(prevValue, randValue, (Operand)Params.Regop);
 
-        Console.WriteLine($"RegisterRandomCommand: ({prevValue}, {randValue} ({Params.MinValue} - {Params.MaxValue}), {(Operand)Params.Regop}) => {context.Register}");
+        Logger.Debug("{Command} {CommandId}: ({prevValue}, {randValue} ({Min} - {Max}), {op}) => {register}", nameof(RegisterRandomCommand), Params.Id, prevValue, randValue, Params.MinValue, Params.MaxValue, (Operand)Params.Regop, context.Register);
 
         return true;
     }

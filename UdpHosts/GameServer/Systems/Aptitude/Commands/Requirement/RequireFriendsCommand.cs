@@ -27,7 +27,7 @@ public class RequireFriendsCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine("RequireFriendsCommand fails because target is not a Character. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireFriendsCommand), Params.Id);
         }
 
         return result;

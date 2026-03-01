@@ -26,7 +26,7 @@ public class PhysicsEngine
     public PhysicsEngine(Shard shard)
     {
         _shard = shard;
-        _logger = shard.Logger;
+        _logger = shard.Logger.ForContext<PhysicsEngine>();
 
         // Determine number of threads to use
         var targetThreadCount = int.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
@@ -93,7 +93,7 @@ public class PhysicsEngine
         if (hitHandler.T < maxRange)
         {   
             var hitPosition = origin + (direction * hitHandler.T);
-            Console.WriteLine($"HitHandler {hitHandler.HitCollidable.Mobility} T {hitHandler.T} HitCollidable {hitHandler.HitCollidable} at {hitPosition}");
+            _logger.Debug("HitHandler {Mobility} T {T} HitCollidable {HitCollidable} at {HitPosition}", hitHandler.HitCollidable.Mobility, hitHandler.T, hitHandler.HitCollidable, hitPosition);
 
             SendDebugProjectileImpact(source, trace, hitPosition, hitHandler.Normal);
 

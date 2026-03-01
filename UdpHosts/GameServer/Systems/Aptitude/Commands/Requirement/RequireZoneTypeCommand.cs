@@ -1,5 +1,4 @@
-﻿using System;
-using GameServer.Data;
+﻿using GameServer.Data;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 
@@ -33,7 +32,7 @@ public class RequireZoneTypeCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine("RequireZoneTypeCommand fails because target is not a Character. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireZoneTypeCommand), Params.Id);
         }
 
         if (Params.Negate == 1)

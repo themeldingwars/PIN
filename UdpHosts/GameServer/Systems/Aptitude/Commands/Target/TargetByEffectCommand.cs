@@ -19,7 +19,7 @@ public class TargetByEffectCommand : Command, ICommand
         var previousTargets = context.Targets;
         var newTargets = new AptitudeTargets();
 
-        Console.WriteLine("prev:" + previousTargets.Count);
+        Logger.Debug("prev: {Count}", previousTargets.Count);
         foreach (IAptitudeTarget target in previousTargets)
         {
             foreach (EffectState active in target.GetActiveEffects())
