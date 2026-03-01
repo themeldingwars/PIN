@@ -22,7 +22,7 @@ public abstract class PacketServer : IPacketSender
 
     protected PacketServer(ushort port, ILogger logger)
     {
-        Logger = logger;
+        Logger = logger.ForContext<PacketServer>();
         ListenEndpoint = new IPEndPoint(IPAddress.Any, port);
         ServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     }
