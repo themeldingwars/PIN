@@ -29,11 +29,11 @@ public class SetPoweredStateCommand : Command, ICommand
 
             if ((bool)Params.PowerOn)
             {
-                context.Shard.Abilities.HandleActivateAbility(context.Shard, target, deployable.PoweredOnAbility);
+                context.Shard.Abilities.HandleActivateAbility(context.Shard, target, deployable.PoweredOnAbility, context.Shard.CurrentTime, new AptitudeTargets(), context.ExecutionId);
             }
             else
             {
-                context.Shard.Abilities.HandleActivateAbility(context.Shard, target, deployable.PoweredOffAbility);
+                context.Shard.Abilities.HandleActivateAbility(context.Shard, target, deployable.PoweredOffAbility, context.Shard.CurrentTime, new AptitudeTargets(), context.ExecutionId);
             }
         }
 

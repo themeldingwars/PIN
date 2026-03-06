@@ -48,7 +48,8 @@ public class EndInteractionCommand : ICommand
                     (IAptitudeTarget)interactionEntity,
                     abilityId,
                     context.Shard.CurrentTime,
-                    new AptitudeTargets(character));
+                    new AptitudeTargets(character),
+                    context.ExecutionId);
         }
 
         var interactionType = interactionEntity.Interaction.Type;

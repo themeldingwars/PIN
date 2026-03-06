@@ -25,6 +25,7 @@ public class Chain
 
     public bool Execute(Context context, ExecutionMethod method = ExecutionMethod.AndChain)
     {
+        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", context.ExecutionId);
         bool debug = context.ExecutionHint is not (ExecutionHint.DurationEffect or ExecutionHint.UpdateEffect);
 
         if (debug)

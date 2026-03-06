@@ -134,6 +134,7 @@ public class AbilitySystem
 
         effect.ApplyChain?.Execute(applyContext);
 
+        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", applyContext.ExecutionId);
         foreach (var pair in applyContext.Actives)
         {
             ICommand activeCommand = pair.Key;
@@ -147,6 +148,7 @@ public class AbilitySystem
         activeEffect.Context.Self.ClearEffect(activeEffect);
         activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context);
 
+        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", activeEffect.Context.ExecutionId);
         foreach (var pair in activeEffect.Context.Actives)
         {
             ICommand activeCommand = pair.Key;
@@ -218,15 +220,17 @@ public class AbilitySystem
         PlayerThumperCalldownRequests.Add(entityId, request);
     }
 
-    public void HandleLocalProximityAbilitySuccess(IShard shard, IAptitudeTarget source, uint commandId, uint time, AptitudeTargets targets)
+    public void HandleLocalProximityAbilitySuccess(IShard shard, IAptitudeTarget source, uint commandId, uint time, AptitudeTargets targets, Guid? executionId = null)
     {
+        var execId = executionId ?? Guid.NewGuid();
+        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
         _logger.Information("HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, TargetsCount {targetsCount}", source, commandId, time, targets.Count);
 
         var commandDef = SDBInterface.GetRegisterClientProximityCommandDef(commandId);
 
         if (commandDef.AbilityId != 0)
         {
-            HandleActivateAbility(shard, source, commandDef.AbilityId, time, targets);
+            HandleActivateAbility(shard, source, commandDef.AbilityId, time, targets, execId);
         }
 
         if (commandDef.Chain != 0)
@@ -234,6 +238,7 @@ public class AbilitySystem
             var chain = Factory.LoadChain(commandDef.Chain);
             chain.Execute(new Context(shard, source)
             {
+                ExecutionId = execId,
                 ChainId = commandDef.Chain,
                 Targets = targets,
                 InitTime = time,
@@ -242,8 +247,10 @@ public class AbilitySystem
         }
     }
 
-    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets)
+    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null)
     {
+        var execId = executionId ?? Guid.NewGuid();
+        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
         var chainId = SDBInterface.GetAbilityData(abilityId).Chain;
         if (chainId == 0)
         {
@@ -255,6 +262,7 @@ public class AbilitySystem
         var chain = Factory.LoadChain(chainId);
         chain.Execute(new Context(shard, initiator)
         {
+            ExecutionId = execId,
             ChainId = chainId,
             AbilityId = abilityId,
             Targets = targets,
