@@ -18,7 +18,7 @@ public class TargetOwnedDeployablesCommand : Command, ICommand
     {
         if (context.Self is not CharacterEntity character)
         {
-            Console.WriteLine("TargetOwnedDeployablesCommand fails because Self is not a Character. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because Self is not a Character. If this is happening, we should investigate why.", nameof(TargetOwnedDeployablesCommand), Params.Id);
             return false;
         }
 

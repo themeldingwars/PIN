@@ -36,7 +36,7 @@ public class ActiveInitiationCommmand : Command, ICommand
                         GlobalCooldown_ReadyAgain_Time = context.InitTime + 300,
                     }
                 };
-                Console.WriteLine($"ActivateAbility {message.ActivatedAbilityId} at {message.ActivatedTime}");
+                Logger.Information("ActivateAbility {ActivatedAbilityId} at {ActivatedTime}", message.ActivatedAbilityId, message.ActivatedTime);
                 player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
             }
         }

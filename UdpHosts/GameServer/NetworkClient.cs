@@ -169,11 +169,11 @@ public class NetworkClient : INetworkClient
     {
         if (received != null)
         {
-            Logger.Verbose("<-- {0} Ack for {1} on {2} after {3}ms.", ChannelType.Control, forSequenceNumber, forChannel, (DateTime.Now - received.Value).TotalMilliseconds);
+            Logger.Verbose("<-- {Channel} Ack for {SeqNum} on {ForChannel} after {ElapsedTime}ms.", ChannelType.Control, forSequenceNumber, forChannel, (DateTime.Now - received.Value).TotalMilliseconds);
         }
         else
         {
-            Logger.Verbose("<-- {0} Ack for {1} on {2}.", ChannelType.Control, forSequenceNumber, forChannel);
+            Logger.Verbose("<-- {Channel} Ack for {SeqNum} on {ForChannel}.", ChannelType.Control, forSequenceNumber, forChannel);
         }
 
         var forNum = Utils.SimpleFixEndianness(forSequenceNumber);
@@ -201,19 +201,19 @@ public class NetworkClient : INetworkClient
 
         if (connection == null)
         {
-            Logger.Verbose("---> Unrecognized ControllerId for GSS Packet; Controller = {0} Entity = 0x{1:X16} MsgID = {2}!", controllerId, entityId, messageId);
-            Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+            Logger.Verbose("---> Unrecognized ControllerId for GSS Packet; Controller = {Controller} Entity = 0x{EntityId:X16} MsgID = {MessageId}!", controllerId, entityId, messageId);
+            Logger.Warning(">  {PacketData}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
             return;
         }
 
-        Logger.Verbose("--> {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3}", packet.Header.Channel, controllerId, entityId, messageId);
+        Logger.Verbose("--> {Channel}: Controller = {Controller} Entity = 0x{EntityId:X16} MsgID = {MessageId}", packet.Header.Channel, controllerId, entityId, messageId);
         connection.HandlePacket(this, Player, entityId, messageId, packet, Logger);
     }
 
     private void Matrix_PacketAvailable(GamePacket packet)
     {
         var messageId = packet.Read<MatrixPacketType>();
-        Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Matrix, messageId, (byte)messageId);
+        Logger.Verbose("--> {Channel}: MsgID = {Message} ({MessageId})", ChannelType.Matrix, messageId, (byte)messageId);
 
         switch (messageId)
         {
@@ -223,6 +223,7 @@ public class NetworkClient : INetworkClient
                 break;
             case MatrixPacketType.EnterZoneAck:
                 Factory.Get<BaseController>().Init(this, Player, AssignedShard, Logger);
+                Factory.Get<CombatController>().Init(this, Player, AssignedShard, Logger);
                 Player.EnterZoneAck();
                 break;
             case MatrixPacketType.ExitZoneAck:
@@ -230,7 +231,10 @@ public class NetworkClient : INetworkClient
                 break;
             case MatrixPacketType.KeyframeRequest:
                 var query = packet.Unpack<KeyframeRequest>();
-                Logger.Verbose($"KeyframeRequest with {query.EntityRequests?.Length ?? 0} entity requests and {query.RefRequests?.Length ?? 0} ref requests. Total scoped for player: {AssignedShard.EntityMan.GetNumberOfScopedEntities(Player)}");
+                Logger.Verbose("KeyframeRequest with {EntityRequests} entity requests and {RefRequests} ref requests. Total scoped for player: {ScopedEntitiesForPlayer}",
+                    query.EntityRequests?.Length ?? 0,
+                    query.RefRequests?.Length ?? 0,
+                    AssignedShard.EntityMan.GetNumberOfScopedEntities(Player));
                 foreach (var request in query.EntityRequests)
                 {
                     Enums.GSS.Controllers typecode = (Enums.GSS.Controllers)(request.Entity & 0x00000000000000FFul);
@@ -241,7 +245,7 @@ public class NetworkClient : INetworkClient
                     }
                     else
                     {
-                        Console.WriteLine($"KeyframeRequest failed to find {request.Entity} ({typecode})");
+                        Logger.Warning("KeyframeRequest failed to find {Entity} ({TypeCode})", request.Entity, typecode);
                     }
                 }
 
@@ -263,8 +267,8 @@ public class NetworkClient : INetworkClient
                 // Ignore
                 break;
             default:
-                Logger.Error("---> Unrecognized Matrix Packet {0}[{1}]!!!", messageId, (byte)messageId);
-                Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+                Logger.Warning("---> Unrecognized Matrix Packet {Message}[{MessageId}]!!!", messageId, (byte)messageId);
+                Logger.Warning(">  {PacketData}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 break;
         }
     }
@@ -272,7 +276,7 @@ public class NetworkClient : INetworkClient
     private void Control_PacketAvailable(GamePacket packet)
     {
         var messageId = packet.Read<ControlPacketType>();
-        Logger.Verbose("--> {0}: MsgID = {1} ({2})", ChannelType.Control, messageId, (byte)messageId);
+        Logger.Verbose("--> {Channel}: MsgID = {Message} ({MessageId})", ChannelType.Control, messageId, (byte)messageId);
 
         switch (messageId)
         {
@@ -284,12 +288,12 @@ public class NetworkClient : INetworkClient
             case ControlPacketType.MatrixAck:
                 // TODO: Track reliable packets
                 var matrixAckPackage = packet.Unpack<MatrixAck>();
-                Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckForNum), ChannelType.Matrix);
+                Logger.Verbose("--> {Channel} Ack for {AckForNum} on {ForChannel}.", ChannelType.Control, Utils.SimpleFixEndianness(matrixAckPackage.AckForNum), ChannelType.Matrix);
                 break;
             case ControlPacketType.ReliableGSSAck:
                 // TODO: Track reliable packets
                 var reliableGssAckPackage = packet.Unpack<GSSAck>();
-                Logger.Verbose("--> {0} Ack for {1} on {2}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckForNum), ChannelType.ReliableGss);
+                Logger.Verbose("--> {Channel} Ack for {AckForNum} on {ForChannel}.", ChannelType.Control, Utils.SimpleFixEndianness(reliableGssAckPackage.AckForNum), ChannelType.ReliableGss);
                 break;
             case ControlPacketType.TimeSyncRequest:
                 var timeSyncRequestPackage = packet.Unpack<TimeSyncRequest>();
@@ -303,8 +307,8 @@ public class NetworkClient : INetworkClient
                 // TODO: ???
                 break;
             default:
-                Logger.Error("---> Unrecognized Control Packet {0} ({1:X2})!!!", messageId, (byte)messageId);
-                Logger.Warning(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+                Logger.Warning("---> Unrecognized Control Packet {Message} ({MessageId:X2})!!!", messageId, (byte)messageId);
+                Logger.Warning(">  {PacketData}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 break;
         }
     }

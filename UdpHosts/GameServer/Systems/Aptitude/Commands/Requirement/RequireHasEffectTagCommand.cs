@@ -16,7 +16,7 @@ public class RequireHasEffectTagCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        Console.WriteLine($"[RequireHasEffectTag] EffectTag: {Params.TagId}");
+        Logger.Debug("[{Command} {CommandId}] EffectTag: {TagId}", nameof(RequireHasEffectTagCommand), Params.Id, Params.TagId);
         bool result = false;
         var effectTagEffectIds = SDBInterface.GetStatusEffectTag(Params.TagId);
 

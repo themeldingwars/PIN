@@ -23,7 +23,7 @@ public class UnpackItemCommand : Command, ICommand
 
         if (context.Self is not CharacterEntity { IsPlayerControlled: true } character)
         {
-            Console.WriteLine($"Self{context.Self} is not a CharacterEntity");
+            Logger.Warning("{Command} {CommandId} Self {Self} is not a CharacterEntity", nameof(UnpackItemCommand), Params.Id, context.Self);
             return false;
         }
 

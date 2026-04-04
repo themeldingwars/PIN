@@ -1,5 +1,4 @@
-﻿using System;
-using GameServer.Data.SDB.Records.aptfs;
+﻿using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;
@@ -27,7 +26,7 @@ public class RequireSprintModifierCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine($"RequireSprintModifierCommand fails because target is not a Character. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireSprintModifierCommand), Params.Id);
         }
 
         if (Params.Negate == 1)

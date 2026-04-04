@@ -6,11 +6,14 @@ using GameServer.GRPC.EventHandlers;
 using Grpc.Core;
 using Grpc.Net.Client;
 using GrpcGameServerAPIClient;
+using Serilog;
 
 namespace GameServer.GRPC;
 
 public static class GRPCService
 {
+    private static readonly ILogger _logger = Log.ForContext(typeof(GRPCService));
+
     private static GrpcChannel _channel;
     private static GameServerAPI.GameServerAPIClient _client;
     private static AsyncDuplexStreamingCall<Command, Event> _stream;
@@ -52,7 +55,7 @@ public static class GRPCService
 
         await foreach (var evt in _stream.ResponseStream.ReadAllAsync(ct))
         {
-            Console.WriteLine(evt);
+            _logger.Information("{Event}", evt);
             switch (evt.SubtypeCase)
             {
                 case Event.SubtypeOneofCase.ArmyApplicationApproved:

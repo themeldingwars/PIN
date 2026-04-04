@@ -29,7 +29,7 @@ public class RegisterLoadScaleCommand : Command, ICommand
 
         if (scale == 0)
         {
-            Console.WriteLine("RegisterLoadScaleCommand fails because Self is not a Deployable or Thumper. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because Self is not a Deployable or Thumper. If this is happening, we should investigate why.", nameof(RegisterLoadScaleCommand), Params.Id);
             return false;
         }
 

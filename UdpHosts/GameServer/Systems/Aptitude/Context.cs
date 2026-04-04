@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -14,6 +15,7 @@ public class Context
         Targets = new AptitudeTargets();
         FormerTargets = new AptitudeTargets();
         InitPosition = initiator.Position;
+        ExecutionId = Guid.NewGuid();
     }
 
     public uint ChainId { get; set; }
@@ -31,6 +33,7 @@ public class Context
     public uint InitTime { get; set; }
     public Vector3 InitPosition { get; set; }
     public ExecutionHint ExecutionHint { get; set; }
+    public Guid ExecutionId { get; set; }
 
     public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = new Dictionary<ICommand, ICommandActiveContext>();
 
@@ -52,6 +55,7 @@ public class Context
             InitTime = original.InitTime,
             InitPosition = original.InitPosition,
             ExecutionHint = original.ExecutionHint,
+            ExecutionId = original.ExecutionId,
         };
     } 
 

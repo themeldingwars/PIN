@@ -22,7 +22,7 @@ public class InteractionTypeCommand : Command, ICommand
             var hack = interactionEntity as BaseEntity;
             var type = hack.Interaction.Type;
 
-            Console.WriteLine($"Compared {type} with {Params.Type}");
+            Logger.Debug("{Command} {CommandId} Compared {type} with {ParamsType}", nameof(InteractionTypeCommand), Params.Id, type, Params.Type);
             return (byte)type == Params.Type;
         }
         else

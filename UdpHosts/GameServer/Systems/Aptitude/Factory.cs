@@ -7,11 +7,21 @@ using GameServer.Data.SDB.Records.apt;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Data.SDB.Records.customdata;
 using GameServer.Enums.GSS.Character;
+using Serilog;
 
 namespace GameServer.Aptitude;
 
 public class Factory
 {
+    private Shard Shard;
+    private ILogger Logger;
+
+    public Factory(Shard shard)
+    {
+        Shard = shard;
+        Logger = shard.Logger.ForContext<AbilitySystem>();
+    }
+
     public Effect LoadEffect(uint effectId)
     {
         var statusEffectData = SDBInterface.GetStatusEffectData(effectId);
@@ -60,7 +70,7 @@ public class Factory
 
         if (chain.Commands.Count == 0)
         {
-            Console.WriteLine($"Loaded empty chain {chainId}");
+            Logger.Debug("Loaded empty chain {chainId}", chainId);
         }
 
         return chain;

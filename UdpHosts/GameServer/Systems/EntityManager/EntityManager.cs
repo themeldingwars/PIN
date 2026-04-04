@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +7,7 @@ using Aero.Gen;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Melding.View;
+using GameServer.Aptitude;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Data.SDB.Records.customdata;
@@ -23,14 +23,16 @@ using GameServer.Entities.Thumper;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Extensions;
+using Serilog;
 using Timer = System.Threading.Timer;
 
-namespace GameServer;
+namespace GameServer.Systems.EntityManager;
 
 public class EntityManager
 {
     private const byte ServerId = 31;
     private Shard Shard;
+    private ILogger Logger;
     private uint Counter = 0;
 
     private ulong LastUpdateFlush = 0;
@@ -51,6 +53,7 @@ public class EntityManager
     public EntityManager(Shard shard)
     {
         Shard = shard;
+        Logger = shard.Logger.ForContext<EntityManager>();
     }
 
     public int GetNumberOfScopedEntities(IPlayer player)
@@ -185,7 +188,7 @@ public class EntityManager
 
             var timer = new Timer(state =>
                  {
-                     Console.WriteLine($"deployable: Executing ability {deployableInfo.PoweredOnAbility}");
+                     Logger.ForContext<AbilitySystem>().Information("Deployable: Executing ability {PoweredOnAbility}", poweredOnAbility);
                      Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility);
 
                      ((Timer)state)?.Dispose();
@@ -636,7 +639,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
                         break;
                 }
 
@@ -661,7 +664,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
                         break;
                 }
 
@@ -685,7 +688,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
                         break;
                 }
 
@@ -784,7 +787,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
                         break;
                 }
 
@@ -869,7 +872,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
@@ -894,7 +897,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
@@ -935,7 +938,7 @@ public class EntityManager
                         break;
 
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
 
                         break;
                 }
@@ -960,7 +963,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
@@ -984,7 +987,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
@@ -1008,13 +1011,13 @@ public class EntityManager
 
                         break;
                     default:
-                        Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
                 break;
             default:
-                Console.WriteLine($"Unhandled KeyframeRequest for {typecode}");
+                Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                 break;
         }
     }

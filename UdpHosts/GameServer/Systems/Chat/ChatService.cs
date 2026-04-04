@@ -7,6 +7,7 @@ using AeroMessages.GSS.V66.Generic;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using Serilog;
 
 namespace GameServer.Systems.Chat;
 
@@ -22,11 +23,13 @@ public class ChatService
 
     private Shard Shard;
     private ChatCommandService CommandService;
+    private ILogger Logger;
 
     public ChatService(Shard shard)
     {
         Shard = shard;
         CommandService = new ChatCommandService(shard);
+        Logger = shard.Logger.ForContext<ChatService>();
     }
 
     public void CharacterPerformTextChat(INetworkClient client, IEntity entity, PerformTextChat query)
@@ -43,7 +46,7 @@ public class ChatService
         if (trimmed.StartsWith('\\'))
         {
             CommandService.ExecuteCommand(trimmed[1..], ((CharacterEntity)entity).Player);
-            Console.WriteLine(query.Message);
+            Logger.Information("Chat Command Executed: {message}", query.Message);
         }
         else if (PublicBroadcastChannels.Contains(queryChannel))
         {

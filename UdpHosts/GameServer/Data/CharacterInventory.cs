@@ -6,12 +6,15 @@ using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using Serilog;
 using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
 
 namespace GameServer.Data;
 
 public class CharacterInventory
 {
+    private static readonly ILogger _logger = Log.ForContext<CharacterEntity>();
+
     public bool EnablePartialUpdates = false;
 
     private Dictionary<ulong, Item> _items; // By guid
@@ -485,7 +488,7 @@ public class CharacterInventory
                 result = InventoryType.Gear;
                 break;
             default:
-                Console.WriteLine($"Unknown InventoryType for ItemType {(ItemType)itemType}, defaulting to {result}");
+                _logger.Warning("Unknown InventoryType for ItemType {ItemType}, defaulting to {Result}", (ItemType)itemType, result);
                 break;
         }
 

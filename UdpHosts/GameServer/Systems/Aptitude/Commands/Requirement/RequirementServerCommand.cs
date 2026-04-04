@@ -22,7 +22,7 @@ public class RequirementServerCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine($"RequirementServerCommand returns false for {Params.Id}");
+            Logger.Warning("{Command} {CommandId} returns false", nameof(RequirementServerCommand), Params.Id);
             return false;
         }
     }

@@ -1,16 +1,18 @@
-using System;
 using System.Numerics;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using Serilog;
 
 namespace GameServer.Admin;
 
 public abstract class ServerCommand
 {
+    protected static readonly ILogger Logger = Log.ForContext<AdminService>();
+
     public abstract void Execute(string[] parameters, ServerCommandContext context);
     public virtual void SourceFeedback(string message, ServerCommandContext context)
     {
-        Console.WriteLine(message);
+        Logger.Information("{Message}", message);
         context.SourcePlayer?.SendDebugChat(message);
     }
 
@@ -35,7 +37,7 @@ public abstract class ServerCommand
         }
         else
         {
-            Console.WriteLine($"Invalid format: {value}");
+            Logger.Warning("Invalid format: {Value}", value);
             return 0;
         }
     }
@@ -48,7 +50,7 @@ public abstract class ServerCommand
         }
         else
         {
-            Console.WriteLine($"Invalid format: {value}");
+            Logger.Warning("Invalid format: {Value}", value);
             return 0;
         }
     }
@@ -57,7 +59,7 @@ public abstract class ServerCommand
     {
         if (startIndex < 0 || startIndex >= parameters.Length)
         {
-            Console.WriteLine($"Invalid start index: {startIndex}");
+            Logger.Warning("Invalid start index: {startIndex}", startIndex);
             return null;
         }
 
@@ -70,7 +72,7 @@ public abstract class ServerCommand
         }
         else
         {
-            Console.WriteLine("Invalid format for Vector3 parameters");
+            Logger.Warning("Invalid format for Vector3 parameters");
             return null;
         }
     }

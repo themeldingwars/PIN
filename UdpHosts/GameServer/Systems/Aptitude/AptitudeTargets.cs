@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Serilog;
 
 namespace GameServer.Aptitude;
 
 public class AptitudeTargets : IEnumerable<IAptitudeTarget>
 {
+    private static readonly ILogger _logger = Log.ForContext<AptitudeTargets>();
+
     private readonly List<IAptitudeTarget> _targets;
 
     public AptitudeTargets()
@@ -54,7 +57,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
 
         PrintTargets();
 
-        Console.WriteLine($"Pushing new target: {target}");
+        _logger.Debug("Pushing new target: {target}", target);
 
         _targets.Add(target);
     }
@@ -69,7 +72,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
         {
             result = _targets[^1];
 
-            Console.WriteLine($"Popping target: {result}");
+            _logger.Debug("Popping target: {result}", result);
 
             _targets.RemoveAt(_targets.Count - 1);
 
@@ -89,7 +92,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
         {
             result = _targets[^1];
 
-            Console.WriteLine($"Peeking at target: {result}");
+            _logger.Debug("Peeking at target: {result}", result);
 
             return true;
         }
@@ -108,7 +111,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
     {
         PrintTargets();
 
-        Console.WriteLine($"Removing first {number} targets");
+        _logger.Debug("Removing first {number} targets", number);
 
         _targets.RemoveRange(0, Math.Min(number, _targets.Count));
     }
@@ -117,7 +120,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
     {
         PrintTargets();
 
-        Console.WriteLine($"Popping last {number} targets");
+        _logger.Debug("Popping last {number} targets", number);
 
         _targets.RemoveRange(_targets.Count - Math.Min(number, _targets.Count), Math.Min(number, _targets.Count));
     }
@@ -141,6 +144,6 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
             s += e + ", ";
         }
 
-        Console.WriteLine($"Targets ({_targets.Count}): {s.Trim(',', ' ')}");
+        _logger.Debug("Targets ({count}): {targets}", _targets.Count, s.Trim(',', ' '));
     }
 }

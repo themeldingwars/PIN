@@ -22,7 +22,7 @@ public class SetRegisterCommand : Command, ICommand
 
         if (true)
         {
-            Console.WriteLine($"SetRegisterCommand: ({prevValue}, {paramValue}, {(Operand)Params.Regop}) => {context.Register}");
+            Logger.Debug("{Command} {CommandId}: ({prevValue}, {paramValue}, {op}) => {register}", nameof(SetRegisterCommand), Params.Id, prevValue, paramValue, (Operand)Params.Regop, context.Register);
         }
 
         return true;

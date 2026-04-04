@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Serilog;
 
 namespace GameServer.Systems.Chat;
 
@@ -10,10 +11,12 @@ public class ChatCommandService
 {
     private readonly Dictionary<string, Type> _commandDictionary;
     private Shard _shard;
+    private ILogger Logger;
 
     public ChatCommandService(Shard shard)
     {
         _shard = shard;
+        Logger = shard.Logger.ForContext<ChatCommandService>();
         _commandDictionary = new Dictionary<string, Type>();
 
         LoadCommands();
@@ -45,7 +48,7 @@ public class ChatCommandService
         }
         else
         {
-            Console.WriteLine($"Unknown command: {commandName}");
+            Logger.Warning("Unknown command: {commandName}", commandName);
             sourcePlayer?.SendDebugChat($"Unknown command: {commandName}");
         }
     }

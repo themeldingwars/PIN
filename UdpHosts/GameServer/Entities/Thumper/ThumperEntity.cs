@@ -129,7 +129,7 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        Console.WriteLine($"Thumper.SetStatusEffect Index {index}, Time {time}, Id {data.Id}");
+        Logger.Debug("Thumper.SetStatusEffect Index {index}, Time {time}, Id {id}", index, time, data.Id);
 
         // Member
         this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -142,7 +142,7 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        Console.WriteLine($"Thumper.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}");
+        Logger.Debug("Thumper.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}", index, time, debugEffectId);
 
         // Member
         this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);

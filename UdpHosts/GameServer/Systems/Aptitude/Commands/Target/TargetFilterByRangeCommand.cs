@@ -35,7 +35,7 @@ public class TargetFilterByRangeCommand : Command, ICommand
             }
             else
             {
-                Console.WriteLine($"[TargetFilterByRange] Target is not CharacterEntity: {target}");
+                Logger.Debug("[TargetFilterByRange] Target is not CharacterEntity: {target}", target);
             }
         }
 

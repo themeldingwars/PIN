@@ -1,4 +1,6 @@
-﻿using Serilog.Events;
+﻿using System;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace GameServer;
 
@@ -7,10 +9,26 @@ namespace GameServer;
 /// </summary>
 public class GameServerSettings
 {
+    [Flags]
+    public enum LogOutput
+    {
+        None = 0,
+        Console = 1,
+        Seq = 2,
+        File = 4,
+    }
+
     /// <summary>
     ///     The log level to use for the logger. Any messages below this level won't be printed to console.
     /// </summary>
-    public LogEventLevel? LogLevel { get; set; }
+    public LogEventLevel? LogLevel { get; set; } = LogEventLevel.Debug;
+
+    /// <summary>
+    ///     Comma separated list of log outputs to use: Console, Files, Seq
+    /// </summary>
+    public LogOutput LogOutputs { get; set; } = LogOutput.Console;
+
+    public LoggingLevelSwitch LevelSwitch { get; set; } = new();
 
     /// <summary>
     ///     UDP port the game server should be listening on

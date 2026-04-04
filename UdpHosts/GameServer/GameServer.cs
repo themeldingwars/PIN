@@ -42,13 +42,13 @@ internal class GameServer : PacketServer
 
         _settings = serverSettings;
 
-        Logger.Information("Reading from SDB");
+        Logger.ForContext<SDBInterface>().Information("Reading from SDB");
         SDBInterface.Init(sdb);
 
-        Logger.Information("Reading custom data");
+        Logger.ForContext<SDBInterface>().Information("Reading custom data");
         CustomDBInterface.Init();
 
-        Logger.Information("Initializing GRPC");
+        Logger.ForContext(typeof(GRPCService)).Information("Initializing GRPC");
         GRPCService.Init(serverSettings.GrpcChannelAddress);
     }
 
@@ -58,7 +58,10 @@ internal class GameServer : PacketServer
         Factory.Init();
         NewShard(ct);
 
-        _ = ListenGrpcAsync(ct);
+        if (_settings.GrpcChannelAddress != string.Empty)
+        {
+            _ = ListenGrpcAsync(ct);
+        }
     }
 
     protected override async void ServerRunThreadAsync(CancellationToken ct)
@@ -72,8 +75,8 @@ internal class GameServer : PacketServer
 
     protected override void HandlePacket(Packet packet, CancellationToken ct)
     {
-        Logger.Verbose("[GAME] {0} sent {1} bytes.", packet.RemoteEndpoint, packet.PacketData.Length);
-        Logger.Verbose(">  {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+        Logger.Verbose("[GAME] {RemoteEndpoint} sent {PacketLength} bytes.", packet.RemoteEndpoint, packet.PacketData.Length);
+        Logger.Verbose(">  {PacketData}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
 
         var client = RetrieveClient(packet, ct);
         client.HandlePacket(packet.PacketData[4..], packet);
@@ -143,7 +146,7 @@ internal class GameServer : PacketServer
             }
             catch (Exception)
             {
-                Console.WriteLine("Failed to establish GRPC stream, retrying in 30 seconds");
+                Logger.ForContext(typeof(GRPCService)).Error("Failed to establish GRPC stream, retrying in 30 seconds");
                 await Task.Delay(TimeSpan.FromSeconds(30), ct);
             }
         }

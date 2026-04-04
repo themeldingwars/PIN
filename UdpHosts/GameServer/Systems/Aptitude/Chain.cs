@@ -1,10 +1,12 @@
-using System;
 using System.Collections.Generic;
+using Serilog;
 
 namespace GameServer.Aptitude;
 
 public class Chain
 {
+    private static readonly ILogger _logger = Log.ForContext<Chain>();
+
     public uint Id = 0;
     public List<ICommand> Commands;
 
@@ -23,12 +25,13 @@ public class Chain
 
     public bool Execute(Context context, ExecutionMethod method = ExecutionMethod.AndChain)
     {
+        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", context.ExecutionId);
         bool debug = context.ExecutionHint is not (ExecutionHint.DurationEffect or ExecutionHint.UpdateEffect);
 
         if (debug)
         {
             context.Targets.TryPeek(out var res);
-            Console.WriteLine($"Executing Chain {Id} ({context.ExecutionHint}), Self: {context.Self}, Initiator: {context.Initiator}, Target: {res?.ToString() ?? "none"}");
+            _logger.Debug("Executing Chain {ChainId} ({ExecutionHint}), Self: {Self}, Initiator: {Initiator}, Target: {Target}", Id, context.ExecutionHint, context.Self, context.Initiator, res?.ToString() ?? "none");
         }
 
         if (method == ExecutionMethod.AndChain)
@@ -39,7 +42,7 @@ public class Chain
                 if (debug)
                 {
                     var hasMoreInfo = command.ToString() != command.GetType().ToString();
-                    Console.WriteLine($"Chain {Id} Command {command.Id} - Executing {(hasMoreInfo ? command : command.GetType().Name)}");
+                    _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
                 }
 
                 bool commandSuccess = command.Execute(context);
@@ -60,7 +63,7 @@ public class Chain
                 if (debug)
                 {
                     var hasMoreInfo = command.ToString() != command.GetType().ToString();
-                    Console.WriteLine($"Chain {Id} Command {command.Id} - Executing {(hasMoreInfo ? command : command.GetType().Name)}");
+                    _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
                 }
 
                 bool commandSuccess = command.Execute(context);
@@ -79,10 +82,14 @@ public class Chain
 
     public void DebugPrintCommands()
     {
-        Console.WriteLine($"Chain {Id}");
+        Log.Information("Chain {ChainId}", Id);
+        if (Commands.Count == 0)
+        {
+            Log.Warning("Loaded empty chain {ChainId}", Id);
+        }
         foreach(var command in Commands)
         {
-            Console.WriteLine($"- Command {command.Id} {command}");
+            Log.Information("- Command {CommandId} {Command}", command.Id, command);
         }
     }
 }

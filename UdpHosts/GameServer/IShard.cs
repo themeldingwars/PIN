@@ -7,6 +7,10 @@ using GameServer.Entities.Outpost;
 using GameServer.Physics;
 using GameServer.Systems.Chat;
 using GameServer.Systems.Encounters;
+using GameServer.Systems.EntityManager;
+using GameServer.Systems.MovementRelay;
+using GameServer.Systems.ProjectileSim;
+using GameServer.Systems.WeaponSim;
 using Serilog;
 using Shared.Udp;
 

@@ -29,7 +29,7 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
             }
             else
             {
-                Console.WriteLine($"LoadRegisterFromItemStatCommand has FromTarget specified but we have no target, is something wrong?");
+                Logger.Warning("{Command} {CommandId} has FromTarget specified but we have no target, is something wrong?", nameof(LoadRegisterFromItemStatCommand), Params.Id);
                 return true;
             }
         }
@@ -41,7 +41,7 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
 
         if (target is not CharacterEntity character)
         {
-            Console.WriteLine($"LoadRegisterFromItemStatCommand target is not a Character, is something wrong?");
+            Logger.Warning("{Command} {CommandId} target is not a Character, is something wrong?", nameof(LoadRegisterFromItemStatCommand), Params.Id);
             return true;
         }
 
@@ -52,7 +52,7 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
         if (true)
         {
             var statInfo = SDBInterface.GetAttributeDefinition((uint)Params.Stat);
-            Console.WriteLine($"LoadRegisterFromItemStatCommand: ({prevValue}, {statValue} ({statInfo.Name.TrimNulls()}), {(Operand)Params.Regop}) => {context.Register}");
+            Logger.Debug("{Command} {CommandId}: ({prevValue}, {statValue} ({statName}), {op}) => {register}", nameof(LoadRegisterFromItemStatCommand), Params.Id, prevValue, statValue, statInfo.Name.TrimNulls(), (Operand)Params.Regop, context.Register);
         }
 
         return true;

@@ -16,7 +16,7 @@ public class ListCommandsServerCommand : ServerCommand
         }
         else
         {
-            Console.WriteLine(message);
+            Logger.Warning("{Message}", message);
         }
     }
 }

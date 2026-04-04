@@ -21,7 +21,7 @@ public class AuthorizeTerminalCommand : Command, ICommand
         var terminal = context.Self;
         if (context.Targets.Count == 0)
         {
-            Console.WriteLine($"AuthorizeTerminalCommand fails because there are no targets (There should be a target?)");
+            Logger.Warning("{Command} {CommandId} fails because there are no targets (There should be a target?)", nameof(AuthorizeTerminalCommand), Params.Id);
             return false;
         }
 
@@ -31,11 +31,11 @@ public class AuthorizeTerminalCommand : Command, ICommand
         {
             if (!character.IsPlayerControlled)
             {
-                Console.WriteLine($"AuthorizeTerminalCommand skips because target is not a player (should this really be happening, why did we target an NPC with this?)");
+                Logger.Information("{Command} {CommandId} skips because target is not a player (should this really be happening, why did we target an NPC with this?)", nameof(AuthorizeTerminalCommand), Params.Id);
                 return true;
             }
 
-            Console.WriteLine($"Authorized terminal {Params.TerminalType}, {terminal}");
+            Logger.Information("{Command} {CommandId} Authorized terminal {TerminalType}, {terminal}", nameof(AuthorizeTerminalCommand), Params.Id, Params.TerminalType, terminal);
 
             character.SetAuthorizedTerminal(new AuthorizedTerminalData
             {
@@ -47,7 +47,7 @@ public class AuthorizeTerminalCommand : Command, ICommand
             return true;
         }
 
-        Console.WriteLine($"AuthorizeTerminalCommand fails because target is not a character (why is it running on something other than a character?)");
+        Logger.Warning("{Command} {CommandId} fails because target is not a character (why is it running on something other than a character?)", nameof(AuthorizeTerminalCommand), Params.Id);
         return false;
     }
 }

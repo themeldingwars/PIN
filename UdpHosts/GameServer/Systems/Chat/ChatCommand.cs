@@ -1,14 +1,21 @@
 ﻿using System;
 using System.Numerics;
+using Serilog;
 
 namespace GameServer.Systems.Chat;
 
 public abstract class ChatCommand
 {
+    protected readonly ILogger Logger;
+
+    protected ChatCommand()
+    {
+        Logger = Log.ForContext(GetType());
+    }
     public abstract void Execute(string[] parameters, ChatCommandContext context);
     public virtual void SourceFeedback(string message, ChatCommandContext context)
     {
-        Console.WriteLine(message);
+        Logger.Information(message);
         context.SourcePlayer?.SendDebugChat(message);
     }
 
@@ -20,7 +27,7 @@ public abstract class ChatCommand
         }
         else
         {
-            Console.WriteLine($"Invalid format: {value}");
+            Logger.Warning("Invalid format: {value}", value);
             return 0;
         }
     }
@@ -33,7 +40,7 @@ public abstract class ChatCommand
         }
         else
         {
-            Console.WriteLine($"Invalid format: {value}");
+            Logger.Warning("Invalid format: {value}", value);
             return 0;
         }
     }
@@ -42,7 +49,7 @@ public abstract class ChatCommand
     {
         if (startIndex < 0 || startIndex >= parameters.Length)
         {
-            Console.WriteLine($"Invalid start index: {startIndex}");
+            Logger.Warning("Invalid start index: {startIndex}", startIndex);
             return null;
         }
 
@@ -55,7 +62,7 @@ public abstract class ChatCommand
         }
         else
         {
-            Console.WriteLine("Invalid format for Vector3 parameters");
+            Logger.Warning("Invalid format for Vector3 parameters");
             return null;
         }
     }

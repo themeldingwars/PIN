@@ -28,7 +28,8 @@ public class BeginInteractionCommand : ICommand
                 interactionEntity,
                 abilityId,
                 context.Shard.CurrentTime,
-                new AptitudeTargets(actingEntity));
+                new AptitudeTargets(actingEntity),
+                context.ExecutionId);
         }
 
         return true;

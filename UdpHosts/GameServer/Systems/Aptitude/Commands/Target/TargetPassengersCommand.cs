@@ -19,7 +19,7 @@ public class TargetPassengersCommand : Command, ICommand
     {
         if (context.Self is not VehicleEntity vehicle)
         {
-            Console.WriteLine("TargetPassengersCommand fails because self is not a Vehicle. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because self is not a Vehicle. If this is happening, we should investigate why.", nameof(TargetPassengersCommand), Params.Id);
             return false;
         }
 

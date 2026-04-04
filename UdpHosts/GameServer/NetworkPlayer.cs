@@ -58,7 +58,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         AssignedShard.Entities.TryGetValue(CharacterId, out var existing);
         if (existing != null)
         {
-            Console.WriteLine($"Closing login because entity with this id is already zoned in");
+            Logger.Warning("Closing login because entity with this id is already zoned in");
             var resp = new AeroMessages.Control.CloseConnection { Unk = new byte[] { 0, 0, 0, 0 } };
             NetChannels[ChannelType.Control].SendMessage(resp);
             return;
@@ -75,7 +75,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         }
         catch
         {
-            Console.WriteLine($"Could not get character over GRPC, will use fallback");
+            Logger.ForContext(typeof(GRPCService)).Warning("Could not get character over GRPC, will use fallback");
         }
 
         // Load inventory so we get loadouts
@@ -127,7 +127,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             outpostId = zone.DefaultOutpostId;
         }
 
-        Logger.Verbose("Zone {0} Outpost {1}", zoneId, outpostId);
+        Logger.Information("Zone {zoneId} Outpost {outpostId}", zoneId, outpostId);
 
         EnterZone(zone, outpostId);
     }

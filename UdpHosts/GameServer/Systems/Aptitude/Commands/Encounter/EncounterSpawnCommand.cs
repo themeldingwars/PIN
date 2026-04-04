@@ -15,7 +15,7 @@ public class EncounterSpawnCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        Console.WriteLine($"Encounter spawned for EncounterSpawnCommand id {Params.Id}");
+        Logger.Information("Encounter spawned for {Command} {CommandId}", nameof(EncounterSpawnCommand), Params.Id);
 
         return true;
     }

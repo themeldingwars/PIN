@@ -31,7 +31,7 @@ public class AwardRedBeansCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine("AwardRedBeansCommand fails because self is not a character (why is it running on something other than a character?)");
+            Logger.Warning("{Command} {CommandId} fails because self is not a character (why is it running on something other than a character?)", nameof(AwardRedBeansCommand), Params.Id);
             return false;
         }
 

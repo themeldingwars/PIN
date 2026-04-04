@@ -101,7 +101,7 @@ public class Channel
                 }
 
                 packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(data));
-                _logger.Fatal("---> Resent packet!!! C:{0}: {1} bytes", Type, packet.TotalBytes);
+                _logger.Debug("---> Resent packet!!! C:{Channel}: {PacketBytes} bytes", Type, packet.TotalBytes);
             }
 
             if (InSplitMode)
@@ -420,7 +420,7 @@ public class Channel
 
         if (msgEnumType == null)
         {
-            _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = 0x{3:X2}",
+            _logger.Verbose("<-- {Channel}: Controller = {Controller} Entity = 0x{EntityId:X16} MsgID = 0x{MessageId:X2}",
                             Type,
                             controllerId,
                             entityId,
@@ -428,7 +428,7 @@ public class Channel
         }
         else
         {
-            _logger.Verbose("<-- {0}: Controller = {1} Entity = 0x{2:X16} MsgID = {3} (0x{4:X2})",
+            _logger.Verbose("<-- {Channel}: Controller = {Controller} Entity = 0x{EntityId:X16} MsgID = {Message} (0x{MessageId:X2})",
                             Type,
                             controllerId,
                             entityId,
@@ -481,7 +481,7 @@ public class Channel
             {
                 if (IsReliable)
                 {
-                    _logger.Verbose("<- {0} SeqNum =  {1}", Type, CurrentSequenceNumber);
+                    _logger.Verbose("<- {Channel} SeqNum =  {SeqNum}", Type, CurrentSequenceNumber);
                 }
 
                 Serializer.WritePrimitive(Utils.SimpleFixEndianness(CurrentSequenceNumber)).CopyTo(t.Slice(2, 2));

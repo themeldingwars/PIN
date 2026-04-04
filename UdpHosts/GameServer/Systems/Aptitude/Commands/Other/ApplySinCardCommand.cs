@@ -45,7 +45,7 @@ public class ApplySinCardCommand : Command, ICommand
         }
         else
         {
-            Console.WriteLine($"Can't apply SinCard in ApplySinCardCommand {Params.Id}, failing.");
+            Logger.Warning("Can't apply SinCard in {Command} {CommandId}, failing.", nameof(ApplySinCardCommand), Params.Id);
             return false;
         }
 

@@ -23,7 +23,7 @@ public class RequireCAISStateCommand : Command, ICommand
 
         if (target is not CharacterEntity character)
         {
-            Console.WriteLine("RequireCAISStateCommand fails because target is not a Character. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireCAISStateCommand), Params.Id);
             return false;
         }
 

@@ -5,11 +5,14 @@ using System.Reflection;
 using System.Text;
 using GameServer.Admin;
 using GameServer.Entities;
+using Serilog;
 
 namespace GameServer;
 
 public class AdminService
 {
+    private static readonly ILogger _logger = Log.ForContext<AdminService>();
+
     private readonly Dictionary<string, Type> _commandDictionary;
     private Dictionary<INetworkPlayer, IEntity> _targetDictionary;
     private Shard _shard;
@@ -49,7 +52,7 @@ public class AdminService
         }
         else
         {
-            Console.WriteLine($"Unknown command: {commandName}");
+            _logger.Information("Unknown command: {commandName} from {SourcePlayer}", commandName, sourcePlayer);
             sourcePlayer?.SendDebugChat($"Unknown command: {commandName}");
         }
     }

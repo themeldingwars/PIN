@@ -1,11 +1,14 @@
 ﻿using System.Numerics;
 using AeroMessages.Common;
 using BepuPhysics;
+using Serilog;
 
 namespace GameServer.Entities;
 
 public class BaseEntity : IEntity
 {
+    protected static readonly ILogger Logger = Log.ForContext<BaseEntity>();
+
     public BaseEntity(IShard shard, ulong id)
     {
         Shard = shard;

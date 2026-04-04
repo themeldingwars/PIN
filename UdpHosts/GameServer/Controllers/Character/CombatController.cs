@@ -5,6 +5,7 @@ using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Aptitude;
 using GameServer.Data.SDB;
+using GameServer.Entities.Character;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
@@ -19,7 +20,7 @@ public class CombatController : Base
 
     public override void Init(INetworkClient client, IPlayer player, IShard shard, ILogger logger)
     {
-        _logger = logger;
+        _logger = logger.ForContext<CharacterEntity>();
     }
 
     [MessageID((byte)Commands.FireInputIgnored)]
@@ -122,7 +123,7 @@ public class CombatController : Base
     public void ActivateConsumable(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var query = packet.Unpack<ActivateConsumable>();
-        Console.WriteLine($"ActivateConsumable {query.ItemSdbId}");
+        _logger.Information("ActivateConsumable {ItemSdbId}", query?.ItemSdbId);
         if (query == null)
         {
             return;
@@ -154,7 +155,8 @@ public class CombatController : Base
                         GlobalCooldown_ReadyAgain_Time = activationTime + 300,
                     }
                 };
-                Console.WriteLine($"ActivateAbility {message.ActivatedAbilityId} at {message.ActivatedTime}");
+                _logger.ForContext<AbilitySystem>()
+                       .Information("ActivateAbility {ActivatedAbilityId} at {ActivatedTime}", message.ActivatedAbilityId, message.ActivatedTime);
                 character.Player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
             }
 
@@ -169,7 +171,7 @@ public class CombatController : Base
     public void ActivateAbility(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var activateAbility = packet.Unpack<ActivateAbility>();
-        Console.WriteLine($"ActivateAbility Slot {activateAbility.AbilitySlotIndex}");
+        _logger.Information("ActivateAbility Slot {AbilitySlotIndex}", activateAbility?.AbilitySlotIndex);
         if (activateAbility == null)
         {
             return;
@@ -268,7 +270,8 @@ public class CombatController : Base
                         GlobalCooldown_ReadyAgain_Time = activationTime + 300,
                     }
                 };
-                Console.WriteLine($"ActivateAbility {message.ActivatedAbilityId} at {message.ActivatedTime}");
+                _logger.ForContext<AbilitySystem>()
+                       .Information("ActivateAbility {ActivatedAbilityId} at {ActivatedTime}", message.ActivatedAbilityId, message.ActivatedTime);
                 character.Player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
             }
 

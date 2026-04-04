@@ -7,9 +7,12 @@ using AeroMessages.GSS.V66.Character;
 using Records.dbcharacter;
 using Records.dbitems;
 using Records.vcs;
+using Serilog;
 
 public class SDBUtils
 {
+    private static readonly ILogger _logger = Log.ForContext<SDBInterface>();
+
     public static Dictionary<byte, CharCreateLoadoutSlots> GetDefaultLoadoutSlots(uint loadoutId)
     {
         var loadout = SDBInterface.GetCharCreateLoadout(loadoutId);
@@ -284,7 +287,7 @@ public class SDBUtils
                     break;
 
                 default:
-                    // Console.WriteLine($"Unhandled vehicle component, id: {componentId}, type: {componentType}");
+                    _logger.Debug("Unhandled vehicle component, id: {componentId}, type: {componentType}", componentId, componentType);
                     break;
             }
         }
@@ -298,7 +301,7 @@ public class SDBUtils
         Weapons weapon = SDBInterface.GetWeapon(weaponSdbId);
         if (weapon == null)
         {
-            Console.WriteLine($"GetDetailedWeaponInfo could not find weapon {weaponSdbId}");
+            _logger.Error("GetDetailedWeaponInfo could not find weapon {weaponSdbId}", weaponSdbId);
             return null;
         }
 
@@ -306,7 +309,7 @@ public class SDBUtils
         WeaponTemplateResult main = GetDetailedWeaponTemplateInfo(weapon.WeaponTypeId, weaponSdbId);
         if (main == null)
         {
-            Console.WriteLine($"GetDetailedWeaponInfo could not find main template {weapon.WeaponTypeId} for {weaponSdbId}");
+            _logger.Error("GetDetailedWeaponInfo could not find main template {WeaponTypeId} for {weaponSdbId}", weapon.WeaponTypeId, weaponSdbId);
             return null;
         }
 
@@ -339,7 +342,7 @@ public class SDBUtils
         var template = SDBInterface.GetWeaponTemplate(weaponTypeId);
         if (template == null)
         {
-            Console.WriteLine($"GetDetailedWeaponInfo could not find template {weaponTypeId}");
+            _logger.Error("GetDetailedWeaponInfo could not find template {weaponTypeId}", weaponTypeId);
             return null;
         }
 

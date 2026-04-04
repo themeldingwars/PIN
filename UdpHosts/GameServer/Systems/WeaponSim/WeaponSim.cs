@@ -8,13 +8,15 @@ using AeroMessages.GSS.V66.Generic;
 using GameServer.Data.SDB;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using Serilog;
 
-namespace GameServer;
+namespace GameServer.Systems.WeaponSim;
 
 public class WeaponSim
 {
     private readonly Dictionary<ulong, WeaponSimState> _weaponSimState;
     private Shard _shard;
+    private ILogger Logger;
     private ulong LastUpdate = 0;
     private ulong UpdateIntervalMs = 50;
 
@@ -22,6 +24,7 @@ public class WeaponSim
     {
         _shard = shard;
         _weaponSimState = new();
+        Logger = shard.Logger.ForContext<WeaponSim>();
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -43,7 +46,7 @@ public class WeaponSim
         var activeWeaponDetails = entity.GetActiveWeaponDetails();
         if (activeWeaponDetails == null)
         {
-            Console.WriteLine($"Will not fire projectile because failed to get active weapon from the entity");
+            Logger.Warning("Will not fire projectile because failed to get active weapon from the entity");
             return;
         }
 
@@ -60,7 +63,7 @@ public class WeaponSim
         }
         else if (weaponSimState.LastWeaponId != weaponId)
         {
-            // Console.WriteLine($"Reset {weaponId} sim state!");
+            // Logger.Debug("Reset {weaponId} sim state!", weaponId);
 
             // Drop state if we swapped weapon   
             weaponSimState = new WeaponSimState
@@ -69,7 +72,7 @@ public class WeaponSim
             };
         }
 
-        // Console.WriteLine($"Selected weapon {weapon.DebugName} and spread factor {weaponSpreadFactor}");
+        // Logger.Debug("Selected weapon {weaponName} and spread factor {spreadFactor}", weapon.DebugName, weaponSpreadFactor);
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
@@ -88,7 +91,7 @@ public class WeaponSim
         // Calculate spreadPct
         float spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponSpreadFactor, time);
 
-        // Console.WriteLine($"Firing with spreadPct {spreadPct}");
+        // Logger.Debug("Firing with spreadPct {spreadPct}", spreadPct);
 
         // Fire rounds
         for (byte round = 0; round < roundsToFire; round++)
@@ -98,8 +101,8 @@ public class WeaponSim
             Vector3 aimUp = Vector3.Normalize(Vector3.Cross(aimRight, aimForward));
             Vector3 lastSpreadDirection = weaponSimState.LastSpreadDirection;
             uint lastSpreadTime = weaponSimState.LastSpreadTime;
-            PRNG.Spread(time, weapon.SlotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 direction);
-            uint trace = PRNG.Trace(time, round);
+            PRNG.PRNG.Spread(time, weapon.SlotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 direction);
+            uint trace = PRNG.PRNG.Trace(time, round);
             _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo);
             weaponSimState.LastSpreadDirection = direction;
             weaponSimState.LastSpreadTime = time;
@@ -111,7 +114,7 @@ public class WeaponSim
             uint burstCost = weapon.MsPerBurst;
             var update = System.Math.Min(weapon.SpreadRampTime, weaponSimState.AccumulatedSpreadTime + burstCost);
 
-            // Console.WriteLine($"SpreadRampTime {weapon.SpreadRampTime}, AccumulatedSpreadTime: {weaponSimState.AccumulatedSpreadTime}, MsPerBurst: {weapon.MsPerBurst}, Setting AccumulatedSpreadTime To : {update}");
+            // Logger.Debug("SpreadRampTime {SpreadRampTime}, AccumulatedSpreadTime: {AccumulatedSpreadTime}, MsPerBurst: {MsPerBurst}, Setting AccumulatedSpreadTime To : {update}", weapon.SpreadRampTime, weaponSimState.AccumulatedSpreadTime, weapon.MsPerBurst, update);
             weaponSimState.AccumulatedSpreadTime = update;
         }
 
@@ -191,7 +194,7 @@ public class WeaponSim
                 uint rampTimeToReturn = (uint)(weaponSimState.AccumulatedSpreadTime * ratioToReturn);
                 uint update = (uint)System.Math.Max(0, (int)weaponSimState.AccumulatedSpreadTime - rampTimeToReturn);
 
-                // Console.WriteLine($"returnedTime {returnedTime}, ratioToReturn: {ratioToReturn}, rampTimeToReturn: {rampTimeToReturn}, Setting AccumulatedSpreadTime To : {update}");
+                // Logger.Debug("returnedTime {returnedTime}, ratioToReturn: {ratioToReturn}, rampTimeToReturn: {rampTimeToReturn}, Setting AccumulatedSpreadTime To : {update}", returnedTime, ratioToReturn, rampTimeToReturn, update);
                 weaponSimState.AccumulatedSpreadTime = update;
             }
         }
@@ -222,7 +225,7 @@ public class WeaponSim
                     float ratioToReturn = (float)elapsedTime / weapon.MsSpreadReturn;
                     float update = (float)(weaponSimState.CurrentMovementSpreadBonus * (1f - ratioToReturn));
 
-                    // Console.WriteLine($"ReturnMovementSpread elapsedTime: {elapsedTime}, ratioToReturn: {ratioToReturn}, Setting CurrentMovementSpreadBonus To : {update}");
+                    // Logger.Debug("ReturnMovementSpread elapsedTime: {elapsedTime}, ratioToReturn: {ratioToReturn}, Setting CurrentMovementSpreadBonus To : {update}", elapsedTime, ratioToReturn, update);
                     weaponSimState.CurrentMovementSpreadBonus = update;
                 }
                 else
@@ -293,7 +296,7 @@ public class WeaponSim
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Failed DebugWeaponSpread", e);
+            Logger.Error(e, "Failed DebugWeaponSpread");
         }
     }
 

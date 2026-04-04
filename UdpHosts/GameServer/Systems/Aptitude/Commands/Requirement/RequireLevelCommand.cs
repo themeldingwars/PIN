@@ -30,13 +30,13 @@ public class RequireLevelCommand : Command, ICommand
             else if (Params.SessionLevel == 1)
             {
                 // todo
-                Console.WriteLine($"[RequireLevelCommand] Session level, level {Params.Level}");
+                Logger.Information("[{Command} {CommandId}] Session level, level {Level}", nameof(RequireLevelCommand), Params.Id, Params.Level);
                 result = true;
             }
         }
         else
         {
-            Console.WriteLine("RequireLevelCommand fails because target is not a Character. If this is happening, we should investigate why.");
+            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireLevelCommand), Params.Id);
         }
 
         return result;

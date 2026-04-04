@@ -1,4 +1,4 @@
-namespace GameServer;
+namespace GameServer.Systems.PRNG;
 
 /// <summary>
 /// The precompiled PRNG table extracted from prod-1962.
