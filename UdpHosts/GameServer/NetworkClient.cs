@@ -75,7 +75,9 @@ public class NetworkClient : INetworkClient
         var headerSize = Unsafe.SizeOf<GamePacketHeader>();
         while (index + 2 < data.Length)
         {
-            var header = Deserializer.ReadStruct<GamePacketHeader>(data.Slice(index, 2).ToArray().Reverse().ToArray().AsMemory());
+            var slice = data.Slice(index, 2).ToArray();
+            Array.Reverse(slice);
+            var header = Deserializer.ReadStruct<GamePacketHeader>(slice.AsMemory());
 
             if (header.Length == 0 || data.Length < header.Length + index)
             {
