@@ -89,7 +89,7 @@ public class PhysicsEngine
         hitHandler.AvoidSourceBody = true;
         hitHandler.SourceBody = source.BodyHandle;
 
-        Simulation.RayCast(origin, direction, float.MaxValue, ref hitHandler);
+        Simulation.RayCast(origin, direction, float.MaxValue, BufferPool, ref hitHandler);
         if (hitHandler.T < maxRange)
         {   
             var hitPosition = origin + (direction * hitHandler.T);
@@ -120,7 +120,7 @@ public class PhysicsEngine
         hitHandler.T = maxRange;
         hitHandler.AvoidSourceBody = true;
         hitHandler.SourceBody = source.BodyHandle;
-        Simulation.RayCast(origin, direction, float.MaxValue, ref hitHandler);
+        Simulation.RayCast(origin, direction, float.MaxValue, BufferPool, ref hitHandler);
         if (hitHandler.T < maxRange)
         {   
             outHit = true;
