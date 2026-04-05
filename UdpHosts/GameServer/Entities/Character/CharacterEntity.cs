@@ -86,7 +86,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         { PermissionFlagsData.CharacterPermissionFlags.jetpack, true },
         { PermissionFlagsData.CharacterPermissionFlags.map, true },
         { PermissionFlagsData.CharacterPermissionFlags.unk_14, true },
-        { PermissionFlagsData.CharacterPermissionFlags.unk_15, true },
+        { PermissionFlagsData.CharacterPermissionFlags.spectate_input, true },
         { PermissionFlagsData.CharacterPermissionFlags.new_character, false },
         { PermissionFlagsData.CharacterPermissionFlags.glider_hud, false },
         { PermissionFlagsData.CharacterPermissionFlags.crouch, true },

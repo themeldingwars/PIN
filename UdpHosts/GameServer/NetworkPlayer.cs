@@ -190,8 +190,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         baseController.RegionUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
         baseController.PersonalFactionStanceProp = new PersonalFactionStanceData
         {
-            Unk1 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x09, 0x0e, 0x5d, 0xff, 0x5f, 0x08, 0x00, 0x00 } },
-            Unk2 = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00 } }
+            Friendly = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x09, 0x0e, 0x5d, 0xff, 0x5f, 0x08, 0x00, 0x00 } },
+            Hostile = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00 } }
         };
         NetChannels[ChannelType.ReliableGss].SendChanges(baseController, CharacterEntity.EntityId);
 

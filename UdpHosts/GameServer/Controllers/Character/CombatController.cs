@@ -47,8 +47,8 @@ public class CombatController : Base
         {
             ShortTime = (ushort)fireWeaponProjectile.Time,
             Aim = fireWeaponProjectile.AimDirection,
-            HaveMoreData = fireWeaponProjectile.HaveShooterVelocity,
-            MoreData = fireWeaponProjectile.ShooterVelocity
+            HaveShooterVelocity = fireWeaponProjectile.HaveShooterVelocity,
+            ShooterVelocity = fireWeaponProjectile.ShooterVelocity
         };
 
         // TODO: This should be sent remote

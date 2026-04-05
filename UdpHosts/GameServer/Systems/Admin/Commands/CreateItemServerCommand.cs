@@ -53,7 +53,7 @@ public class CreateItemServerCommand : ServerCommand
                 SdbId = typeId,
                 Quantity = (ushort)quantity,
             },
-            RewardType = 1,
+            RewardType = SimulateLootPickup.Type.General,
         };
         context.SourcePlayer.NetChannels[ChannelType.ReliableGss]
                    .SendMessage(msg, context.SourcePlayer.CharacterEntity.EntityId);
