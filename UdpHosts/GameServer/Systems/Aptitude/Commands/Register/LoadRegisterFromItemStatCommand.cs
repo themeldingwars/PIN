@@ -3,7 +3,6 @@ using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.apt;
 using GameServer.Entities.Character;
 using GameServer.Enums;
-using SharpCompress;
 
 namespace GameServer.Aptitude;
 
@@ -52,7 +51,7 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
         if (true)
         {
             var statInfo = SDBInterface.GetAttributeDefinition((uint)Params.Stat);
-            Logger.Debug("{Command} {CommandId}: ({prevValue}, {statValue} ({statName}), {op}) => {register}", nameof(LoadRegisterFromItemStatCommand), Params.Id, prevValue, statValue, statInfo.Name.TrimNulls(), (Operand)Params.Regop, context.Register);
+            Logger.Debug("{Command} {CommandId}: ({prevValue}, {statValue} ({statName}), {op}) => {register}", nameof(LoadRegisterFromItemStatCommand), Params.Id, prevValue, statValue, statInfo.Name.Trim(), (Operand)Params.Regop, context.Register);
         }
 
         return true;
