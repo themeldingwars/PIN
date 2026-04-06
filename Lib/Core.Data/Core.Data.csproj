@@ -1,7 +1,2 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <ItemGroup>
-        <PackageReference Include="System.Data.Common" Version="4.3.0"/>
-    </ItemGroup>
-
 </Project>
