@@ -6,6 +6,6 @@ public record class BattleframeVisuals
     public uint VisualrecId { get; set; }
     public uint VisualGroup { get; set; }
     public uint AnimnetworkId { get; set; }
-    public string Gender { get; set; }
+    public char Gender { get; set; }
     public byte Race { get; set; }
 }

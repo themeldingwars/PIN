@@ -7,7 +7,7 @@ public record class Faction
     public uint JobBoardIconId { get; set; }
     public uint DescriptionId { get; set; }
     public int MaxReputation { get; set; }
-    public uint AbbreviatedName { get; set; }
+    public uint AbbreviatedNameId { get; set; }
     public int MinReputation { get; set; }
     public uint Id { get; set; }
     public byte DefaultStancePriority { get; set; }
