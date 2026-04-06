@@ -51,9 +51,7 @@ public class CombatController : Base
             ShooterVelocity = fireWeaponProjectile.ShooterVelocity
         };
 
-        // TODO: This should be sent remote
-        // FIXME: Because WeaponProjectileFired has two AeroMessageId and SendIAero grabs the first one, it tries to send this to the CombatController instead of the CombatView which is invalid
-        // client.NetChannels[ChannelType.ReliableGss].SendIAero(weaponProjectileFired, player.CharacterEntity.EntityId);
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(weaponProjectileFired, player.CharacterEntity.EntityId);
     }
 
     [MessageID((byte)Commands.FireEnd)]
