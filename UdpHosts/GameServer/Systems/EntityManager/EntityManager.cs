@@ -8,6 +8,7 @@ using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Melding.View;
 using GameServer.Aptitude;
+using GameServer.Data;
 using GameServer.Data.SDB;
 using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Data.SDB.Records.customdata;
@@ -1054,7 +1055,37 @@ public class EntityManager
                     player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(combatController, entity.EntityId, player.PlayerId);
                     player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(effectsController, entity.EntityId, player.PlayerId);
                     player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(missionController, entity.EntityId, player.PlayerId);
+                    player.NetChannels[ChannelType.ReliableGss].SendMessage(new EliteLevels_InitAllFrames()
+                    {
+                        CurrentFrame_Id = character.CurrentLoadout.ChassisID,
+                        Frames = [
+                            new ()
+                            {
+                                ChassisId_1 = character.CurrentLoadout.ChassisID,
+                                ChassisId_2 = character.CurrentLoadout.ChassisID,
+                                EliteRank = 0,
+                                EliteXP = 0,
+                                ElitePoints = 0,
+                                AvailableUpgrades = [],
+                                PreviousUpgrades = []
+                            },
+                        ]
+                    },
+                    entity.EntityId);
                     player.NetChannels[ChannelType.ReliableGss].SendMessage(new CharacterLoaded(), entity.EntityId);
+                    player.NetChannels[ChannelType.ReliableGss].SendMessage(new ProgressionXPRefresh()
+                    {
+                        Frames = [
+                            new ()
+                            {
+                                ChassisID = character.CurrentLoadout.ChassisID,
+                                XpValue1 = 0,
+                                XpValue2 = 0,
+                                CurrentLevel = HardcodedCharacterData.Level,
+                                Unk = 0,
+                            },
+                        ]
+                    });
                 }
             }
 
