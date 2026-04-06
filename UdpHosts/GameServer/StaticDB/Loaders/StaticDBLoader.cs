@@ -7,8 +7,10 @@ using FauFau.Formats;
 using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
+using Records.dbencounterdata;
 using Records.dbitems;
-using Records.dbviusalrecords;
+using Records.dbvisualrecords;
+using Records.dbzonemetadata;
 using Records.vcs;
 using Serilog;
 using Shared.Common;
@@ -51,6 +53,24 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, DeployableFunction> LoadDeployableFunction()
+    {
+        return LoadStaticDB<DeployableFunction>("dbcharacter::DeployableFunction")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, DeployableCategory> LoadDeployableCategory()
+    {
+        return LoadStaticDB<DeployableCategory>("dbcharacter::DeployableCategory")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, Faction> LoadFaction()
+    {
+        return LoadStaticDB<Faction>("dbcharacter::Faction")
+            .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, Monster> LoadMonster()
     {
         return LoadStaticDB<Monster>("dbcharacter::Monster")
@@ -60,6 +80,18 @@ public class StaticDBLoader : ISDBLoader
     public Dictionary<uint, Turret> LoadTurret()
     {
         return LoadStaticDB<Turret>("dbcharacter::Turret")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, MapMarkerInfo> LoadMapMarkerInfo()
+    {
+        return LoadStaticDB<MapMarkerInfo>("dbencounterdata::MapMarkerInfo")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, SinCardTemplate> LoadSinCardTemplate()
+    {
+        return LoadStaticDB<SinCardTemplate>("dbencounterdata::SinCardTemplate")
             .ToDictionary(row => row.Id);
     }
 
@@ -140,6 +172,12 @@ public class StaticDBLoader : ISDBLoader
     public Dictionary<uint, AbilityData> LoadAbilityData()
     {
         return LoadStaticDB<AbilityData>("apt::AbilityData")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ActiveInitiationCommandDef> LoadActiveInitiationCommandDef()
+    {
+        return LoadStaticDB<ActiveInitiationCommandDef>("apt::ActiveInitiationCommandDef")
         .ToDictionary(row => row.Id);
     }
 
@@ -1309,10 +1347,49 @@ public class StaticDBLoader : ISDBLoader
             .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, LevelBand> LoadLevelBand()
+    {
+        return LoadStaticDB<LevelBand>("dbitems::LevelBand")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, ZoneRecord> LoadZoneRecord()
+    {
+        return LoadStaticDB<ZoneRecord>("dbzonemetadata::ZoneRecord")
+            .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, ResourceNodeBeacon> LoadResourceNodeBeacon()
     {
         return LoadStaticDB<ResourceNodeBeacon>("dbitems::ResourceNodeBeacon")
             .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<KeyValuePair<uint, uint>, LevelCategoryScalars> LoadLevelCategoryScalars()
+    {
+        return LoadStaticDB<LevelCategoryScalars>("dbitems::LevelCategoryScalars")
+            .GroupBy(row => new KeyValuePair<uint, uint>(row.AttributeCategory, row.Level))
+            .ToDictionary(group => group.Key, group => group.First());
+    }
+
+    public Dictionary<uint, FrameProgressionLevel> LoadFrameProgressionLevel()
+    {
+        return LoadStaticDB<FrameProgressionLevel>("dbitems::FrameProgressionLevel")
+               .GroupBy(row => row.Level)
+               .ToDictionary(group => group.Key, group => group.First());
+    }
+
+    public Dictionary<uint, Blueprints> LoadBlueprints()
+    {
+        return LoadStaticDB<Blueprints>("dbitems::Blueprints")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, List<Blueprint_Items>> LoadBlueprintItems()
+    {
+        return LoadStaticDB<Blueprint_Items>("dbitems::Blueprint_Items")
+        .GroupBy(row => row.BlueprintId)
+        .ToDictionary(group => group.Key, group => group.ToList());
     }
 
     private static T[] LoadStaticDB<T>(string tableName)
