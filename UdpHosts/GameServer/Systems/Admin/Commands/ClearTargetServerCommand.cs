@@ -1,6 +1,6 @@
 namespace GameServer.Admin;
 
-[ServerCommand("Clear target for server commands", "clear", "clear")]
+[ServerCommand("Clear target for server commands", "clear", "clear", "targetclear", "cleartarget", "untarget", "removetarget", "remtarget", "deletetarget", "deltarget")]
 public class ClearTargetServerCommand : ServerCommand
 {
     public override void Execute(string[] parameters, ServerCommandContext context)
