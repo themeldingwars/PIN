@@ -6,6 +6,7 @@ using Records.aptfs;
 using Records.dbcharacter;
 using Records.dbencounterdata;
 using Records.dbitems;
+using Records.dbphysicsmaterials;
 using Records.dbvisualrecords;
 using Records.dbzonemetadata;
 using Records.vcs;
@@ -19,15 +20,27 @@ public interface ISDBLoader
     Dictionary<uint, DeployableFunction> LoadDeployableFunction();
     Dictionary<uint, DeployableCategory> LoadDeployableCategory();
     Dictionary<uint, Faction> LoadFaction();
+    List<FactionRelations> LoadFactionRelations();
+    Dictionary<uint, List<FactionReputations>> LoadFactionReputations();
     Dictionary<uint, Monster> LoadMonster();
     Dictionary<uint, Turret> LoadTurret();
+    Dictionary<uint, PoseType> LoadPoseType();
+    Dictionary<uint, CharInfo> LoadCharInfo();
+    Dictionary<byte, DamageType> LoadDamageType();
+    Dictionary<byte, DamageResponse> LoadDamageResponse();
+    Dictionary<uint, DamageResponseDamageType> LoadDamageResponseDamageType();
+    Dictionary<uint, TinyObject> LoadTinyObject();
 
     // dbencounterdata
     Dictionary<uint, MapMarkerInfo> LoadMapMarkerInfo();
     Dictionary<uint, SinCardTemplate> LoadSinCardTemplate();
 
+    // dbphysicsmaterials
+    Dictionary<uint, PhysicsMaterial> LoadPhysicsMaterial();
+
     // dbvisualrecords
     Dictionary<uint, WarpaintPalette> LoadWarpaintPalettes();
+    Dictionary<uint, VisualRecord> LoadVisualRecord();
 
     // dbitems
     Dictionary<uint, AttributeCategory> LoadAttributeCategory();
@@ -50,6 +63,7 @@ public interface ISDBLoader
     Dictionary<uint, FrameProgressionLevel> LoadFrameProgressionLevel();
     Dictionary<uint, Blueprints> LoadBlueprints();
     Dictionary<uint, List<Blueprint_Items>> LoadBlueprintItems();
+    Dictionary<uint, List<BattleframeVisuals>> LoadBattleframeVisuals();
 
     // dbzonemetadata
     Dictionary<uint, ZoneRecord> LoadZoneRecord();
@@ -250,4 +264,5 @@ public interface ISDBLoader
     Dictionary<uint, TurretComponentDef> LoadTurretComponentDef();
     Dictionary<uint, DeployableComponentDef> LoadDeployableComponentDef();
     Dictionary<uint, SpawnPointComponentDef> LoadSpawnPointComponentDef();
+    Dictionary<uint, HullSegmentDef> LoadHullSegmentDef();
 }

@@ -9,6 +9,7 @@ using Records.aptfs;
 using Records.dbcharacter;
 using Records.dbencounterdata;
 using Records.dbitems;
+using Records.dbphysicsmaterials;
 using Records.dbvisualrecords;
 using Records.dbzonemetadata;
 using Records.vcs;
@@ -71,6 +72,19 @@ public class StaticDBLoader : ISDBLoader
             .ToDictionary(row => row.Id);
     }
 
+    public List<FactionRelations> LoadFactionRelations()
+    {
+        return LoadStaticDB<FactionRelations>("dbcharacter::FactionRelations")
+            .ToList();
+    }
+
+    public Dictionary<uint, List<FactionReputations>> LoadFactionReputations()
+    {
+        return LoadStaticDB<FactionReputations>("dbcharacter::FactionReputations")
+        .GroupBy(row => row.FactionId)
+        .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
     public Dictionary<uint, Monster> LoadMonster()
     {
         return LoadStaticDB<Monster>("dbcharacter::Monster")
@@ -98,6 +112,12 @@ public class StaticDBLoader : ISDBLoader
     public Dictionary<uint, WarpaintPalette> LoadWarpaintPalettes() 
     {
         return LoadStaticDB<WarpaintPalette>("dbvisualrecords::WarpaintPalette")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, VisualRecord> LoadVisualRecord()
+    {
+        return LoadStaticDB<VisualRecord>("dbvisualrecords::VisualRecord")
         .ToDictionary(row => row.Id);
     }
 
@@ -143,6 +163,13 @@ public class StaticDBLoader : ISDBLoader
     {
         return LoadStaticDB<Battleframe>("dbitems::Battleframe")
         .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, List<BattleframeVisuals>> LoadBattleframeVisuals()
+    {
+        return LoadStaticDB<BattleframeVisuals>("dbitems::BattleframeVisuals")
+        .GroupBy(row => row.VisualGroup)
+        .ToDictionary(group => group.Key, group => group.ToList());
     }
 
     public Dictionary<uint, AbilityModule> LoadAbilityModule()
@@ -915,6 +942,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, HullSegmentDef> LoadHullSegmentDef()
+    {
+        return LoadStaticDB<HullSegmentDef>("vcs::HullSegmentDef")
+        .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, TargetSingleCommandDef> LoadTargetSingleCommandDef()
     {
         return LoadStaticDB<TargetSingleCommandDef>("apt::TargetSingleCommandDef")
@@ -1390,6 +1423,48 @@ public class StaticDBLoader : ISDBLoader
         return LoadStaticDB<Blueprint_Items>("dbitems::Blueprint_Items")
         .GroupBy(row => row.BlueprintId)
         .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    public Dictionary<uint, PhysicsMaterial> LoadPhysicsMaterial()
+    {
+        return LoadStaticDB<PhysicsMaterial>("dbphysicsmaterials::PhysicsMaterial")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<byte, DamageType> LoadDamageType()
+    {
+        return LoadStaticDB<DamageType>("dbcharacter::DamageType")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<byte, DamageResponse> LoadDamageResponse()
+    {
+        return LoadStaticDB<DamageResponse>("dbcharacter::DamageResponse")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, DamageResponseDamageType> LoadDamageResponseDamageType()
+    {
+        return LoadStaticDB<DamageResponseDamageType>("dbcharacter::DamageResponseDamageType")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, TinyObject> LoadTinyObject()
+    {
+        return LoadStaticDB<TinyObject>("dbcharacter::TinyObject")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, PoseType> LoadPoseType()
+    {
+        return LoadStaticDB<PoseType>("dbcharacter::PoseType")
+            .ToDictionary(row => row.PoseId);
+    }
+
+    public Dictionary<uint, CharInfo> LoadCharInfo()
+    {
+        return LoadStaticDB<CharInfo>("dbcharacter::CharInfo")
+            .ToDictionary(row => row.Id);
     }
 
     private static T[] LoadStaticDB<T>(string tableName)

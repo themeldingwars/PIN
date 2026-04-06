@@ -8,6 +8,7 @@ using Records.aptfs;
 using Records.dbcharacter;
 using Records.dbencounterdata;
 using Records.dbitems;
+using Records.dbphysicsmaterials;
 using Records.dbvisualrecords;
 using Records.dbzonemetadata;
 using Records.vcs;
@@ -21,15 +22,27 @@ public class SDBInterface
     private static Dictionary<uint, DeployableFunction> DeployableFunction;
     private static Dictionary<uint, DeployableCategory> DeployableCategory;
     private static Dictionary<uint, Faction> Faction;
+    private static List<FactionRelations> FactionRelations;
+    private static Dictionary<uint, List<FactionReputations>> FactionReputations;
     private static Dictionary<uint, Monster> Monster;
     private static Dictionary<uint, Turret> Turret;
+    private static Dictionary<uint, PoseType> PoseType;
+    private static Dictionary<uint, CharInfo> CharInfo;
+    private static Dictionary<byte, DamageType> DamageType;
+    private static Dictionary<byte, DamageResponse> DamageResponse;
+    private static Dictionary<uint, DamageResponseDamageType> DamageResponseDamageType;
+    private static Dictionary<uint, TinyObject> TinyObject;
 
     // dbencounterdata
     private static Dictionary<uint, MapMarkerInfo> MapMarkerInfo;
     private static Dictionary<uint, SinCardTemplate> SinCardTemplate;
 
+    // dbphysicsmaterials
+    private static Dictionary<uint, PhysicsMaterial> PhysicsMaterial;
+
     // dbvisualrecords
     private static Dictionary<uint, WarpaintPalette> WarpaintPalettes;
+    private static Dictionary<uint, VisualRecord> VisualRecord;
 
     // dbitems
     private static Dictionary<uint, AttributeCategory> AttributeCategory;
@@ -53,6 +66,7 @@ public class SDBInterface
     private static Dictionary<uint, FrameProgressionLevel> FrameProgressionLevel;
     private static Dictionary<uint, Blueprints> Blueprints;
     private static Dictionary<uint, List<Blueprint_Items>> BlueprintItems;
+    private static Dictionary<uint, List<BattleframeVisuals>> BattleframeVisuals;
 
     // dbzonemetadata
     private static Dictionary<uint, ZoneRecord> ZoneRecord;
@@ -254,6 +268,7 @@ public class SDBInterface
     private static Dictionary<uint, TurretComponentDef> TurretComponentDef;
     private static Dictionary<uint, DeployableComponentDef> DeployableComponentDef;
     private static Dictionary<uint, SpawnPointComponentDef> SpawnPointComponentDef;
+    private static Dictionary<uint, HullSegmentDef> HullSegmentDef;
 
     public static void Init(StaticDB instance)
     {
@@ -266,15 +281,27 @@ public class SDBInterface
         DeployableFunction = loader.LoadDeployableFunction();
         DeployableCategory = loader.LoadDeployableCategory();
         Faction = loader.LoadFaction();
+        FactionRelations = loader.LoadFactionRelations();
+        FactionReputations = loader.LoadFactionReputations();
         Monster = loader.LoadMonster();
         Turret = loader.LoadTurret();
+        PoseType = loader.LoadPoseType();
+        CharInfo = loader.LoadCharInfo();
+        DamageType = loader.LoadDamageType();
+        DamageResponse = loader.LoadDamageResponse();
+        DamageResponseDamageType = loader.LoadDamageResponseDamageType();
+        TinyObject = loader.LoadTinyObject();
 
         // dbencounterdata
         MapMarkerInfo = loader.LoadMapMarkerInfo();
         SinCardTemplate = loader.LoadSinCardTemplate();
 
+        // dbphysicsmaterials
+        PhysicsMaterial = loader.LoadPhysicsMaterial();
+
         // dbvisualrecords
         WarpaintPalettes = loader.LoadWarpaintPalettes();
+        VisualRecord = loader.LoadVisualRecord();
 
         // dbitems
         AttributeCategory = loader.LoadAttributeCategory();
@@ -298,6 +325,7 @@ public class SDBInterface
         FrameProgressionLevel = loader.LoadFrameProgressionLevel();
         Blueprints = loader.LoadBlueprints();
         BlueprintItems = loader.LoadBlueprintItems();
+        BattleframeVisuals = loader.LoadBattleframeVisuals();
 
         // dbzonemetadata
         ZoneRecord = loader.LoadZoneRecord();
@@ -499,6 +527,7 @@ public class SDBInterface
         TurretComponentDef = loader.LoadTurretComponentDef();
         DeployableComponentDef = loader.LoadDeployableComponentDef();
         SpawnPointComponentDef = loader.LoadSpawnPointComponentDef();
+        HullSegmentDef = loader.LoadHullSegmentDef();
     }
 
     // dbcharacter
@@ -538,16 +567,30 @@ public class SDBInterface
     public static Deployable GetDeployable(uint id) => Deployable.GetValueOrDefault(id);
     public static DeployableFunction GetDeployableFunction(uint id) => DeployableFunction.GetValueOrDefault(id);
     public static DeployableCategory GetDeployableCategory(uint id) => DeployableCategory.GetValueOrDefault(id);
+    public static DamageType GetDamageType(byte id) => DamageType.GetValueOrDefault(id);
+    public static DamageResponse GetDamageResponse(byte id) => DamageResponse.GetValueOrDefault(id);
+    public static DamageResponseDamageType GetDamageResponseDamageType(uint id) => DamageResponseDamageType.GetValueOrDefault(id);
+    public static TinyObject GetTinyObject(uint id) => TinyObject.GetValueOrDefault(id);
     public static Faction GetFaction(uint id) => Faction.GetValueOrDefault(id);
+    public static List<Faction> GetFactions() => Faction.Select(pair => pair.Value).ToList();
+    public static List<FactionRelations> GetFactionRelations() => FactionRelations;
+    public static List<FactionReputations> GetFactionReputations(uint id) => FactionReputations.GetValueOrDefault(id);
+
     public static Monster GetMonster(uint id) => Monster.GetValueOrDefault(id);
     public static Turret GetTurret(uint id) => Turret.GetValueOrDefault(id);
+    public static PoseType GetPoseType(uint id) => PoseType.GetValueOrDefault(id);
+    public static CharInfo GetCharInfo(uint id) => CharInfo.GetValueOrDefault(id);
 
     // dbencounterdata
     public static MapMarkerInfo GetMapMarkerInfo(uint id) => MapMarkerInfo.GetValueOrDefault(id);
     public static SinCardTemplate GetSinCardTemplate(uint id) => SinCardTemplate.GetValueOrDefault(id);
 
+    // dbphysicsMaterial
+    public static PhysicsMaterial GetPhysicsMaterial(uint id) => PhysicsMaterial.GetValueOrDefault(id);
+
     // dbvisualrecords
     public static WarpaintPalette GetWarpaintPalette(uint id) => WarpaintPalettes.GetValueOrDefault(id);
+    public static VisualRecord GetVisualRecord(uint id) => VisualRecord.GetValueOrDefault(id);
 
     // dbitems
     public static RootItem GetRootItem(uint id) => RootItem.GetValueOrDefault(id);
@@ -566,6 +609,7 @@ public class SDBInterface
     public static FrameProgressionLevel GetFrameProgressionLevel(uint level) => FrameProgressionLevel.GetValueOrDefault(level);
     public static Blueprints GetBlueprint(uint id) => Blueprints.GetValueOrDefault(id);
     public static List<Blueprint_Items> GetBlueprintItems(uint blueprintId) => BlueprintItems.GetValueOrDefault(blueprintId);
+    public static List<BattleframeVisuals> GetBattleframeVisuals(uint id) => BattleframeVisuals.GetValueOrDefault(id);
 
     // dbzonemetadata
     public static ZoneRecord GetZoneRecord(uint id) => ZoneRecord.GetValueOrDefault(id);
@@ -767,4 +811,5 @@ public class SDBInterface
     public static TurretComponentDef GetTurretComponentDef(uint id) => TurretComponentDef.GetValueOrDefault(id);
     public static DeployableComponentDef GetDeployableComponentDef(uint id) => DeployableComponentDef.GetValueOrDefault(id);
     public static SpawnPointComponentDef GetSpawnPointComponentDef(uint id) => SpawnPointComponentDef.GetValueOrDefault(id);
+    public static HullSegmentDef GetHullSegmentComponentDef(uint id) => HullSegmentDef.GetValueOrDefault(id);
 }
