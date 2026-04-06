@@ -15,12 +15,12 @@
     </PackageReference>
     <PackageReference Include="Serilog.Enrichers.Context" Version="4.6.5" />
     <PackageReference Include="Serilog.Settings.AppSettings" Version="3.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.Map" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="9.0.0" />
-    <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
-    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageReference Include="System.IO.Hashing" Version="10.0.5" />
+    <PackageReference Include="System.IO.Pipelines" Version="10.0.5" />
     <PackageReference Include="FauFau" Version="1.5.0" />
   </ItemGroup>
   <ItemGroup>
