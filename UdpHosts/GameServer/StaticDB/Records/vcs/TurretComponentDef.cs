@@ -1,7 +1,10 @@
+using FauFau.Util.CommmonDataTypes;
+
 namespace GameServer.Data.SDB.Records.vcs;
+
 public record class TurretComponentDef
 {
-    // public Vec3 GunnerPoseFileOffset { get; set; }
+    public Vector3 GunnerPoseFileOffset { get; set; }
     public uint VisualrecId { get; set; }
     public uint AnimnetId { get; set; }
     public uint GunnerPoseFile { get; set; }

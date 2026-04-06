@@ -1,7 +1,10 @@
+using FauFau.Util.CommmonDataTypes;
+
 namespace GameServer.Data.SDB.Records.vcs;
+
 public record class PassengerComponentDef
 {
-    // public Vec3 PassengerPoseFileOffset { get; set; }
+    public Vector3 PassengerPoseFileOffset { get; set; }
     public string HardpointPrefix { get; set; }
     public uint MaxPassengers { get; set; }
     public float EjectionForce { get; set; }
