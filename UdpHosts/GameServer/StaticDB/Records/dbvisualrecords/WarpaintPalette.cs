@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbviusalrecords;
+namespace GameServer.Data.SDB.Records.dbvisualrecords;
 public record class WarpaintPalette
 {
     public uint Id { get; set; }

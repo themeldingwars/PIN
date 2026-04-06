@@ -6,8 +6,10 @@ using FauFau.Formats;
 using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
+using Records.dbencounterdata;
 using Records.dbitems;
-using Records.dbviusalrecords;
+using Records.dbvisualrecords;
+using Records.dbzonemetadata;
 using Records.vcs;
 
 public class SDBInterface
@@ -16,8 +18,15 @@ public class SDBInterface
     private static Dictionary<uint, CharCreateLoadout> CharCreateLoadout;
     private static Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> CharCreateLoadoutSlots;
     private static Dictionary<uint, Deployable> Deployable;
+    private static Dictionary<uint, DeployableFunction> DeployableFunction;
+    private static Dictionary<uint, DeployableCategory> DeployableCategory;
+    private static Dictionary<uint, Faction> Faction;
     private static Dictionary<uint, Monster> Monster;
     private static Dictionary<uint, Turret> Turret;
+
+    // dbencounterdata
+    private static Dictionary<uint, MapMarkerInfo> MapMarkerInfo;
+    private static Dictionary<uint, SinCardTemplate> SinCardTemplate;
 
     // dbvisualrecords
     private static Dictionary<uint, WarpaintPalette> WarpaintPalettes;
@@ -38,7 +47,15 @@ public class SDBInterface
     private static Dictionary<uint, WeaponScope> WeaponScope;
     private static Dictionary<uint, WeaponUnderbarrel> WeaponUnderbarrel;
     private static Dictionary<uint, Ammo> Ammo;
+    private static Dictionary<uint, LevelBand> LevelBand;
     private static Dictionary<uint, ResourceNodeBeacon> ResourceNodeBeacon;
+    private static Dictionary<KeyValuePair<uint, uint>, LevelCategoryScalars> LevelCategoryScalars;
+    private static Dictionary<uint, FrameProgressionLevel> FrameProgressionLevel;
+    private static Dictionary<uint, Blueprints> Blueprints;
+    private static Dictionary<uint, List<Blueprint_Items>> BlueprintItems;
+
+    // dbzonemetadata
+    private static Dictionary<uint, ZoneRecord> ZoneRecord;
 
     // apt
     private static Dictionary<uint, BaseCommandDef> BaseCommandDef;
@@ -46,6 +63,7 @@ public class SDBInterface
     private static Dictionary<uint, StatusEffectData> StatusEffectData;
     private static Dictionary<uint, HashSet<uint>> StatusEffectTag;
     private static Dictionary<uint, AbilityData> AbilityData;
+    private static Dictionary<uint, ActiveInitiationCommandDef> ActiveInitiationCommandDef;
     private static Dictionary<uint, ImpactApplyEffectCommandDef> ImpactApplyEffectCommandDef;
     private static Dictionary<uint, ImpactToggleEffectCommandDef> ImpactToggleEffectCommandDef;
     private static Dictionary<uint, ConditionalBranchCommandDef> ConditionalBranchCommandDef;
@@ -245,8 +263,15 @@ public class SDBInterface
         CharCreateLoadout = loader.LoadCharCreateLoadout();
         CharCreateLoadoutSlots = loader.LoadCharCreateLoadoutSlots();
         Deployable = loader.LoadDeployable();
+        DeployableFunction = loader.LoadDeployableFunction();
+        DeployableCategory = loader.LoadDeployableCategory();
+        Faction = loader.LoadFaction();
         Monster = loader.LoadMonster();
         Turret = loader.LoadTurret();
+
+        // dbencounterdata
+        MapMarkerInfo = loader.LoadMapMarkerInfo();
+        SinCardTemplate = loader.LoadSinCardTemplate();
 
         // dbvisualrecords
         WarpaintPalettes = loader.LoadWarpaintPalettes();
@@ -267,7 +292,15 @@ public class SDBInterface
         WeaponScope = loader.LoadWeaponScope();
         WeaponUnderbarrel = loader.LoadWeaponUnderbarrel();
         Ammo = loader.LoadAmmo();
+        LevelBand = loader.LoadLevelBand();
         ResourceNodeBeacon = loader.LoadResourceNodeBeacon();
+        LevelCategoryScalars = loader.LoadLevelCategoryScalars();
+        FrameProgressionLevel = loader.LoadFrameProgressionLevel();
+        Blueprints = loader.LoadBlueprints();
+        BlueprintItems = loader.LoadBlueprintItems();
+
+        // dbzonemetadata
+        ZoneRecord = loader.LoadZoneRecord();
 
         // apt
         StatusEffectData = loader.LoadStatusEffectData();
@@ -275,6 +308,7 @@ public class SDBInterface
         BaseCommandDef = loader.LoadBaseCommandDef();
         CommandType = loader.LoadCommandType();
         AbilityData = loader.LoadAbilityData();
+        ActiveInitiationCommandDef = loader.LoadActiveInitiationCommandDef();
         ImpactApplyEffectCommandDef = loader.LoadImpactApplyEffectCommandDef();
         ImpactToggleEffectCommandDef = loader.LoadImpactToggleEffectCommandDef();
         WhileLoopCommandDef = loader.LoadWhileLoopCommandDef();
@@ -502,10 +536,17 @@ public class SDBInterface
 
     public static Dictionary<byte, CharCreateLoadoutSlots> GetCharCreateLoadoutSlots(uint id) => CharCreateLoadoutSlots.GetValueOrDefault(id);
     public static Deployable GetDeployable(uint id) => Deployable.GetValueOrDefault(id);
+    public static DeployableFunction GetDeployableFunction(uint id) => DeployableFunction.GetValueOrDefault(id);
+    public static DeployableCategory GetDeployableCategory(uint id) => DeployableCategory.GetValueOrDefault(id);
+    public static Faction GetFaction(uint id) => Faction.GetValueOrDefault(id);
     public static Monster GetMonster(uint id) => Monster.GetValueOrDefault(id);
     public static Turret GetTurret(uint id) => Turret.GetValueOrDefault(id);
 
-    // dbvisaulrecords
+    // dbencounterdata
+    public static MapMarkerInfo GetMapMarkerInfo(uint id) => MapMarkerInfo.GetValueOrDefault(id);
+    public static SinCardTemplate GetSinCardTemplate(uint id) => SinCardTemplate.GetValueOrDefault(id);
+
+    // dbvisualrecords
     public static WarpaintPalette GetWarpaintPalette(uint id) => WarpaintPalettes.GetValueOrDefault(id);
 
     // dbitems
@@ -519,12 +560,21 @@ public class SDBInterface
     public static WeaponScope GetWeaponScope(uint id) => WeaponScope.GetValueOrDefault(id);
     public static WeaponUnderbarrel GetWeaponUnderbarrel(uint id) => WeaponUnderbarrel.GetValueOrDefault(id);
     public static Ammo GetAmmo(uint id) => Ammo.GetValueOrDefault(id);
+    public static LevelBand GetLevelBand(uint id) => LevelBand.GetValueOrDefault(id);
     public static ResourceNodeBeacon GetResourceNodeBeacon(uint id) => ResourceNodeBeacon.GetValueOrDefault(id);
+    public static LevelCategoryScalars GetLevelCategoryScalar(uint attributeCategory, uint level) => LevelCategoryScalars.GetValueOrDefault(new KeyValuePair<uint, uint>(attributeCategory, level));
+    public static FrameProgressionLevel GetFrameProgressionLevel(uint level) => FrameProgressionLevel.GetValueOrDefault(level);
+    public static Blueprints GetBlueprint(uint id) => Blueprints.GetValueOrDefault(id);
+    public static List<Blueprint_Items> GetBlueprintItems(uint blueprintId) => BlueprintItems.GetValueOrDefault(blueprintId);
+
+    // dbzonemetadata
+    public static ZoneRecord GetZoneRecord(uint id) => ZoneRecord.GetValueOrDefault(id);
 
     // apt
     public static BaseCommandDef GetBaseCommandDef(uint id) => BaseCommandDef.GetValueOrDefault(id);
     public static CommandType GetCommandType(uint id) => CommandType.GetValueOrDefault(id);
     public static AbilityData GetAbilityData(uint id) => AbilityData.GetValueOrDefault(id);
+    public static ActiveInitiationCommandDef GetActiveInitiationCommandDef(uint id) => ActiveInitiationCommandDef.GetValueOrDefault(id);
     public static StatusEffectData GetStatusEffectData(uint id) => StatusEffectData.GetValueOrDefault(id);
     public static HashSet<uint> GetStatusEffectTag(uint id) => StatusEffectTag.GetValueOrDefault(id);
     public static ImpactApplyEffectCommandDef GetImpactApplyEffectCommandDef(uint id) => ImpactApplyEffectCommandDef.GetValueOrDefault(id);
