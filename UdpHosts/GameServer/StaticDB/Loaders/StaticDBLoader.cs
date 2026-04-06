@@ -1502,7 +1502,17 @@ public class StaticDBLoader : ISDBLoader
                 {
                     if (prop.Index != -1)
                     {
-                        prop.PropInfo.SetValue(entry, row[prop.Index], null);
+                        if (prop.PropInfo.PropertyType == typeof(string))
+                        {
+                            // FauFau SDB parser leaves null characters in strings, which can break things for us if we try to send one of these strings in a network message, so let's make sure that can't happen.
+                            string rawStr = (string)row[prop.Index];
+                            string cleanStr = rawStr.Replace("\0", string.Empty);
+                            prop.PropInfo.SetValue(entry, cleanStr, null);
+                        }
+                        else
+                        {
+                            prop.PropInfo.SetValue(entry, row[prop.Index], null);
+                        }
                     }
                     else
                     {
