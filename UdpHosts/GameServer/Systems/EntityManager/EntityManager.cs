@@ -1650,6 +1650,19 @@ public class EntityManager
             }
         }
     }
+
+    public void SendToScoped<TNormal>(IEntity entity, TNormal message)
+    where TNormal : class, IAero
+    {
+        var entityId = entity.EntityId;
+        foreach (var client in ScopedPlayersByEntity[entityId])
+        {
+            if (client.CanReceiveGSS)
+            {
+                client.NetChannels[ChannelType.UnreliableGss].SendMessage(message, entityId);
+            }
+        }
+    }
  
     private void OnAddedEntity(IEntity entity)
     {
