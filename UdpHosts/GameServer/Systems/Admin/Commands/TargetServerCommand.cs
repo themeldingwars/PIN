@@ -19,8 +19,9 @@ public class TargetServerCommand : ServerCommand
         IEntity target = null;
         if (parameters.Length > 0)
         {
-            // Attempt to set by params by looking for entity id or name
             var query = string.Concat(parameters);
+
+            // Attempt to set by params by looking for entity id or name
             ulong maybeEntityId = ParseULongParameter(query);
             if (maybeEntityId != 0)
             {
@@ -32,11 +33,21 @@ public class TargetServerCommand : ServerCommand
                 {
                     if (pair.Value is CharacterEntity chara)
                     {
-                        if (chara.ToString() == query)
+                        var name = chara.ToString();
+                        if (name == query)
                         {
                             target = chara;
                             break;
                         }
+                    }
+                }
+
+                if (target == null)
+                {
+                    var queryLower = query.ToLower();
+                    if (queryLower == "me" || queryLower == "self")
+                    {
+                        target = character;
                     }
                 }
             }
