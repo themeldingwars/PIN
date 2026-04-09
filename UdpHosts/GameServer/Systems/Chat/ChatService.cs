@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character.Command;

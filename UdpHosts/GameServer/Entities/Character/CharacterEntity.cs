@@ -35,7 +35,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Character };
 
         CurrentStatModifiers = new Dictionary<StatModifierIdentifier, Dictionary<uint, ActiveStatModifier>>();
-        foreach(StatModifierIdentifier stat in Enum.GetValues(typeof(StatModifierIdentifier)))
+        foreach (StatModifierIdentifier stat in Enum.GetValues(typeof(StatModifierIdentifier)))
         {
             CurrentStatModifiers.Add(stat, new Dictionary<uint, ActiveStatModifier>());
         }
@@ -1553,7 +1553,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private ulong GetCurrentPermissionsValue()
     {
         ulong result = 0ul;
-        foreach(var pair in CurrentPermissions)
+        foreach (var pair in CurrentPermissions)
         {
             if (pair.Value)
             {

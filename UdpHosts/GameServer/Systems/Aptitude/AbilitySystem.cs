@@ -11,13 +11,12 @@ namespace GameServer.Aptitude;
 public class AbilitySystem
 {
     private static readonly ILogger _logger = Log.ForContext<AbilitySystem>();
-    public Factory Factory;
     private Shard Shard;
     private Dictionary<ulong, VehicleCalldownRequest> PlayerVehicleCalldownRequests;
     private Dictionary<ulong, DeployableCalldownRequest> PlayerDeployableCalldownRequests;
     private Dictionary<ulong, ResourceNodeBeaconCalldownRequest> PlayerThumperCalldownRequests;
 
-    private ulong LastUpdate = 0;
+    private ulong LastUpdate;
     private ulong UpdateIntervalMs = 20;
 
     public AbilitySystem(Shard shard)
@@ -28,6 +27,8 @@ public class AbilitySystem
         PlayerDeployableCalldownRequests = new();
         PlayerThumperCalldownRequests = new();
     }
+    
+    public Factory Factory { get; }
 
     public static float RegistryOp(float first, float second, Operand op)
     {
@@ -51,10 +52,10 @@ public class AbilitySystem
                 _logger.Debug("Uncertain RegistryOp {op}. {second} / {first} = {result}", op, second, first, second / first);
                 return second / first;
             case Operand.MINIMUM:
-                _logger.Debug("Uncertain RegistryOp {op}. Min({second}, {first}) = {result}", op, second, first, ((first <= second) ? first : second));
+                _logger.Debug("Uncertain RegistryOp {op}. Min({second}, {first}) = {result}", op, second, first, (first <= second) ? first : second);
                 return (first <= second) ? first : second;
             case Operand.MAXIMUM:
-                _logger.Debug("Uncertain RegistryOp {op}. Max({second}, {first}) = {result}", op, second, first, ((first >= second) ? first : second));
+                _logger.Debug("Uncertain RegistryOp {op}. Max({second}, {first}) = {result}", op, second, first, (first >= second) ? first : second);
                 return (first >= second) ? first : second;
             default:
                 _logger.Warning("Unknown RegistryOp {op}", op);

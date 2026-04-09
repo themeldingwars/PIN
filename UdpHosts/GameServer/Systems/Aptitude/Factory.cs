@@ -1,12 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Numerics;
-using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.apt;
-using GameServer.Data.SDB.Records.aptfs;
-using GameServer.Data.SDB.Records.customdata;
-using GameServer.Enums.GSS.Character;
 using Serilog;
 
 namespace GameServer.Aptitude;

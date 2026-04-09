@@ -1,5 +1,3 @@
-using System;
-
 namespace GameServer.Systems.Chat.Commands;
 
 [ChatCommand("Print a list of all chat commands", "help", "help", "listcmd", "listcmds", "cmdlist", "cmds")]

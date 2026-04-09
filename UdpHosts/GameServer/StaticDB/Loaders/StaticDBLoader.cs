@@ -1493,7 +1493,7 @@ public class StaticDBLoader : ISDBLoader
                         return new { PropInfo = propInfo, ConvertedName = convertedName, Index = index, };
                     }).ToList();
 
-        foreach(Row row in table.Rows)
+        foreach (Row row in table.Rows)
         {
             T entry = new T();
             foreach (var prop in properties)
@@ -1528,7 +1528,7 @@ public class StaticDBLoader : ISDBLoader
             list.Add(entry);
         }
 
-        foreach(string text in warningsSet)
+        foreach (string text in warningsSet)
         {
             _logger.Warning(text);
         }

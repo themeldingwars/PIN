@@ -7,9 +7,6 @@ public class Chain
 {
     private static readonly ILogger _logger = Log.ForContext<Chain>();
 
-    public uint Id = 0;
-    public List<ICommand> Commands;
-
     public enum ExecutionMethod
     {
         /// <summary>
@@ -22,6 +19,9 @@ public class Chain
         /// </summary>
         OrChain
     }
+
+    public uint Id { get; set; } = 0;
+    public List<ICommand> Commands { get; set; }
 
     public bool Execute(Context context, ExecutionMethod method = ExecutionMethod.AndChain)
     {
@@ -37,7 +37,7 @@ public class Chain
         if (method == ExecutionMethod.AndChain)
         {
             bool chainSuccess = true;
-            foreach(var command in Commands)
+            foreach (var command in Commands)
             {
                 if (debug)
                 {
@@ -55,15 +55,16 @@ public class Chain
 
             return chainSuccess;
         }
-        else if (method == ExecutionMethod.OrChain)
+
+        if (method == ExecutionMethod.OrChain)
         {
             bool chainSuccess = false;
-            foreach(var command in Commands)
+            foreach (var command in this.Commands)
             {
                 if (debug)
                 {
                     var hasMoreInfo = command.ToString() != command.GetType().ToString();
-                    _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
+                    _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", this.Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
                 }
 
                 bool commandSuccess = command.Execute(context);
@@ -76,7 +77,7 @@ public class Chain
     
             return chainSuccess;
         }
-        
+
         return true;
     }
 
@@ -87,7 +88,8 @@ public class Chain
         {
             Log.Warning("Loaded empty chain {ChainId}", Id);
         }
-        foreach(var command in Commands)
+        
+        foreach (var command in Commands)
         {
             Log.Information("- Command {CommandId} {Command}", command.Id, command);
         }

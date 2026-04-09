@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Numerics;
 using GameServer.Data.SDB.Records.apt;
 using GameServer.Entities;

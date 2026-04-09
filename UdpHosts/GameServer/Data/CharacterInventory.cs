@@ -15,8 +15,6 @@ public class CharacterInventory
 {
     private static readonly ILogger _logger = Log.ForContext<CharacterEntity>();
 
-    public bool EnablePartialUpdates = false;
-
     private Dictionary<ulong, Item> _items; // By guid
     private Dictionary<uint, Resource> _resources; // By typeid
     private Dictionary<int, Loadout> _loadouts; // By loadoutid
@@ -35,9 +33,11 @@ public class CharacterInventory
         _loadouts = new();  
     }
 
+    public bool EnablePartialUpdates { get; set; } = false;
+
     public void LoadHardcodedInventory()
     {
-        foreach(uint item in HardcodedCharacterData.FallbackInventoryItems)
+        foreach (uint item in HardcodedCharacterData.FallbackInventoryItems)
         {
             CreateItem(item);
         }
@@ -47,12 +47,12 @@ public class CharacterInventory
             AddResource(resource, quantity);
         }
 
-        foreach(var data in HardcodedCharacterData.TempHardcodedLoadouts)
+        foreach (var data in HardcodedCharacterData.TempHardcodedLoadouts)
         {
             HardcodedCharacterData.GenerateLoadoutAndItems(this, data);
         }
 
-        foreach((uint createId, uint chassisId) in HardcodedCharacterData.TempCharCreateLoadouts)
+        foreach ((uint createId, uint chassisId) in HardcodedCharacterData.TempCharCreateLoadouts)
         {
             HardcodedCharacterData.GenerateCharCreateLoadoutAndItems(this, createId, chassisId);
         }
@@ -78,18 +78,16 @@ public class CharacterInventory
     /// <returns>The loadout data as LoadoutReferenceData or null if the loadoutId was invalid</returns>
     public LoadoutReferenceData GetLoadoutReferenceData(int loadoutId)
     {
-        if (!_loadouts.ContainsKey(loadoutId))
+        if (!this._loadouts.TryGetValue(loadoutId, out var loadout))
         {
             return null;
         }
 
-        var loadout = _loadouts[loadoutId];
-
         var refData = new LoadoutReferenceData()
-        {
-            LoadoutId = loadoutId,
-            ChassisId = loadout.ChassisID
-        };
+                      {
+                          LoadoutId = loadoutId,
+                          ChassisId = loadout.ChassisID
+                      };
 
         var pveConfig = loadout.LoadoutConfigs[0];
         var pvpConfig = loadout.LoadoutConfigs[1];
@@ -157,12 +155,11 @@ public class CharacterInventory
 
     public bool ConsumeResource(uint sdbId, uint cost)
     {
-        if (!_resources.ContainsKey(sdbId))
+        if (!this._resources.TryGetValue(sdbId, out var res))
         {
             return false;
         }
 
-        var res = _resources[sdbId];
         if (res.Quantity < cost)
         {
             return false;
@@ -192,12 +189,12 @@ public class CharacterInventory
 
     public void AddLoadout(Loadout loadout)
     {
-        _loadouts.Add((int)loadout.FrameLoadoutId, loadout);
+        _loadouts.Add(loadout.FrameLoadoutId, loadout);
     }
 
     public void SendFullInventory()
     {
-        if (_items.Count > ((255 * 3) - 1))
+        if (_items.Count > (255 * 3) - 1)
         {
             throw new NotImplementedException("Too many items in inventory, CharacterInventory.SendFullInventory has to be updated");
         }
@@ -232,7 +229,7 @@ public class CharacterInventory
         {
             var tmp = _items.Values.ToArray();
             update.ItemsPart1Length = 255;
-            update.ItemsPart1Full = tmp[0..255];
+            update.ItemsPart1Full = tmp[..255];
             if (_items.Count >= 510)
             {
                 update.ItemsPart2Length = 255;
@@ -426,7 +423,7 @@ public class CharacterInventory
         {
             // Update Visuals
             _loadouts[loadoutId].LoadoutConfigs[0].Visuals = _loadouts[loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = Array.Empty<float>() }).ToArray();
-            var item = _items.First(e => e.Value.SdbId == sdb_id).Value;
+            _ = _items.First(e => e.Value.SdbId == sdb_id).Value;
         }
 
         var equippedGUID = (sdb_id != 0) ? _items.First(e => e.Value.SdbId == sdb_id).Value.GUID : 0;

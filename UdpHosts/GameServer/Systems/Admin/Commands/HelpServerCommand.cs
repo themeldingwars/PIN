@@ -1,5 +1,3 @@
-using System;
-
 namespace GameServer.Admin;
 
 [ServerCommand("Print a list of all ServerCommands", "help", "help", "listcmd", "listcmds", "cmdlist", "cmds")]

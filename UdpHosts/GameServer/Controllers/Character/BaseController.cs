@@ -132,7 +132,7 @@ public class BaseController : Base
             return;
         }
 
-        var movementInput = packet.Unpack<AeroMessages.GSS.V66.Character.Command.MovementInput>();
+        var movementInput = packet.Unpack<MovementInput>();
 
         if (!player.CharacterEntity.Alive)
         {

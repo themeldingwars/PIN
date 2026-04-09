@@ -1,5 +1,4 @@
-﻿using System;
-using GameServer.Data.SDB.Records.aptfs;
+﻿using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 
 namespace GameServer.Aptitude;

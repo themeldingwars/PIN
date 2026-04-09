@@ -1,5 +1,4 @@
-﻿using System;
-using GameServer.Data.SDB.Records.customdata;
+﻿using GameServer.Data.SDB.Records.customdata;
 
 namespace GameServer.Aptitude;
 

@@ -1,4 +1,3 @@
-using System;
 using GameServer.Data.SDB.Records.aptfs;
 
 namespace GameServer.Aptitude;

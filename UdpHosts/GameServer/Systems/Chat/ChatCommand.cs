@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Serilog;
 
 namespace GameServer.Systems.Chat;
@@ -12,6 +11,7 @@ public abstract class ChatCommand
     {
         Logger = Log.ForContext(GetType());
     }
+    
     public abstract void Execute(string[] parameters, ChatCommandContext context);
     public virtual void SourceFeedback(string message, ChatCommandContext context)
     {
@@ -25,11 +25,9 @@ public abstract class ChatCommand
         {
             return result;
         }
-        else
-        {
-            Logger.Warning("Invalid format: {value}", value);
-            return 0;
-        }
+
+        this.Logger.Warning("Invalid format: {value}", value);
+        return 0;
     }
 
     public ulong ParseULongParameter(string value)
@@ -38,11 +36,9 @@ public abstract class ChatCommand
         {
             return result;
         }
-        else
-        {
-            Logger.Warning("Invalid format: {value}", value);
-            return 0;
-        }
+
+        this.Logger.Warning("Invalid format: {value}", value);
+        return 0;
     }
 
     public Vector3? ParseVector3Parameters(string[] parameters, int startIndex = 0)
@@ -60,10 +56,8 @@ public abstract class ChatCommand
         {
             return new Vector3(x, y, z);
         }
-        else
-        {
-            Logger.Warning("Invalid format for Vector3 parameters");
-            return null;
-        }
+
+        this.Logger.Warning("Invalid format for Vector3 parameters");
+        return null;
     }
 }
