@@ -26,7 +26,19 @@ public class StaticDBLoader : ISDBLoader
         { "DamageType", "damageType" }, // InflictDamageCommandDef and HealDamageCommandDef
         { "OrnamentsMapGroupId1", "ornaments_map_group_id_1" }, // dbitems::Weapons
         { "OrnamentsMapGroupId2", "ornaments_map_group_id_2" }, // dbitems::Weapons
-        { "FlightFx1stPersonId", "flight_fx_1st_person_id" }, // dbitems::Ammo
+        { "FlightFx1stPersonId", "flight_fx_1st_person_id" }, // dbitems::Ammo,
+        { "IconId", "iconId" }, // dbencounterdata::MapMarkerInfo
+        { "IntroRadioId", "introRadioId" }, // dbencounterdata::MapMarkerInfo
+        { "Stage2RadioId", "stage2RadioId" }, // dbencounterdata::MapMarkerInfo
+        { "Stage3RadioId", "stage3RadioId" }, // dbencounterdata::MapMarkerInfo
+        { "Stage4RadioId", "stage4RadioId" }, // dbencounterdata::MapMarkerInfo
+        { "Stage5RadioId", "stage5RadioId" }, // dbencounterdata::MapMarkerInfo
+        { "ShowNavigation", "showNavigation" }, // dbencounterdata::MapMarkerInfo
+        { "HideCasing", "hideCasing" }, // dbencounterdata::MapMarkerInfo
+        { "BroadcastPriority", "broadcastPriority" }, // dbencounterdata::MapMarkerInfo
+        { "IgnoreSIN", "ignoreSIN" }, // dbencounterdata::MapMarkerInfo
+        { "ShowWaypoint", "showWaypoint" }, // dbencounterdata::MapMarkerInfo
+        { "ZoneType", "zoneType" }, // dbzonemetadata::ZoneRecord
     };
     private static StaticDB sdb;
 
