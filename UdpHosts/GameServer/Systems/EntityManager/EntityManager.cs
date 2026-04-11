@@ -44,7 +44,7 @@ public class EntityManager
     private ulong ScopeCheckIntervalMs = 5000;
     private ulong LastLifetimeCheck = 0;
     private ulong LifetimeCheckIntervalMs = 1000;
-    private bool hasSpawnedTestEntities = false;
+    private bool hasSpawnedZoneEntities = false;
 
     private ConcurrentDictionary<ulong, HashSet<INetworkPlayer>> ScopedPlayersByEntity = new ConcurrentDictionary<ulong, HashSet<INetworkPlayer>>();
     
@@ -304,19 +304,48 @@ public class EntityManager
         return carryableEntity;
     }
 
+    // TODO: Remove these in favor of using the files
     public void TempSpawnTestEntities()
     {
-        // Aero
-        var aero = SpawnCharacter(356, new Vector3(167.84642f, 262.20822f, 491.86758f));
+        // New Eden Coral Forest
+        if (Shard.ZoneId == 448)
+        {
+            // Aero
+            var aero = SpawnCharacter(356, new Vector3(167.84642f, 262.20822f, 491.86758f));
 
-        // Battleframe Station
-        SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
+            // Battleframe Station
+            SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
 
-        // Thumper
-        Shard.EncounterMan.CreateThumper(20, new Vector3(158.3f, 249.3f, 491.93f), aero, SDBInterface.GetResourceNodeBeaconCalldownCommandDef(766269));
+            // Thumper
+            Shard.EncounterMan.CreateThumper(20, new Vector3(158.3f, 249.3f, 491.93f), aero, SDBInterface.GetResourceNodeBeaconCalldownCommandDef(766269));
 
-        // Datapad
-        SpawnCarryable(26, new Vector3(160.3f, 250.3f, 491.93f));
+            // Datapad
+            SpawnCarryable(26, new Vector3(160.3f, 250.3f, 491.93f));
+        }
+
+        // Checkerboard, Harvester/Crash Down
+        if (Shard.ZoneId == 12 || Shard.ZoneId == 1003)
+        {
+            bool vehicleTest = false;
+            bool factionTest = true;
+            if (vehicleTest)
+            {
+                var owner = SpawnCharacter(2312, new Vector3(1.5f, 3f, 0f));
+                SpawnCharacter(2385, new Vector3(1.5f, 3f, 0f));
+                SpawnVehicle(116, new Vector3(-1.5f, 3f, 0f), Quaternion.Identity, owner, false);
+                SpawnVehicle(201, new Vector3(-1.5f, 7f, 0f), Quaternion.Identity, owner, false);
+            }
+
+            if (factionTest)
+            {
+                var accord = SpawnCharacter(290, new Vector3(1.5f, 15f, 0f)); // Accord Assault (1)
+                var chosen = SpawnCharacter(1196, new Vector3(3.5f, 15f, 0f)); // Chosen Fiend (2)
+                var melding = SpawnCharacter(528, new Vector3(5.5f, 15f, 0f)); // Melded Aranha (6)
+                var gaea = SpawnCharacter(2342, new Vector3(7.5f, 15f, 0f)); // Aranha (7)
+                var tanken = SpawnCharacter(2407, new Vector3(9.5f, 15f, 0f)); // Tanken Saboteur (17)
+                var blackh = SpawnCharacter(1304, new Vector3(11.5f, 15f, 0f)); // Black Hills Bandit (22)
+            }
+        }
     }
 
     public void SpawnZoneEntities(uint zoneId)
@@ -350,6 +379,9 @@ public class EntityManager
             var outpost = entry.Value;
             SpawnOutpost(outpost);
         }
+
+        // Testing
+        TempSpawnTestEntities();
     }
 
     public void SetRemainingLifetime(IEntity entity, uint timeMs)
@@ -362,20 +394,14 @@ public class EntityManager
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
-        // Spawn test entities on first real tick
-        if (!hasSpawnedTestEntities && currentTime != 0)
+        // Spawn entities on first real tick
+        if (!hasSpawnedZoneEntities && currentTime != 0)
         {
-            hasSpawnedTestEntities = true;
+            hasSpawnedZoneEntities = true;
 
             if (Shard.Settings.LoadZoneEntities)
             {
                 SpawnZoneEntities(Shard.ZoneId);
-
-                // TODO: Remove these in favor of using the files instead
-                if (Shard.ZoneId == 448)
-                {
-                    TempSpawnTestEntities();
-                }
             }
         }
 
