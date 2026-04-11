@@ -125,7 +125,6 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public SpawnPoseData SpawnPose { get; set; }
     public Vector3 SpawnVelocity { get; set; } = Vector3.Zero;
     public CurrentPoseData CurrentPose { get; set; }
-    public HostilityInfoData HostilityInfo { get; set; }
     public ProcessDelayData ProcessDelay { get; set; }
     public ScopeBubbleInfoData ScopeBubble { get; set; }
     public uint ScalingLevel { get; set; }

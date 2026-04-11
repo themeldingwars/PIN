@@ -22,6 +22,8 @@ public sealed class TurretEntity : BaseEntity
         // BaseEntity has the Position prop and other systems may wish to use that
         // when processing this entity, EntityManagers scoping in/out logic is one such system.
         Position = parent.Position;
+
+        HostilityInfo = parent.HostilityInfo;
         InitControllers();
         InitViews();
     }
@@ -93,7 +95,7 @@ public sealed class TurretEntity : BaseEntity
                 WeaponFireBaseTimeProp = new WeaponFireBaseTimeData() { ChangeTime = 0, Unk = 0 },
                 AmmoProp = new AmmoData() { Ammo = new ushort[] { } },
                 FireRateModifierProp = 1.0f,
-                HostilityInfoProp = new HostilityInfoData { Flags = 0 | HostilityInfoData.HostilityFlags.Faction, FactionId = 1 },
+                HostilityInfoProp = HostilityInfo,
                 PersonalFactionStanceProp = null,
                 ScalingLevelProp = 1,
             };
@@ -113,7 +115,7 @@ public sealed class TurretEntity : BaseEntity
                 WeaponBurstEndedProp = Shard.CurrentTime,
                 AmmoProp = new AmmoStruct() { AmmoIndex = new ushort[] { } },
                 FireRateModifierProp = 1.0f,
-                HostilityInfoProp = new HostilityInfoData { Flags = 0 | HostilityInfoData.HostilityFlags.Faction, FactionId = 1 },
+                HostilityInfoProp = HostilityInfo,
                 PersonalFactionStanceProp = null,
             };
     }

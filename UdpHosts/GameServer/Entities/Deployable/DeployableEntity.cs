@@ -29,7 +29,6 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public Quaternion Orientation { get; set; }
     public Vector3 AimPosition => Position;
     public Vector3 AimDirection { get; set; }
-    public HostilityInfoData HostilityInfo { get; set; }
     public TurretEntity Turret { get; set; }
 
     public uint ConstructedTime { get; set; }

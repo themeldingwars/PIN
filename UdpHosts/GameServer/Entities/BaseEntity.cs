@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using AeroMessages.Common;
+using AeroMessages.GSS.V66;
 using BepuPhysics;
 using Serilog;
 
@@ -21,6 +22,7 @@ public class BaseEntity : IEntity
     public IShard Shard { get; }
     public Vector3 Position { get; set; }
     public BodyHandle BodyHandle { get; set; }
+    public HostilityInfoData HostilityInfo { get; set; }
 
     public InteractionComponent Interaction { get; set; }
     public ScopingComponent Scoping { get; set; }

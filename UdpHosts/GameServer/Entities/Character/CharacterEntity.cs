@@ -112,7 +112,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public sbyte ArmyIsOfficer { get; set; }
     public CharacterStateData CharacterState { get; set; }
     public int TimePlayed { get; set; }
-    public HostilityInfoData HostilityInfo { get; set; }
     public MaxVital MaxShields { get; set; }
     public MaxVital MaxHealth { get; set; }
     public GibVisuals GibVisualsInfo { get; set; }

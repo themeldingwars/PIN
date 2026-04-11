@@ -24,7 +24,6 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
     public bool IsPlayerCarried => Player != null;
     public BaseEntity Carrier { get; set; }
     public Quaternion Orientation { get; set; }
-    public HostilityInfoData HostilityInfo { get; set; }
 
     public uint Type { get; set; }
     public string Name { get; set; }
