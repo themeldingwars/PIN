@@ -1,7 +1,9 @@
+using FauFau.Util.CommmonDataTypes;
+
 namespace GameServer.Data.SDB.Records.dbcharacter;
 public record class EmoteRecord
 {
-    // public Vec3 Collisionoffset { get; set; }
+    public Vector3 CollisionOffset { get; set; }
     public uint Flags { get; set; }
     public string AnimationName { get; set; }
     public uint HeadAnimOverrideId { get; set; }

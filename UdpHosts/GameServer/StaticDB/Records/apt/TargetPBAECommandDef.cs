@@ -1,7 +1,9 @@
+using FauFau.Util.CommmonDataTypes;
+
 namespace GameServer.Data.SDB.Records.apt;
 public record class TargetPBAECommandDef : ICommandDef
 {
-    // public Vec3 AimPosOffset { get; set; }
+    public Vector3 AimPosOffset { get; set; }
     public float Radius { get; set; }
     public uint Id { get; set; }
     public ushort MaxTargets { get; set; }

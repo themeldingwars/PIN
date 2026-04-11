@@ -1,8 +1,10 @@
+using FauFau.Util.CommmonDataTypes;
+
 namespace GameServer.Data.SDB.Records.apt;
 public record class TargetConeAECommandDef : ICommandDef
 {
-    // public Vec3 AimDirOffset { get; set; }
-    // public Vec3 AimPosOffset { get; set; }
+    public Vector3 AimDirOffset { get; set; }
+    public Vector3 AimPosOffset { get; set; }
     public float Range { get; set; }
     public float Angle { get; set; }
     public float MinRadius { get; set; }

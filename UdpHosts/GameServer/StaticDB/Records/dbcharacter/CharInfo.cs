@@ -1,7 +1,9 @@
+using FauFau.Util.CommmonDataTypes;
+
 namespace GameServer.Data.SDB.Records.dbcharacter;
 public record class CharInfo
 {
-    // public Vec3 ProjectileOffset { get; set; }
+    public Vector3 ProjectileOffset { get; set; }
     public float ScopeRange { get; set; }
     public uint DeathparticleId { get; set; }
     public uint AoeHitparticleId { get; set; }

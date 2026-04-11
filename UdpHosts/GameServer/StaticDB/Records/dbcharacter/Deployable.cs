@@ -4,7 +4,7 @@ namespace GameServer.Data.SDB.Records.dbcharacter;
 public record class Deployable
 {
     // public Vec3 VisualOffset { get; set; }
-    // public Vec3 AimOffset { get; set; }
+    public Vector3 AimOffset { get; set; }
     public Vector3 AimDirection { get; set; }
     public uint LocalizedNameId { get; set; }
     public uint Flags { get; set; }

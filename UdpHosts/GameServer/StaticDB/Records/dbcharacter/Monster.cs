@@ -1,3 +1,5 @@
+using FauFau.Util.CommmonDataTypes;
+
 namespace GameServer.Data.SDB.Records.dbcharacter;
 public record class Monster
 {
@@ -5,7 +7,7 @@ public record class Monster
     // public Vec4f extra_color_4 { get; set; }
     // public Vec4f extra_color_1 { get; set; }
     // public Vec4f extra_color_2 { get; set; }
-    // public Vec3f projectile_offset { get; set; }
+    public Vector3 ProjectileOffset { get; set; }
     public uint LocalizedNameId { get; set; }
     public uint BackpackId { get; set; }
     public uint OrnamentsMapGroupId_3 { get; set; }
