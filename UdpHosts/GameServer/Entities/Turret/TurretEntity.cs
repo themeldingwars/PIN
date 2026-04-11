@@ -82,6 +82,13 @@ public sealed class TurretEntity : BaseEntity
         Turret_ObserverView.WeaponBurstEndedProp = time;
     }
 
+    public void SetHostilityInfo(HostilityInfoData newValue)
+    {
+        HostilityInfo = newValue;
+        Turret_ObserverView.HostilityInfoProp = HostilityInfo;
+        Turret_BaseController?.HostilityInfoProp = HostilityInfo;
+    }
+
     private void InitControllers()
     {
         Turret_BaseController = new BaseController()

@@ -139,6 +139,12 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
         CarryableObject_ObserverView.OrientationProp = Orientation;
     }
 
+    public void SetHostilityInfo(HostilityInfoData newValue)
+    {
+        HostilityInfo = newValue;
+        CarryableObject_ObserverView?.HostilityProp = HostilityInfo;
+    }
+
     public override bool IsInteractable()
     {
         return Interaction != null ? Interaction.Type != 0 : false;

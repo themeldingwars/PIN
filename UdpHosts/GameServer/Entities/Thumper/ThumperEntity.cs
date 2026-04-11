@@ -157,6 +157,12 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         ResourceNode_ObserverView.ProgressProp = Progress;
     }
 
+    public void SetHostilityInfo(HostilityInfoData newValue)
+    {
+        HostilityInfo = newValue;
+        ResourceNode_ObserverView?.HostilityInfoProp = HostilityInfo;
+    }
+
     public void TransitionToState(ThumperState newState)
     {
         StateInfo = new StateInfoStruct()

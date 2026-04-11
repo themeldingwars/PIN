@@ -1167,6 +1167,13 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return origin;
     }
 
+    public void SetHostilityInfo(HostilityInfoData newValue)
+    {
+        HostilityInfo = newValue;
+        Character_ObserverView?.HostilityInfoProp = HostilityInfo;
+        Character_BaseController?.HostilityInfoProp = HostilityInfo;
+    }
+
     private void InitFields()
     {
         Position = new Vector3();

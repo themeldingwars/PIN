@@ -151,6 +151,12 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
         Deployable_ObserverView.AimDirectionProp = AimDirection;
     }
 
+    public void SetHostilityInfo(HostilityInfoData newValue)
+    {
+        HostilityInfo = newValue;
+        Deployable_ObserverView.HostilityInfoProp = HostilityInfo;
+    }
+
     public override bool IsInteractable()
     {
         if (Encounter != null && !Encounter.Handles(EncounterComponent.Event.Interaction))

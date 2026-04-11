@@ -121,7 +121,7 @@ public class EntityManager
         return vehicleEntity;
     }
 
-    public DeployableEntity SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation, CharacterEntity owner = null)
+    public DeployableEntity SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation, CharacterEntity owner = null, bool useOwnerFaction = false, byte overrideFactionId = 0)
     {
         var deployableInfo = SDBInterface.GetDeployable(typeId);
         var deployableEntity = new DeployableEntity(Shard, Shard.GetNextGuid(), typeId, 0, owner);
@@ -130,6 +130,37 @@ public class EntityManager
         deployableEntity.SetOrientation(orientation);
         deployableEntity.SetAimDirection(aimDirection);
         deployableEntity.Scale = deployableInfo.Scale;
+
+        // Determine faction
+        byte factionId = 1;
+        if (useOwnerFaction)
+        {
+            if (owner == null)
+            {
+                Logger.Warning("Cant use owner faction when owner is not provided!");
+            }
+            else
+            {
+                factionId = owner.HostilityInfo.FactionId;
+            }
+        }
+        else if (overrideFactionId != 0)
+        {
+            factionId = overrideFactionId;
+        }
+        else if (deployableInfo.DefaultFaction != 0)
+        {
+            factionId = deployableInfo.DefaultFaction;
+        }
+        else
+        {
+            Logger.Warning("Default faction of deployable is 0, what do?");
+        }
+
+        // Set faction
+        var hostilityInfo = deployableEntity.HostilityInfo;
+        hostilityInfo.FactionId = deployableInfo.DefaultFaction;
+        deployableEntity.SetHostilityInfo(hostilityInfo);
 
         if (deployableInfo.InteractionType != 0)
         {
