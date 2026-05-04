@@ -393,7 +393,12 @@ public class EntityManager
             foreach (var entity in entities)
             {
                 float distanceThreshold = entity.GetScopeRange();
-                var currentlyScoped = ScopedPlayersByEntity[entity.EntityId];
+                if (!ScopedPlayersByEntity.TryGetValue(entity.EntityId, out var currentlyScoped))
+                {
+                    // Entity has no scoped players, skip
+                    continue;
+                }
+
                 var entityPosition = entity.Position;
                 foreach (var player in players)
                 {
@@ -1640,30 +1645,41 @@ public class EntityManager
         if (shouldFlush)
         {
             view.SerializeChangesToMemory(out var update);
-            foreach (var client in ScopedPlayersByEntity[entityId])
+
+            if (ScopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
             {
-                bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
-                if (shouldSend)
+                foreach (var client in ScopedPlayersByEntity[entityId])
                 {
-                    client.NetChannels[ChannelType.UnreliableGss].SendChanges(view, entityId, update);
+                    bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
+                    if (shouldSend && client?.NetChannels != null)
+                    {
+                        client.NetChannels[ChannelType.UnreliableGss].SendChanges(view, entityId, update);
+                    }
                 }
             }
         }
     }
 
     public void SendToScoped<TNormal>(IEntity entity, TNormal message)
-    where TNormal : class, IAero
+        where TNormal : class, IAero
     {
         var entityId = entity.EntityId;
-        foreach (var client in ScopedPlayersByEntity[entityId])
+        if (!ScopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
         {
-            if (client.CanReceiveGSS)
+            // No players are scoped to this entity - nothing to send to
+            return;
+        }
+
+        foreach (var client in scopedPlayers)
+        {
+            if (client?.CanReceiveGSS == true &&
+                client.NetChannels?.TryGetValue(ChannelType.UnreliableGss, out var channel) == true)
             {
-                client.NetChannels[ChannelType.UnreliableGss].SendMessage(message, entityId);
+                channel.SendMessage(message, entityId);
             }
         }
     }
- 
+
     private void OnAddedEntity(IEntity entity)
     {
         // TEMP: Hack to introduce new entities to connected players. This should be replaced with tick logic that sends down entities based on scope and distance.
@@ -1679,9 +1695,15 @@ public class EntityManager
 
     private void OnRemovedEntity(IEntity entity)
     {
-        foreach (var client in ScopedPlayersByEntity[entity.EntityId])
+        if (ScopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayers))
         {
-            ScopeOut(client, entity);
+            foreach (var client in scopedPlayers.ToList()) // ToList() to avoid modification during iteration
+            {
+                if (client != null)
+                {
+                    ScopeOut(client, entity);
+                }
+            }
         }
     }
 
