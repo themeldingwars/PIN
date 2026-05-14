@@ -32,6 +32,11 @@ public class AbilitySystem
 
     public static float RegistryOp(float first, float second, Operand op)
     {
+        if (float.IsNaN(first))
+        {
+            return second;
+        }
+
         switch (op)
         {
             case Operand.ASSIGN:
@@ -46,16 +51,12 @@ public class AbilitySystem
                 _logger.Debug("Uncertain RegistryOp {op}. {second} ^ {first} = {result}", op, second, first, (float)Math.Pow(second, first));
                 return (float)Math.Pow(second, first);
             case Operand.SUBTRACT:
-                _logger.Debug("Uncertain RegistryOp {op}. {second} - {first} = {result}", op, second, first, second - first);
                 return second - first;
             case Operand.DIVIDE:
-                _logger.Debug("Uncertain RegistryOp {op}. {second} / {first} = {result}", op, second, first, second / first);
                 return second / first;
             case Operand.MINIMUM:
-                _logger.Debug("Uncertain RegistryOp {op}. Min({second}, {first}) = {result}", op, second, first, (first <= second) ? first : second);
                 return (first <= second) ? first : second;
             case Operand.MAXIMUM:
-                _logger.Debug("Uncertain RegistryOp {op}. Max({second}, {first}) = {result}", op, second, first, (first >= second) ? first : second);
                 return (first >= second) ? first : second;
             default:
                 _logger.Warning("Unknown RegistryOp {op}", op);
