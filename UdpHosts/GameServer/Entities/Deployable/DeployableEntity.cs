@@ -110,8 +110,8 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
         Logger.Debug("Deployable.SetStatusEffect Index {index}, Time {time}, Id {id}", index, time, data.Id);
 
         // Member
-        this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
-        this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
+        GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+        GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
 
         // ObserverView
         Deployable_ObserverView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Deployable_ObserverView, time, null);
@@ -123,8 +123,8 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
         Logger.Debug("Deployable.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}", index, time, debugEffectId);
 
         // Member
-        this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
-        this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
+        GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+        GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
 
         // ObserverView
         Deployable_ObserverView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Deployable_ObserverView, time, null);

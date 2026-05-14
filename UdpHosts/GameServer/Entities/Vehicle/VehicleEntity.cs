@@ -370,8 +370,8 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         Logger.Debug("Vehicle.SetStatusEffect Index {index}, Time {time}, Id {id}", index, time, data.Id);
 
         // Member
-        this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
-        this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
+        GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+        GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
         
         // CombatController
         if (Vehicle_CombatController != null)
@@ -390,8 +390,8 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         Logger.Debug("Vehicle.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}", index, time, debugEffectId);
 
         // Member
-        this.GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
-        this.GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
+        GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
+        GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
         
         // CombatController
         if (Vehicle_CombatController != null)
