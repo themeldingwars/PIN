@@ -308,6 +308,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             ArmyTag = string.Empty
         });
 
+        SetHostilityInfo(new HostilityInfoData
+        {
+            Flags = 0 | HostilityInfoData.HostilityFlags.Faction,
+            FactionId = (byte)monsterInfo.FactionId
+        });
+
         ApplyLoadout(loadout);
 
         // Temp hack to equip weapon
