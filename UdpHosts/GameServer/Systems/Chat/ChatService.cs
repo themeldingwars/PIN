@@ -6,6 +6,7 @@ using AeroMessages.GSS.V66.Generic;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.Systems.SystemEvents;
 using Serilog;
 
 namespace GameServer.Systems.Chat;
@@ -20,15 +21,19 @@ public class ChatService
         ChatChannel.Yell,
     };
 
-    private Shard Shard;
-    private ChatCommandService CommandService;
-    private ILogger Logger;
+    private readonly Shard _shard;
+    private readonly EventBus _eventBus;
+    private readonly ChatCommandService _commandService;
+    private readonly ILogger _logger;
 
-    public ChatService(Shard shard)
+    public ChatService(Shard shard, EventBus eventBus)
     {
-        Shard = shard;
-        CommandService = new ChatCommandService(shard);
-        Logger = shard.Logger.ForContext<ChatService>();
+        _shard = shard;
+        _eventBus = eventBus;
+        _commandService = new ChatCommandService(shard);
+        _logger = shard.Logger.ForContext<ChatService>();
+        _eventBus.Subscribe<DebugChatDirectMessageEvent>(OnDebugChatDirectMessage);
+        _eventBus.Subscribe<DebugChatBroadcastMessageEvent>(OnDebugChatBroadcastMessage);
     }
 
     public void CharacterPerformTextChat(INetworkClient client, IEntity entity, PerformTextChat query)
@@ -38,14 +43,14 @@ public class ChatService
             // TODO: AlternateType messages
             return;
         }
-        
+
         ChatChannel queryChannel = (ChatChannel)query.Channel;
 
         var trimmed = query.Message.Trim();
         if (trimmed.StartsWith('\\'))
         {
-            CommandService.ExecuteCommand(trimmed[1..], ((CharacterEntity)entity).Player);
-            Logger.Information("Chat Command Executed: {message}", query.Message);
+            _commandService.ExecuteCommand(trimmed[1..], ((CharacterEntity)entity).Player);
+            _logger.Information("Chat Command Executed: {message}", query.Message);
         }
         else if (PublicBroadcastChannels.Contains(queryChannel))
         {
@@ -53,7 +58,7 @@ public class ChatService
         }
         else if (queryChannel == ChatChannel.Admin)
         {
-            Shard.Admin.ExecuteCommand(query.Message, ((CharacterEntity)entity).Player);
+            _shard.Admin.ExecuteCommand(query.Message, ((CharacterEntity)entity).Player);
         }
         else
         {
@@ -65,29 +70,29 @@ public class ChatService
     public void SendToPlayer(string message, ChatChannel channel, INetworkClient player)
     {
         var response = PrepareSingleMessage(message, channel, null);
-        player.NetChannels[ChannelType.UnreliableGss].SendMessage(response, Shard.InstanceId);
+        player.NetChannels[ChannelType.UnreliableGss].SendMessage(response, _shard.InstanceId);
     }
 
     public void SendToAll(string message, ChatChannel channel, IEntity sender)
     {
         var response = PrepareSingleMessage(message, channel, sender);
-        foreach (var client in Shard.Clients.Values)
+        foreach (var client in _shard.Clients.Values)
         {
             if (client.Status.Equals(IPlayer.PlayerStatus.Playing))
             {
-                client.NetChannels[ChannelType.UnreliableGss].SendMessage(response, Shard.InstanceId);
+                client.NetChannels[ChannelType.UnreliableGss].SendMessage(response, _shard.InstanceId);
             }
         }
     }
 
     public string GetCommandList()
     {
-        return CommandService.GetCommandList();
+        return _commandService.GetCommandList();
     }
 
     private ChatMessageList PrepareSingleMessage(string message, ChatChannel channel, IEntity sender)
     {
-        var senderId = sender != null ? sender.AeroEntityId : new EntityId() { Backing = Shard.InstanceId };
+        var senderId = sender != null ? sender.AeroEntityId : new EntityId() { Backing = _shard.InstanceId };
         var senderName = sender != null ? ((CharacterEntity)sender).StaticInfo.DisplayName : "Server";
         byte chatIconFlags = (byte)(sender != null ? 0 : 1);
 
@@ -113,5 +118,15 @@ public class ChatService
             ],
         };
         return response;
+    }
+
+    private void OnDebugChatDirectMessage(DebugChatDirectMessageEvent evt)
+    {
+        SendToPlayer(evt.Message, ChatChannel.Debug, evt.Target);
+    }
+
+    private void OnDebugChatBroadcastMessage(DebugChatBroadcastMessageEvent evt)
+    {
+        SendToAll(evt.Message, ChatChannel.Debug, evt.Source);
     }
 }

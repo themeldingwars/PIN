@@ -1,0 +1,85 @@
+syntax = "proto3";
+option csharp_namespace = "DebugPipeProto";
+package debugpipe;
+
+message PipeVector3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message PipeQuaternion {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float w = 4;
+}
+
+message PipeRigidPose {
+  PipeVector3 position = 1;
+  PipeQuaternion orientation = 2;
+}
+
+
+message PipeCollisionShape {
+  uint32 assetId = 1;
+  float scale = 2;
+  PipeVector3 offset = 3;
+}
+
+message PipeCharacterCollisionShape {
+  PipeCollisionShape base = 1;
+  uint32 poseTypeRecordId = 2;
+  bool requiresRagdoll = 3;
+  uint32 ragdollCollisionId = 4;
+  uint32 attachmentPoseId = 5;
+  PipeVector3 attachmentPoseOffset = 6;
+}
+
+
+message LoadZone {
+  uint32 zoneId = 1;
+}
+
+message ZoneReady {}
+
+message LoadEntities {
+  repeated CreateKineticEntity entities = 1;
+}
+
+message CreateKineticEntity {
+  uint64 entityId = 1;
+  PipeRigidPose pose = 2;
+  PipeCollisionShape shape = 3;
+}
+
+message UpdateEntity {
+  uint64 entityId = 1;
+  PipeRigidPose pose = 2;
+  PipeCollisionShape shape = 3;
+}
+
+message RequestEntity {
+  uint64 entityId = 1;
+}
+
+message TickUpdate {
+  repeated UpdateEntity updates = 1;
+}
+
+message RemoveEntity {
+  uint64 entityId = 1;
+}
+
+message PipeMessage {
+  oneof payload {
+    LoadZone loadZone = 1;
+    ZoneReady zoneReady = 2;
+    LoadEntities loadEntities = 3;
+    CreateKineticEntity createKineticEntity = 5;
+    UpdateEntity updateEntity = 6;
+    TickUpdate tickUpdate = 7;
+    RequestEntity requestEntity = 8;
+    RemoveEntity removeEntity = 9;
+  }
+}

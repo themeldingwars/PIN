@@ -15,23 +15,23 @@ namespace GameServer.Systems.WeaponSim;
 public class WeaponSim
 {
     private readonly Dictionary<ulong, WeaponSimState> _weaponSimState;
-    private Shard _shard;
-    private ILogger Logger;
-    private ulong LastUpdate = 0;
-    private ulong UpdateIntervalMs = 50;
+    private readonly Shard _shard;
+    private readonly ILogger _logger;
+    private readonly ulong _updateIntervalMs = 50;
+    private ulong _lastUpdate = 0;
 
     public WeaponSim(Shard shard)
     {
         _shard = shard;
-        _weaponSimState = new();
-        Logger = shard.Logger.ForContext<WeaponSim>();
+        _weaponSimState = [];
+        _logger = shard.Logger.ForContext<WeaponSim>();
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
-        if (currentTime > LastUpdate + UpdateIntervalMs)
+        if (currentTime > _lastUpdate + _updateIntervalMs)
         {
-            LastUpdate = currentTime;
+            _lastUpdate = currentTime;
             var entities = GetWeaponSimPlayersEntities();
             foreach (var entity in entities)
             {
@@ -46,7 +46,7 @@ public class WeaponSim
         var activeWeaponDetails = entity.GetActiveWeaponDetails();
         if (activeWeaponDetails == null)
         {
-            Logger.Warning("Will not fire projectile because failed to get active weapon from the entity");
+            _logger.Warning("Will not fire projectile because failed to get active weapon from the entity");
             return;
         }
 
@@ -63,20 +63,20 @@ public class WeaponSim
         }
         else if (weaponSimState.LastWeaponId != weaponId)
         {
-            // Logger.Debug("Reset {weaponId} sim state!", weaponId);
+            // _logger.Debug("Reset {weaponId} sim state!", weaponId);
 
-            // Drop state if we swapped weapon   
+            // Drop state if we swapped weapon
             weaponSimState = new WeaponSimState
             {
                 LastWeaponId = weaponId
             };
         }
 
-        // Logger.Debug("Selected weapon {weaponName} and spread factor {spreadFactor}", weapon.DebugName, weaponSpreadFactor);
+        // _logger.Debug("Selected weapon {weaponName} and spread factor {spreadFactor}", weapon.DebugName, weaponSpreadFactor);
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
-        
+
         // Projectile origin
         var origin = entity.GetProjectileOrigin(localAimDir);
 
@@ -91,7 +91,7 @@ public class WeaponSim
         // Calculate spreadPct
         float spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponSpreadFactor, time);
 
-        // Logger.Debug("Firing with spreadPct {spreadPct}", spreadPct);
+        // _logger.Debug("Firing with spreadPct {spreadPct}", spreadPct);
 
         // Fire rounds
         for (byte round = 0; round < roundsToFire; round++)
@@ -112,9 +112,9 @@ public class WeaponSim
         if (weapon.SpreadRampTime != 0)
         {
             uint burstCost = weapon.MsPerBurst;
-            var update = System.Math.Min(weapon.SpreadRampTime, weaponSimState.AccumulatedSpreadTime + burstCost);
+            var update = Math.Min(weapon.SpreadRampTime, weaponSimState.AccumulatedSpreadTime + burstCost);
 
-            // Logger.Debug("SpreadRampTime {SpreadRampTime}, AccumulatedSpreadTime: {AccumulatedSpreadTime}, MsPerBurst: {MsPerBurst}, Setting AccumulatedSpreadTime To : {update}", weapon.SpreadRampTime, weaponSimState.AccumulatedSpreadTime, weapon.MsPerBurst, update);
+            // _logger.Debug("SpreadRampTime {SpreadRampTime}, AccumulatedSpreadTime: {AccumulatedSpreadTime}, MsPerBurst: {MsPerBurst}, Setting AccumulatedSpreadTime To : {update}", weapon.SpreadRampTime, weaponSimState.AccumulatedSpreadTime, weapon.MsPerBurst, update);
             weaponSimState.AccumulatedSpreadTime = update;
         }
 
@@ -189,12 +189,12 @@ public class WeaponSim
             int timeCanReturn = (int)(currentTime - weaponSimState.LastBurstTime - weapon.MsSpreadReturnDelay);
             if (timeCanReturn > 0)
             {
-                uint returnedTime = (uint)System.Math.Min(weapon.MsSpreadReturn, timeCanReturn);
+                uint returnedTime = (uint)Math.Min(weapon.MsSpreadReturn, timeCanReturn);
                 float ratioToReturn = (float)returnedTime / weapon.MsSpreadReturn;
                 uint rampTimeToReturn = (uint)(weaponSimState.AccumulatedSpreadTime * ratioToReturn);
-                uint update = (uint)System.Math.Max(0, (int)weaponSimState.AccumulatedSpreadTime - rampTimeToReturn);
+                uint update = (uint)Math.Max(0, (int)weaponSimState.AccumulatedSpreadTime - rampTimeToReturn);
 
-                // Logger.Debug("returnedTime {returnedTime}, ratioToReturn: {ratioToReturn}, rampTimeToReturn: {rampTimeToReturn}, Setting AccumulatedSpreadTime To : {update}", returnedTime, ratioToReturn, rampTimeToReturn, update);
+                // _logger.Debug("returnedTime {returnedTime}, ratioToReturn: {ratioToReturn}, rampTimeToReturn: {rampTimeToReturn}, Setting AccumulatedSpreadTime To : {update}", returnedTime, ratioToReturn, rampTimeToReturn, update);
                 weaponSimState.AccumulatedSpreadTime = update;
             }
         }
@@ -225,7 +225,7 @@ public class WeaponSim
                     float ratioToReturn = (float)elapsedTime / weapon.MsSpreadReturn;
                     float update = (float)(weaponSimState.CurrentMovementSpreadBonus * (1f - ratioToReturn));
 
-                    // Logger.Debug("ReturnMovementSpread elapsedTime: {elapsedTime}, ratioToReturn: {ratioToReturn}, Setting CurrentMovementSpreadBonus To : {update}", elapsedTime, ratioToReturn, update);
+                    // _logger.Debug("ReturnMovementSpread elapsedTime: {elapsedTime}, ratioToReturn: {ratioToReturn}, Setting CurrentMovementSpreadBonus To : {update}", elapsedTime, ratioToReturn, update);
                     weaponSimState.CurrentMovementSpreadBonus = update;
                 }
                 else
@@ -296,7 +296,7 @@ public class WeaponSim
         }
         catch (Exception e)
         {
-            Logger.Error(e, "Failed DebugWeaponSpread");
+            _logger.Error(e, "Failed DebugWeaponSpread");
         }
     }
 

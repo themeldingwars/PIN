@@ -15,6 +15,7 @@ using GameServer.Systems.Encounters;
 using GameServer.Systems.EntityManager;
 using GameServer.Systems.MovementRelay;
 using GameServer.Systems.ProjectileSim;
+using GameServer.Systems.SystemEvents;
 using GameServer.Systems.WeaponSim;
 using Shared.Common;
 using Shared.Udp;
@@ -41,7 +42,8 @@ public class Shard : IShard
         Entities = new ConcurrentDictionary<ulong, IEntity>();
         Encounters = new ConcurrentDictionary<ulong, IEncounter>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
-        Physics = new PhysicsEngine(this);
+        EventBus = new EventBus();
+        Physics = new PhysicsEngine(EventBus, Settings.ZoneId, Settings.MapsPath, Settings.AssetDBPath, Settings.AssetsPath, Settings.LoadMapsCollision, new DebugProjectileHitCallbacks(this));
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
@@ -49,7 +51,7 @@ public class Shard : IShard
         EncounterMan = new EncounterManager(this);
         WeaponSim = new WeaponSim(this);
         ProjectileSim = new ProjectileSim(this);
-        Chat = new ChatService(this);
+        Chat = new ChatService(this, EventBus);
         Admin = new AdminService(this);
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
     }
@@ -59,6 +61,7 @@ public class Shard : IShard
     public IDictionary<ulong, IEncounter> Encounters { get; protected set; }
     public IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; protected set; }
     public IDictionary<uint, INetworkPlayer> Clients { get; }
+    public EventBus EventBus { get; }
     public PhysicsEngine Physics { get; }
     public AIEngine AI { get; }
     public MovementRelay Movement { get; }
@@ -102,8 +105,8 @@ public class Shard : IShard
         EntityMan.Tick(deltaTime, currentTime, ct);
         EncounterMan.Tick(deltaTime, currentTime, ct);
         Abilities.Tick(deltaTime, currentTime, ct);
-
         WeaponSim.Tick(deltaTime, currentTime, ct);
+        EventBus.Flush();
 
         return true;
     }

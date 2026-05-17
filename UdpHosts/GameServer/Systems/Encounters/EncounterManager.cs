@@ -22,37 +22,37 @@ public class EncounterManager
     private const ulong _updateFlushIntervalMs = 40;
     private const ulong _lifetimeCheckIntervalMs = 1000;
 
-    private readonly Shard Shard;
-    private ulong _lastUpdateFlush = 0;
-    private ulong _lastLifetimeCheck = 0;
-    private bool _hasSpawnedZoneEncounters = false;
+    private readonly Dictionary<BaseEntity, IProximityHandler> _entitiesToCheckProximity = [];
+    private readonly Dictionary<ulong, IEncounter> _uiQueries = [];
+    private readonly HashSet<IEncounter> _encountersToUpdate = [];
+    private readonly ConcurrentDictionary<ulong, Lifetime> _lifetimeByEncounter = new();
 
-    private Dictionary<BaseEntity, IProximityHandler> EntitiesToCheckProximity = new Dictionary<BaseEntity, IProximityHandler>();
-    private Dictionary<ulong, IEncounter> UiQueries = new Dictionary<ulong, IEncounter>();
-    private HashSet<IEncounter> EncountersToUpdate = new HashSet<IEncounter>();
-    private ConcurrentDictionary<ulong, Lifetime> LifetimeByEncounter = new ConcurrentDictionary<ulong, Lifetime>();
+    private readonly Shard _shard;
+    private ulong _lastUpdateFlush;
+    private ulong _lastLifetimeCheck;
+    private bool _hasSpawnedZoneEncounters;
 
     public EncounterManager(Shard shard)
     {
-        Shard = shard;
+        _shard = shard;
         Factory = new Factory(shard);
     }
 
     public void SendUiQuery(NewUiQuery uiQuery, INetworkPlayer target, IEncounter encounter)
     {
-        UiQueries.Add(uiQuery.QueryGuid, encounter);
+        _uiQueries.Add(uiQuery.QueryGuid, encounter);
 
         target.NetChannels[ChannelType.ReliableGss].SendMessage(uiQuery, target.CharacterEntity.EntityId);
     }
 
     public void HandleUiQueryResponse(UiQueryResponse uiQueryResponse, INetworkPlayer player)
     {
-        if (UiQueries.TryGetValue(uiQueryResponse.QueryGuid, out var encounter)
+        if (_uiQueries.TryGetValue(uiQueryResponse.QueryGuid, out var encounter)
             && encounter is IDonationHandler donationHandler)
         {
             donationHandler.OnDonation(uiQueryResponse, player);
 
-            UiQueries.Remove(uiQueryResponse.QueryGuid);
+            _uiQueries.Remove(uiQueryResponse.QueryGuid);
         }
     }
 
@@ -62,12 +62,12 @@ public class EncounterManager
         CharacterEntity owner,
         ResourceNodeBeaconCalldownCommandDef commandDef)
     {
-        var thumperEntity = Shard.EntityMan.SpawnThumper(nodeType, position, owner, commandDef);
+        var thumperEntity = _shard.EntityMan.SpawnThumper(nodeType, position, owner, commandDef);
 
         // add squadmates later
         var thumper = new Thumper(
-          Shard,
-          Shard.GetNextGuid(),
+          _shard,
+          _shard.GetNextGuid(),
           new HashSet<INetworkPlayer>() { owner.Player },
           thumperEntity);
 
@@ -82,39 +82,39 @@ public class EncounterManager
     {
         foreach (var entry in CustomDBInterface.GetZoneMeldingRepulsors(zoneId))
         {
-            var guid = Shard.GetNextGuid((byte)Controller.Encounter);
-            Add(guid, new MeldingRepulsor(Shard, guid, new HashSet<INetworkPlayer>(), entry.Value));
+            var guid = _shard.GetNextGuid((byte)Controller.Encounter);
+            Add(guid, new MeldingRepulsor(_shard, guid, new HashSet<INetworkPlayer>(), entry.Value));
         }
 
         foreach (var entry in CustomDBInterface.GetZoneLgvRaces(zoneId))
         {
             var t = entry.Value.Terminal;
-            var terminal = Shard.EntityMan.SpawnDeployable(820, t.Position, t.Orientation);
+            var terminal = _shard.EntityMan.SpawnDeployable(820, t.Position, t.Orientation);
             terminal.Encounter = new EncounterComponent() { SpawnDef = entry.Value, Events = EncounterComponent.Event.Interaction };
         }
     }
 
     public void SetRemainingLifetime(ICanTimeout encounter, uint timeMs)
     {
-        var tracker = LifetimeByEncounter.TryGetValue(encounter.EntityId, out var value) ? value : new Lifetime();
+        var tracker = _lifetimeByEncounter.TryGetValue(encounter.EntityId, out var value) ? value : new Lifetime();
 
-        tracker.ExpireAt = Shard.CurrentTimeLong + timeMs;
-        LifetimeByEncounter[encounter.EntityId] = tracker;
+        tracker.ExpireAt = _shard.CurrentTimeLong + timeMs;
+        _lifetimeByEncounter[encounter.EntityId] = tracker;
     }
 
     public void StartUpdatingEncounter(IEncounter encounter)
     {
-        EncountersToUpdate.Add(encounter);
+        _encountersToUpdate.Add(encounter);
     }
 
     public void StopUpdatingEncounter(IEncounter encounter)
     {
-        EncountersToUpdate.Remove(encounter);
+        _encountersToUpdate.Remove(encounter);
     }
 
     public void AddCheckingOfProximity(BaseEntity entity, IProximityHandler encounter)
     {
-        EntitiesToCheckProximity.Add(entity, encounter);
+        _entitiesToCheckProximity.Add(entity, encounter);
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -123,9 +123,9 @@ public class EncounterManager
         {
             _hasSpawnedZoneEncounters = true;
 
-            if (Shard.Settings.LoadZoneEntities)
+            if (_shard.Settings.LoadZoneEntities)
             {
-                SpawnZoneEncounters(Shard.ZoneId);
+                SpawnZoneEncounters(_shard.ZoneId);
             }
         }
 
@@ -133,7 +133,7 @@ public class EncounterManager
         {
             _lastUpdateFlush = currentTime;
 
-            foreach (var encounter in EncountersToUpdate)
+            foreach (var encounter in _encountersToUpdate)
             {
                 // todo add update queue
                 encounter.OnUpdate(currentTime);
@@ -141,11 +141,11 @@ public class EncounterManager
                 // FlushChanges(encounter);
             }
 
-            foreach (var (entity, encounter) in EntitiesToCheckProximity)
+            foreach (var (entity, encounter) in _entitiesToCheckProximity)
             {
                 foreach (var p in encounter.Participants)
                 {
-                    if (!Shard.EntityMan.HasScopedInEntity(entity.EntityId, p))
+                    if (!_shard.EntityMan.HasScopedInEntity(entity.EntityId, p))
                     {
                         continue;
                     }
@@ -162,15 +162,15 @@ public class EncounterManager
         {
             _lastLifetimeCheck = currentTime;
 
-            foreach ((ulong entityId, Lifetime tracker) in LifetimeByEncounter)
+            foreach ((ulong entityId, Lifetime tracker) in _lifetimeByEncounter)
             {
                 if (currentTime > tracker.ExpireAt)
                 {
-                    if (Shard.Encounters.TryGetValue(entityId, out var e) && e is ICanTimeout encounter)
+                    if (_shard.Encounters.TryGetValue(entityId, out var e) && e is ICanTimeout encounter)
                     {
                         encounter.OnTimeOut();
 
-                        LifetimeByEncounter.Remove(encounter.EntityId, out _);
+                        _lifetimeByEncounter.Remove(encounter.EntityId, out _);
                     }
                 }
             }
@@ -179,7 +179,7 @@ public class EncounterManager
 
     public void Add(ulong guid, IEncounter encounter)
     {
-        Shard.Encounters.Add(guid, encounter);
+        _shard.Encounters.Add(guid, encounter);
         ScopeIn(encounter);
     }
 
@@ -191,10 +191,10 @@ public class EncounterManager
 
     public void Remove(ulong guid)
     {
-        Shard.Encounters.TryGetValue(guid, out IEncounter encounter);
+        _shard.Encounters.TryGetValue(guid, out IEncounter encounter);
         if (encounter != null)
         {
-            Shard.Encounters.Remove(guid);
+            _shard.Encounters.Remove(guid);
         }
     }
 

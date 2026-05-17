@@ -17,7 +17,7 @@ public sealed class OutpostEntity : BaseEntity
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Outpost };
         Scoping = new ScopingComponent() { Global = true };
-        InitFields();
+        InitFields(record);
         InitViews(record);
         AddSpawnPoints(record);
     }
@@ -29,10 +29,11 @@ public sealed class OutpostEntity : BaseEntity
 
     public SpawnPoint RandomSpawnPoint => SpawnPoints[Rng.Next(SpawnPoints.Count)];
     public bool IsCapturedByHostiles => HardcodedCharacterData.HostileFactionIds.Contains(Outpost_ObserverView.FactionIdProp);
-    private List<SpawnPoint> SpawnPoints { get; set; } = new();
+    private List<SpawnPoint> SpawnPoints { get; set; } = [];
 
-    private void InitFields()
+    private void InitFields(Data.SDB.Records.customdata.Outpost record)
     {
+        Position = record.Position;
         ScopeBubbleInfo = new ScopeBubbleInfoData()
         {
             Layer = 0,
@@ -70,7 +71,7 @@ public sealed class OutpostEntity : BaseEntity
     {
         if (record.SpawnPoints.Count == 0)
         {
-            SpawnPoints = new List<SpawnPoint> { new() { Position = record.Position } };
+            SpawnPoints = [new() { Position = record.Position }];
         }
         else
         {

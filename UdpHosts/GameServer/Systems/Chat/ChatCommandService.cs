@@ -10,14 +10,14 @@ namespace GameServer.Systems.Chat;
 public class ChatCommandService
 {
     private readonly Dictionary<string, Type> _commandDictionary;
-    private Shard _shard;
-    private ILogger Logger;
+    private readonly Shard _shard;
+    private readonly ILogger _logger;
 
     public ChatCommandService(Shard shard)
     {
         _shard = shard;
-        Logger = shard.Logger.ForContext<ChatCommandService>();
-        _commandDictionary = new Dictionary<string, Type>();
+        _logger = shard.Logger.ForContext<ChatCommandService>();
+        _commandDictionary = [];
 
         LoadCommands();
     }
@@ -48,7 +48,7 @@ public class ChatCommandService
         }
         else
         {
-            Logger.Warning("Unknown command: {commandName}", commandName);
+            _logger.Warning("Unknown command: {commandName}", commandName);
             sourcePlayer?.SendDebugChat($"Unknown command: {commandName}");
         }
     }

@@ -69,7 +69,6 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public INetworkPlayer OwningPlayer { get; set; }
     public bool IsPlayerOwned => OwningPlayer != null;
 
-    public Quaternion Rotation { get; set; } = Quaternion.Identity;
     public Vector3 Velocity { get; set; } = new Vector3();
     public Vector3 AimDirection { get; set; } = new Vector3(0.70707911253f, 0.707134246826f, 0.000504541851114f); // Look kinda forward instead of up
     public short MovementState { get; set; } = unchecked((short)0x8000);
@@ -208,7 +207,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public uint SpawnAbility { get; set; } = 0;
     public uint DespawnAbility { get; set; } = 0;
     public uint DeathAbility { get; set; } = 0;
-    
+
     public void Load(VehicleInfoResult vehicleInfo)
     {
         VehicleId = vehicleInfo.VehicleId;
@@ -225,6 +224,8 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             Occupants[0].Role = AttachmentRole.Driver;
             Occupants[0].Posture = vehicleInfo.DriverPosture;
+            Occupants[0].PoseFile = vehicleInfo.DriverPoseFile;
+            Occupants[0].PoseOffset = vehicleInfo.DriverPoseOffset;
             emptySeatIdx++;
         }
 
@@ -233,8 +234,10 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             Occupants[emptySeatIdx].Role = AttachmentRole.Turret;
             Occupants[emptySeatIdx].Posture = turret.Posture;
+            Occupants[emptySeatIdx].PoseFile = turret.GunnerPoseFile;
+            Occupants[emptySeatIdx].PoseOffset = SDBUtils.Vector3FromFauFau(turret.GunnerPoseFileOffset);
 
-            Turrets.Add(Shard.EntityMan.SpawnTurret(turret.TurretType, this, turretIdx, turret.Posture));
+            Turrets.Add(Shard.EntityMan.SpawnTurret(turret.TurretType, this, SDBUtils.Vector3FromFauFau(turret.GunnerPoseFileOffset), turretIdx, turret.Posture, turret.GunnerPoseFile));
             Occupants[emptySeatIdx].TurretIndex = turretIdx;
 
             emptySeatIdx++;
@@ -253,6 +256,8 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         {
             Occupants[emptySeatIdx].Role = vehicleInfo.HasActivePassenger ? AttachmentRole.ActivePassenger : AttachmentRole.PassivePassenger;
             Occupants[emptySeatIdx].Posture = vehicleInfo.PassengerPosture;
+            Occupants[emptySeatIdx].PoseFile = vehicleInfo.PasengerPoseFile;
+            Occupants[emptySeatIdx].PoseOffset = vehicleInfo.PassengerPoseOffset;
             emptySeatIdx++;
         }
 
@@ -272,6 +277,12 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         var hostilityInfo = HostilityInfo;
         hostilityInfo.FactionId = (byte)vehicleInfo.FactionId;
         SetHostilityInfo(hostilityInfo);
+
+        Collision = new CollisionComponent
+        {
+            HitboxCollisionId = vehicleInfo.HullSegment.RemotePoseFile,
+            Scale = 1f,
+        };
 
         // TODO: Handle SIN, utility abilities, Deployables
 
@@ -311,7 +322,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public void SetPoseData(MovementInput poseData)
     {
         Position = poseData.Position;
-        Rotation = poseData.Rotation;
+        Orientation = poseData.Rotation;
         AimDirection = poseData.Direction;
         MovementState = (short)poseData.MovementState;
         MovementTime = poseData.Time;
@@ -323,10 +334,10 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         Position = newPosition;
         RefreshCurrentPose();
     }
-
-    public void SetRotation(Quaternion newRotation)
+    
+    public void SetOrientation(Quaternion newOrientation)
     {
-        Rotation = newRotation;
+        Orientation = newOrientation;
         RefreshCurrentPose();
     }
 
@@ -354,7 +365,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         WaterLevelAndDesc = newValue;
         Vehicle_ObserverView.WaterLevelAndDescProp = WaterLevelAndDesc;
         if (Vehicle_BaseController != null)
-        { 
+        {
             Vehicle_BaseController.WaterLevelAndDescProp = WaterLevelAndDesc;
         }
     }
@@ -372,14 +383,14 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
         GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
-        
+
         // CombatController
         if (Vehicle_CombatController != null)
         {
             Vehicle_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatController, time, null);
             Vehicle_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Vehicle_CombatController, data, null);
         }
-        
+
         // CombatView
         Vehicle_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatView, time, null);
         Vehicle_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Vehicle_CombatView, data, null);
@@ -392,14 +403,14 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
         GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
-        
+
         // CombatController
         if (Vehicle_CombatController != null)
         {
             Vehicle_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatController, time, null);
             Vehicle_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Vehicle_CombatController, null, null);
         }
-        
+
         // CombatView
         Vehicle_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Vehicle_CombatView, time, null);
         Vehicle_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Vehicle_CombatView, null, null);
@@ -501,14 +512,16 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         }
 
         character.SetAttachedTo(new AttachedToData
-                                {
-                                    Id1 = AeroEntityId,
-                                    Id2 = AeroEntityId,
-                                    Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
-                                    Unk2 = seatConfig.Posture,
-                                    Unk3 = 1, // mostly 1 in replays
-                                },
-                                this);
+        {
+            Id1 = AeroEntityId,
+            Id2 = AeroEntityId,
+            Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
+            Unk2 = seatConfig.Posture,
+            Unk3 = 1, // mostly 1 in replays
+        },
+        this,
+        seatConfig.PoseFile,
+        seatConfig.PoseOffset);
 
         if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Driver)
         {
@@ -563,14 +576,16 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         }
 
         character.SetAttachedTo(new AttachedToData
-                                {
-                                    Id1 = AeroEntityId,
-                                    Id2 = AeroEntityId,
-                                    Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
-                                    Unk2 = seatConfig.Posture,
-                                    Unk3 = 1, // mostly 1 in replays
-                                },
-                                this);
+        {
+            Id1 = AeroEntityId,
+            Id2 = AeroEntityId,
+            Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
+            Unk2 = seatConfig.Posture,
+            Unk3 = 1, // mostly 1 in replays
+        },
+        this,
+        seatConfig.PoseFile,
+        seatConfig.PoseOffset);
 
         if (character.IsPlayerControlled && seatConfig.Role == AttachmentRole.Driver)
         {
@@ -714,7 +729,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         };
 
         Vehicle_CombatView = new CombatView()
-        {  
+        {
         };
 
         Vehicle_MovementView = new MovementView()
@@ -729,7 +744,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         CurrentPose = new CurrentPoseData()
         {
             Position = Position,
-            Rotation = Rotation,
+            Rotation = Orientation,
             Direction = AimDirection,
             State = (ushort)MovementState,
             Time = Shard.CurrentTime + 200
@@ -779,4 +794,6 @@ public class SeatConfig
     public AttachmentRole Role;
     public byte Posture;
     public byte TurretIndex;
+    public uint PoseFile;
+    public Vector3 PoseOffset;
 }

@@ -64,4 +64,14 @@ public class GameServerSettings
     ///    Enable loading entities on zone startup
     /// </summary>
     public bool LoadZoneEntities { get; set; } = true;
+
+    /// <summary>
+    ///    File path to the system\assetdb folder of the Firefall installation
+    /// </summary>
+    public string AssetDBPath { get; set; } = @"C:\Program Files\Steam\steamapps\common\Firefall\system\assetdb";
+
+    /// <summary>
+    ///    File path to PIN Asset Data
+    /// </summary>
+    public string AssetsPath { get; set; } = string.Empty;
 }

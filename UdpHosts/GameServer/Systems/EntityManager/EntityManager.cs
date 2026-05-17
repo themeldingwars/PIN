@@ -31,49 +31,48 @@ namespace GameServer.Systems.EntityManager;
 
 public class EntityManager
 {
-    private const byte ServerId = 31;
-    private Shard Shard;
-    private ILogger Logger;
-    private uint Counter = 0;
-
-    private ulong LastUpdateFlush = 0;
-    private ulong UpdateFlushIntervalMs = 5;
-    private ulong LastScopeIn = 0;
-    private ulong ScopeInIntervalMs = 20;
-    private ulong LastScopeCheck = 0;
-    private ulong ScopeCheckIntervalMs = 5000;
-    private ulong LastLifetimeCheck = 0;
-    private ulong LifetimeCheckIntervalMs = 1000;
-    private bool hasSpawnedZoneEntities = false;
-
-    private ConcurrentDictionary<ulong, HashSet<INetworkPlayer>> ScopedPlayersByEntity = new ConcurrentDictionary<ulong, HashSet<INetworkPlayer>>();
-    
-    private ConcurrentQueue<ScopeInRequest> QueuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
-    private ConcurrentDictionary<ulong, Lifetime> LifetimeByEntity = new ConcurrentDictionary<ulong, Lifetime>();
+    private const byte _serverId = 31;
+    private readonly Shard _shard;
+    private readonly ILogger _logger;
+    private readonly ulong _updateFlushIntervalMs = 5;
+    private readonly ulong _scopeInIntervalMs = 20;
+    private readonly ulong _scopeCheckIntervalMs = 5000;
+    private readonly ulong _lifetimeCheckIntervalMs = 1000;
+    private readonly ConcurrentDictionary<ulong, HashSet<INetworkPlayer>> _scopedPlayersByEntity = new();
+    private readonly ConcurrentQueue<ScopeInRequest> _queuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
+    private readonly ConcurrentDictionary<ulong, Lifetime> _lifetimeByEntity = new();
+    private uint _counter;
+    private ulong _lastUpdateFlush;
+    private ulong _lastScopeIn;
+    private ulong _lastScopeCheck;
+    private ulong _lastLifetimeCheck;
+    private bool _hasSpawnedZoneEntities;
 
     public EntityManager(Shard shard)
     {
-        Shard = shard;
-        Logger = shard.Logger.ForContext<EntityManager>();
+        _shard = shard;
+        _logger = shard.Logger.ForContext<EntityManager>();
     }
 
     public int GetNumberOfScopedEntities(IPlayer player)
     {
-        return ScopedPlayersByEntity.Values.Count(set => set.Contains(player));
+        return _scopedPlayersByEntity.Values.Count(set => set.Contains(player));
     }
 
     public bool HasScopedInEntity(ulong entityId, INetworkPlayer player)
     {
-        return ScopedPlayersByEntity.TryGetValue(entityId, out var players) && players.Contains(player);
+        return _scopedPlayersByEntity.TryGetValue(entityId, out var players) && players.Contains(player);
     }
 
     public CharacterEntity SpawnCharacter(uint typeId, Vector3 position, CharacterEntity owner = null)
     {
-        var characterEntity = new CharacterEntity(Shard, Shard.GetNextGuid(), owner);
+        var characterEntity = new CharacterEntity(_shard, _shard.GetNextGuid(), owner);
         characterEntity.LoadMonster(typeId);
-        characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, Shard.CurrentTime);
+        characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, _shard.CurrentTime);
         characterEntity.SetPosition(position);
         characterEntity.SetSpawnPose();
+        _shard.Physics.CreateKineticEntity(characterEntity);
+        _shard.Physics.UpdateEntity(characterEntity);
         Add(characterEntity.EntityId, characterEntity);
         return characterEntity;
     }
@@ -81,8 +80,9 @@ public class EntityManager
     public VehicleEntity SpawnVehicle(ushort typeId, Vector3 position, Quaternion orientation, CharacterEntity owner, bool autoMount = false)
     {
         var vehicleInfo = SDBUtils.GetDetailedVehicleInfo(typeId);
-        var vehicleEntity = new VehicleEntity(Shard, Shard.GetNextGuid(), owner);
+        var vehicleEntity = new VehicleEntity(_shard, _shard.GetNextGuid(), owner);
         vehicleEntity.Position = position;
+        vehicleEntity.Orientation = orientation;
         vehicleEntity.Load(vehicleInfo);
         position.Z += vehicleInfo.SpawnHeight;
         vehicleEntity.SetSpawnPose(new AeroMessages.GSS.V66.Vehicle.Controller.SpawnPoseData()
@@ -90,7 +90,7 @@ public class EntityManager
             Position = position,
             Rotation = orientation,
             Direction = vehicleEntity.AimDirection,
-            Time = Shard.CurrentTime,
+            Time = _shard.CurrentTime,
         });
         vehicleEntity.SetPoseData(new AeroMessages.GSS.V66.Vehicle.Command.MovementInput()
         {
@@ -98,13 +98,16 @@ public class EntityManager
             Rotation = orientation,
             Direction = vehicleEntity.AimDirection,
             MovementState = 0x1000,
-            Time = Shard.CurrentTime,
+            Time = _shard.CurrentTime,
         });
         vehicleEntity.Scoping = new ScopingComponent() { Range = vehicleInfo.ScopeRange };
         if (owner is { IsPlayerControlled: true })
         {
             vehicleEntity.SetOwningPlayer(owner.Player);
         }
+
+        _shard.Physics.CreateKineticEntity(vehicleEntity);
+        _shard.Physics.UpdateEntity(vehicleEntity);
 
         Add(vehicleEntity.EntityId, vehicleEntity);
 
@@ -115,7 +118,7 @@ public class EntityManager
 
         if (vehicleEntity.SpawnAbility != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, vehicleEntity, vehicleEntity.SpawnAbility);
+            _shard.Abilities.HandleActivateAbility(_shard, vehicleEntity, vehicleEntity.SpawnAbility);
         }
 
         return vehicleEntity;
@@ -124,7 +127,7 @@ public class EntityManager
     public DeployableEntity SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation, CharacterEntity owner = null, bool useOwnerFaction = false, byte overrideFactionId = 0)
     {
         var deployableInfo = SDBInterface.GetDeployable(typeId);
-        var deployableEntity = new DeployableEntity(Shard, Shard.GetNextGuid(), typeId, 0, owner);
+        var deployableEntity = new DeployableEntity(_shard, _shard.GetNextGuid(), typeId, 0, owner);
         var aimDirection = new Vector3(deployableInfo.AimDirection.x, deployableInfo.AimDirection.y, deployableInfo.AimDirection.z);
         deployableEntity.SetPosition(position);
         deployableEntity.SetOrientation(orientation);
@@ -137,7 +140,7 @@ public class EntityManager
         {
             if (owner == null)
             {
-                Logger.Warning("Cant use owner faction when owner is not provided!");
+                _logger.Warning("Cant use owner faction when owner is not provided!");
             }
             else
             {
@@ -154,7 +157,7 @@ public class EntityManager
         }
         else
         {
-            Logger.Warning("Default faction of deployable is 0, what do?");
+            _logger.Warning("Default faction of deployable is 0, what do?");
         }
 
         // Set faction
@@ -181,18 +184,25 @@ public class EntityManager
             deployableEntity.Scoping = new ScopingComponent() { Range = deployableInfo.ScopeRange };
         }
 
+        if (deployableInfo.CollisionId != 0)
+        {
+            deployableEntity.Collision = new CollisionComponent() { HitboxCollisionId = deployableInfo.CollisionId, Scale = deployableInfo.Scale };
+        }
+
+        _shard.Physics.CreateKineticEntity(deployableEntity);
+        _shard.Physics.UpdateEntity(deployableEntity);
         Add(deployableEntity.EntityId, deployableEntity);
 
         if (deployableInfo.SpawnAbilityid != 0)
         {
-            Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.SpawnAbilityid);
+            _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, deployableInfo.SpawnAbilityid);
         }
 
         if (deployableInfo.ConstructedAbilityid != 0)
         {
             var timer = new Timer(state =>
                  {
-                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, deployableInfo.ConstructedAbilityid);
+                     _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, deployableInfo.ConstructedAbilityid);
 
                      ((Timer)state)?.Dispose();
                  });
@@ -220,8 +230,8 @@ public class EntityManager
 
             var timer = new Timer(state =>
                  {
-                     Logger.ForContext<AbilitySystem>().Information("Deployable: Executing ability {PoweredOnAbility}", poweredOnAbility);
-                     Shard.Abilities.HandleActivateAbility(Shard, deployableEntity, poweredOnAbility);
+                     _logger.ForContext<AbilitySystem>().Information("Deployable: Executing ability {PoweredOnAbility}", poweredOnAbility);
+                     _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, poweredOnAbility);
 
                      ((Timer)state)?.Dispose();
                  });
@@ -236,14 +246,19 @@ public class EntityManager
         return deployableEntity;
     }
 
-    public TurretEntity SpawnTurret(uint typeId, BaseEntity parent, byte parentChildIndex = 0, byte posture = 0)
+    public TurretEntity SpawnTurret(uint typeId, BaseEntity parent, byte parentChildIndex = 0, byte posture = 0, uint gunnerPoseId = 0)
+    {
+        return SpawnTurret(typeId, parent, Vector3.Zero, parentChildIndex, posture, gunnerPoseId);
+    }
+
+    public TurretEntity SpawnTurret(uint typeId, BaseEntity parent, Vector3 gunnerPoseOffset, byte parentChildIndex = 0, byte posture = 0, uint gunnerPoseId = 0)
     {
         if (posture == 0)
         {
             posture = SDBInterface.GetTurret(typeId).Posture;
         }
 
-        var turretEntity = new TurretEntity(Shard, Shard.GetNextGuid(), typeId, parent, parentChildIndex, posture);
+        var turretEntity = new TurretEntity(_shard, _shard.GetNextGuid(), typeId, parent, parentChildIndex, posture, gunnerPoseId, gunnerPoseOffset);
 
         Add(turretEntity.EntityId, turretEntity);
 
@@ -252,7 +267,7 @@ public class EntityManager
 
     public MeldingEntity SpawnMelding(string perimiterSetName, ActiveDataStruct activeData)
     {
-        var meldingEntity = new MeldingEntity(Shard, Shard.GetNextGuid(), perimiterSetName);
+        var meldingEntity = new MeldingEntity(_shard, _shard.GetNextGuid(), perimiterSetName);
         meldingEntity.SetActiveData(activeData);
         Add(meldingEntity.EntityId, meldingEntity);
         return meldingEntity;
@@ -260,7 +275,7 @@ public class EntityManager
 
     public AreaVisualDataEntity SpawnAreaVisualData(Vector3 position, ScopingComponent scoping)
     {
-        var areaVisualData = new AreaVisualDataEntity(Shard, Shard.GetNextGuid())
+        var areaVisualData = new AreaVisualDataEntity(_shard, _shard.GetNextGuid())
             {
                 Scoping = scoping, Position = position,
             };
@@ -270,13 +285,13 @@ public class EntityManager
 
     public OutpostEntity SpawnOutpost(Outpost outpost)
     {
-        var outpostEntity = new OutpostEntity(Shard, Shard.GetNextGuid(), outpost);
+        var outpostEntity = new OutpostEntity(_shard, _shard.GetNextGuid(), outpost);
         Add(outpostEntity.EntityId, outpostEntity);
 
-        if (!Shard.Outposts.TryGetValue(outpost.ZoneId, out var zoneOutposts))
+        if (!_shard.Outposts.TryGetValue(outpost.ZoneId, out var zoneOutposts))
         {
             zoneOutposts = new ConcurrentDictionary<uint, OutpostEntity>();
-            Shard.Outposts[outpost.ZoneId] = zoneOutposts;
+            _shard.Outposts[outpost.ZoneId] = zoneOutposts;
         }
 
         zoneOutposts[outpost.Id] = outpostEntity;
@@ -290,7 +305,7 @@ public class EntityManager
         ResourceNodeBeaconCalldownCommandDef commandDef)
     {
         var beacon = SDBInterface.GetResourceNodeBeacon(commandDef.ResourceNodeBeaconId);
-        var thumperEntity = new ThumperEntity(Shard, Shard.GetNextGuid(), nodeType, position, owner, commandDef);
+        var thumperEntity = new ThumperEntity(_shard, _shard.GetNextGuid(), nodeType, position, owner, commandDef);
         thumperEntity.Scale = beacon.Scale;
         Add(thumperEntity.EntityId, thumperEntity);
         return thumperEntity;
@@ -298,7 +313,7 @@ public class EntityManager
 
     public CarryableEntity SpawnCarryable(uint type, Vector3 position)
     {
-        var carryableEntity = new CarryableEntity(Shard, Shard.GetNextGuid(), type);
+        var carryableEntity = new CarryableEntity(_shard, _shard.GetNextGuid(), type);
         carryableEntity.SetPosition(position);
         Add(carryableEntity.EntityId, carryableEntity);
         return carryableEntity;
@@ -308,7 +323,7 @@ public class EntityManager
     public void TempSpawnTestEntities()
     {
         // New Eden Coral Forest
-        if (Shard.ZoneId == 448)
+        if (_shard.ZoneId == 448)
         {
             // Aero
             var aero = SpawnCharacter(356, new Vector3(167.84642f, 262.20822f, 491.86758f));
@@ -317,23 +332,22 @@ public class EntityManager
             SpawnDeployable(395, new Vector3(170.84642f, 243.20822f, 491.71597f), new Quaternion(0f, 0f, 0.92874485f, 0.37071964f));
 
             // Thumper
-            Shard.EncounterMan.CreateThumper(20, new Vector3(158.3f, 249.3f, 491.93f), aero, SDBInterface.GetResourceNodeBeaconCalldownCommandDef(766269));
+            _shard.EncounterMan.CreateThumper(20, new Vector3(158.3f, 249.3f, 491.93f), aero, SDBInterface.GetResourceNodeBeaconCalldownCommandDef(766269));
 
             // Datapad
             SpawnCarryable(26, new Vector3(160.3f, 250.3f, 491.93f));
         }
 
         // Checkerboard, Harvester/Crash Down
-        if (Shard.ZoneId == 12 || Shard.ZoneId == 1003)
+        if (_shard.ZoneId == 12 || _shard.ZoneId == 1003)
         {
-            bool vehicleTest = false;
-            bool factionTest = true;
+            bool vehicleTest = true;
+            bool factionTest = false;
             if (vehicleTest)
             {
                 var owner = SpawnCharacter(2312, new Vector3(1.5f, 3f, 0f));
-                SpawnCharacter(2385, new Vector3(1.5f, 3f, 0f));
                 SpawnVehicle(116, new Vector3(-1.5f, 3f, 0f), Quaternion.Identity, owner, false);
-                SpawnVehicle(201, new Vector3(-1.5f, 7f, 0f), Quaternion.Identity, owner, false);
+                SpawnVehicle(201, new Vector3(-5.5f, 9f, 0f), Quaternion.Identity, owner, false);
             }
 
             if (factionTest)
@@ -386,52 +400,52 @@ public class EntityManager
 
     public void SetRemainingLifetime(IEntity entity, uint timeMs)
     {
-        var tracker = LifetimeByEntity.TryGetValue(entity.EntityId, out var value) ? value : new Lifetime();
+        var tracker = _lifetimeByEntity.TryGetValue(entity.EntityId, out var value) ? value : new Lifetime();
 
-        tracker.ExpireAt = Shard.CurrentTimeLong + timeMs;
-        LifetimeByEntity[entity.EntityId] = tracker;
+        tracker.ExpireAt = _shard.CurrentTimeLong + timeMs;
+        _lifetimeByEntity[entity.EntityId] = tracker;
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
         // Spawn entities on first real tick
-        if (!hasSpawnedZoneEntities && currentTime != 0)
+        if (!_hasSpawnedZoneEntities && currentTime != 0)
         {
-            hasSpawnedZoneEntities = true;
+            _hasSpawnedZoneEntities = true;
 
-            if (Shard.Settings.LoadZoneEntities)
+            if (_shard.Settings.LoadZoneEntities)
             {
-                SpawnZoneEntities(Shard.ZoneId);
+                SpawnZoneEntities(_shard.ZoneId);
             }
         }
 
         // Process queued scope-ins
-        if (!QueuedScopeIn.IsEmpty && currentTime > LastScopeIn + ScopeInIntervalMs)
+        if (!_queuedScopeIn.IsEmpty && currentTime > _lastScopeIn + _scopeInIntervalMs)
         {
-            bool ok = QueuedScopeIn.TryDequeue(out ScopeInRequest request);
+            bool ok = _queuedScopeIn.TryDequeue(out ScopeInRequest request);
             if (ok)
             {
                 ScopeIn(request.Player, request.Entity);
             }
 
-            LastScopeIn = currentTime;
+            _lastScopeIn = currentTime;
         }
 
         // Flush changes periodically
-        if (currentTime > LastUpdateFlush + UpdateFlushIntervalMs)
+        if (currentTime > _lastUpdateFlush + _updateFlushIntervalMs)
         {
-            LastUpdateFlush = currentTime;
-            foreach (var entity in Shard.Entities.Values)
+            _lastUpdateFlush = currentTime;
+            foreach (var entity in _shard.Entities.Values)
             {
                 FlushChanges(entity);
             }
         }
 
         // Check if any entities have ran out lifetime
-        if (currentTime > LastLifetimeCheck + LifetimeCheckIntervalMs)
+        if (currentTime > _lastLifetimeCheck + _lifetimeCheckIntervalMs)
         {
-            LastLifetimeCheck = currentTime;
-            foreach ((ulong entityId, Lifetime tracker) in LifetimeByEntity)
+            _lastLifetimeCheck = currentTime;
+            foreach ((ulong entityId, Lifetime tracker) in _lifetimeByEntity)
             {
                 if (currentTime > tracker.ExpireAt)
                 {
@@ -441,16 +455,16 @@ public class EntityManager
         }
 
         // Check if we should scope in/out entities for each player
-        if (currentTime > LastScopeCheck + ScopeCheckIntervalMs)
+        if (currentTime > _lastScopeCheck + _scopeCheckIntervalMs)
         {
-            LastScopeCheck = currentTime;
-            var players = Shard.Clients.Values.Where((client) => client.CanReceiveGSS);
-            var entities = Shard.Entities.Values;
+            _lastScopeCheck = currentTime;
+            var players = _shard.Clients.Values.Where((client) => client.CanReceiveGSS);
+            var entities = _shard.Entities.Values;
 
             foreach (var entity in entities)
             {
                 float distanceThreshold = entity.GetScopeRange();
-                var currentlyScoped = ScopedPlayersByEntity[entity.EntityId];
+                var currentlyScoped = _scopedPlayersByEntity[entity.EntityId];
                 var entityPosition = entity.Position;
                 foreach (var player in players)
                 {
@@ -490,7 +504,7 @@ public class EntityManager
                     {
                         if (shouldBeScoped)
                         {
-                            QueuedScopeIn.Enqueue(new ScopeInRequest { Player = player, Entity = entity });
+                            _queuedScopeIn.Enqueue(new ScopeInRequest { Player = player, Entity = entity });
                         }
                         else
                         {
@@ -504,16 +518,16 @@ public class EntityManager
 
     public void Add(ulong guid, IEntity entity)
     {
-        ScopedPlayersByEntity.TryAdd(guid, new());
-        Shard.Entities.Add(guid, entity);
+        _scopedPlayersByEntity.TryAdd(guid, new());
+        _shard.Entities.Add(guid, entity);
         OnAddedEntity(entity);
     }
 
     public void Add(IEntity entity)
     {
-        var guid = new Core.Data.EntityGuid(ServerId, Shard.CurrentTime, Counter++, (byte)Enums.GSS.Controllers.Character);
-        ScopedPlayersByEntity.TryAdd(guid.Full, new());
-        Shard.Entities.Add(guid.Full, entity);
+        var guid = new Core.Data.EntityGuid(_serverId, _shard.CurrentTime, _counter++, (byte)Enums.GSS.Controllers.Character);
+        _scopedPlayersByEntity.TryAdd(guid.Full, new());
+        _shard.Entities.Add(guid.Full, entity);
         OnAddedEntity(entity);
     }
 
@@ -529,12 +543,12 @@ public class EntityManager
 
     public void Remove(ulong guid)
     {
-        Shard.Entities.TryGetValue(guid, out IEntity entity);
+        _shard.Entities.TryGetValue(guid, out IEntity entity);
         if (entity != null)
         {
             OnRemovedEntity(entity);
-            Shard.Entities.Remove(guid);
-            ScopedPlayersByEntity.TryRemove(guid, out var v);
+            _shard.Entities.Remove(guid);
+            _scopedPlayersByEntity.TryRemove(guid, out var v);
         }
     }
 
@@ -697,7 +711,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
                         break;
                 }
 
@@ -722,7 +736,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
                         break;
                 }
 
@@ -746,7 +760,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
                         break;
                 }
 
@@ -845,7 +859,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {TypeCode}", typecode);
                         break;
                 }
 
@@ -930,7 +944,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
@@ -955,7 +969,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
@@ -996,7 +1010,7 @@ public class EntityManager
                         break;
 
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
 
                         break;
                 }
@@ -1021,7 +1035,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
@@ -1045,7 +1059,7 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
@@ -1069,13 +1083,13 @@ public class EntityManager
 
                         break;
                     default:
-                        Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
+                        _logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                         break;
                 }
 
                 break;
             default:
-                Logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
+                _logger.Warning("Unhandled KeyframeRequest for {typecode}", typecode);
                 break;
         }
     }
@@ -1088,7 +1102,7 @@ public class EntityManager
             return;
         }
 
-        ScopedPlayersByEntity[entity.EntityId].Add(player);
+        _scopedPlayersByEntity[entity.EntityId].Add(player);
 
         if (entity is CharacterEntity character)
         {
@@ -1328,7 +1342,7 @@ public class EntityManager
             return;
         }
 
-        ScopedPlayersByEntity[entity.EntityId].Remove(player);
+        _scopedPlayersByEntity[entity.EntityId].Remove(player);
 
         if (entity is CharacterEntity character)
         {
@@ -1697,7 +1711,7 @@ public class EntityManager
         if (shouldFlush)
         {
             view.SerializeChangesToMemory(out var update);
-            foreach (var client in ScopedPlayersByEntity[entityId])
+            foreach (var client in _scopedPlayersByEntity[entityId])
             {
                 bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
                 if (shouldSend)
@@ -1712,7 +1726,7 @@ public class EntityManager
     where TNormal : class, IAero
     {
         var entityId = entity.EntityId;
-        foreach (var client in ScopedPlayersByEntity[entityId])
+        foreach (var client in _scopedPlayersByEntity[entityId])
         {
             if (client.CanReceiveGSS)
             {
@@ -1720,11 +1734,11 @@ public class EntityManager
             }
         }
     }
- 
+
     private void OnAddedEntity(IEntity entity)
     {
         // TEMP: Hack to introduce new entities to connected players. This should be replaced with tick logic that sends down entities based on scope and distance.
-        foreach (var client in Shard.Clients.Values)
+        foreach (var client in _shard.Clients.Values)
         {
             // We don't want to inform players that are still in the early steps of connecting
             if (client.CanReceiveGSS)
@@ -1736,7 +1750,7 @@ public class EntityManager
 
     private void OnRemovedEntity(IEntity entity)
     {
-        foreach (var client in ScopedPlayersByEntity[entity.EntityId])
+        foreach (var client in _scopedPlayersByEntity[entity.EntityId])
         {
             ScopeOut(client, entity);
         }

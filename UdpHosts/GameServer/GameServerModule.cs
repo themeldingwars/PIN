@@ -82,7 +82,7 @@ public class GameServerModule : Module
                     }
                     else
                     {
-                        Console.WriteLine($"Cannot parse LoadMapsCollision setting value");
+                        Log.Error($"Cannot parse LoadMapsCollision setting value");
                     }
                 }
             }
@@ -95,8 +95,18 @@ public class GameServerModule : Module
                 }
                 else
                 {
-                    Console.WriteLine($"Cannot parse LoadZoneEntities setting value");
+                    Log.Error($"Cannot parse LoadZoneEntities setting value");
                 }
+            }
+
+            if (ConfigurationManager.AppSettings["AssetDBPath"] != null)
+            {
+                settings.AssetDBPath = ConfigurationManager.AppSettings["AssetDBPath"];
+            }
+
+            if (ConfigurationManager.AppSettings["AssetsPath"] != null)
+            {
+                settings.AssetsPath = ConfigurationManager.AppSettings["AssetsPath"];
             }
 
             return settings;

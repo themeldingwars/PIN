@@ -6,7 +6,7 @@ namespace GameServer.Systems.ProjectileSim;
 
 public class ProjectileSim
 {
-    private Shard _shard;
+    private readonly Shard _shard;
 
     public ProjectileSim(Shard shard)
     {

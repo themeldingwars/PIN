@@ -13,7 +13,7 @@ public class HelpChatCommand : ChatCommand
         }
         else
         {
-            Logger.Information(message);
+            _logger.Information(message);
         }
     }
 }

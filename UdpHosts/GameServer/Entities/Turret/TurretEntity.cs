@@ -9,7 +9,7 @@ namespace GameServer.Entities.Turret;
 
 public sealed class TurretEntity : BaseEntity
 {
-    public TurretEntity(IShard shard, ulong eid, uint type, BaseEntity parent, byte parentChildIndex, byte posture)
+    public TurretEntity(IShard shard, ulong eid, uint type, BaseEntity parent, byte parentChildIndex, byte posture, uint gunnerPoseId, Vector3 gunnerPoseOffset)
         : base(shard, eid)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Turret };
@@ -18,6 +18,8 @@ public sealed class TurretEntity : BaseEntity
         Parent = parent;
         ParentChildIndex = parentChildIndex;
         Posture = posture;
+        GunnerPoseId = gunnerPoseId;
+        GunnerPoseOffset = gunnerPoseOffset;
 
         // BaseEntity has the Position prop and other systems may wish to use that
         // when processing this entity, EntityManagers scoping in/out logic is one such system.
@@ -38,6 +40,8 @@ public sealed class TurretEntity : BaseEntity
     public BaseEntity Parent { get; set; }
     public byte ParentChildIndex { get; set; }
     public byte Posture { get; set; }
+    public uint GunnerPoseId { get; set; }
+    public Vector3 GunnerPoseOffset { get; set; }
 
     public void SetControllingPlayer(INetworkPlayer player)
     {
@@ -56,14 +60,16 @@ public sealed class TurretEntity : BaseEntity
             var character = player.CharacterEntity;
 
             character.SetAttachedTo(new AttachedToData
-                {
-                    Id1 = AeroEntityId,
-                    Id2 = Parent.AeroEntityId,
-                    Role = AttachedToData.AttachmentRoleType.Turret,
-                    Unk2 = Posture,
-                    Unk3 = 0,
-                },
-                                    this);
+            {
+                Id1 = AeroEntityId,
+                Id2 = Parent.AeroEntityId,
+                Role = AttachedToData.AttachmentRoleType.Turret,
+                Unk2 = Posture,
+                Unk3 = 0,
+            },
+            this,
+            GunnerPoseId,
+            GunnerPoseOffset);
 
             ControllingPlayer = player;
             InitControllers();
@@ -92,38 +98,38 @@ public sealed class TurretEntity : BaseEntity
     private void InitControllers()
     {
         Turret_BaseController = new BaseController()
-            {
-                TypeProp = Type,
-                ParentObjIdProp = Parent.AeroEntityId,
-                ParentChildIndexProp = ParentChildIndex,
-                GunnerIdProp = ControllingPlayer?.CharacterEntity?.AeroEntityId ?? new EntityId() { Backing = 0 },
-                SpawnPoseProp = new SpawnPoseData() { Rotation = Quaternion.Identity, Time = Shard.CurrentTime },
-                ProcessDelayProp = new ProcessDelayData() { Unk1 = 30721, Unk2 = 236 },
-                WeaponFireBaseTimeProp = new WeaponFireBaseTimeData() { ChangeTime = 0, Unk = 0 },
-                AmmoProp = new AmmoData() { Ammo = new ushort[] { } },
-                FireRateModifierProp = 1.0f,
-                HostilityInfoProp = HostilityInfo,
-                PersonalFactionStanceProp = null,
-                ScalingLevelProp = 1,
-            };
+        {
+            TypeProp = Type,
+            ParentObjIdProp = Parent.AeroEntityId,
+            ParentChildIndexProp = ParentChildIndex,
+            GunnerIdProp = ControllingPlayer?.CharacterEntity?.AeroEntityId ?? new EntityId() { Backing = 0 },
+            SpawnPoseProp = new SpawnPoseData() { Rotation = Quaternion.Identity, Time = Shard.CurrentTime },
+            ProcessDelayProp = new ProcessDelayData() { Unk1 = 30721, Unk2 = 236 },
+            WeaponFireBaseTimeProp = new WeaponFireBaseTimeData() { ChangeTime = 0, Unk = 0 },
+            AmmoProp = new AmmoData() { Ammo = [] },
+            FireRateModifierProp = 1.0f,
+            HostilityInfoProp = HostilityInfo,
+            PersonalFactionStanceProp = null,
+            ScalingLevelProp = 1,
+        };
     }
 
     private void InitViews()
     {
         Turret_ObserverView = new ObserverView()
-            {
-                TypeProp = Type,
-                ParentObjIdProp = Parent.AeroEntityId,
-                ParentChildIndexProp = ParentChildIndex,
-                GunnerIdProp = ControllingPlayer?.CharacterEntity?.AeroEntityId ?? new EntityId() { Backing = 0 },
-                CurrentPoseProp = new CurrentPoseStruct() { Rotation = Quaternion.Identity, ShortTime = Shard.CurrentShortTime },
-                ProcessDelayProp = new ProcessDelayData() { Unk1 = 30721, Unk2 = 236 },
-                WeaponBurstFiredProp = Shard.CurrentTime,
-                WeaponBurstEndedProp = Shard.CurrentTime,
-                AmmoProp = new AmmoStruct() { AmmoIndex = new ushort[] { } },
-                FireRateModifierProp = 1.0f,
-                HostilityInfoProp = HostilityInfo,
-                PersonalFactionStanceProp = null,
-            };
+        {
+            TypeProp = Type,
+            ParentObjIdProp = Parent.AeroEntityId,
+            ParentChildIndexProp = ParentChildIndex,
+            GunnerIdProp = ControllingPlayer?.CharacterEntity?.AeroEntityId ?? new EntityId() { Backing = 0 },
+            CurrentPoseProp = new CurrentPoseStruct() { Rotation = Quaternion.Identity, ShortTime = Shard.CurrentShortTime },
+            ProcessDelayProp = new ProcessDelayData() { Unk1 = 30721, Unk2 = 236 },
+            WeaponBurstFiredProp = Shard.CurrentTime,
+            WeaponBurstEndedProp = Shard.CurrentTime,
+            AmmoProp = new AmmoStruct() { AmmoIndex = [] },
+            FireRateModifierProp = 1.0f,
+            HostilityInfoProp = HostilityInfo,
+            PersonalFactionStanceProp = null,
+        };
     }
 }

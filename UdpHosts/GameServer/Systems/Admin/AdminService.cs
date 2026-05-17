@@ -14,14 +14,14 @@ public class AdminService
     private static readonly ILogger _logger = Log.ForContext<AdminService>();
 
     private readonly Dictionary<string, Type> _commandDictionary;
-    private Dictionary<INetworkPlayer, IEntity> _targetDictionary;
-    private Shard _shard;
+    private readonly Dictionary<INetworkPlayer, IEntity> _targetDictionary;
+    private readonly Shard _shard;
 
     public AdminService(Shard shard)
     {
         _shard = shard;
-        _commandDictionary = new Dictionary<string, Type>();
-        _targetDictionary = new Dictionary<INetworkPlayer, IEntity>();
+        _commandDictionary = [];
+        _targetDictionary = [];
 
         LoadCommands();
     }

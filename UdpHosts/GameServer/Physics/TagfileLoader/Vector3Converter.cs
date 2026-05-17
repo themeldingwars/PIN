@@ -3,18 +3,18 @@ using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace GameServer.Physics.ZoneLoader;
+namespace GameServer.Physics.TagfileLoader;
 
-public class Vector4Converter : JsonConverter<Vector4>
+public class Vector3Converter : JsonConverter<Vector3>
 {
-    public override Vector4 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Vector3 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartArray)
         {
             throw new JsonException("Expected start of array.");
         }
 
-        float[] values = new float[4];
+        float[] values = new float[3];
         int index = 0;
 
         while (reader.Read())
@@ -32,21 +32,20 @@ public class Vector4Converter : JsonConverter<Vector4>
             values[index++] = reader.GetSingle();
         }
 
-        if (index != 4)
+        if (index != 3)
         {
             throw new JsonException("Invalid vector format.");
         }
 
-        return new Vector4(values[0], values[1], values[2], values[3]);
+        return new Vector3(values[0], values[1], values[2]);
     }
 
-    public override void Write(Utf8JsonWriter writer, Vector4 value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, Vector3 value, JsonSerializerOptions options)
     {
         writer.WriteStartArray();
         writer.WriteNumberValue(value.X);
         writer.WriteNumberValue(value.Y);
         writer.WriteNumberValue(value.Z);
-        writer.WriteNumberValue(value.W);
         writer.WriteEndArray();
     }
 }

@@ -26,8 +26,8 @@ public class SpawnDeployableServerCommand : ServerCommand
             SourceFeedback("No deployable data for this typeId", context);
             return;
         }
-        
-        var orientation = context.SourcePlayer.CharacterEntity.Rotation;
+
+        var orientation = context.SourcePlayer.CharacterEntity.Orientation;
 
         if (parameters.Length == 4)
         {

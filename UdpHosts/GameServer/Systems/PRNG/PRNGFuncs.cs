@@ -29,7 +29,7 @@ public static partial class PRNG
         Vector3 aimUp = Vector3.Normalize(Vector3.Cross(aimRight, aimForward));
         Vector3 lastSpreadDirection = Vector3.Zero;
         uint lastSpreadTime = time;
-        PRNG.Spread(time, slotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 result);
+        Spread(time, slotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 result);
         result = Vector3.Normalize(result);
 
         Vector3 finalResult = new Vector3(aim.X, aim.Y, aim.Z) + (result * speed);

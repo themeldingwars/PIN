@@ -15,22 +15,22 @@ public class CharacterInventory
 {
     private static readonly ILogger _logger = Log.ForContext<CharacterEntity>();
 
-    private Dictionary<ulong, Item> _items; // By guid
-    private Dictionary<uint, Resource> _resources; // By typeid
-    private Dictionary<int, Loadout> _loadouts; // By loadoutid
+    private readonly Dictionary<ulong, Item> _items; // By guid
+    private readonly Dictionary<uint, Resource> _resources; // By typeid
+    private readonly Dictionary<int, Loadout> _loadouts; // By loadoutid
 
-    private IShard _shard;
-    private INetworkClient _player;
-    private CharacterEntity _character;
+    private readonly IShard _shard;
+    private readonly INetworkClient _player;
+    private readonly CharacterEntity _character;
 
     public CharacterInventory(IShard shard, INetworkClient player, CharacterEntity character)
     {
         _shard = shard;
         _player = player;
         _character = character;
-        _items = new();
-        _resources = new();
-        _loadouts = new();  
+        _items = [];
+        _resources = [];
+        _loadouts = [];
     }
 
     public bool EnablePartialUpdates { get; set; } = false;
@@ -78,7 +78,7 @@ public class CharacterInventory
     /// <returns>The loadout data as LoadoutReferenceData or null if the loadoutId was invalid</returns>
     public LoadoutReferenceData GetLoadoutReferenceData(int loadoutId)
     {
-        if (!this._loadouts.TryGetValue(loadoutId, out var loadout))
+        if (!_loadouts.TryGetValue(loadoutId, out var loadout))
         {
             return null;
         }
@@ -155,7 +155,7 @@ public class CharacterInventory
 
     public bool ConsumeResource(uint sdbId, uint cost)
     {
-        if (!this._resources.TryGetValue(sdbId, out var res))
+        if (!_resources.TryGetValue(sdbId, out var res))
         {
             return false;
         }
@@ -167,7 +167,7 @@ public class CharacterInventory
         else
         {
             res.Quantity -= cost;
-            
+
             if (res.Quantity > 0)
             {
                 _resources[sdbId] = res;
@@ -176,7 +176,7 @@ public class CharacterInventory
             {
                 _resources.Remove(sdbId);
             }
-            
+
             SendResourceUpdate(sdbId);
             return true;
         }
@@ -265,7 +265,7 @@ public class CharacterInventory
         {
             ClearExistingData = 0,
             ItemsPart1Length = 1,
-            ItemsPart1 = 
+            ItemsPart1 =
             [
                 item
             ],
@@ -319,7 +319,7 @@ public class CharacterInventory
         {
             return;
         }
-        
+
         var itemChanges = new Item[]
         {
         };
@@ -335,7 +335,7 @@ public class CharacterInventory
             var newItem = _items[newItemGuid];
             itemChanges = itemChanges.Append(newItem).ToArray();
         }
-        
+
         var update = new InventoryUpdate()
                      {
                          ClearExistingData = 0,
@@ -359,7 +359,7 @@ public class CharacterInventory
     {
         ulong changedOldItemGUID = 0;
         ulong changedNewItemGUID = guid;
-        
+
         // Unequip old Item (if any)
         if (_loadouts[loadoutId].LoadoutConfigs[0].Items.Any((e) => e.SlotIndex == (byte)slot))
         {
@@ -369,15 +369,15 @@ public class CharacterInventory
             var oldItem = _items[oldItemGUID];
             oldItem.DynamicFlags = (byte)(oldItem.DynamicFlags ^ (byte)ItemDynamicFlags.IsEquipped);
             _items[oldItemGUID] = oldItem;
-            
+
             // Update CurrentLoadout
             _character.CurrentLoadout.SlottedItems[slot] = 0;
-            
+
             // Update LoadoutConfigs
             _loadouts[loadoutId].LoadoutConfigs[0].Items = _loadouts[loadoutId].LoadoutConfigs[0].Items
                 .Where(e => e.SlotIndex != (byte)slot).ToArray();
         }
-        
+
         // Equip new item (if any)
         if (guid != 0)
         {
@@ -385,14 +385,14 @@ public class CharacterInventory
             var item = _items[guid];
             item.DynamicFlags = (byte)(item.DynamicFlags | (byte)ItemDynamicFlags.IsEquipped);
             _items[guid] = item;
-            
+
             // Update CurrentLoadout
             _character.CurrentLoadout.SlottedItems[slot] = item.SdbId;
 
             // Update LoadoutConfig
             _loadouts[loadoutId].LoadoutConfigs[0].Items = _loadouts[loadoutId].LoadoutConfigs[0].Items.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
         }
-        
+
         // Update StaticInfo when visuals are changed
         var equippedSdbId = (guid != 0) ? _items[guid].SdbId : 0;
         switch (slot)
@@ -407,7 +407,7 @@ public class CharacterInventory
 
         SendEquipmentChanges(changedOldItemGUID, changedNewItemGUID);
     }
-    
+
     public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
     {
         // Unequip old item (if any)
@@ -417,7 +417,7 @@ public class CharacterInventory
             _loadouts[loadoutId].LoadoutConfigs[0].Visuals = _loadouts[loadoutId].LoadoutConfigs[0].Visuals
                 .Where(e => e.VisualType != visual).ToArray();
         }
-        
+
         // Equip new item (if any)
         if (sdb_id != 0)
         {
@@ -429,7 +429,7 @@ public class CharacterInventory
         var equippedGUID = (sdb_id != 0) ? _items.First(e => e.Value.SdbId == sdb_id).Value.GUID : 0;
         EquipItemByGUID(loadoutId, slot, equippedGUID);
     }
-    
+
     private byte GetInventoryTypeByItemTypeId(uint sdbId)
     {
         var itemInfo = SDBInterface.GetRootItem(sdbId);
@@ -440,7 +440,7 @@ public class CharacterInventory
         else
         {
             return (byte)InventoryType.Bag;
-        }        
+        }
     }
 
     private byte GetInventoryTypeByItemType(byte itemType)

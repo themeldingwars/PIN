@@ -13,12 +13,12 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
 
     public AptitudeTargets()
     {
-        _targets = new();
+        _targets = [];
     }
 
     public AptitudeTargets(AptitudeTargets initialTargets)
     {
-        _targets = new List<IAptitudeTarget>(initialTargets);
+        _targets = [.. initialTargets];
     }
 
     public AptitudeTargets(params IAptitudeTarget[] initialTargets)
@@ -132,7 +132,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
 
     public IAptitudeTarget[] ToArray()
     {
-        return _targets.ToArray();
+        return [.. _targets];
     }
 
     public void PrintTargets()

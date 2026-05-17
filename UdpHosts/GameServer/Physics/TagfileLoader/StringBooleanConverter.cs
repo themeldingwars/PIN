@@ -2,7 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace GameServer.Physics.ZoneLoader;
+namespace GameServer.Physics.TagfileLoader;
 
 public class StringBooleanConverter : JsonConverter<bool>
 {

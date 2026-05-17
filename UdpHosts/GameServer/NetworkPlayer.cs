@@ -102,6 +102,9 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         var loadout = new CharacterLoadout(loadoutRefData);
         CharacterEntity.ApplyLoadout(loadout);
 
+        // Collision data should have been initialized now, create physics representation
+        AssignedShard.Physics.CreateKineticEntity(CharacterEntity);
+
         CharacterEntity.SetControllingPlayer(this);
         CharacterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Spawning, AssignedShard.CurrentTime);
         Status = IPlayer.PlayerStatus.LoggedIn;
@@ -215,6 +218,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         Inventory.SendFullInventory();
         Inventory.EnablePartialUpdates = true;
 
+        AssignedShard.Physics.UpdateEntity(CharacterEntity);
         CharacterEntity.Alive = true; // Accept MovementInputs only after Respawn
     }
 

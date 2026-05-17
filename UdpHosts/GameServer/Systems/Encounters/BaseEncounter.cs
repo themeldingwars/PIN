@@ -20,7 +20,7 @@ public abstract class BaseEncounter : IEncounter
     }
 
     protected BaseEncounter(IShard shard, ulong entityId, INetworkPlayer soloParticipant)
-        : this(shard, entityId, new HashSet<INetworkPlayer>() { soloParticipant })
+        : this(shard, entityId, [soloParticipant])
     {
     }
 

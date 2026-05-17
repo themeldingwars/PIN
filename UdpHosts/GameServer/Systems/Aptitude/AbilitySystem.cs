@@ -11,23 +11,22 @@ namespace GameServer.Aptitude;
 public class AbilitySystem
 {
     private static readonly ILogger _logger = Log.ForContext<AbilitySystem>();
-    private Shard Shard;
-    private Dictionary<ulong, VehicleCalldownRequest> PlayerVehicleCalldownRequests;
-    private Dictionary<ulong, DeployableCalldownRequest> PlayerDeployableCalldownRequests;
-    private Dictionary<ulong, ResourceNodeBeaconCalldownRequest> PlayerThumperCalldownRequests;
-
-    private ulong LastUpdate;
-    private ulong UpdateIntervalMs = 20;
+    private readonly Shard _shard;
+    private readonly ulong _updateIntervalMs = 20;
+    private readonly Dictionary<ulong, VehicleCalldownRequest> _playerVehicleCalldownRequests;
+    private readonly Dictionary<ulong, DeployableCalldownRequest> _playerDeployableCalldownRequests;
+    private readonly Dictionary<ulong, ResourceNodeBeaconCalldownRequest> _playerThumperCalldownRequests;
+    private ulong _lastUpdate;
 
     public AbilitySystem(Shard shard)
     {
-        Shard = shard;
+        _shard = shard;
         Factory = new Factory(shard);
-        PlayerVehicleCalldownRequests = new();
-        PlayerDeployableCalldownRequests = new();
-        PlayerThumperCalldownRequests = new();
+        _playerVehicleCalldownRequests = [];
+        _playerDeployableCalldownRequests = [];
+        _playerThumperCalldownRequests = [];
     }
-    
+
     public Factory Factory { get; }
 
     public static float RegistryOp(float first, float second, Operand op)
@@ -66,10 +65,10 @@ public class AbilitySystem
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
-        if (currentTime > LastUpdate + UpdateIntervalMs)
+        if (currentTime > _lastUpdate + _updateIntervalMs)
         {
-            LastUpdate = currentTime;
-            foreach (var entity in Shard.Entities.Values)
+            _lastUpdate = currentTime;
+            foreach (var entity in _shard.Entities.Values)
             {
                 if (entity is IAptitudeTarget target)
                 {
@@ -124,7 +123,7 @@ public class AbilitySystem
         /*
         if (effect.Data.Hidden == 0)
         {
-            
+
         }
         */
         var effectState = target.AddEffect(effect, applyContext);
@@ -176,50 +175,50 @@ public class AbilitySystem
 
     public VehicleCalldownRequest TryConsumeVehicleCalldownRequest(ulong entityId)
     {
-        return PlayerVehicleCalldownRequests.Remove(entityId, out var result) ? result : null;
+        return _playerVehicleCalldownRequests.Remove(entityId, out var result) ? result : null;
     }
 
     public DeployableCalldownRequest TryConsumeDeployableCalldownRequest(ulong entityId)
     {
-        return PlayerDeployableCalldownRequests.Remove(entityId, out var result) ? result : null;
+        return _playerDeployableCalldownRequests.Remove(entityId, out var result) ? result : null;
     }
 
     public ResourceNodeBeaconCalldownRequest TryConsumeResourceNodeBeaconCalldownRequest(ulong entityId)
     {
-        return PlayerThumperCalldownRequests.Remove(entityId, out var result) ? result : null;
+        return _playerThumperCalldownRequests.Remove(entityId, out var result) ? result : null;
     }
 
     public void HandleVehicleCalldownRequest(ulong entityId, VehicleCalldownRequest request)
     {
-        if (PlayerVehicleCalldownRequests.ContainsKey(entityId))
+        if (_playerVehicleCalldownRequests.ContainsKey(entityId))
         {
             _logger.Information("Discarded an unconsumed vehicle calldown request for {entityId}", entityId);
-            PlayerVehicleCalldownRequests.Remove(entityId);
+            _playerVehicleCalldownRequests.Remove(entityId);
         }
-        
-        PlayerVehicleCalldownRequests.Add(entityId, request);
+
+        _playerVehicleCalldownRequests.Add(entityId, request);
     }
 
     public void HandleDeployableCalldownRequest(ulong entityId, DeployableCalldownRequest request)
     {
-        if (PlayerDeployableCalldownRequests.ContainsKey(entityId))
+        if (_playerDeployableCalldownRequests.ContainsKey(entityId))
         {
             _logger.Information("Discarded an unconsumed deployable calldown request for {entityId}", entityId);
-            PlayerDeployableCalldownRequests.Remove(entityId);
+            _playerDeployableCalldownRequests.Remove(entityId);
         }
-        
-        PlayerDeployableCalldownRequests.Add(entityId, request);
+
+        _playerDeployableCalldownRequests.Add(entityId, request);
     }
 
     public void HandleResourceNodeBeaconCalldownRequest(ulong entityId, ResourceNodeBeaconCalldownRequest request)
     {
-        if (PlayerThumperCalldownRequests.ContainsKey(entityId))
+        if (_playerThumperCalldownRequests.ContainsKey(entityId))
         {
             _logger.Information("Discarded an unconsumed thumper calldown request for {entityId}", entityId);
-            PlayerThumperCalldownRequests.Remove(entityId);
+            _playerThumperCalldownRequests.Remove(entityId);
         }
-        
-        PlayerThumperCalldownRequests.Add(entityId, request);
+
+        _playerThumperCalldownRequests.Add(entityId, request);
     }
 
     public void HandleLocalProximityAbilitySuccess(IShard shard, IAptitudeTarget source, uint commandId, uint time, AptitudeTargets targets, Guid? executionId = null)
@@ -275,7 +274,7 @@ public class AbilitySystem
 
     public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId)
     {
-        HandleActivateAbility(shard, initiator, abilityId, Shard.CurrentTime, new AptitudeTargets());
+        HandleActivateAbility(shard, initiator, abilityId, _shard.CurrentTime, new AptitudeTargets());
     }
 
     public void HandleTargetAbility()

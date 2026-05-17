@@ -11,7 +11,7 @@ namespace GameServer.GRPC.EventHandlers;
 
 public static class ArmyEventHandler
 {
-    private static readonly JsonSerializerOptions SerializerOptions
+    private static readonly JsonSerializerOptions _serializerOptions
         = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
     public static void HandleEvent(ArmyApplicationApproved e, IDictionary<uint, INetworkPlayer> clients)
@@ -81,7 +81,7 @@ public static class ArmyEventHandler
                           application = new Application { id = e.Id, message = e.Message }
                       };
 
-        string json = JsonSerializer.Serialize(message, SerializerOptions);
+        string json = JsonSerializer.Serialize(message, _serializerOptions);
 
         var msg = new ReceivedWebUIMessage() { Message = json };
 
@@ -171,7 +171,7 @@ public static class ArmyEventHandler
         var armyMessage = new ArmyMessage { message_type = messageType, initiator = initiatorName };
 
         player.NetChannels[ChannelType.ReliableGss]
-              .SendMessage(new ReceivedWebUIMessage() { Message = JsonSerializer.Serialize(armyMessage, SerializerOptions) },
+              .SendMessage(new ReceivedWebUIMessage() { Message = JsonSerializer.Serialize(armyMessage, _serializerOptions) },
                          player.CharacterId);
     }
 

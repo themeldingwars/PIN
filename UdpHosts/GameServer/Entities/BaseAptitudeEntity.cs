@@ -40,11 +40,11 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
                     firstFreeIndex = i;
                 }
             }
-            
+
             if (ActiveEffects[i]?.Effect.Id == effect.Id)
             {
                 if (ActiveEffects[i].Stacks < effect.MaxStackCount)
-                { 
+                {
                     ActiveEffects[i].Stacks += 1;
                 }
                 else
@@ -55,7 +55,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
                 return ActiveEffects[i];
             }
         }
-    
+
         if (firstFreeIndex == InvalidIndex)
         {
             // fail!
@@ -88,7 +88,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
         return state;
     }
-    
+
     public void ClearEffect(EffectState state)
     {
         ActiveEffects[state.Index] = null;

@@ -20,7 +20,7 @@ public class Chain
         OrChain
     }
 
-    public uint Id { get; set; } = 0;
+    public uint Id { get; set; }
     public List<ICommand> Commands { get; set; }
 
     public bool Execute(Context context, ExecutionMethod method = ExecutionMethod.AndChain)
@@ -59,12 +59,12 @@ public class Chain
         if (method == ExecutionMethod.OrChain)
         {
             bool chainSuccess = false;
-            foreach (var command in this.Commands)
+            foreach (var command in Commands)
             {
                 if (debug)
                 {
                     var hasMoreInfo = command.ToString() != command.GetType().ToString();
-                    _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", this.Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
+                    _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
                 }
 
                 bool commandSuccess = command.Execute(context);
@@ -74,7 +74,7 @@ public class Chain
                     break; // Note: Should further research to confirm if this is correct
                 }
             }
-    
+
             return chainSuccess;
         }
 
@@ -88,7 +88,7 @@ public class Chain
         {
             Log.Warning("Loaded empty chain {ChainId}", Id);
         }
-        
+
         foreach (var command in Commands)
         {
             Log.Information("- Command {CommandId} {Command}", command.Id, command);

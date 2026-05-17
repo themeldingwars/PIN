@@ -23,7 +23,6 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerCarried => Player != null;
     public BaseEntity Carrier { get; set; }
-    public Quaternion Orientation { get; set; }
 
     public uint Type { get; set; }
     public string Name { get; set; }
@@ -133,9 +132,9 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
         CarryableObject_ObserverView.PositionProp = Position;
     }
 
-    public void SetRotation(Quaternion newRotation)
+    public void SetOrientation(Quaternion newOrientation)
     {
-        Orientation = newRotation;
+        Orientation = newOrientation;
         CarryableObject_ObserverView.OrientationProp = Orientation;
     }
 

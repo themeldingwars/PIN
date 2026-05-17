@@ -6,11 +6,11 @@ namespace GameServer.Systems.MovementRelay;
 
 public class MovementRelay
 {
-    private Shard Shard;
+    private readonly Shard _shard;
 
     public MovementRelay(Shard shard)
     {
-        Shard = shard;
+        _shard = shard;
     }
 
     public void CharacterMovementInput(INetworkClient client, IEntity entity, AeroMessages.GSS.V66.Character.Command.MovementInput input)
@@ -30,6 +30,9 @@ public class MovementRelay
         var movementStateValue = posRotState.MovementState;
         character.MovementStateContainer.MovementStateValue = (ushort)movementStateValue;
 
+        // Update with physics
+        _shard.Physics.UpdateEntity(character);
+
         // Confirm the pose with the client
         var confirmedPose = new ConfirmedPoseUpdate
         {
@@ -41,7 +44,7 @@ public class MovementRelay
                 PosRotState = new MovementPosRotState
                             {
                                 Pos = character.Position,
-                                Rot = character.Rotation,
+                                Rot = character.Orientation,
                                 MovementState = movementStateValue // ToDo: This was ushort previously!
                             },
                 Velocity = character.Velocity,
@@ -64,11 +67,11 @@ public class MovementRelay
                 UnkAlwaysPresent = 0x79,
                 MovementState = (ushort)character.MovementState,
                 Position = character.Position,
-                Rotation = character.Rotation,
+                Rotation = character.Orientation,
                 Aim = character.AimDirection,
             }
         };
-        foreach (var remoteClient in Shard.Clients.Values)
+        foreach (var remoteClient in _shard.Clients.Values)
         {
             if (remoteClient.Status.Equals(IPlayer.PlayerStatus.Playing))
             {
@@ -76,7 +79,7 @@ public class MovementRelay
                 {
                     remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(new JumpActioned { ShortTime = input.ShortTime }, character.EntityId);
                 }
-    
+
                 remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(currentPose, character.EntityId);
             }
         }
@@ -86,6 +89,9 @@ public class MovementRelay
     {
         var vehicle = entity as Entities.Vehicle.VehicleEntity;
         vehicle.SetPoseData(input);
+
+        // Update with physics
+        _shard.Physics.UpdateEntity(vehicle);
 
         if (vehicle.ControllingPlayer?.CharacterEntity != null)
         {
@@ -102,7 +108,7 @@ public class MovementRelay
                     PosRotState = new MovementPosRotState()
                     {
                         Pos = input.Position,
-                        Rot = character.Rotation,
+                        Rot = character.Orientation,
                         MovementState = unchecked((short)0xd000)
                     },
                     Velocity = character.Velocity,
@@ -110,7 +116,7 @@ public class MovementRelay
                     GroundTimePositiveAirTimeNegative = 0,
                     TimeSinceLastJump = character.TimeSinceLastJump,
                     HaveDebugData = 0
-                } 
+                }
             });
         }
     }

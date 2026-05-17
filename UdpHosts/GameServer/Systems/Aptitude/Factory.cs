@@ -6,13 +6,13 @@ namespace GameServer.Aptitude;
 
 public class Factory
 {
-    private Shard Shard;
-    private ILogger Logger;
+    private readonly Shard _shard;
+    private readonly ILogger _logger;
 
     public Factory(Shard shard)
     {
-        Shard = shard;
-        Logger = shard.Logger.ForContext<AbilitySystem>();
+        _shard = shard;
+        _logger = shard.Logger.ForContext<AbilitySystem>();
     }
 
     public Effect LoadEffect(uint effectId)
@@ -63,7 +63,7 @@ public class Factory
 
         if (chain.Commands.Count == 0)
         {
-            Logger.Debug("Loaded empty chain {chainId}", chainId);
+            _logger.Debug("Loaded empty chain {chainId}", chainId);
         }
 
         return chain;

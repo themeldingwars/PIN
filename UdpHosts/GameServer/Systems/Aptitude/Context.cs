@@ -35,7 +35,7 @@ public class Context
     public ExecutionHint ExecutionHint { get; set; }
     public Guid ExecutionId { get; set; }
 
-    public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = new Dictionary<ICommand, ICommandActiveContext>();
+    public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = [];
 
     public static Context CopyContext(Context original)
     {
@@ -57,7 +57,7 @@ public class Context
             ExecutionHint = original.ExecutionHint,
             ExecutionId = original.ExecutionId,
         };
-    } 
+    }
 
     /*
     public uint NamedVar;

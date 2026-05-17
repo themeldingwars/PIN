@@ -17,7 +17,7 @@ public enum LoadoutSlotType : byte
     Ability2 = 8,
     Ability3 = 9,
     Backpack = 11,
-   
+
     GearTorso = 116,
     GearAuxWeapon = 122,
     GearMedicalSystem = 123,
@@ -127,7 +127,7 @@ public class CharacterLoadout
     private static readonly Dictionary<ushort, float> _fallbackCharacterScalars = new()
     {
     };
- 
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CharacterLoadout"/> class.
     /// </summary>

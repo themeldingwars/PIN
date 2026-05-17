@@ -5,17 +5,17 @@ namespace GameServer.Systems.Chat;
 
 public abstract class ChatCommand
 {
-    protected readonly ILogger Logger;
+    protected readonly ILogger _logger;
 
     protected ChatCommand()
     {
-        Logger = Log.ForContext(GetType());
+        _logger = Log.ForContext(GetType());
     }
-    
+
     public abstract void Execute(string[] parameters, ChatCommandContext context);
     public virtual void SourceFeedback(string message, ChatCommandContext context)
     {
-        Logger.Information(message);
+        _logger.Information(message);
         context.SourcePlayer?.SendDebugChat(message);
     }
 
@@ -26,7 +26,7 @@ public abstract class ChatCommand
             return result;
         }
 
-        this.Logger.Warning("Invalid format: {value}", value);
+        _logger.Warning("Invalid format: {value}", value);
         return 0;
     }
 
@@ -37,7 +37,7 @@ public abstract class ChatCommand
             return result;
         }
 
-        this.Logger.Warning("Invalid format: {value}", value);
+        _logger.Warning("Invalid format: {value}", value);
         return 0;
     }
 
@@ -45,7 +45,7 @@ public abstract class ChatCommand
     {
         if (startIndex < 0 || startIndex >= parameters.Length)
         {
-            Logger.Warning("Invalid start index: {startIndex}", startIndex);
+            _logger.Warning("Invalid start index: {startIndex}", startIndex);
             return null;
         }
 
@@ -57,7 +57,7 @@ public abstract class ChatCommand
             return new Vector3(x, y, z);
         }
 
-        this.Logger.Warning("Invalid format for Vector3 parameters");
+        _logger.Warning("Invalid format for Vector3 parameters");
         return null;
     }
 }
