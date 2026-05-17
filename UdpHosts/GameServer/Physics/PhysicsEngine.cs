@@ -15,7 +15,7 @@ using Serilog;
 namespace GameServer.Physics;
 
 public class PhysicsEngine
-{    
+{
     public const float TargetTimestepDuration = 50; // (1/20f)
 
     private Shard _shard;
@@ -35,10 +35,10 @@ public class PhysicsEngine
         BufferPool = new BufferPool();
         ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
         Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new Vector3(0, 0, -8)), new SolveDescription(8, 1));
-        
+
         // Default shapes
         _defaultCharacterShape = Simulation.Shapes.Add(new Sphere(0.9f));
-        
+
         // Load zone
         if (_shard.Settings.LoadMapsCollision)
         {

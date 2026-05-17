@@ -171,6 +171,60 @@ public static class SimulationCache
                 writer.Write(buffer);
                 break;
             }
+            case ConvexHull.Id:
+            {
+                ref var hull = ref simulation.Shapes.GetShape<ConvexHull>(shapeIndex.Index);
+
+                // Points
+                writer.Write(hull.Points.Length);
+
+                for (int i = 0; i < hull.Points.Length; i++)
+                {
+                    ref var bundle = ref hull.Points[i];
+
+                    for (int lane = 0; lane < Vector<float>.Count; lane++)
+                    {
+                        writer.Write(bundle.X[lane]);
+                        writer.Write(bundle.Y[lane]);
+                        writer.Write(bundle.Z[lane]);
+                    }
+                }
+
+                // Bounding planes
+                writer.Write(hull.BoundingPlanes.Length);
+
+                for (int i = 0; i < hull.BoundingPlanes.Length; i++)
+                {
+                    ref var plane = ref hull.BoundingPlanes[i];
+
+                    for (int lane = 0; lane < Vector<float>.Count; lane++)
+                    {
+                        writer.Write(plane.Normal.X[lane]);
+                        writer.Write(plane.Normal.Y[lane]);
+                        writer.Write(plane.Normal.Z[lane]);
+                        writer.Write(plane.Offset[lane]);
+                    }
+                }
+
+                // FaceVertexIndices
+                writer.Write(hull.FaceVertexIndices.Length);
+
+                for (int i = 0; i < hull.FaceVertexIndices.Length; i++)
+                {
+                    writer.Write(hull.FaceVertexIndices[i].BundleIndex);
+                    writer.Write(hull.FaceVertexIndices[i].InnerIndex);
+                }
+
+                // FaceToVertexIndicesStart
+                writer.Write(hull.FaceToVertexIndicesStart.Length);
+
+                for (int i = 0; i < hull.FaceToVertexIndicesStart.Length; i++)
+                {
+                    writer.Write(hull.FaceToVertexIndicesStart[i]);
+                }
+
+                break;
+            }
             default:
                 throw new NotSupportedException($"SimulationCache: Unsupported shape type {shapeIndex.Type}");
         }
@@ -213,6 +267,100 @@ public static class SimulationCache
                 var buffer = reader.ReadBytes(byteCount);
                 var mesh = new Mesh(buffer, pool);
                 return simulation.Shapes.Add(mesh);
+            }
+            case ConvexHull.Id:
+            {
+                // Points
+                var pointBundleCount = reader.ReadInt32();
+
+                pool.Take<Vector3Wide>(pointBundleCount, out var points);
+
+                for (int i = 0; i < pointBundleCount; i++)
+                {
+                    float[] xs = new float[Vector<float>.Count];
+                    float[] ys = new float[Vector<float>.Count];
+                    float[] zs = new float[Vector<float>.Count];
+
+                    for (int lane = 0; lane < Vector<float>.Count; lane++)
+                    {
+                        xs[lane] = reader.ReadSingle();
+                        ys[lane] = reader.ReadSingle();
+                        zs[lane] = reader.ReadSingle();
+                    }
+
+                    points[i] = new Vector3Wide
+                    {
+                        X = new Vector<float>(xs),
+                        Y = new Vector<float>(ys),
+                        Z = new Vector<float>(zs)
+                    };
+                }
+
+                // Bounding planes
+                var planeCount = reader.ReadInt32();
+
+                pool.Take<HullBoundingPlanes>(planeCount, out var planes);
+
+                for (int i = 0; i < planeCount; i++)
+                {
+                    float[] nx = new float[Vector<float>.Count];
+                    float[] ny = new float[Vector<float>.Count];
+                    float[] nz = new float[Vector<float>.Count];
+                    float[] offsets = new float[Vector<float>.Count];
+
+                    for (int lane = 0; lane < Vector<float>.Count; lane++)
+                    {
+                        nx[lane] = reader.ReadSingle();
+                        ny[lane] = reader.ReadSingle();
+                        nz[lane] = reader.ReadSingle();
+                        offsets[lane] = reader.ReadSingle();
+                    }
+
+                    planes[i] = new HullBoundingPlanes
+                    {
+                        Normal = new Vector3Wide
+                        {
+                            X = new Vector<float>(nx),
+                            Y = new Vector<float>(ny),
+                            Z = new Vector<float>(nz)
+                        },
+                        Offset = new Vector<float>(offsets)
+                    };
+                }
+
+                // FaceVertexIndices
+                var faceVertexIndexCount = reader.ReadInt32();
+
+                pool.Take<HullVertexIndex>(faceVertexIndexCount, out var faceVertexIndices);
+
+                for (int i = 0; i < faceVertexIndexCount; i++)
+                {
+                    faceVertexIndices[i] = new HullVertexIndex
+                    {
+                        BundleIndex = reader.ReadUInt16(),
+                        InnerIndex = reader.ReadUInt16()
+                    };
+                }
+
+                // FaceToVertexIndicesStart
+                var startCount = reader.ReadInt32();
+
+                pool.Take<int>(startCount, out var faceStarts);
+
+                for (int i = 0; i < startCount; i++)
+                {
+                    faceStarts[i] = reader.ReadInt32();
+                }
+
+                var hull = new ConvexHull
+                {
+                    Points = points,
+                    BoundingPlanes = planes,
+                    FaceVertexIndices = faceVertexIndices,
+                    FaceToVertexIndicesStart = faceStarts
+                };
+
+                return simulation.Shapes.Add(hull);
             }
             default:
                 throw new NotSupportedException($"SimulationCache: Unsupported shape type {shapeTypeId}");
