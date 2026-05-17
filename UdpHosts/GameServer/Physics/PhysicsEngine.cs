@@ -42,7 +42,12 @@ public class PhysicsEngine
         // Load zone
         if (_shard.Settings.LoadMapsCollision)
         {
-            new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(_shard.Settings.MapsPath, _shard.ZoneId);
+            var cachePath = ZoneLoader.SimulationCache.GetCachePath(_shard.Settings.MapsPath, _shard.ZoneId);
+            if (!ZoneLoader.SimulationCache.TryLoad(Simulation, BufferPool, ThreadDispatcher, cachePath))
+            {
+                new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher).LoadCollision(_shard.Settings.MapsPath, _shard.ZoneId);
+                ZoneLoader.SimulationCache.Save(Simulation, BufferPool, cachePath);
+            }
         }
     }
 
