@@ -2,11 +2,11 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using Serilog;
 
 namespace GameServer.Physics.ZoneLoader;
 
@@ -16,12 +16,16 @@ namespace GameServer.Physics.ZoneLoader;
 /// </summary>
 public static class SimulationCache
 {
-    private static readonly byte[] Magic = "PZSC"u8.ToArray();
-    private const int FormatVersion = 1;
+    private const int _formatVersion = 1;
+    private static readonly byte[] _magic = "PZSC"u8.ToArray();
+    private static readonly ILogger _logger = Log.ForContext(typeof(SimulationCache));
 
     /// <summary>
     /// Returns the cache file path for a given zone.
     /// </summary>
+    /// <param name="mapsPath">Directory path</param>
+    /// <param name="zoneId">Id of the zone</param>
+    /// <returns>the cache file path for a given zone</returns>
     public static string GetCachePath(string mapsPath, uint zoneId)
     {
         return Path.Combine(mapsPath, $"{zoneId}.bincache");
@@ -30,6 +34,9 @@ public static class SimulationCache
     /// <summary>
     /// Saves all statics and their shapes from the simulation to a binary cache file.
     /// </summary>
+    /// <param name="simulation">Bepu simulation</param>
+    /// <param name="pool">Bepu memory pool</param>
+    /// <param name="path">Where the cache file should be written</param>
     public static void Save(Simulation simulation, BufferPool pool, string path)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -39,8 +46,8 @@ public static class SimulationCache
         using var writer = new BinaryWriter(fs);
 
         // Header
-        writer.Write(Magic);
-        writer.Write(FormatVersion);
+        writer.Write(_magic);
+        writer.Write(_formatVersion);
         writer.Write(staticCount);
 
         for (int i = 0; i < staticCount; i++)
@@ -64,12 +71,16 @@ public static class SimulationCache
         }
 
         stopwatch.Stop();
-        Console.WriteLine($"SimulationCache: Saved {staticCount} statics to {path} in {stopwatch.ElapsedMilliseconds}ms");
+        _logger.Information($"SimulationCache: Saved {staticCount} statics to {path} in {stopwatch.ElapsedMilliseconds}ms");
     }
 
     /// <summary>
     /// Attempts to load statics and shapes from a binary cache file into the simulation.
     /// </summary>
+    /// <param name="simulation">Bepu simulation</param>
+    /// <param name="pool">Bepu memory pool</param>
+    /// <param name="dispatcher">Bepu thread dispatcher</param>
+    /// <param name="path">Where the cache file should be loaded from</param>
     /// <returns>True if the cache was loaded successfully, false otherwise.</returns>
     public static bool TryLoad(Simulation simulation, BufferPool pool, ThreadDispatcher dispatcher, string path)
     {
@@ -87,16 +98,16 @@ public static class SimulationCache
 
             // Validate header
             var magic = reader.ReadBytes(4);
-            if (magic.Length < 4 || magic[0] != Magic[0] || magic[1] != Magic[1] || magic[2] != Magic[2] || magic[3] != Magic[3])
+            if (magic.Length < 4 || magic[0] != _magic[0] || magic[1] != _magic[1] || magic[2] != _magic[2] || magic[3] != _magic[3])
             {
-                Console.WriteLine("SimulationCache: Invalid magic header, skipping cache.");
+                _logger.Error("SimulationCache: Invalid magic header, skipping cache.");
                 return false;
             }
 
             var version = reader.ReadInt32();
-            if (version != FormatVersion)
+            if (version != _formatVersion)
             {
-                Console.WriteLine($"SimulationCache: Version mismatch (expected {FormatVersion}, got {version}), skipping cache.");
+                _logger.Information($"SimulationCache: Version mismatch (expected {_formatVersion}, got {version}), skipping cache.");
                 return false;
             }
 
@@ -119,12 +130,12 @@ public static class SimulationCache
             }
 
             stopwatch.Stop();
-            Console.WriteLine($"SimulationCache: Loaded {staticCount} statics from cache in {stopwatch.ElapsedMilliseconds}ms");
+            _logger.Information($"SimulationCache: Loaded {staticCount} statics from cache in {stopwatch.ElapsedMilliseconds}ms");
             return true;
         }
         catch (Exception e)
         {
-            Console.WriteLine($"SimulationCache: Failed to load cache: {e.Message} ({e.GetType().Name})");
+            _logger.Error($"SimulationCache: Failed to load cache: {e.Message} ({e.GetType().Name})");
             return false;
         }
     }
@@ -139,6 +150,7 @@ public static class SimulationCache
                 writer.Write(shape.Radius);
                 break;
             }
+
             case Capsule.Id:
             {
                 ref var shape = ref simulation.Shapes.GetShape<Capsule>(shapeIndex.Index);
@@ -146,6 +158,7 @@ public static class SimulationCache
                 writer.Write(shape.HalfLength);
                 break;
             }
+
             case Box.Id:
             {
                 ref var shape = ref simulation.Shapes.GetShape<Box>(shapeIndex.Index);
@@ -154,6 +167,7 @@ public static class SimulationCache
                 writer.Write(shape.HalfLength);
                 break;
             }
+
             case Cylinder.Id:
             {
                 ref var shape = ref simulation.Shapes.GetShape<Cylinder>(shapeIndex.Index);
@@ -161,6 +175,7 @@ public static class SimulationCache
                 writer.Write(shape.HalfLength);
                 break;
             }
+
             case Mesh.Id:
             {
                 ref var mesh = ref simulation.Shapes.GetShape<Mesh>(shapeIndex.Index);
@@ -171,6 +186,7 @@ public static class SimulationCache
                 writer.Write(buffer);
                 break;
             }
+
             case ConvexHull.Id:
             {
                 ref var hull = ref simulation.Shapes.GetShape<ConvexHull>(shapeIndex.Index);
@@ -225,6 +241,7 @@ public static class SimulationCache
 
                 break;
             }
+
             default:
                 throw new NotSupportedException($"SimulationCache: Unsupported shape type {shapeIndex.Type}");
         }
@@ -239,6 +256,7 @@ public static class SimulationCache
                 var radius = reader.ReadSingle();
                 return simulation.Shapes.Add(new Sphere(radius));
             }
+
             case Capsule.Id:
             {
                 var radius = reader.ReadSingle();
@@ -246,6 +264,7 @@ public static class SimulationCache
                 var capsule = new Capsule { Radius = radius, HalfLength = halfLength };
                 return simulation.Shapes.Add(capsule);
             }
+
             case Box.Id:
             {
                 var halfWidth = reader.ReadSingle();
@@ -254,6 +273,7 @@ public static class SimulationCache
                 var box = new Box { HalfWidth = halfWidth, HalfHeight = halfHeight, HalfLength = halfLength };
                 return simulation.Shapes.Add(box);
             }
+
             case Cylinder.Id:
             {
                 var radius = reader.ReadSingle();
@@ -261,6 +281,7 @@ public static class SimulationCache
                 var cylinder = new Cylinder { Radius = radius, HalfLength = halfLength };
                 return simulation.Shapes.Add(cylinder);
             }
+
             case Mesh.Id:
             {
                 var byteCount = reader.ReadInt32();
@@ -268,6 +289,7 @@ public static class SimulationCache
                 var mesh = new Mesh(buffer, pool);
                 return simulation.Shapes.Add(mesh);
             }
+
             case ConvexHull.Id:
             {
                 // Points
@@ -362,6 +384,7 @@ public static class SimulationCache
 
                 return simulation.Shapes.Add(hull);
             }
+
             default:
                 throw new NotSupportedException($"SimulationCache: Unsupported shape type {shapeTypeId}");
         }
