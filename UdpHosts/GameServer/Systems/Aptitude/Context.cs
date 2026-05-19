@@ -35,6 +35,7 @@ public class Context
     public Vector3 InitPosition { get; set; }
     public ExecutionHint ExecutionHint { get; set; }
     public Guid ExecutionId { get; set; }
+    public CommandResult PreviousResult { get; set; }
 
     public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = [];
 
@@ -51,6 +52,7 @@ public class Context
             Initiator = original.Initiator,
             Targets = original.Targets,
             FormerTargets = original.FormerTargets,
+            TargetStack = original.TargetStack,
             Register = original.Register,
             Bonus = original.Bonus,
             InitTime = original.InitTime,

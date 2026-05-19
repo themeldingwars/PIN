@@ -13,11 +13,12 @@ public class TargetByNPCTypeCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.Type == 0)
         {
-            return true;
+            result.SetPass();
+            return;
         }
 
         context.FormerTargets = context.Targets;
@@ -36,6 +37,12 @@ public class TargetByNPCTypeCommand : Command, ICommand
             }
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

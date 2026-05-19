@@ -12,13 +12,23 @@ public class TargetStackEmptyCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        if (Params.NotEmpty == 1)
+        var outcome = new CommandResult() { Success = true };
+
+        var shouldNotBeEmpty = Params.NotEmpty == 1;
+        var isEmpty = context.TargetStack.Count == 0;
+
+        if (isEmpty == shouldNotBeEmpty)
         {
-            return context.TargetStack.Count != 0;
+            outcome.SetFail(StatusCode.Status3_TargetingFail);
         }
 
-        return context.TargetStack.Count == 0;
+        result = outcome;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

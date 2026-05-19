@@ -13,7 +13,7 @@ public class DeployableCalldownCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var caller = context.Self;
         var request = context.Abilities.TryConsumeDeployableCalldownRequest(caller.EntityId);
@@ -25,11 +25,13 @@ public class DeployableCalldownCommand : Command, ICommand
             var orientation = request.Rotation;
             entityMan.SpawnDeployable(typeId, position, orientation, caller as CharacterEntity);
 
-            return true;
+            result.SetPass();
+            return;
         }
         else
         {
-            return false;
+            result.SetFail();
+            return;
         }
     }
 }

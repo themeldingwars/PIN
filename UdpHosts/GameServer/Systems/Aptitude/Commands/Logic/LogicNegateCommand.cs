@@ -12,17 +12,24 @@ public class LogicNegateCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var chain = context.Abilities.Factory.LoadChain(Params.NegateChain);
 
         var prevExecutionHint = context.ExecutionHint;
         context.ExecutionHint = ExecutionHint.Logic;
-        var result = chain.Execute(context);
+        chain.Execute(context, ref result);
         context.ExecutionHint = prevExecutionHint;
 
-        result = !result;
+        if (result.Success)
+        {
+            result.SetFail();
+        }
+        else
+        {
+            result.SetPass();
+        }
 
-        return result;
+        return;
     }
 }

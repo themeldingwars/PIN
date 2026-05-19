@@ -14,7 +14,7 @@ public class RequireSuperChargeCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self;
 
@@ -25,11 +25,26 @@ public class RequireSuperChargeCommand : Command, ICommand
             var percent = AbilitySystem.RegistryOp(context.Register, Params.Percent, (Operand)Params.PercentRegop);
             var value = percent / 100 * currentValue;
 
-            return currentValue >= value;
+            if (currentValue >= value)
+            {
+                result.SetPass();
+            }
+            else
+            {
+                result.SetFail();
+            }
+
+            return;
         }
 
         Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireSuperChargeCommand), Params.Id);
 
-        return false;
+        result.SetFail();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

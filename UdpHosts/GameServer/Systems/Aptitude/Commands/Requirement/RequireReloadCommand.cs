@@ -13,9 +13,9 @@ public class RequireReloadCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var target = context.Self;
@@ -24,7 +24,7 @@ public class RequireReloadCommand : Command, ICommand
         {
             if (Params.Inittime == 1)
             {
-                result = character.Character_CombatView.WeaponReloadedProp > context.InitTime;
+                cmdResult = character.Character_CombatView.WeaponReloadedProp > context.InitTime;
             }
         }
         else
@@ -34,9 +34,23 @@ public class RequireReloadCommand : Command, ICommand
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

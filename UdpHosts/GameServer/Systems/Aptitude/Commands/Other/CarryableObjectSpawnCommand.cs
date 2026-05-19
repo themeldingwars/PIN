@@ -12,7 +12,7 @@ public class CarryableObjectSpawnCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self;
         var position = target.Position;
@@ -25,7 +25,8 @@ public class CarryableObjectSpawnCommand : Command, ICommand
             if (entity == null)
             {
                 Logger.Warning("{Command} {CommandId}, Failed to spawn?", nameof(CarryableObjectSpawnCommand), Params.Id);
-                return false;
+                result.SetFail();
+                return;
             }
 
             if (Params.Lifetime != null && Params.Lifetime != 0)
@@ -33,12 +34,18 @@ public class CarryableObjectSpawnCommand : Command, ICommand
                 context.Shard.EntityMan.SetRemainingLifetime(entity, (uint)Params.Lifetime);
             }
 
-            return true;
+            result.SetPass();
+            return;
         }
         else
         {
             Logger.Warning("Don't know which carryable to spawn in {Command} {CommandId}, failing.", nameof(CarryableObjectSpawnCommand), Params.Id);
-            return false;
+            result.SetFail();
+            return;
         }
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

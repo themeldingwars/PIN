@@ -13,7 +13,7 @@ public class SetGliderParametersCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self;
 
@@ -25,6 +25,11 @@ public class SetGliderParametersCommand : Command, ICommand
             }
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

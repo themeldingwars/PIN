@@ -14,12 +14,13 @@ public class LoadRegisterFromResourceCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // todo: meaning of Params.RegisterVal_0 - RegisterVal_10
         if (context.Self is not CharacterEntity character)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
         context.Register = AbilitySystem.RegistryOp(
@@ -27,6 +28,11 @@ public class LoadRegisterFromResourceCommand : Command, ICommand
             character.Player.Inventory.GetResourceQuantity(Params.ResourceId),
             (Operand)Params.Regop);
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

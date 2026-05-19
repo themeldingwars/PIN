@@ -1,3 +1,4 @@
+using System.Linq;
 using GameServer.StaticDB.Records.apt;
 
 namespace GameServer.Systems.Aptitude.Commands.Target;
@@ -12,11 +13,20 @@ public class TargetInitiatorCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        context.FormerTargets = new AptitudeTargets(context.Targets);
-        context.Targets.Push(context.Initiator);
+        var target = context.Initiator;
 
-        return true;
+        if (!context.Targets.Contains(target))
+        {
+            context.Targets.Push(target);
+        }
+
+        result.SetPass(StatusCode.None);
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

@@ -13,7 +13,7 @@ public class ResourceNodeBeaconCalldownCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var caller = context.Self;
         var request = context.Abilities.TryConsumeResourceNodeBeaconCalldownRequest(caller.EntityId);
@@ -23,11 +23,13 @@ public class ResourceNodeBeaconCalldownCommand : Command, ICommand
             uint nodeType = 20; // TODO: Figure out how to use and determine these
             var position = request.Position;
             encounterMan.CreateThumper(nodeType, position, caller as CharacterEntity, Params);
-            return true;
+            result.SetPass();
+            return;
         }
         else
         {
-            return false;
+            result.SetFail();
+            return;
         }
     }
 }

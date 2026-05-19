@@ -13,7 +13,7 @@ public class DeployableSpawnCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self;
         var position = target.Position;
@@ -27,7 +27,8 @@ public class DeployableSpawnCommand : Command, ICommand
             if (entity == null)
             {
                 Logger.Warning("{Command} {CommandId}, Failed to spawn?", nameof(DeployableSpawnCommand), Params.Id);
-                return false;
+                result.SetFail();
+                return;
             }
 
             if (Params.Lifetime != null && Params.Lifetime != 0)
@@ -35,12 +36,14 @@ public class DeployableSpawnCommand : Command, ICommand
                 context.Shard.EntityMan.SetRemainingLifetime(entity, (uint)Params.Lifetime);
             }
 
-            return true;
+            result.SetPass();
+            return;
         }
         else
         {
             Logger.Warning("Don't know which deployable to spawn in {Command} {CommandId}, failing.", nameof(DeployableSpawnCommand), Params.Id);
-            return false;
+            result.SetFail();
+            return;
         }
     }
 }

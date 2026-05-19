@@ -160,6 +160,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public int SelectedLoadout { get; set; }
     public List<DeployableEntity> OwnedDeployables { get; set; } = [];
     public RespawnTimesData? RespawnTimes { get; private set; }
+    public IEntity InteractionTarget { get; set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -1492,6 +1493,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetTinyObject(uint index, TinyObjectData data)
     {
         SetIndexOfArrayProperty(Character_TinyObjectView, "TinyObjects", index, data);
+    }
+
+    public void SetInteractionTarget(IEntity target)
+    {
+        InteractionTarget = target;
     }
 
     private static Vector3 CalculateProjectileOrigin(Vector3 position, Quaternion orientation, bool crouching, Vector3 aimDirection)

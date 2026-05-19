@@ -13,17 +13,24 @@ public class UnlockBattleframesCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.SdbId == 0)
         {
-            return true;
+            result.SetPass();
+            return;
         }
 
         if (context.Self is CharacterEntity character)
         {
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

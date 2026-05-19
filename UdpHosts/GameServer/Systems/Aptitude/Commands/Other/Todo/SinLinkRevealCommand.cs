@@ -12,13 +12,14 @@ public class SinLinkRevealCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         foreach (var target in context.Targets)
         {
             // todo: reveal for each target
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

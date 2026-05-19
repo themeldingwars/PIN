@@ -12,7 +12,7 @@ public class StagedActivationCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // PassRegister and PassBonus are not handled, but they're 0 for all instances; AllowPrediction is client-side
         if (Params.SelfEffectId != 0)
@@ -20,6 +20,7 @@ public class StagedActivationCommand : Command, ICommand
             context.Shard.Abilities.DoApplyEffect(Params.SelfEffectId, context.Self, context);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

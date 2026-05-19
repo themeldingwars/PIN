@@ -14,8 +14,14 @@ public class StatModifierCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
+        if (Params.Stat > 0x39)
+        {
+            result.SetFail(StatusCode.Status1);
+            return;
+        }
+
         if (Params.Permanent == 1)
         {
             Logger.Warning("{Command} {CommandId} has unhandled param Permanent", nameof(StatModifierCommand), Params.Id);
@@ -30,7 +36,8 @@ public class StatModifierCommand : Command, ICommand
             Logger.Warning("{Command} {CommandId} does nothing because self is not a Character. Self is {sourceType}. If this is happening, we should investigate why.", nameof(StatModifierCommand), Params.Id, context.Self.GetType().Name);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)

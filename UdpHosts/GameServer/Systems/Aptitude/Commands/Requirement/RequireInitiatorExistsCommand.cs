@@ -12,8 +12,24 @@ public class RequireInitiatorExistsCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        return context.Shard.Entities.TryGetValue(context.Initiator.EntityId, out _);
+        var res = context.Shard.Entities.TryGetValue(context.Initiator.EntityId, out _);
+
+        if (res)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

@@ -12,8 +12,7 @@ public class ModifyDamageByTargetCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        return true;
     }
 }

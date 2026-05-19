@@ -13,7 +13,7 @@ public class RequestArcJobsCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // var message = ?
         foreach (var target in context.Targets)
@@ -26,6 +26,11 @@ public class RequestArcJobsCommand : Command, ICommand
             // character.Player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

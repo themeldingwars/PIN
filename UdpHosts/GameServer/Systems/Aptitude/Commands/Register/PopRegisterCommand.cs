@@ -12,11 +12,16 @@ public class PopRegisterCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         context.Register = context.FormerRegister;
         context.FormerRegister = 0;
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

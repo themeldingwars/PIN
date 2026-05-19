@@ -16,7 +16,7 @@ public class TargetPBAECommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         context.FormerTargets = new AptitudeTargets(context.Targets);
 
@@ -29,7 +29,7 @@ public class TargetPBAECommand : Command, ICommand
         // Params.UseBodyPosition
         if (context.Targets.Count >= Params.MaxTargets)
         {
-            Logger.Warning("The context target count exceeds the MaxTargets BEFORE command executes");
+            Logger.Warning("The context target count {contextTargetCount} exceeds the MaxTargets {paramMaxTargets} BEFORE command executes", context.Targets.Count, Params.MaxTargets);
         }
 
         float radius = AbilitySystem.RegistryOp(context.Register, Params.Radius, (Operand)Params.RadiusRegop);
@@ -71,7 +71,7 @@ public class TargetPBAECommand : Command, ICommand
                     return true;
                 }
             }
-            
+
             return false;
         })
         .Select((pair) => pair.Value as BaseAptitudeEntity)
@@ -80,15 +80,22 @@ public class TargetPBAECommand : Command, ICommand
 
         if (context.Targets.Count >= Params.MaxTargets)
         {
-            Logger.Warning("The context target count exceeds the MaxTargets AFTER command executes");
+            Logger.Warning("The context target count {contextTargetCount} exceeds the MaxTargets {paramMaxTargets} AFTER command executes", context.Targets.Count, Params.MaxTargets);
         }
 
         if (context.Targets.Count < Params.MinTargets)
         {
             Logger.Debug("{Command} {CommandId} The context target count is below the MinTargets ({Min}) AFTER command executes, returning false", nameof(TargetPBAECommand), Params.Id, Params.MinTargets);
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

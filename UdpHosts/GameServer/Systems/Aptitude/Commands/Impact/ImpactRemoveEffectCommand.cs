@@ -13,7 +13,7 @@ public class ImpactRemoveEffectCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.EffectId != null)
         {
@@ -38,6 +38,7 @@ public class ImpactRemoveEffectCommand : Command, ICommand
             Logger.Warning("Don't know which effect to remove for {Command} {CommandId}", nameof(ImpactRemoveEffectCommand), Params.Id);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

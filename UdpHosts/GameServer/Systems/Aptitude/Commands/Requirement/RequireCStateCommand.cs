@@ -14,9 +14,9 @@ public class RequireCStateCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var source = context.Self;
@@ -31,39 +31,53 @@ public class RequireCStateCommand : Command, ICommand
 
             if (Params.Respawning == 1 && (cstate == CharacterStatus.Respawning))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Incapacitated == 1 && (cstate == CharacterStatus.Incapacitated))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Traumatized == 1 && (cstate == CharacterStatus.Traumatized))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Ghost == 1 && (cstate == CharacterStatus.Ghost))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Living == 1 && (cstate == CharacterStatus.Living))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Dead == 1 && (cstate == CharacterStatus.Dead))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Spawning == 1 && (cstate == CharacterStatus.Spawning))
             {
-                result = true;
+                cmdResult = true;
             }
         }
         else
         {
             Logger.Warning("{Command} {CommandId} fails because source is not a Character. Source is {sourceType}. If this is happening, we should investigate why.", nameof(RequireCStateCommand), Params.Id, source.GetType().Name);
-            result = false;
+            cmdResult = false;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

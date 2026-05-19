@@ -12,7 +12,7 @@ public class TargetDifferenceCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // todo aptitude: target difference
         if (Params.ReplaceFormer == 1)
@@ -24,7 +24,10 @@ public class TargetDifferenceCommand : Command, ICommand
         {
             (context.Targets, context.FormerTargets) = (context.FormerTargets, context.Targets);
         }
+    }
 
-        return true;
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

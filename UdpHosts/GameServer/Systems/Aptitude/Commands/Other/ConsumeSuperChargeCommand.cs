@@ -15,7 +15,7 @@ public class ConsumeSuperChargeCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self;
 
@@ -32,11 +32,17 @@ public class ConsumeSuperChargeCommand : Command, ICommand
                    Op = (byte)Operand.ASSIGN,
                };
 
-            return true;
+            result.SetPass();
+            return;
         }
 
         Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(ConsumeSuperChargeCommand), Params.Id);
 
-        return false;
+        result.SetFail();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

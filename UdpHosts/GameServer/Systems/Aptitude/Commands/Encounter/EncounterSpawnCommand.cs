@@ -12,10 +12,11 @@ public class EncounterSpawnCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         Logger.Information("Encounter spawned for {Command} {CommandId}", nameof(EncounterSpawnCommand), Params.Id);
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

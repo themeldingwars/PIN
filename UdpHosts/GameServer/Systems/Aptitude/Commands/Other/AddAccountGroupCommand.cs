@@ -12,11 +12,16 @@ public class AddAccountGroupCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // examples:
         // vip
         // mamba lgv rental (41157)
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

@@ -2,6 +2,7 @@ using GameServer.StaticDB.Records.apt;
 
 namespace GameServer.Systems.Aptitude.Commands.Update;
 
+// TODO: UpdateWaitAndFireOnceCommand
 public class UpdateWaitAndFireOnceCommand : Command, ICommand
 {
     private UpdateWaitAndFireOnceCommandDef Params;
@@ -12,10 +13,15 @@ public class UpdateWaitAndFireOnceCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var chain = context.Abilities.Factory.LoadChain(Params.Chain);
+        result.SetPass();
+        return;
+    }
 
-        return true;
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

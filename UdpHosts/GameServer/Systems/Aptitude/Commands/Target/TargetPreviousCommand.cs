@@ -12,15 +12,24 @@ public class TargetPreviousCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        context.Targets = new AptitudeTargets(context.FormerTargets);
+        // TODO: Validate if context.Targets is cleared or if FormerTargets are simply appended.
+        foreach (var target in context.FormerTargets)
+        {
+            context.Targets.Push(target);
+        }
 
         if (Params.Clearformer == 1)
         {
             context.FormerTargets.Clear();
         }
 
-        return true;
+        result.SetPass(StatusCode.None);
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

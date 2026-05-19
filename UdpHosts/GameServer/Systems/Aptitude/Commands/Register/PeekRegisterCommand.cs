@@ -13,10 +13,23 @@ public class PeekRegisterCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         context.Register = AbilitySystem.RegistryOp(context.Register, context.FormerRegister, (Operand)Params.Regop);
 
-        return context.Register != 0;
+        if (context.Register != 0)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

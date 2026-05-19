@@ -13,9 +13,9 @@ public class RequireLevelCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var target = context.Self;
@@ -24,13 +24,13 @@ public class RequireLevelCommand : Command, ICommand
         {
             if (Params.FrameLevel == 1)
             {
-                result = character.Character_BaseController.LevelProp >= Params.Level;
+                cmdResult = character.Character_BaseController.LevelProp >= Params.Level;
             }
             else if (Params.SessionLevel == 1)
             {
                 // todo
                 Logger.Information("[{Command} {CommandId}] Session level, level {Level}", nameof(RequireLevelCommand), Params.Id, Params.Level);
-                result = true;
+                cmdResult = true;
             }
         }
         else
@@ -38,6 +38,20 @@ public class RequireLevelCommand : Command, ICommand
             Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireLevelCommand), Params.Id);
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

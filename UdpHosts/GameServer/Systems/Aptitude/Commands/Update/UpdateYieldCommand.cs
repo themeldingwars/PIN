@@ -2,6 +2,7 @@ using GameServer.StaticDB.Records.apt;
 
 namespace GameServer.Systems.Aptitude.Commands.Update;
 
+// TODO: UpdateYieldCommand
 public class UpdateYieldCommand : Command, ICommand
 {
     private UpdateYieldCommandDef Params;
@@ -12,8 +13,14 @@ public class UpdateYieldCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

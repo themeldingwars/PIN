@@ -12,10 +12,10 @@ public class RegisterComparisonCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // NOTE: The params can have multiple set, need to double check if this implementation is appropriate. It currently returns true if any condition matches.
-        bool result = false;
+        bool cmdResult = false;
 
         if (Params.EqualTo == 1)
         {
@@ -24,7 +24,7 @@ public class RegisterComparisonCommand : Command, ICommand
 
             if (context.Register >= minValue && context.Register <= maxValue)
             {
-                result = true;
+                cmdResult = true;
             }
         }
 
@@ -32,7 +32,7 @@ public class RegisterComparisonCommand : Command, ICommand
         {
             if (context.Register < Params.CompareVal)
             {
-                result = true;
+                cmdResult = true;
             }
         }
 
@@ -40,10 +40,23 @@ public class RegisterComparisonCommand : Command, ICommand
         {
             if (context.Register > Params.CompareVal)
             {
-                result = true;
+                cmdResult = true;
             }
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

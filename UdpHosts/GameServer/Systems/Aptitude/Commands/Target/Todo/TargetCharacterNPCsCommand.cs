@@ -13,11 +13,12 @@ public class TargetCharacterNPCsCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (context.Self is not CharacterEntity { IsPlayerControlled: true } player)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
         context.FormerTargets = new AptitudeTargets(context.Targets);
@@ -29,6 +30,12 @@ public class TargetCharacterNPCsCommand : Command, ICommand
         }
         */
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

@@ -15,11 +15,12 @@ public class TeleportInstanceCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.ZoneId == 0)
         {
-            return true;
+            result.SetPass();
+            return;
         }
 
         foreach (var target in context.Targets)
@@ -34,6 +35,7 @@ public class TeleportInstanceCommand : Command, ICommand
             networkPlayer.EnterZone(DataUtils.GetZone(Params.ZoneId));
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

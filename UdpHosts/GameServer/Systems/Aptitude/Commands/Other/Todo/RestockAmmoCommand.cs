@@ -15,13 +15,14 @@ public class RestockAmmoCommand : Command, ICommand
 
     // todo: should act on targets?
     // abilities: 53, 57
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (context.Self is CharacterEntity character)
         {
             // character.Character_CombatController.Ammo_0Prop = max
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

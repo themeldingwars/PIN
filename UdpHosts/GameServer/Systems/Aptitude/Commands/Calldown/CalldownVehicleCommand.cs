@@ -14,13 +14,14 @@ public class CalldownVehicleCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.VehicleId != 0)
         {
             context.Shard.EntityMan.SpawnVehicle(Params.VehicleId, context.InitPosition, Quaternion.Identity, context.Self as CharacterEntity);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

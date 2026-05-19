@@ -12,22 +12,33 @@ public class LogicAndChainCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var chain = context.Abilities.Factory.LoadChain(Params.AndChain);
 
         var prevExecutionHint = context.ExecutionHint;
         context.ExecutionHint = ExecutionHint.Logic;
-        bool result = chain.Execute(context, Chain.ExecutionMethod.AndChain);
+        var chainResult = new CommandResult { Success = true };
+        chain.Execute(context, ref chainResult, Chain.ExecutionMethod.AndChain);
         context.ExecutionHint = prevExecutionHint;
 
         if (Params.AlwaysSuccess == 1)
         {
-            return true;
+            result.SetPass();
+            return;
         }
         else
         {
-            return result;
+            if (chainResult.Success)
+            {
+                result.SetPass();
+                return;
+            }
+            else
+            {
+                result.SetFail();
+                return;
+            }
         }
     }
 }

@@ -12,17 +12,23 @@ public class RequirementServerCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // TODO: Investigate Params.Local, Params.LocalInit
         if (Params.Server == 1)
         {
-            return true;
+            result.SetPass();
+            return;
         }
         else
         {
             Logger.Warning("{Command} {CommandId} returns false", nameof(RequirementServerCommand), Params.Id);
-            return false;
+            result.SetFail();
         }
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

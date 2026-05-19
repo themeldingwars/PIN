@@ -15,7 +15,7 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self;
 
@@ -28,7 +28,8 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
             else
             {
                 Logger.Warning("{Command} {CommandId} has FromTarget specified but we have no target, is something wrong?", nameof(LoadRegisterFromItemStatCommand), Params.Id);
-                return true;
+                result.SetPass();
+                return;
             }
         }
 
@@ -40,7 +41,8 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
         if (target is not CharacterEntity character)
         {
             Logger.Warning("{Command} {CommandId} target is not a Character, is something wrong?", nameof(LoadRegisterFromItemStatCommand), Params.Id);
-            return true;
+            result.SetPass();
+            return;
         }
 
         float prevValue = context.Register;
@@ -53,6 +55,11 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
             Logger.Debug("{Command} {CommandId}: ({prevValue}, {statValue} ({statName}), {op}) => {register}", nameof(LoadRegisterFromItemStatCommand), Params.Id, prevValue, statValue, statInfo.Name.Trim(), (Operand)Params.Regop, context.Register);
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

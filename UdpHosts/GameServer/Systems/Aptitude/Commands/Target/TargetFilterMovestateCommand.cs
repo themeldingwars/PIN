@@ -13,9 +13,9 @@ public class TargetFilterMovestateCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         var previousTargets = context.Targets;
         var newTargets = new AptitudeTargets();
@@ -84,18 +84,32 @@ public class TargetFilterMovestateCommand : Command, ICommand
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {
-           result = false;
+           cmdResult = false;
         }
         else
         {
-            result = true;
+            cmdResult = true;
         }
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

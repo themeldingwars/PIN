@@ -12,9 +12,8 @@ public class CustomPlaceholderCommand : ICommand
 
     public uint Id { get; set; }
 
-    public bool Execute(Context context)
+    public void Execute(Context context, ref CommandResult result)
     {
-        return true;
     }
 
     public override string ToString()

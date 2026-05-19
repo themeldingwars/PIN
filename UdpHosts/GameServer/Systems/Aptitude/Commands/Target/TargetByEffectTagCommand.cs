@@ -13,9 +13,9 @@ public class TargetByEffectTagCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        var result = false;
+        var cmdResult = false;
         var previousTargets = context.Targets;
         var newTargets = new AptitudeTargets();
         var effectTagEffectIds = SDBInterface.GetStatusEffectTag(Params.TagId);
@@ -42,18 +42,32 @@ public class TargetByEffectTagCommand : Command, ICommand
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {
-            result = false;
+            cmdResult = false;
         }
         else
         {
-            result = true;
+            cmdResult = true;
         }
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

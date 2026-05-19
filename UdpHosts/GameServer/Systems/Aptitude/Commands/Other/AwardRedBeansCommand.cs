@@ -15,7 +15,7 @@ public class AwardRedBeansCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // todo aptitude: make it permanent
         var target = context.Self;
@@ -32,9 +32,15 @@ public class AwardRedBeansCommand : Command, ICommand
         else
         {
             Logger.Warning("{Command} {CommandId} fails because self is not a character (why is it running on something other than a character?)", nameof(AwardRedBeansCommand), Params.Id);
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

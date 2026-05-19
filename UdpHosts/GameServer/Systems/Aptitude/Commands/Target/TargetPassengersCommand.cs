@@ -14,12 +14,14 @@ public class TargetPassengersCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (context.Self is not VehicleEntity vehicle)
         {
             Logger.Warning("{Command} {CommandId} fails because self is not a Vehicle. If this is happening, we should investigate why.", nameof(TargetPassengersCommand), Params.Id);
-            return false;
+
+            result.SetFail();
+            return;
         }
 
         context.FormerTargets = new AptitudeTargets(context.Targets);
@@ -59,9 +61,16 @@ public class TargetPassengersCommand : Command, ICommand
 
         if (Params.FailNone == 1 && context.Targets.Count == 0)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

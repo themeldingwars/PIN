@@ -12,9 +12,13 @@ public class SetLookAtTargetCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    // based on ff1189 should act on context.Self
+    public override void Execute(Context context, ref CommandResult result)
     {
-        // based on ff1189 should act on context.Self
-        return true;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

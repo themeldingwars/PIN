@@ -12,14 +12,21 @@ public class UnlockTitlesCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.TitleId == 0)
         {
-            return true;
+            result.SetPass();
+            return;
         }
 
         // todo aptitude: unlock title
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

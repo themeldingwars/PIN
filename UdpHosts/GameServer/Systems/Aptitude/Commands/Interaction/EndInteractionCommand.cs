@@ -3,26 +3,33 @@ using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Entities.Vehicle;
 using GameServer.Systems.Encounters;
+using Serilog;
 
 namespace GameServer.Systems.Aptitude.Commands.Interaction;
 
 public class EndInteractionCommand : ICommand
 {
+    protected readonly ILogger Logger = Log.ForContext<BeginInteractionCommand>();
+
     public EndInteractionCommand(uint id)
     {
         Id = id;
     }
 
-    public uint Id { get; set; } 
+    public uint Id { get; set; }
 
-    public bool Execute(Context context)
+    public void Execute(Context context, ref CommandResult result)
     {
-        if (context.Targets.Count == 0 || context.Self is not CharacterEntity character)
+        if (context.Self is not CharacterEntity character || character.InteractionTarget == null)
         {
-            return false;
+            Logger.Warning("{Command} {CommandId} Called with bad state. Target Count: {TargetCount}, Self {Self}, InteractionTarget {InteractionTarget}",  nameof(EndInteractionCommand), Id, context.Targets.Count, context.Self, ((CharacterEntity)context.Self).InteractionTarget);
+            result.SetFail(StatusCode.PINError);
+            return;
         }
 
-        var interactionEntity = (BaseEntity)context.Targets.Peek();
+        var source = (CharacterEntity)context.Self;
+        var interactionEntity = (BaseEntity)source.InteractionTarget;
+        source.SetInteractionTarget(null);
 
         if (character is { IsPlayerControlled: true })
         {
@@ -65,6 +72,7 @@ public class EndInteractionCommand : ICommand
             vehicle.AddOccupant(character);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

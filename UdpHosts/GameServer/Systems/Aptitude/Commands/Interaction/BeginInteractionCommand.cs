@@ -1,37 +1,46 @@
 using GameServer.Entities;
+using GameServer.Entities.Character;
+using Serilog;
 
 namespace GameServer.Systems.Aptitude.Commands.Interaction;
 
 public class BeginInteractionCommand : ICommand
 {
+    protected readonly ILogger Logger = Log.ForContext<BeginInteractionCommand>();
+
     public BeginInteractionCommand(uint id)
     {
         Id = id;
     }
 
-    public uint Id { get; set; } 
+    public uint Id { get; set; }
 
-    public bool Execute(Context context)
+    public void Execute(Context context, ref CommandResult result)
     {
-        if (context.Targets.Count == 0)
+        if (context.Targets.Count == 0 || context.Self is not CharacterEntity character)
         {
-            return false;
+            Logger.Warning("{Command} {CommandId} Called with bad state. Target Count: {TargetCount}, Self {Self}",  nameof(BeginInteractionCommand), Id, context.Targets.Count, context.Self);
+            result.SetFail(StatusCode.PINError);
+            return;
         }
 
-        var interactionEntity = context.Targets.Peek();
-        var abilityId = ((BaseEntity)interactionEntity).Interaction.StartedAbilityId;
+        var source = (CharacterEntity)context.Self;
+        var target = context.Targets.Peek();
+        source.SetInteractionTarget((IEntity)target);
+
+        var abilityId = ((BaseEntity)target).Interaction.StartedAbilityId;
         if (abilityId != 0)
         {
-            var actingEntity = context.Self;
             context.Shard.Abilities.HandleActivateAbility(
                 context.Shard,
-                interactionEntity,
+                target,
                 abilityId,
                 context.Shard.CurrentTime,
-                new AptitudeTargets(actingEntity),
+                new AptitudeTargets(source),
                 context.ExecutionId);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

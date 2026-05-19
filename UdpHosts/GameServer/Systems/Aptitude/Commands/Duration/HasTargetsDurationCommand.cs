@@ -12,15 +12,29 @@ public class HasTargetsDurationCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = context.Targets.Count >= Params.MinCount;
-
-        if (Params.Negate == 1)
+        if (context.PreviousResult.RawValue == 0x00060003)
         {
-            result = !result;
+            // This is implemented in the game client, idk
+            // wait_pass_status6.
+            Logger.Warning("Special HasTargetsDuration condition triggered, automatically passing");
+            result.SetPass();
+            return;
         }
 
-        return result;
+        bool failsTargets = context.Targets.Count == 0 || context.Targets.Count < Params.MinCount;
+        bool negate = Params.Negate == 1;
+
+        if (failsTargets == negate)
+        {
+            result.SetPass(StatusCode.Status3_TargetingFail);
+        }
+        else
+        {
+            result.SetFail(StatusCode.Status3_TargetingFail);
+        }
+
+        return;
     }
 }

@@ -14,7 +14,7 @@ public class ModifyPermissionCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self; // NOTE: Based on glider, it seems like it should use self, maybe that is reasonable for all 'active' style commands?
         if (target is CharacterEntity)
@@ -40,7 +40,13 @@ public class ModifyPermissionCommand : Command, ICommand
             }
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)

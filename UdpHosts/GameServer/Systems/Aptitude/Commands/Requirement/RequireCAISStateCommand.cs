@@ -14,40 +14,55 @@ public class RequireCAISStateCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         var target = context.Self;
 
         if (target is not CharacterEntity character)
         {
             Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireCAISStateCommand), Params.Id);
-            return false;
+            result.SetFail();
+            return;
         }
 
         var state = character.Character_BaseController.CAISStatusProp.State;
 
         if (Params.None == 1)
         {
-            result = state == CAISStatusData.CAISState.None;
+            cmdResult = state == CAISStatusData.CAISState.None;
         }
 
         if (Params.Fatigued == 1)
         {
-            result = result || state == CAISStatusData.CAISState.Fatigued;
+            cmdResult = cmdResult || state == CAISStatusData.CAISState.Fatigued;
         }
 
         if (Params.Unhealthy == 1)
         {
-            result = result || state == CAISStatusData.CAISState.Unhealthy;
+            cmdResult = cmdResult || state == CAISStatusData.CAISState.Unhealthy;
         }
 
         if (Params.Healthy == 1)
         {
-            result = result || state == CAISStatusData.CAISState.Healthy;
+            cmdResult = cmdResult || state == CAISStatusData.CAISState.Healthy;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

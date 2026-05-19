@@ -13,11 +13,12 @@ public class ModifyOwnerResourcesCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.ResourceSdbId == 0 || Params.Quantity == 0)
         {
-            return true;
+            result.SetPass();
+            return;
         }
 
         foreach (var target in context.Targets)
@@ -37,6 +38,11 @@ public class ModifyOwnerResourcesCommand : Command, ICommand
             }
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

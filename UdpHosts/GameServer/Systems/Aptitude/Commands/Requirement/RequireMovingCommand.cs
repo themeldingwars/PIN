@@ -13,20 +13,20 @@ public class RequireMovingCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var target = context.Self;
-        
+
         if (target is CharacterEntity character)
         {
             if (Params.CheckVelocity == 1)
             {
                 if (Params.Velocitytol == 0)
                 {
-                    result = !character.MovementStateContainer.Movement;
+                    cmdResult = !character.MovementStateContainer.Movement;
                 }
                 else
                 {
@@ -42,9 +42,23 @@ public class RequireMovingCommand : Command, ICommand
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

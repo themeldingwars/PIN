@@ -12,30 +12,57 @@ public class PopTargetsCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        if (Params.Former == 1)
+        if (Params.Current == 0 && Params.Former == 0)
         {
-            var ok = context.TargetStack.TryPop(out var result);
-            if (ok)
+            if (context.TargetStack.Count != 0)
             {
-                context.FormerTargets = result;
+                context.TargetStack.Pop();
+                result.SetPass(StatusCode.None);
+                return;
             }
-
-            return ok;
+            else
+            {
+                Logger.Error("Targets stack underflow!");
+                result.SetFail(StatusCode.Status1);
+                return;
+            }
         }
 
-        if (Params.Current == 1)
+        if (Params.Former != 0)
         {
-            var ok = context.TargetStack.TryPop(out var result);
-            if (ok)
+            if (context.TargetStack.Count != 0)
             {
-                context.Targets = result;
+                context.FormerTargets = new AptitudeTargets(context.TargetStack.Pop());
             }
-
-            return ok;
+            else
+            {
+                Logger.Error("Targets stack underflow!");
+                result.SetFail(StatusCode.Status1);
+                return;
+            }
         }
 
-        return true;
+        if (Params.Current != 0)
+        {
+            if (context.TargetStack.Count != 0)
+            {
+                context.Targets = new AptitudeTargets(context.TargetStack.Pop());
+            }
+            else
+            {
+                Logger.Error("Targets stack underflow!");
+                result.SetFail(StatusCode.Status1);
+                return;
+            }
+        }
+
+        result.SetPass(StatusCode.None);
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

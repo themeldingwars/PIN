@@ -13,7 +13,7 @@ public class DestroyAbilityObjectCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // occurs often after TargetClear -> TargetSelf
         foreach (var target in context.Targets)
@@ -21,6 +21,7 @@ public class DestroyAbilityObjectCommand : Command, ICommand
             context.Shard.EntityMan.Remove((IEntity)target);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

@@ -12,9 +12,10 @@ public class CallCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         context.Shard.Abilities.HandleActivateAbility(context.Shard, context.Initiator, Params.AbilityId, context.Shard.CurrentTime, new AptitudeTargets(), context.ExecutionId);
-        return true;
+        result.SetPass();
+        return;
     }
 }

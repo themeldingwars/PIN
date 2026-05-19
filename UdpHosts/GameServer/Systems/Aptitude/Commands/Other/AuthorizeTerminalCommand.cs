@@ -15,13 +15,14 @@ public class AuthorizeTerminalCommand : Command, ICommand
     }
 
     // self is terminal, target is interacting player
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var terminal = context.Self;
         if (context.Targets.Count == 0)
         {
             Logger.Warning("{Command} {CommandId} fails because there are no targets (There should be a target?)", nameof(AuthorizeTerminalCommand), Params.Id);
-            return false;
+            result.SetFail();
+            return;
         }
 
         var target = context.Targets.Peek();
@@ -31,7 +32,8 @@ public class AuthorizeTerminalCommand : Command, ICommand
             if (!character.IsPlayerControlled)
             {
                 Logger.Information("{Command} {CommandId} skips because target is not a player (should this really be happening, why did we target an NPC with this?)", nameof(AuthorizeTerminalCommand), Params.Id);
-                return true;
+                result.SetPass();
+                return;
             }
 
             Logger.Information("{Command} {CommandId} Authorized terminal {TerminalType}, {terminal}", nameof(AuthorizeTerminalCommand), Params.Id, Params.TerminalType, terminal);
@@ -42,11 +44,17 @@ public class AuthorizeTerminalCommand : Command, ICommand
                 TerminalId = (byte)Params.TerminalId,
                 TerminalEntityId = terminal.AeroEntityId.Backing
             });
-            
-            return true;
+
+            result.SetPass();
+            return;
         }
 
         Logger.Warning("{Command} {CommandId} fails because target is not a character (why is it running on something other than a character?)", nameof(AuthorizeTerminalCommand), Params.Id);
-        return false;
+        result.SetFail();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

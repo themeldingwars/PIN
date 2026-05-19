@@ -15,7 +15,7 @@ public class TargetFilterByRangeCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         context.FormerTargets = context.Targets;
         context.Targets = new AptitudeTargets();
@@ -40,9 +40,15 @@ public class TargetFilterByRangeCommand : Command, ICommand
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

@@ -13,7 +13,7 @@ public class ReputationModifierCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         foreach (var target in context.Targets)
         {
@@ -29,6 +29,7 @@ public class ReputationModifierCommand : Command, ICommand
             // character.Character_BaseController.ReputationEventModifierProp
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

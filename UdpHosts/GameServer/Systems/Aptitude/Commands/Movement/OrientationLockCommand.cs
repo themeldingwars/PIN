@@ -14,7 +14,7 @@ public class OrientationLockCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self;
 
@@ -23,7 +23,8 @@ public class OrientationLockCommand : Command, ICommand
             context.Actives.Add(this, null);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)

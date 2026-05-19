@@ -13,77 +13,91 @@ public class RequireMovestateCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var target = context.Self;
-        
+
         if (target is CharacterEntity character)
         {
             var movestate = character.MovementStateContainer.Movestate;
 
             if (Params.Standing == 1 && (movestate == Movestate.Standing))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Running == 1 && (movestate == Movestate.Running))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Falling == 1 && (movestate == Movestate.Falling))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Sliding == 1 && (movestate == Movestate.Sliding))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Walking == 1 && (movestate == Movestate.Walking))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Jetpack == 1 && (movestate == Movestate.Jetpack))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Gliding == 1 && (movestate == Movestate.Glider))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Thruster == 1 && (movestate == Movestate.GliderThrusters))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Stall == 1 && (movestate == Movestate.GliderStalling))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.KnockdownOnground == 1 && (movestate == Movestate.Knockdown))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.KnockdownFalling == 1 && (movestate == Movestate.KnockdownFalling))
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.JetpackSprint == 1 && (movestate == Movestate.JetpackSprint))
             {
-                result = true;
+                cmdResult = true;
             }
         }
         else
         {
             Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireMovestateCommand), Params.Id);
-            result = false;
+            cmdResult = false;
         }
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

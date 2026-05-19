@@ -12,7 +12,7 @@ public class InstantActivationCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         /*
         if (context.Self is CharacterEntity { IsPlayerControlled: true } character)
@@ -36,6 +36,7 @@ public class InstantActivationCommand : Command, ICommand
         }
         */
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

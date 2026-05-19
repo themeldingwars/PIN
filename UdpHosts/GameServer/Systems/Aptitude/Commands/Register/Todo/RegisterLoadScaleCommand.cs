@@ -17,7 +17,7 @@ public class RegisterLoadScaleCommand : Command, ICommand
 
     // Params.Regop is always 0, the table appears only in prod builds
     // todo: Monster->[min/max]_rand_scale? mostly have -1
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var scale = context.Self switch
         {
@@ -29,11 +29,16 @@ public class RegisterLoadScaleCommand : Command, ICommand
         if (scale == 0)
         {
             Logger.Warning("{Command} {CommandId} fails because Self is not a Deployable or Thumper. If this is happening, we should investigate why.", nameof(RegisterLoadScaleCommand), Params.Id);
-            return false;
+            result.SetFail();
+            return;
         }
 
         context.Register = AbilitySystem.RegistryOp(context.Register, scale, (Operand)Params.Regop);
 
-        return true;
+        result.SetPass();
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

@@ -14,17 +14,17 @@ public class RequireZoneTypeCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // todo aptitude: verify
-        bool result = false;
+        bool cmdResult = false;
 
         var target = context.Self;
         if (target is CharacterEntity character)
         {
             var currentZoneId = character.Player.CurrentZone.ID;
 
-            result = (Params.SpecificZoneId != 0 && Params.SpecificZoneId == currentZoneId)
+            cmdResult = (Params.SpecificZoneId != 0 && Params.SpecificZoneId == currentZoneId)
                      || (Params.Holmgang == 1 && Zone.HolmgangZones.Contains(currentZoneId))
                      || (Params.Adventure == 1 && Zone.AdventureZones.Contains(currentZoneId))
                      || (Params.OpenWorld == 1 && Zone.OpenWorldZones.Contains(currentZoneId))
@@ -37,9 +37,23 @@ public class RequireZoneTypeCommand : Command, ICommand
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

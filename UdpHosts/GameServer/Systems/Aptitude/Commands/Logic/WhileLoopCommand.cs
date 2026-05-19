@@ -13,12 +13,13 @@ public class WhileLoopCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.BodyChain == 0 && Params.ConditionChain == 0)
         {
             // Guard against weird case 421249
-            return true;
+            result.SetPass();
+            return;
         }
 
         var conditionChain = context.Abilities.Factory.LoadChain(Params.ConditionChain);
@@ -30,25 +31,26 @@ public class WhileLoopCommand : Command, ICommand
         uint lap = 0;
         while (lap < MaximumLaps)
         {
-            var conditionResult = conditionChain.Execute(context);
+            var conditionResult = new CommandResult { Success = true };
+            conditionChain.Execute(context, ref conditionResult);
 
             if (Params.DoWhile != 0)
             {
-                bodyChain.Execute(context);
+                bodyChain.Execute(context, ref result);
 
-                if (!conditionResult)
+                if (!conditionResult.Success)
                 {
                     break;
                 }
             }
             else
             {
-                if (!conditionResult)
+                if (!conditionResult.Success)
                 {
                     break;
                 }
 
-                bodyChain.Execute(context);
+                bodyChain.Execute(context, ref result);
             }
 
             lap++;
@@ -56,6 +58,7 @@ public class WhileLoopCommand : Command, ICommand
 
         context.ExecutionHint = prevExecutionHint;
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

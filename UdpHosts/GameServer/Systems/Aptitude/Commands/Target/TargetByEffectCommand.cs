@@ -12,7 +12,7 @@ public class TargetByEffectCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // todo Params.FilterList, equal to 1 in 1086 instances, 0 in 6 instances
         var previousTargets = context.Targets;
@@ -61,9 +61,16 @@ public class TargetByEffectCommand : Command, ICommand
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

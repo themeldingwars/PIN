@@ -13,9 +13,9 @@ public class RequireMovementFlagsCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var target = context.Self;
@@ -24,11 +24,11 @@ public class RequireMovementFlagsCommand : Command, ICommand
         {
             if (Params.Crouch == 1 && character.MovementStateContainer.Crouch)
             {
-                result = true;
+                cmdResult = true;
             }
             else if (Params.Sprint == 1 && character.MovementStateContainer.Sprint)
             {
-                result = true;
+                cmdResult = true;
             }
         }
         else
@@ -38,9 +38,23 @@ public class RequireMovementFlagsCommand : Command, ICommand
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

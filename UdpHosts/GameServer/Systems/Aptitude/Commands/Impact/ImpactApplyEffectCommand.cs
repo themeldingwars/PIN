@@ -12,7 +12,7 @@ public class ImpactApplyEffectCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         Context effectContext = new Context(context.Shard, context.Initiator)
         {
@@ -113,7 +113,8 @@ public class ImpactApplyEffectCommand : Command, ICommand
             }
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)

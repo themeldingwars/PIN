@@ -13,7 +13,7 @@ public class TargetFriendliesCommand : Command, ICommand
     }
 
     // abilities used: 8
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // todo aptitude: remove non-friendlies
         var previousTargets = context.Targets;
@@ -38,9 +38,16 @@ public class TargetFriendliesCommand : Command, ICommand
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

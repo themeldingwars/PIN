@@ -13,9 +13,9 @@ public class RequireWeaponArmedCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         var target = context.Self;
         if (target is CharacterEntity character)
@@ -24,14 +24,28 @@ public class RequireWeaponArmedCommand : Command, ICommand
 
             // The command seems to consider 1 holstered, 2 primary, 3 secondary.
             // The net view uses 0, 1, 2 instead.
-            result = Params.WeaponIndex == (selectedIndex + 1);
+            cmdResult = Params.WeaponIndex == (selectedIndex + 1);
         }
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

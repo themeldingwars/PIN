@@ -13,7 +13,7 @@ public class SetRegisterCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         float prevValue = context.Register;
         float paramValue = Params.RegisterVal;
@@ -24,6 +24,11 @@ public class SetRegisterCommand : Command, ICommand
             Logger.Debug("{Command} {CommandId}: ({prevValue}, {paramValue}, {op}) => {register}", nameof(SetRegisterCommand), Params.Id, prevValue, paramValue, (Operand)Params.Regop, context.Register);
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

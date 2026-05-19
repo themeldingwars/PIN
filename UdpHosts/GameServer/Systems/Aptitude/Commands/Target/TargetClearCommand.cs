@@ -12,19 +12,25 @@ public class TargetClearCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
+        if (Params.Current == 1)
+        {
+            context.Targets.Clear();
+
+            // TODO: Additional free logic?
+        }
+
         if (Params.Former == 1)
         {
             context.FormerTargets.Clear();
         }
 
-        if (Params.Current == 1)
-        {
-            context.FormerTargets = new AptitudeTargets(context.Targets);
-            context.Targets.Clear();
-        }
+        result.SetPass(StatusCode.None);
+    }
 
-        return true;
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

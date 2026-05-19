@@ -12,7 +12,7 @@ public class ImpactToggleEffectCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         Context effectContext = new Context(context.Shard, context.Initiator)
         {
@@ -57,13 +57,15 @@ public class ImpactToggleEffectCommand : Command, ICommand
             if (Params.PreApplyChain != 0)
             {
                 var chain = effectContext.Abilities.Factory.LoadChain(Params.PreApplyChain);
-                chain.Execute(effectContext);
+                var preApplyResult = new CommandResult { Success = true };
+                chain.Execute(effectContext, ref preApplyResult);
             }
 
             effectContext.ExecutionHint = ExecutionHint.ApplyEffect;
             effectContext.Abilities.DoApplyEffect(Params.EffectId, target, effectContext);
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

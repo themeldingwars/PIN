@@ -87,15 +87,17 @@ public class AbilitySystem
                 && currentTime > activeEffect.LastUpdateTime + activeEffect.Effect.UpdateFrequency)
             {
                 activeEffect.Context.ExecutionHint = ExecutionHint.DurationEffect;
-                bool durationResult = activeEffect.Effect.DurationChain.Execute(activeEffect.Context);
+                var durationResult = new CommandResult { Success = true };
+                activeEffect.Effect.DurationChain.Execute(activeEffect.Context, ref durationResult);
                 activeEffect.LastUpdateTime = currentTime;
 
-                if (durationResult)
+                if (durationResult.Success)
                 {
                     if (activeEffect.Effect.UpdateChain != null)
                     {
                         activeEffect.Context.ExecutionHint = ExecutionHint.UpdateEffect;
-                        activeEffect.Effect.UpdateChain.Execute(activeEffect.Context);
+                        var updateResult = new CommandResult { Success = true };
+                        activeEffect.Effect.UpdateChain.Execute(activeEffect.Context, ref updateResult);
                     }
                 }
                 else
@@ -133,7 +135,8 @@ public class AbilitySystem
             return;
         }
 
-        effect.ApplyChain?.Execute(applyContext);
+        var applyResult = new CommandResult { Success = true };
+        effect.ApplyChain?.Execute(applyContext, ref applyResult);
 
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", applyContext.ExecutionId);
         foreach (var pair in applyContext.Actives)
@@ -147,7 +150,8 @@ public class AbilitySystem
     {
         activeEffect.Context.ExecutionHint = ExecutionHint.RemoveEffect;
         activeEffect.Context.Self.ClearEffect(activeEffect);
-        activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context);
+        var removeResult = new CommandResult { Success = true };
+        activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context, ref removeResult);
 
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", activeEffect.Context.ExecutionId);
         foreach (var pair in activeEffect.Context.Actives)
@@ -237,6 +241,7 @@ public class AbilitySystem
         if (commandDef.Chain != 0)
         {
             var chain = Factory.LoadChain(commandDef.Chain);
+            var localProxResult = new CommandResult { Success = true };
             chain.Execute(new Context(shard, source)
             {
                 ExecutionId = execId,
@@ -244,7 +249,8 @@ public class AbilitySystem
                 Targets = targets,
                 InitTime = time,
                 ExecutionHint = ExecutionHint.Proximity
-            });
+            },
+            ref localProxResult);
         }
     }
 
@@ -261,6 +267,7 @@ public class AbilitySystem
         _logger.Information("HandleActivateAbility: Ability {AbilityId} starting Chain {ChainId}", abilityId, chainId);
 
         var chain = Factory.LoadChain(chainId);
+        var abilityResult = new CommandResult { Success = true };
         chain.Execute(new Context(shard, initiator)
         {
             ExecutionId = execId,
@@ -269,7 +276,8 @@ public class AbilitySystem
             Targets = targets,
             InitTime = activationTime,
             ExecutionHint = ExecutionHint.Ability
-        });
+        },
+        ref abilityResult);
     }
 
     public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId)

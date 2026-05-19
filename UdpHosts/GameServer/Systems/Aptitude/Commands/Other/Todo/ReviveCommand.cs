@@ -12,9 +12,10 @@ public class ReviveCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // based on ff1189 should act on context.Targets
-        return true;
+        result.SetPass();
+        return;
     }
 }

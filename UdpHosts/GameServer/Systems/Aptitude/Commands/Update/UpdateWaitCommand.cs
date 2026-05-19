@@ -2,6 +2,7 @@ using GameServer.StaticDB.Records.apt;
 
 namespace GameServer.Systems.Aptitude.Commands.Update;
 
+// TODO: UpdateWaitCommand
 public class UpdateWaitCommand : Command, ICommand
 {
     private UpdateWaitCommandDef Params;
@@ -12,8 +13,14 @@ public class UpdateWaitCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

@@ -12,10 +12,10 @@ public class RequireHasEffectCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // Logger.Debug("EffectID: {EffectId}", Params.EffectId);
-        bool result = false;
+        bool cmdResult = false;
 
         // TODO: Handle Params.SameInitiator
         // NOTE: Investigate target handling
@@ -47,7 +47,7 @@ public class RequireHasEffectCommand : Command, ICommand
 
                 if (!targetResult)
                 {
-                    result = false;
+                    cmdResult = false;
                     break;
                 }
                 else
@@ -58,7 +58,7 @@ public class RequireHasEffectCommand : Command, ICommand
 
             if (matchCounter == context.Targets.Count)
             {
-                result = true;
+                cmdResult = true;
             }
         }
 
@@ -90,9 +90,23 @@ public class RequireHasEffectCommand : Command, ICommand
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

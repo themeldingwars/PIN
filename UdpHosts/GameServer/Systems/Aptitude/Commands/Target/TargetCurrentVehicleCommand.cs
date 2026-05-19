@@ -14,20 +14,27 @@ public class TargetCurrentVehicleCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (context.Self is CharacterEntity { AttachedToEntity: VehicleEntity vehicle })
         {
             context.Targets.Push(vehicle);
 
-            return true;
+            result.SetPass();
+            return;
         }
 
         if (Params.FailNone == 1)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

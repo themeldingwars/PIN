@@ -14,9 +14,9 @@ public class RequireNeedsAmmoCommand : Command, ICommand
     }
 
     // todo recheck controller props
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var target = context.Self;
@@ -25,20 +25,34 @@ public class RequireNeedsAmmoCommand : Command, ICommand
         {
             if (Params.CheckPrimary == 1)
             {
-                result = character.Character_CombatController.Ammo_0Prop == 0;
+                cmdResult = character.Character_CombatController.Ammo_0Prop == 0;
             }
 
             if (Params.CheckSecondary == 1)
             {
-                result = result || character.Character_CombatController.AltAmmo_0Prop == 0;
+                cmdResult = cmdResult || character.Character_CombatController.AltAmmo_0Prop == 0;
             }
         }
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

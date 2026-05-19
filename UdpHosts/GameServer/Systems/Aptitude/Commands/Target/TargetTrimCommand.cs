@@ -13,7 +13,7 @@ public class TargetTrimCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // Keeps <trimSize> targets on the stack, from ability 30187. Guardian Angel - II ; Protect 2 closest allies
         // todo: meaning of Params.Chomp (0 in 298 instances, 1 in 70 instances)
@@ -58,6 +58,12 @@ public class TargetTrimCommand : Command, ICommand
             }
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

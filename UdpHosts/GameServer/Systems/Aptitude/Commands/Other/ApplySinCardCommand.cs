@@ -16,12 +16,13 @@ public class ApplySinCardCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // todo aptitude: handle setting SinCardFields
         if (Params.Type == null || Params.Type == 0)
         {
-            return true;
+            result.SetPass();
+            return;
         }
 
         var target = context.Self;
@@ -45,9 +46,15 @@ public class ApplySinCardCommand : Command, ICommand
         else
         {
             Logger.Warning("Can't apply SinCard in {Command} {CommandId}, failing.", nameof(ApplySinCardCommand), Params.Id);
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }

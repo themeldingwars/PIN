@@ -12,25 +12,34 @@ public class TimeDurationCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var currentTime = context.Shard.CurrentTime;
         var baseTime = context.InitTime;
         var duration = AbilitySystem.RegistryOp(context.Register, Params.DurationMs, (Enums.Operand)Params.DurationRegop);
         var condition = currentTime - baseTime > duration;
 
-        bool result = true;
+        bool cmdResult = true;
 
         if (condition)
         {
-            result = false;
+            cmdResult = false;
         }
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
     }
 }

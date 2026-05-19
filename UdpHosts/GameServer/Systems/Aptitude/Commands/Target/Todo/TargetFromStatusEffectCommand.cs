@@ -12,14 +12,17 @@ public class TargetFromStatusEffectCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // todo aptitude
         if (Params.AlsoInitiator == 1)
         {
             context.Targets.Push(context.Initiator);
         }
+    }
 
-        return true;
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

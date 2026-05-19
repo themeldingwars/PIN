@@ -13,7 +13,7 @@ public class AttemptToCalldownVehicleCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var caller = context.Self;
 
@@ -25,11 +25,13 @@ public class AttemptToCalldownVehicleCommand : Command, ICommand
             var position = request.Position;
             var orientation = request.Rotation;
             entityMan.SpawnVehicle(typeId, position, orientation, caller as CharacterEntity);
-            return true;
+            result.SetPass();
+            return;
         }
         else
         {
-            return false;
+            result.SetFail();
+            return;
 
             // Atlernate approach spawning without a request
             /*

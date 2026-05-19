@@ -13,17 +13,19 @@ public class NPCSpawnCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.MonsterId == 0)
         {
-            return true;
+            result.SetPass();
+            return;
         }
 
         var owner = Params.SetOwner ? context.Self as CharacterEntity : null;
 
         context.Shard.EntityMan.SpawnCharacter(Params.MonsterId, context.InitPosition, owner);
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

@@ -13,10 +13,10 @@ public class RequireHasEffectTagCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         Logger.Debug("[{Command} {CommandId}] EffectTag: {TagId}", nameof(RequireHasEffectTagCommand), Params.Id, Params.TagId);
-        bool result = false;
+        bool cmdResult = false;
         var effectTagEffectIds = SDBInterface.GetStatusEffectTag(Params.TagId);
 
         if (context.Targets.Count > 0)
@@ -41,7 +41,7 @@ public class RequireHasEffectTagCommand : Command, ICommand
 
             if (matchCounter == context.Targets.Count)
             {
-                result = true;
+                cmdResult = true;
             }
         }
         else
@@ -56,7 +56,7 @@ public class RequireHasEffectTagCommand : Command, ICommand
 
                 if (effectTagEffectIds.Contains(active.Effect.Id) && active.Stacks >= Params.StackCount)
                 {
-                    result = true;
+                    cmdResult = true;
                     break;
                 }
             }
@@ -64,9 +64,23 @@ public class RequireHasEffectTagCommand : Command, ICommand
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

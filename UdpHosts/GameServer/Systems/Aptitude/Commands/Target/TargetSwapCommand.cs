@@ -12,8 +12,10 @@ public class TargetSwapCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
+        (context.Targets, context.FormerTargets) = (context.FormerTargets, context.Targets);
+
         if (Params.ClearCurrent == 1)
         {
             context.Targets.Clear();
@@ -24,8 +26,11 @@ public class TargetSwapCommand : Command, ICommand
             context.FormerTargets.Clear();
         }
 
-        (context.Targets, context.FormerTargets) = (context.FormerTargets, context.Targets);
+        result.SetPass(StatusCode.None);
+    }
 
-        return true;
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

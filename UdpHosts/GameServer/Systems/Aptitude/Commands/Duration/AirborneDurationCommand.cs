@@ -13,21 +13,30 @@ public class AirborneDurationCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self; // NOTE: Investigate
 
-        bool result = false;
+        bool cmdResult = false;
         if (target is CharacterEntity character)
         {
-            result = character.IsAirborne;
+            cmdResult = character.IsAirborne;
         }
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
     }
 }

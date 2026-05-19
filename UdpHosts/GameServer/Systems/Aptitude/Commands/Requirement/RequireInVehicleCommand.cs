@@ -14,15 +14,15 @@ public class RequireInVehicleCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         var target = context.Self;
 
         if (target is CharacterEntity { AttachedToEntity: VehicleEntity vehicle } character)
         {
-            result = (Params.Driver == 1 && vehicle.ControllingPlayer == character.Player)
+            cmdResult = (Params.Driver == 1 && vehicle.ControllingPlayer == character.Player)
                      || (Params.Passenger == 1 && vehicle.ControllingPlayer != character.Player);
         }
         else if (target is not CharacterEntity)
@@ -32,9 +32,23 @@ public class RequireInVehicleCommand : Command, ICommand
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

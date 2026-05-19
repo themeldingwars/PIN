@@ -14,7 +14,7 @@ public class TargetByCharacterStateCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var previousTargets = context.Targets;
         var newTargets = new AptitudeTargets();
@@ -60,9 +60,16 @@ public class TargetByCharacterStateCommand : Command, ICommand
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

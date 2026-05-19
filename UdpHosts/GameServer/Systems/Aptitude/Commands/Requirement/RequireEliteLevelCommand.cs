@@ -13,22 +13,36 @@ public class RequireEliteLevelCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var target = context.Self;
 
         if (target is CharacterEntity character)
         {
-            result = character.Character_BaseController.EliteLevelProp >= Params.Level;
+            cmdResult = character.Character_BaseController.EliteLevelProp >= Params.Level;
         }
         else
         {
             Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireEliteLevelCommand), Params.Id);
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

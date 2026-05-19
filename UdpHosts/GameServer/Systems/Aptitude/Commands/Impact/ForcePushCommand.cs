@@ -16,7 +16,7 @@ public class ForcePushCommand : Command, ICommand
     }
 
     // TODO: Implement based on params, currently hardcoded
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         foreach (IAptitudeTarget target in context.Targets)
         {
@@ -51,6 +51,7 @@ public class ForcePushCommand : Command, ICommand
             }
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

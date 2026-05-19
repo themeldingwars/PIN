@@ -13,16 +13,16 @@ public class RequireIsNPCCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
-        bool result = false;
+        bool cmdResult = false;
 
         // NOTE: Investigate target handling
         var target = context.Self;
 
         if (target is CharacterEntity character)
         {
-            result = character.IsPlayerControlled;
+            cmdResult = character.IsPlayerControlled;
         }
         else
         {
@@ -31,9 +31,23 @@ public class RequireIsNPCCommand : Command, ICommand
 
         if (Params.Negate == 1)
         {
-            result = !result;
+            cmdResult = !cmdResult;
         }
 
-        return result;
+        if (cmdResult)
+        {
+            result.SetPass();
+        }
+        else
+        {
+            result.SetFail();
+        }
+
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

@@ -12,22 +12,22 @@ public class LogicOrCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var chainA = context.Abilities.Factory.LoadChain(Params.AChain);
         var chainB = context.Abilities.Factory.LoadChain(Params.BChain);
 
         var prevExecutionHint = context.ExecutionHint;
         context.ExecutionHint = ExecutionHint.Logic;
-        bool result = chainA.Execute(context);
+        chainA.Execute(context, ref result);
 
-        if (result == false)
+        if (!result.Success)
         {
-            result = chainB.Execute(context);
+            chainB.Execute(context, ref result);
         }
 
         context.ExecutionHint = prevExecutionHint;
 
-        return result;
+        return;
     }
 }

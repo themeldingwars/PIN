@@ -18,7 +18,7 @@ public class ActivationDurationCommand : Command, ICommand
     * We assume that since this is a Duration command it should be true if we have not yet finished the Activation / Interaction. It should return false when the Activation / Interaction is completed.
     * The params AbilityId and Activated exist. So we assume we must check for the Activation of a specific AbilityId. We assume Activated means true/false based on whether it is activated.
     */
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         // We determine activated ability from context, hope we passed that everywhere it was needed...
         // TODO: Maybe we should store active abilities on entity and check against that instead of expecting it from context
@@ -38,26 +38,38 @@ public class ActivationDurationCommand : Command, ICommand
                 var currentMs = context.Shard.CurrentTime;
                 var initMs = context.InitTime;
 
-                return currentMs < initMs + durationMs;
+                if (currentMs < initMs + durationMs)
+                {
+                    result.SetPass();
+                }
+                else
+                {
+                    result.SetFail();
+                }
+
+                return;
             }
 
             // If we have no targets we assume we should fail
             else
             {
-                return false;
+                result.SetFail();
+                return;
             }
         }
 
         // Command does not want activation and we have not activated it
         else if (Params.Activated == 0 && !isAbilityActivated)
         {
-            return true;
+            result.SetPass();
+            return;
         }
 
         // Missmatch, either we didn't have this ability activated or we shouldn't have had it
-        else 
+        else
         {
-            return false;
+            result.SetFail();
+            return;
         }
     }
 }

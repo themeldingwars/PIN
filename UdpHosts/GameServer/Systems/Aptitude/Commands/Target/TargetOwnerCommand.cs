@@ -12,7 +12,7 @@ public class TargetOwnerCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         context.FormerTargets = new AptitudeTargets(context.Targets);
         var target = context.Self;
@@ -23,9 +23,15 @@ public class TargetOwnerCommand : Command, ICommand
         }
         else if (Params.FailNone == 1)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
-        return true;
+        result.SetPass();
+    }
+
+    public override void Reset(Context context)
+    {
+        return;
     }
 }

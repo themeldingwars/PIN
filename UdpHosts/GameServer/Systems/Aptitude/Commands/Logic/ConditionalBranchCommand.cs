@@ -12,28 +12,29 @@ public class ConditionalBranchCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var prevExecutionHint = context.ExecutionHint;
         context.ExecutionHint = ExecutionHint.Logic;
 
         var conditionChain = context.Abilities.Factory.LoadChain(Params.IfChain);
-        var conditionResult = conditionChain.Execute(context);
-        bool success = true;
-        if (conditionResult && Params.ThenChain != 0)
+        var conditionResult = new CommandResult { Success = true };
+        conditionChain.Execute(context, ref conditionResult);
+
+        if (conditionResult.Success && Params.ThenChain != 0)
         {
             var thenChain = context.Abilities.Factory.LoadChain(Params.ThenChain);
-            success = thenChain.Execute(context);
+            thenChain.Execute(context, ref result);
         }
 
-        if (!conditionResult && Params.ElseChain != 0)
+        if (!conditionResult.Success && Params.ElseChain != 0)
         {
             var elseChain = context.Abilities.Factory.LoadChain(Params.ElseChain);
-            success = elseChain.Execute(context);
+            elseChain.Execute(context, ref result);
         }
 
         context.ExecutionHint = prevExecutionHint;
 
-        return success;
+        return;
     }
 }

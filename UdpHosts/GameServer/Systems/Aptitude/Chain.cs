@@ -23,7 +23,7 @@ public class Chain
     public uint Id { get; set; }
     public List<ICommand> Commands { get; set; }
 
-    public bool Execute(Context context, ExecutionMethod method = ExecutionMethod.AndChain)
+    public void Execute(Context context, ref CommandResult result, ExecutionMethod method = ExecutionMethod.AndChain)
     {
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", context.ExecutionId);
         bool debug = context.ExecutionHint is not (ExecutionHint.DurationEffect or ExecutionHint.UpdateEffect);
@@ -36,7 +36,6 @@ public class Chain
 
         if (method == ExecutionMethod.AndChain)
         {
-            bool chainSuccess = true;
             foreach (var command in Commands)
             {
                 if (debug)
@@ -45,20 +44,20 @@ public class Chain
                     _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
                 }
 
-                bool commandSuccess = command.Execute(context);
-                if (!commandSuccess)
+                result.SetPass();
+                command.Execute(context, ref result);
+                if (!result.Success || result.Yield || result.Halt)
                 {
-                    chainSuccess = false;
+                    _logger.Debug("Chain {ChainId} Ends At Command {CommandId} due to Result Code {Code}", Id, command.Id, result);
                     break;
                 }
             }
 
-            return chainSuccess;
+            return;
         }
 
         if (method == ExecutionMethod.OrChain)
         {
-            bool chainSuccess = false;
             foreach (var command in Commands)
             {
                 if (debug)
@@ -67,18 +66,19 @@ public class Chain
                     _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
                 }
 
-                bool commandSuccess = command.Execute(context);
-                if (commandSuccess)
+                result.SetPass();
+                command.Execute(context, ref result);
+                if (result.Success)
                 {
-                    chainSuccess = true;
-                    break; // Note: Should further research to confirm if this is correct
+                    _logger.Debug("Chain {ChainId} Ends At Command {CommandId} due to Result Code {Code}", Id, command.Id, result);
+                    break;  // Note: Should further research to confirm if this is correct
                 }
             }
 
-            return chainSuccess;
+            return;
         }
 
-        return true;
+        return;
     }
 
     public void DebugPrintCommands()

@@ -13,7 +13,7 @@ public class EncounterSignalCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         var self = (BaseEntity)context.Self;
 
@@ -22,6 +22,7 @@ public class EncounterSignalCommand : Command, ICommand
             self.Encounter.Instance.OnSignal();
         }
 
-        return true;
+        result.SetPass();
+        return;
     }
 }

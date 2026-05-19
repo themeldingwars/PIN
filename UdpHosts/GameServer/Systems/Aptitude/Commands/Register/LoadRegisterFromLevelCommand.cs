@@ -14,13 +14,14 @@ public class LoadRegisterFromLevelCommand : Command, ICommand
         Params = par;
     }
 
-    public bool Execute(Context context)
+    public override void Execute(Context context, ref CommandResult result)
     {
         if (Params.FromInitiator == 1)
         {
             if (context.Initiator is not CharacterEntity initiator)
             {
-                return false;
+                result.SetFail();
+                return;
             }
 
             context.Register = AbilitySystem.RegistryOp(
@@ -28,12 +29,14 @@ public class LoadRegisterFromLevelCommand : Command, ICommand
                 initiator.Character_BaseController.LevelProp,
                 (Operand)Params.Regop);
 
-            return true;
+            result.SetPass();
+            return;
         }
 
         if (context.Self is not CharacterEntity character)
         {
-            return false;
+            result.SetFail();
+            return;
         }
 
         context.Register = AbilitySystem.RegistryOp(
@@ -41,6 +44,11 @@ public class LoadRegisterFromLevelCommand : Command, ICommand
             character.Character_BaseController.LevelProp,
             (Operand)Params.Regop);
 
-        return true;
+        result.SetPass();
+        return;
+    }
+
+    public override void Reset(Context context)
+    {
     }
 }
