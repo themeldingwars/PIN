@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
-using GameServer.Data.SDB;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.StaticDB;
 using Serilog;
 using LoadoutVisualType = AeroMessages.GSS.V66.Character.LoadoutConfig_Visual.LoadoutVisualType;
 
@@ -33,7 +33,7 @@ public class CharacterInventory
         _loadouts = [];
     }
 
-    public bool EnablePartialUpdates { get; set; } = false;
+    public bool EnablePartialUpdates { get; set; }
 
     public void LoadHardcodedInventory()
     {
@@ -117,12 +117,12 @@ public class CharacterInventory
             Durability = 1000,
             DynamicFlags = 0,
             TimestampEpoch = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            Modules = Array.Empty<uint>(),
+            Modules = [],
             Unk1 = 0,
             Unk3 = 0,
             Unk4 = 0,
             Unk5 = 0,
-            Unk6 = Array.Empty<ItemUnkData>(),
+            Unk6 = [],
             Unk7 = 0,
         };
 
@@ -213,16 +213,16 @@ public class CharacterInventory
         {
             ClearExistingData = 1,
             ItemsPart1Length = 0,
-            ItemsPart1 = Array.Empty<Item>(),
+            ItemsPart1 = [],
             ItemsPart2Length = 0,
-            ItemsPart2 = Array.Empty<Item>(),
+            ItemsPart2 = [],
             ItemsPart3Length = 0,
-            ItemsPart3 = Array.Empty<Item>(),
-            Resources = _resources.Values.ToArray(),
-            Loadouts = _loadouts.Values.ToArray(),
+            ItemsPart3 = [],
+            Resources = [.. _resources.Values],
+            Loadouts = [.. _loadouts.Values],
             Unk = 1,
-            SecondItems = Array.Empty<Item>(),
-            SecondResources = Array.Empty<Resource>()
+            SecondItems = [],
+            SecondResources = []
         };
 
         if (_items.Count >= 255)
@@ -247,7 +247,7 @@ public class CharacterInventory
         else
         {
             update.ItemsPart1Length = (byte)_items.Count;
-            update.ItemsPart1 = _items.Values.ToArray();
+            update.ItemsPart1 = [.. _items.Values];
         }
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
@@ -270,14 +270,14 @@ public class CharacterInventory
                 item
             ],
             ItemsPart2Length = 0,
-            ItemsPart2 = Array.Empty<Item>(),
+            ItemsPart2 = [],
             ItemsPart3Length = 0,
-            ItemsPart3 = Array.Empty<Item>(),
-            Resources = Array.Empty<Resource>(),
-            Loadouts = Array.Empty<Loadout>(),
+            ItemsPart3 = [],
+            Resources = [],
+            Loadouts = [],
             Unk = 1,
-            SecondItems = Array.Empty<Item>(),
-            SecondResources = Array.Empty<Resource>()
+            SecondItems = [],
+            SecondResources = []
         };
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
@@ -295,19 +295,19 @@ public class CharacterInventory
         {
             ClearExistingData = 0,
             ItemsPart1Length = 0,
-            ItemsPart1 = Array.Empty<Item>(),
+            ItemsPart1 = [],
             ItemsPart2Length = 0,
-            ItemsPart2 = Array.Empty<Item>(),
+            ItemsPart2 = [],
             ItemsPart3Length = 0,
-            ItemsPart3 = Array.Empty<Item>(),
+            ItemsPart3 = [],
             Resources =
             [
                 resource
             ],
-            Loadouts = Array.Empty<Loadout>(),
+            Loadouts = [],
             Unk = 1,
-            SecondItems = Array.Empty<Item>(),
-            SecondResources = Array.Empty<Resource>()
+            SecondItems = [],
+            SecondResources = []
         };
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
@@ -327,30 +327,30 @@ public class CharacterInventory
         if (oldItemGuid != 0)
         {
             var oldItem = _items[oldItemGuid];
-            itemChanges = itemChanges.Append(oldItem).ToArray();
+            itemChanges = [.. itemChanges, oldItem];
         }
 
         if (newItemGuid != 0)
         {
             var newItem = _items[newItemGuid];
-            itemChanges = itemChanges.Append(newItem).ToArray();
+            itemChanges = [.. itemChanges, newItem];
         }
 
         var update = new InventoryUpdate()
-                     {
-                         ClearExistingData = 0,
-                         ItemsPart1Length = (byte)itemChanges.Length,
-                         ItemsPart1 = itemChanges,
-                         ItemsPart2Length = 0,
-                         ItemsPart2 = Array.Empty<Item>(),
-                         ItemsPart3Length = 0,
-                         ItemsPart3 = Array.Empty<Item>(),
-                         Resources = Array.Empty<Resource>(),
-                         Loadouts = _loadouts.Values.ToArray(),
-                         Unk = 1,
-                         SecondItems = Array.Empty<Item>(),
-                         SecondResources = Array.Empty<Resource>()
-                     };
+        {
+            ClearExistingData = 0,
+            ItemsPart1Length = (byte)itemChanges.Length,
+            ItemsPart1 = itemChanges,
+            ItemsPart2Length = 0,
+            ItemsPart2 = [],
+            ItemsPart3Length = 0,
+            ItemsPart3 = [],
+            Resources = [],
+            Loadouts = [.. _loadouts.Values],
+            Unk = 1,
+            SecondItems = [],
+            SecondResources = []
+        };
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
     }
@@ -374,8 +374,7 @@ public class CharacterInventory
             _character.CurrentLoadout.SlottedItems[slot] = 0;
 
             // Update LoadoutConfigs
-            _loadouts[loadoutId].LoadoutConfigs[0].Items = _loadouts[loadoutId].LoadoutConfigs[0].Items
-                .Where(e => e.SlotIndex != (byte)slot).ToArray();
+            _loadouts[loadoutId].LoadoutConfigs[0].Items = [.. _loadouts[loadoutId].LoadoutConfigs[0].Items.Where(e => e.SlotIndex != (byte)slot)];
         }
 
         // Equip new item (if any)
@@ -390,7 +389,7 @@ public class CharacterInventory
             _character.CurrentLoadout.SlottedItems[slot] = item.SdbId;
 
             // Update LoadoutConfig
-            _loadouts[loadoutId].LoadoutConfigs[0].Items = _loadouts[loadoutId].LoadoutConfigs[0].Items.Append(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }).ToArray();
+            _loadouts[loadoutId].LoadoutConfigs[0].Items = [.. _loadouts[loadoutId].LoadoutConfigs[0].Items, new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }];
         }
 
         // Update StaticInfo when visuals are changed
@@ -414,15 +413,18 @@ public class CharacterInventory
         if (_loadouts[loadoutId].LoadoutConfigs[0].Visuals.Any(i => i.VisualType == visual))
         {
             // Update Visuals
-            _loadouts[loadoutId].LoadoutConfigs[0].Visuals = _loadouts[loadoutId].LoadoutConfigs[0].Visuals
-                .Where(e => e.VisualType != visual).ToArray();
+            _loadouts[loadoutId].LoadoutConfigs[0].Visuals = [.. _loadouts[loadoutId].LoadoutConfigs[0].Visuals.Where(e => e.VisualType != visual)];
         }
 
         // Equip new item (if any)
         if (sdb_id != 0)
         {
             // Update Visuals
-            _loadouts[loadoutId].LoadoutConfigs[0].Visuals = _loadouts[loadoutId].LoadoutConfigs[0].Visuals.Append(new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = Array.Empty<float>() }).ToArray();
+            _loadouts[loadoutId].LoadoutConfigs[0].Visuals =
+            [
+                .. _loadouts[loadoutId].LoadoutConfigs[0].Visuals,
+                new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = [] },
+            ];
             _ = _items.First(e => e.Value.SdbId == sdb_id).Value;
         }
 

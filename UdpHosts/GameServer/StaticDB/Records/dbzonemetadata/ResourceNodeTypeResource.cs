@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbzonemetadata;
+namespace GameServer.StaticDB.Records.dbzonemetadata;
 public record class ResourceNodeTypeResource
 {
     public uint CenterLow { get; set; }

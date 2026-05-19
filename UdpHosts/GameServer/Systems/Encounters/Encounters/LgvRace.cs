@@ -25,18 +25,18 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
     private const uint _pfxFinishLine = 212597;
     private const ushort _mapMarkerRace = 26;
 
-    private ulong startTime;
-    private uint leaderboardId;
-    private uint bonusTimeMs;
-    private AreaVisualDataEntity finishLine;
+    private readonly ulong _startTime;
+    private readonly uint _leaderboardId;
+    private readonly uint _bonusTimeMs;
+    private readonly AreaVisualDataEntity _finishLine;
 
     public LgvRace(IShard shard, ulong entityId, INetworkPlayer soloParticipant, LgvRaceDef data)
         : base(shard, entityId, soloParticipant)
     {
-        startTime = Shard.CurrentTimeLong;
+        _startTime = Shard.CurrentTimeLong;
         Shard.EncounterMan.SetRemainingLifetime(this, data.TimeLimitMs);
 
-        leaderboardId = data.LeaderboardId;
+        _leaderboardId = data.LeaderboardId;
 
         var vehicle = Shard.EntityMan.SpawnVehicle(
             _terromotoCobra,
@@ -54,14 +54,14 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                    hudtimer_labelProp = data.Label,
                    hudtimer_timerProp = new SinCardTimer()
                    {
-                       Micro = (startTime + data.TimeLimitMs) * 1000,
+                       Micro = (_startTime + data.TimeLimitMs) * 1000,
                        State = SinCardTimer.TimerState.CountingDown,
                    },
                };
 
         PlayDialog(data.StartDialog);
 
-        bonusTimeMs = data.BonusTimeLimitMs;
+        _bonusTimeMs = data.BonusTimeLimitMs;
         var bonusTimeDialog = (data.TimeLimitMs - data.BonusTimeLimitMs) switch
             {
                 30_000 => 11155u,
@@ -81,8 +81,8 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
             });
         timer.Change(30_000, Timeout.Infinite);
 
-        finishLine = Shard.EntityMan.SpawnAreaVisualData(data.Finish.Position, new ScopingComponent() { Range = 150 });
-        finishLine.AreaVisualData_ParticleEffectsView.ParticleEffects_0Prop = new ParticleEffect()
+        _finishLine = Shard.EntityMan.SpawnAreaVisualData(data.Finish.Position, new ScopingComponent() { Range = 150 });
+        _finishLine.AreaVisualData_ParticleEffectsView.ParticleEffects_0Prop = new ParticleEffect()
             {
                 PfxEntityId = AeroEntityId,
                 PfxAssetId = _pfxFinishLine,
@@ -94,14 +94,14 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                 HaveUnk4 = 0,
                 HaveUnk12 = 0,
             };
-        finishLine.Encounter = new EncounterComponent()
+        _finishLine.Encounter = new EncounterComponent()
             {
                 EncounterId = entityId,
                 Instance = this,
                 Events = EncounterComponent.Event.Proximity,
                 ProximityDistance = 3,
             };
-        Shard.EncounterMan.AddCheckingOfProximity(finishLine, this);
+        Shard.EncounterMan.AddCheckingOfProximity(_finishLine, this);
 
         SoloParticipant.CharacterEntity.AddMapMarker(
             EntityId,
@@ -152,9 +152,9 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
 
         uint exp;
 
-        var time = Shard.CurrentTimeLong - startTime;
+        var time = Shard.CurrentTimeLong - _startTime;
 
-        if (time < bonusTimeMs)
+        if (time < _bonusTimeMs)
         {
             exp = 5000;
             PlayDialog(11014);
@@ -174,9 +174,9 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                 {
                     ResourceTargetId = new EntityId() { Backing = 0 },
                     Experience = exp,
-                    Reputations = new ReputationInfo[] { },
-                    Rewards1 = new RewardInfoData[]
-                               {
+                    Reputations = [],
+                    Rewards1 =
+                               [
                                    new RewardInfoData()
                                    {
                                        Unk = 0,
@@ -197,15 +197,15 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                                        Module1 = 0,
                                        Module2 = 0
                                    }
-                               },
-                    Rewards2 = new RewardInfoData[] { },
-                    Stats = new StatInfo[]
-                            {
+                               ],
+                    Rewards2 = [],
+                    Stats =
+                            [
                                 new StatInfo()
                                 {
                                     NameId = _finalTime, Type = StatInfo.StatType.Time, Value = time / 1000f, Unk3 = string.Empty,
                                 }
-                            },
+                            ],
                     Unk1 = 0,
                     IndexId = 1,
                     DisplayQuality = 0,
@@ -221,7 +221,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                 SaveLgvRaceFinish = new SaveLgvRaceFinish()
                     {
                         CharacterGuid = SoloParticipant.CharacterId + 0xFE,
-                        LeaderboardId = leaderboardId,
+                        LeaderboardId = _leaderboardId,
                         TimeMs = time,
                     }
             });
@@ -238,7 +238,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
 
     private void RemoveEntities()
     {
-        Shard.EntityMan.Remove(finishLine);
+        Shard.EntityMan.Remove(_finishLine);
         SoloParticipant.CharacterEntity.RemoveEncounterMapMarkers(EntityId);
     }
 }

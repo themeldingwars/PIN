@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbvisualrecords;
+namespace GameServer.StaticDB.Records.dbvisualrecords;
 public record class OrnamentsMap
 {
     public uint OrnamentRecordId { get; set; }

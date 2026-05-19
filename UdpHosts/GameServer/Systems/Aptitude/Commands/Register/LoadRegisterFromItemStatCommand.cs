@@ -1,9 +1,9 @@
-using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.apt;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.StaticDB;
+using GameServer.StaticDB.Records.apt;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Register;
 
 public class LoadRegisterFromItemStatCommand : Command, ICommand
 {

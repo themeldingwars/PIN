@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.vcs;
+namespace GameServer.StaticDB.Records.vcs;
 public record class WarpaintComponentDef
 {
     // public Vec4 Color1 { get; set; }

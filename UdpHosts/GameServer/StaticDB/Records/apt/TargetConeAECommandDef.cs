@@ -1,6 +1,6 @@
 using FauFau.Util.CommmonDataTypes;
 
-namespace GameServer.Data.SDB.Records.apt;
+namespace GameServer.StaticDB.Records.apt;
 public record class TargetConeAECommandDef : ICommandDef
 {
     public Vector3 AimDirOffset { get; set; }

@@ -1,4 +1,4 @@
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 // TODO: Not functioning as intended atm
 // [ServerCommand("Toggle (hacky) spectator mode", "spectate", "flycam")]
@@ -19,7 +19,7 @@ public class SpectateServerCommand : ServerCommand
         if (newValue != 0)
         {
             context.Shard.EntityMan.ScopeOut(context.SourcePlayer, character);
-            
+
             if (character.Character_SpectatorController == null)
             {
                 character.Character_SpectatorController = new AeroMessages.GSS.V66.Character.Controller.SpectatorController()

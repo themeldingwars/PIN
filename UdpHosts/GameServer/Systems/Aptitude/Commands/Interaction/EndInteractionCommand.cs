@@ -4,7 +4,7 @@ using GameServer.Entities.Character;
 using GameServer.Entities.Vehicle;
 using GameServer.Systems.Encounters;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Interaction;
 
 public class EndInteractionCommand : ICommand
 {

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.aptfs;
+namespace GameServer.StaticDB.Records.aptfs;
 public record class RequireEquippedItemCommandDef : ICommandDef
 {
     public uint ItemId { get; set; }

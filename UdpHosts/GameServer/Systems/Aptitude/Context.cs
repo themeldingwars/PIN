@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 public class Context
 {

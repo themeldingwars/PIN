@@ -1,7 +1,7 @@
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Entities.Character;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Cancel ForcedMovement", "cancelfm <commandId>", "cancelfm")]
 public class CancelForcedMovementServerCommand : ServerCommand

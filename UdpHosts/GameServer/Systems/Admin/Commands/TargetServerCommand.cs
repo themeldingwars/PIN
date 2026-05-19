@@ -2,7 +2,7 @@ using System.Numerics;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Set a target for server commands", "target [entityId/name]", "target")]
 public class TargetServerCommand : ServerCommand

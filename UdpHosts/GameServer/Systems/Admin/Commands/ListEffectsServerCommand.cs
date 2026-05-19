@@ -1,7 +1,7 @@
 using System.Text;
-using GameServer.Aptitude;
+using GameServer.Systems.Aptitude;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Log current status effects", "listeffects", "listeffects", "list_effects", "apt_status", "apt_list")]
 public class ListEffectsServerCommand : ServerCommand

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dblocalization;
+namespace GameServer.StaticDB.Records.dblocalization;
 public record class SinOverlay
 {
     public uint LocId { get; set; }

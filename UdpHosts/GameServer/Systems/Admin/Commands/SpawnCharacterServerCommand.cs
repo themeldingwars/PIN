@@ -1,7 +1,7 @@
 using System.Numerics;
-using GameServer.Data.SDB;
+using GameServer.StaticDB;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Spawn a character by characterTypeId, optionally at a location.", "npc <characterTypeId> [<x> <y> <z>]", "npc", "character", "monster", "spawn_npc", "spawn_character", "spawn_monster")]
 public class SpawnCharacterServerCommand : ServerCommand
@@ -26,7 +26,7 @@ public class SpawnCharacterServerCommand : ServerCommand
             SourceFeedback("No monster data for this typeId", context);
             return;
         }
-        
+
         if (parameters.Length == 4)
         {
             Vector3? paramPosition = ParseVector3Parameters(parameters, 1);

@@ -1,8 +1,8 @@
-﻿using GameServer.Data.SDB.Records.aptfs;
-using GameServer.Entities.Character;
+﻿using GameServer.Entities.Character;
 using GameServer.Entities.Vehicle;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Target;
 
 public class TargetCurrentVehicleCommand : Command, ICommand
 {

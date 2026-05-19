@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.apt;
+namespace GameServer.StaticDB.Records.apt;
 public record class PassiveInitiationCommandDef : ICommandDef
 {
     public uint InitiationInterval { get; set; }

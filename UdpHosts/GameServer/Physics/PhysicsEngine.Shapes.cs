@@ -51,7 +51,7 @@ public partial class PhysicsEngine
     ///     Compound/Shape (TypedIndex) to AssetId
     ///     When we have a hit and want to go look up the extra data, we need the asset id.
     /// </summary>
-    private readonly Dictionary<TypedIndex, uint> _poseCompoundToAssetId = new();
+    private readonly Dictionary<TypedIndex, uint> _poseCompoundToAssetId = [];
 
     public (CompoundCacheEntry, Dictionary<int, ActivePoseShapeData>) CreateActivePose(PoseData poseDef, Vector3 offset, float scale = 1f)
     {

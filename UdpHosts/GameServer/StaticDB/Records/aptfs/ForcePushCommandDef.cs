@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.aptfs;
+namespace GameServer.StaticDB.Records.aptfs;
 public record class ForcePushCommandDef : ICommandDef
 {
     public float Strength { get; set; }

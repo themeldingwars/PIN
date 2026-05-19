@@ -60,7 +60,7 @@ public struct PoseIntegratorCallbacks : IPoseIntegratorCallbacks
     /// </summary>
     public readonly bool IntegrateVelocityForKinematics => false;
 
-    public void Initialize(Simulation simulation)
+    public readonly void Initialize(Simulation simulation)
     {
     }
 
@@ -92,7 +92,7 @@ public struct PoseIntegratorCallbacks : IPoseIntegratorCallbacks
     /// <param name="workerIndex">Index of the worker thread processing this bundle.</param>
     /// <param name="dt">Durations to integrate the velocity over. Can vary over lanes.</param>
     /// <param name="velocity">Velocity of bodies in the bundle. Any changes to lanes which are not active by the integrationMask will be discarded.</param>
-    public void IntegrateVelocity(Vector<int> bodyIndices, Vector3Wide position, QuaternionWide orientation, BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt, ref BodyVelocityWide velocity)
+    public readonly void IntegrateVelocity(Vector<int> bodyIndices, Vector3Wide position, QuaternionWide orientation, BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt, ref BodyVelocityWide velocity)
     {
         // This is a handy spot to implement things like position dependent gravity or per-body damping.
         // This implementation uses a single damping value for all bodies that allows it to be precomputed.
@@ -101,6 +101,6 @@ public struct PoseIntegratorCallbacks : IPoseIntegratorCallbacks
         // The types are laid out in array-of-structures-of-arrays (AOSOA) format. That's because this function is frequently called from vectorized contexts within the solver.
         // Transforming to "array of structures" (AOS) format for the callback and then back to AOSOA would involve a lot of overhead, so instead the callback works on the AOSOA representation directly.
         velocity.Linear = (velocity.Linear + _gravityWideDt) * _linearDampingDt;
-        velocity.Angular = velocity.Angular * _angularDampingDt;
+        velocity.Angular *= _angularDampingDt;
     }
 }

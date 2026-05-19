@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbphysicsmaterials;
+namespace GameServer.StaticDB.Records.dbphysicsmaterials;
 public record class MaterialEffectAssetId
 {
     public uint AudioVisualMaterialId { get; set; }

@@ -1,4 +1,4 @@
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 public interface ICommandActiveContext
 {

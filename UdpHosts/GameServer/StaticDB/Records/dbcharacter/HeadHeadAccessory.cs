@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbcharacter;
+namespace GameServer.StaticDB.Records.dbcharacter;
 public record class HeadHeadAccessory
 {
     public uint HeadaccessoryId { get; set; }

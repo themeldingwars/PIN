@@ -1,4 +1,4 @@
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 /// <summary>
 /// Describe how a chain/command is executing for debug purposes.

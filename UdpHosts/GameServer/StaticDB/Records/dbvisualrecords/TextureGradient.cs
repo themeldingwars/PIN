@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbvisualrecords;
+namespace GameServer.StaticDB.Records.dbvisualrecords;
 public record class TextureGradient
 {
     // public Vec2 grad_end_point { get; set; }

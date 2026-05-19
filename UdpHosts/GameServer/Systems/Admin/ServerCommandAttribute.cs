@@ -1,6 +1,6 @@
 using System;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class ServerCommandAttribute : Attribute

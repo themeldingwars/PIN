@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbitems;
+namespace GameServer.StaticDB.Records.dbitems;
 public record class Blueprint_Attribute_Map
 {
     public uint ItemAttribute { get; set; }

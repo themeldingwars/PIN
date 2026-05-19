@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbdecals;
+namespace GameServer.StaticDB.Records.dbdecals;
 public record class DecalRecord
 {
     public float ScaleY { get; set; }

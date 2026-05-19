@@ -1,4 +1,4 @@
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Print a list of all ServerCommands", "help", "help", "listcmd", "listcmds", "cmdlist", "cmds")]
 public class ListCommandsServerCommand : ServerCommand

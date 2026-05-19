@@ -80,4 +80,23 @@ public struct DebugProjectileHitCallbacks
             source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);
         }
     }
+
+    public void SendDebugProjectileTimeout(CharacterEntity source, uint traceId, Vector3 position, Vector3 direction)
+    {
+        var msg = new TookDebugWeaponHit
+        {
+            Data = new()
+            {
+                Time = Shard.CurrentTime,
+                TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Timeout,
+                Unk2_TraceId = traceId,
+                Position = position,
+                Direction = direction,
+            }
+        };
+        if (source.IsPlayerControlled && source.Player.Preferences.DebugWeapon > 0)
+        {
+            source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);
+        }
+    }
 }

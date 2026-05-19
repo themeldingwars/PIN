@@ -1,10 +1,11 @@
-namespace GameServer.Data.SDB;
+namespace GameServer.StaticDB;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using AeroMessages.GSS.V66.Character;
+using Data;
 using Records.dbcharacter;
 using Records.dbitems;
 using Records.vcs;
@@ -40,7 +41,7 @@ public class SDBUtils
     {
         var loadouts = SDBInterface.GetCharCreateLoadoutsByFrame(chassisId); // yolo
         CharCreateLoadout defaultLoadout;
-        if (loadouts.Length == 0) 
+        if (loadouts.Length == 0)
         {
             return null;
         }
@@ -67,7 +68,7 @@ public class SDBUtils
     {
         var loadouts = SDBInterface.GetCharCreateLoadoutsByFrame(chassisId); // yolo
         CharCreateLoadout defaultLoadout;
-        if (loadouts.Length == 0) 
+        if (loadouts.Length == 0)
         {
             return 0;
         }
@@ -86,7 +87,7 @@ public class SDBUtils
         {
             return 0;
         }
-        
+
         defaultLoadoutSlots.TryGetValue((byte)LoadoutSlotType.Backpack, out CharCreateLoadoutSlots defaultBackpackSlot);
         if (defaultBackpackSlot == null)
         {
@@ -114,9 +115,9 @@ public class SDBUtils
         var armor = SDBInterface.GetWarpaintPalette(armorId);
         var bodysuit = SDBInterface.GetWarpaintPalette(bodysuitId);
         var glow = SDBInterface.GetWarpaintPalette(glowId);
-    
+
         var input = new[] { fullbody, armor, bodysuit, glow };
-        
+
         var gradients = new List<uint>();
         var palettes = new List<VisualsPaletteBlock>();
         var colors = new uint[7]
@@ -137,7 +138,7 @@ public class SDBUtils
             {
                 continue;
             }
-            
+
             // Add palette
             palettes.Add(new() { PaletteId = data.Id, PaletteType = (byte)data.TypeFlags });
 
@@ -196,9 +197,9 @@ public class SDBUtils
 
         return new ChassisWarpaintResult
         {
-            Gradients = gradients.ToArray(),
+            Gradients = [.. gradients],
             Colors = colors,
-            Palettes = palettes.ToArray(),
+            Palettes = [.. palettes],
         };
     }
 
@@ -222,13 +223,13 @@ public class SDBUtils
             PassengerPosture = 0,
             HasActivePassenger = false,
             SkipOnePassenger = false,
-            Abilities = new List<AbilityComponentDef>(),
+            Abilities = [],
             DeathAbility = 0,
             MaxHitPoints = 100,
             DamageResponse = 0,
             StatusFxId = 0,
-            Turrets = new List<TurretComponentDef>(),
-            Deployables = new List<DeployableComponentDef>(),
+            Turrets = [],
+            Deployables = [],
             HullSegment = null,
             DriverPoseFile = 0,
             PasengerPoseFile = 0,
@@ -340,7 +341,7 @@ public class SDBUtils
             var scope = SDBInterface.GetWeaponScope(main.ScopeId);
             scopeStatusFx = scope.Statusfx;
         }
-        
+
         if (main.UnderbarrelId != 0)
         {
             mainUnderbarrel = SDBInterface.GetWeaponUnderbarrel(main.UnderbarrelId);
@@ -372,7 +373,7 @@ public class SDBUtils
         {
             // Debug
             DebugName = $"{(isUnderbarrel ? "Underbarrel" : "Main")} {weaponSdbId} (Type {weaponTypeId} - {template.Name.TrimEnd('\0')})",
-            
+
             // Components
             ScopeId = WeaponTemplateOverrider(template.DefaultScopeId, modifiers?.DefaultScopeId),
             UnderbarrelId = WeaponTemplateOverrider(template.DefaultUnderbarrelId, modifiers?.DefaultUnderbarrelId),
@@ -410,7 +411,7 @@ public class SDBUtils
             MaxTargets = WeaponTemplateModifier(template.MaxTargets, modifiers?.MaxTargets),
             BurstBonusPerTarget = WeaponTemplateModifier(template.BurstbonusPerTarget, modifiers?.BurstbonusPerTarget), 
             TargetingRange = WeaponTemplateModifier(template.TargetingRange, modifiers?.TargetingRange, modifiers?.TargetingRangeMult),
-            
+
             // Burst
             MsPerBurst = WeaponTemplateModifier(template.MsPerBurst, modifiers?.MsPerBurst, modifiers?.MsPerBurstMult),
             MsBurstDuration = WeaponTemplateModifier(template.MsBurstDuration, modifiers?.MsBurstDuration),
@@ -536,7 +537,7 @@ public class WeaponTemplateResult
 
     // Debug
     public string DebugName;
-    
+
     // Components
     public uint ScopeId;
     public uint UnderbarrelId;
@@ -549,7 +550,7 @@ public class WeaponTemplateResult
     public float Range;
     public uint EquipEnterMs;
     public uint EquipExitMs;
-    
+
     // Abilities
     public uint MeleeAbility;
     public uint AttackAbility;

@@ -1,7 +1,7 @@
-using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities.Vehicle;
+using GameServer.StaticDB.Records.customdata;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Other;
 
 public class SlotAbilityCommand : Command, ICommand
 {

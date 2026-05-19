@@ -2,7 +2,7 @@ using System.Numerics;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character.Event;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Teleport your character", "tp <x> <y> <z>", "tp", "teleport")]
 public class TeleportServerCommand : ServerCommand
@@ -28,7 +28,7 @@ public class TeleportServerCommand : ServerCommand
             TryParseFloat(parameters[2], out float z))
         {
             Vector3 destination = new Vector3(x, y, z);
-            
+
             character.SetPosition(destination);
             var forcedMove = new ForcedMovement
             {

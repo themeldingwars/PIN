@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
-using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.dbcharacter;
+using GameServer.StaticDB;
+using GameServer.StaticDB.Records.dbcharacter;
 
 namespace GameServer.Data;
 
@@ -16,9 +15,9 @@ public static class HardcodedCharacterData
     public static byte EffectiveLevel = 45;
     public static int MaxHealth = 19192;
     public static int GeneratedLoadoutCounter = 20001;
-    public static HashSet<uint> HostileFactionIds = new() { 2, 3, 5, 6, 7, 8, 17, 22, 42, 43, 45, 46, 47, 48 };
+    public static HashSet<uint> HostileFactionIds = [2, 3, 5, 6, 7, 8, 17, 22, 42, 43, 45, 46, 47, 48];
 
-    public static BasicCharacterData FallbackData = new BasicCharacterData()
+    public static BasicCharacterData FallbackData = new()
     {
         CharacterInfo = new BasicCharacterInfo()
         {
@@ -38,8 +37,8 @@ public static class HardcodedCharacterData
             VoiceSet = 1000,
             Vehicle = 1000,
             Glider = 1000,
-            HeadAccessories = new uint[2] { 10089, 10106 },
-            Ornaments = new uint[] { 10224, 10270, 10061 },
+            HeadAccessories = [10089, 10106],
+            Ornaments = [10224, 10270, 10061],
 
             SkinColor = 0x52680000u,
             EyeColor = 0x6a2440e0u,
@@ -49,7 +48,7 @@ public static class HardcodedCharacterData
         }
     };
 
-    public static Dictionary<uint, uint> TempCharCreateLoadouts = new Dictionary<uint, uint>()
+    public static Dictionary<uint, uint> TempCharCreateLoadouts = new()
     {
         // Accord
         { 287, 75772 }, // Dreadnaught
@@ -888,9 +887,9 @@ public static class HardcodedCharacterData
         {
             ConfigID = 0,
             ConfigName = "pve",
-            Items = Array.Empty<LoadoutConfig_Item>(),
-            Visuals = Array.Empty<LoadoutConfig_Visual>(),
-            Perks = Array.Empty<uint>(),
+            Items = [],
+            Visuals = [],
+            Perks = [],
             Unk1 = 0,
             PerkBandwidth = 0,
             PerkRespecLockRemainingSeconds = 0,
@@ -908,22 +907,22 @@ public static class HardcodedCharacterData
             var guid = inventory.CreateItem(typeId);
             pveItems.Add(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot });
         }
-        
-        pveConfig.Items = pveItems.ToArray();
-        
+
+        pveConfig.Items = [.. pveItems];
+
         var pvpConfig = new LoadoutConfig()
         {
             ConfigID = 1,
             ConfigName = "pvp",
-            Items = Array.Empty<LoadoutConfig_Item>(),
-            Visuals = Array.Empty<LoadoutConfig_Visual>(),
-            Perks = Array.Empty<uint>(),
+            Items = [],
+            Visuals = [],
+            Perks = [],
             Unk1 = 0,
             PerkBandwidth = 0,
             PerkRespecLockRemainingSeconds = 0,
             HaveExtraData = 0
         };
-        
+
         var pvpItems = new List<LoadoutConfig_Item>();
         foreach (var (slot, typeId) in sourceData.SlottedItemsPvP)
         {
@@ -936,9 +935,9 @@ public static class HardcodedCharacterData
             pvpItems.Add(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot });
         }
 
-        pvpConfig.Items = pvpItems.ToArray();
-        
-        loadout.LoadoutConfigs = 
+        pvpConfig.Items = [.. pvpItems];
+
+        loadout.LoadoutConfigs =
         [
             pveConfig,
             pvpConfig
@@ -987,6 +986,6 @@ public class LoadoutReferenceData
 {
     public int LoadoutId;
     public uint ChassisId;
-    public Dictionary<LoadoutSlotType, uint> SlottedItemsPvE = new Dictionary<LoadoutSlotType, uint>();
-    public Dictionary<LoadoutSlotType, uint> SlottedItemsPvP = new Dictionary<LoadoutSlotType, uint>();
+    public Dictionary<LoadoutSlotType, uint> SlottedItemsPvE = [];
+    public Dictionary<LoadoutSlotType, uint> SlottedItemsPvP = [];
 }

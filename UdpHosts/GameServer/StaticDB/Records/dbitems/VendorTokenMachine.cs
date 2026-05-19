@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbitems;
+namespace GameServer.StaticDB.Records.dbitems;
 public record class VendorTokenMachine
 {
     public uint NameId { get; set; }

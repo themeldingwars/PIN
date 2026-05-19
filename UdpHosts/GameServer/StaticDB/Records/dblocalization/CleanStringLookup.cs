@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dblocalization;
+namespace GameServer.StaticDB.Records.dblocalization;
 public record class CleanStringLookup
 {
     public uint CleanId { get; set; }

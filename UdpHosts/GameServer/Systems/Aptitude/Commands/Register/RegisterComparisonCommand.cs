@@ -1,6 +1,6 @@
-using GameServer.Data.SDB.Records.apt;
+using GameServer.StaticDB.Records.apt;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Register;
 
 public class RegisterComparisonCommand : Command, ICommand
 {
@@ -21,7 +21,7 @@ public class RegisterComparisonCommand : Command, ICommand
         {
             float minValue = Params.CompareVal - Params.EqualTol;
             float maxValue = Params.CompareVal + Params.EqualTol;
-            
+
             if (context.Register >= minValue && context.Register <= maxValue)
             {
                 result = true;

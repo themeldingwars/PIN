@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbitems;
+namespace GameServer.StaticDB.Records.dbitems;
 public record class SalvageDisplayItems
 {
     public uint SalvageRewardsId { get; set; }

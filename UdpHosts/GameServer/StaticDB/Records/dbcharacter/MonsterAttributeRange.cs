@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbcharacter;
+namespace GameServer.StaticDB.Records.dbcharacter;
 public record class MonsterAttributeRange
 {
     public uint MonsterId { get; set; }

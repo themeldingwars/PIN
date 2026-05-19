@@ -1,4 +1,4 @@
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Send a chat message to all clients as the server", "say <message>", "say")]
 public class SayServerCommand : ServerCommand

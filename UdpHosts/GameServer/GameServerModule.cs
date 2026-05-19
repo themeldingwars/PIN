@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Configuration;
 using Autofac;
-using GameServer.Data.SDB;
 using GameServer.Logging;
+using GameServer.StaticDB;
 using Serilog;
 using Serilog.Events;
 using Shared.Common;
@@ -182,7 +182,7 @@ public class GameServerModule : Module
 
             foreach (string key in appSettings.AllKeys)
             {
-                if (key == null || !key.StartsWith(SystemLevelPrefix))
+                if (key == null || !key.StartsWith(SystemLevelPrefix, StringComparison.InvariantCulture))
                 {
                     continue;
                 }

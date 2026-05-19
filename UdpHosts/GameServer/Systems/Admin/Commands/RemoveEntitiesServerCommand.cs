@@ -1,6 +1,6 @@
 using GameServer.Entities.Character;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Remove all entities except for player characters", "rment", "rment", "killall")]
 public class RemoveEntitiesServerCommand : ServerCommand

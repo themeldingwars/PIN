@@ -8,15 +8,15 @@ using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.View;
 using BepuUtilities;
-using GameServer.Aptitude;
 using GameServer.Data;
-using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.customdata;
-using GameServer.Data.SDB.Records.dbcharacter;
-using GameServer.Data.SDB.Records.dbitems;
-using GameServer.Data.SDB.Records.dbvisualrecords;
 using GameServer.Entities.Deployable;
 using GameServer.Enums;
+using GameServer.StaticDB;
+using GameServer.StaticDB.Records.customdata;
+using GameServer.StaticDB.Records.dbcharacter;
+using GameServer.StaticDB.Records.dbitems;
+using GameServer.StaticDB.Records.dbvisualrecords;
+using GameServer.Systems.Aptitude;
 using GameServer.Systems.Encounters;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
@@ -32,17 +32,17 @@ namespace GameServer.Entities.Character;
 public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public const byte MaxMapMarkerCount = 64;
-    private MapMarkerState[] MapMarkers = new MapMarkerState[MaxMapMarkerCount];
+    private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
 
     public CharacterEntity(IShard shard, ulong eid, CharacterEntity owner = null)
         : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Character };
 
-        CurrentStatModifiers = new Dictionary<StatModifierIdentifier, Dictionary<uint, ActiveStatModifier>>();
+        CurrentStatModifiers = [];
         foreach (StatModifierIdentifier stat in Enum.GetValues(typeof(StatModifierIdentifier)))
         {
-            CurrentStatModifiers.Add(stat, new Dictionary<uint, ActiveStatModifier>());
+            CurrentStatModifiers.Add(stat, []);
         }
 
         InitFields();
@@ -72,6 +72,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public bool IsAirborne { get; set; }
     public bool IsMoving { get => MovementStateContainer.Sprint || MovementStateContainer.Movement; }
     public bool IsCrouching { get => MovementStateContainer.Crouch; }
+    public bool IsAttached { get => AttachedToEntity != null; }
 
     public Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> CurrentPermissions { get; set; } = new Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool>()
     {
@@ -116,8 +117,10 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public sbyte ArmyIsOfficer { get; set; }
     public CharacterStateData CharacterState { get; set; }
     public int TimePlayed { get; set; }
-    public MaxVital MaxShields { get; set; }
-    public MaxVital MaxHealth { get; set; }
+    public MaxVital MaxShields { get; private set; }
+    public MaxVital MaxHealth { get; private set; }
+    public int CurrentHealth { get; private set; }
+    public int CurrentShields { get; private set; }
     public GibVisuals GibVisualsInfo { get; set; }
     public ProcessDelayData ProcessDelay { get; set; }
     public EmoteData Emote { get; set; }
@@ -135,10 +138,10 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public FireModeData FireMode_1 { get; set; }
     public PermissionFlagsData PermissionFlags { get; set; }
     public AuthorizedTerminalData AuthorizedTerminal { get; set; } = new AuthorizedTerminalData { TerminalType = 0, TerminalId = 0, TerminalEntityId = 0 };
-    public AttachedToData? AttachedTo { get; set; } = null;
-    public IEntity AttachedToEntity { get; set; } = null;
+    public AttachedToData? AttachedTo { get; set; }
+    public IEntity AttachedToEntity { get; set; }
     public int SelectedLoadout { get; set; }
-    public List<DeployableEntity> OwnedDeployables { get; set; } = new List<DeployableEntity>();
+    public List<DeployableEntity> OwnedDeployables { get; set; } = [];
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -287,27 +290,27 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             VoiceSet = monsterInfo.VoiceSet,
             TitleId = monsterInfo.Title,
             NameLocalizationId = monsterInfo.LocalizedNameId,
-            HeadAccessories = new uint[] { monsterInfo.HeadAcc1Id, monsterInfo.HeadAcc2Id },
+            HeadAccessories = [monsterInfo.HeadAcc1Id, monsterInfo.HeadAcc2Id],
             LoadoutVehicle = 0,
             LoadoutGlider = 0,
             Visuals = new VisualsBlock
             {
-                Decals = Array.Empty<VisualsDecalsBlock>(),
-                Gradients = Array.Empty<uint>(),
-                Colors = new uint[5]
-                {
+                Decals = [],
+                Gradients = [],
+                Colors =
+                [
                     monsterInfo.SkinColor,
                     monsterInfo.LipColor,
                     monsterInfo.EyeColor,
                     monsterInfo.HairColor,
                     monsterInfo.FacialHairColor
-                },
-                Palettes = Array.Empty<VisualsPaletteBlock>(),
-                Patterns = Array.Empty<VisualsPatternBlock>(),
-                OrnamentGroupIds = ornaments.ToArray(),
-                CziMapAssetIds = Array.Empty<uint>(),
-                MorphWeights = Array.Empty<HalfFloat>(),
-                Overlays = Array.Empty<VisualsOverlayBlock>()
+                ],
+                Palettes = [],
+                Patterns = [],
+                OrnamentGroupIds = [.. ornaments],
+                CziMapAssetIds = [],
+                MorphWeights = [],
+                Overlays = []
             },
             ArmyTag = string.Empty
         });
@@ -362,8 +365,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Eyes = (uint)remoteData.CharacterVisuals.Eyes.Id,
                 VoiceSet = (uint)remoteData.CharacterVisuals.VoiceSet.Id,
 
-                HeadAccessories = remoteData.CharacterVisuals.HeadAccessories.ToList<WebIdValueColor>().Select(item => (uint)item.Id).ToArray(),
-                Ornaments = remoteData.CharacterVisuals.Ornaments.ToList<WebId>().Select(item => (uint)item.Id).ToArray(),
+                HeadAccessories = [.. remoteData.CharacterVisuals.HeadAccessories.ToList<WebIdValueColor>().Select(item => (uint)item.Id)],
+                Ornaments = [.. remoteData.CharacterVisuals.Ornaments.ToList<WebId>().Select(item => (uint)item.Id)],
 
                 SkinColor = remoteData.CharacterVisuals.SkinColor.Value.Color,
                 LipColor = remoteData.CharacterVisuals.LipColor.Value.Color,
@@ -402,22 +405,22 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             LoadoutGlider = visuals.Glider,
             Visuals = new VisualsBlock
             {
-                Decals = Array.Empty<VisualsDecalsBlock>(),
-                Gradients = Array.Empty<uint>(),
-                Colors = new uint[5]
-                {
+                Decals = [],
+                Gradients = [],
+                Colors =
+                [
                     visuals.SkinColor,
                     visuals.LipColor,
                     visuals.EyeColor,
                     visuals.HairColor,
                     visuals.FacialHairColor
-                },
-                Palettes = Array.Empty<VisualsPaletteBlock>(),
-                Patterns = Array.Empty<VisualsPatternBlock>(),
+                ],
+                Palettes = [],
+                Patterns = [],
                 OrnamentGroupIds = visuals.Ornaments,
-                CziMapAssetIds = Array.Empty<uint>(),
-                MorphWeights = Array.Empty<HalfFloat>(),
-                Overlays = Array.Empty<VisualsOverlayBlock>()
+                CziMapAssetIds = [],
+                MorphWeights = [],
+                Overlays = []
             },
             ArmyTag = DataUtils.FormatArmyTag(info.ArmyTag)
         });
@@ -433,15 +436,15 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         var emptyVisuals = new VisualsBlock
         {
-            Decals = Array.Empty<VisualsDecalsBlock>(),
-            Gradients = Array.Empty<uint>(),
-            Colors = Array.Empty<uint>(),
-            Palettes = Array.Empty<VisualsPaletteBlock>(),
-            Patterns = Array.Empty<VisualsPatternBlock>(),
-            OrnamentGroupIds = Array.Empty<uint>(),
-            CziMapAssetIds = Array.Empty<uint>(),
-            MorphWeights = Array.Empty<HalfFloat>(),
-            Overlays = Array.Empty<VisualsOverlayBlock>()
+            Decals = [],
+            Gradients = [],
+            Colors = [],
+            Palettes = [],
+            Patterns = [],
+            OrnamentGroupIds = [],
+            CziMapAssetIds = [],
+            MorphWeights = [],
+            Overlays = []
         };
 
         var chassis = new SlottedItem
@@ -470,18 +473,18 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 SlotIndex = 255,
                 Flags = 0,
                 Unk2 = 0,
-                Modules = Array.Empty<SlottedModule>(),
+                Modules = [],
                 Visuals = new VisualsBlock
                 {
-                    Decals = Array.Empty<VisualsDecalsBlock>(),
-                    Gradients = Array.Empty<uint>(),
-                    Colors = new uint[] { 0x322c0000, 0x543110a2, 0x65b42104 },
-                    Palettes = Array.Empty<VisualsPaletteBlock>(),
-                    Patterns = Array.Empty<VisualsPatternBlock>(),
-                    OrnamentGroupIds = Array.Empty<uint>(),
-                    CziMapAssetIds = Array.Empty<uint>(),
-                    MorphWeights = Array.Empty<HalfFloat>(),
-                    Overlays = Array.Empty<VisualsOverlayBlock>()
+                    Decals = [],
+                    Gradients = [],
+                    Colors = [0x322c0000, 0x543110a2, 0x65b42104],
+                    Palettes = [],
+                    Patterns = [],
+                    OrnamentGroupIds = [],
+                    CziMapAssetIds = [],
+                    MorphWeights = [],
+                    Overlays = []
                 }
             },
             Unk1 = 0,
@@ -495,18 +498,18 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 SlotIndex = 255,
                 Flags = 0,
                 Unk2 = 0,
-                Modules = Array.Empty<SlottedModule>(),
+                Modules = [],
                 Visuals = new VisualsBlock
                 {
-                    Decals = Array.Empty<VisualsDecalsBlock>(),
-                    Gradients = Array.Empty<uint>(),
-                    Colors = new uint[] { 0x322c0000, 0x543110a2, 0x65b42104 },
-                    Palettes = Array.Empty<VisualsPaletteBlock>(),
-                    Patterns = Array.Empty<VisualsPatternBlock>(),
-                    OrnamentGroupIds = Array.Empty<uint>(),
-                    CziMapAssetIds = Array.Empty<uint>(),
-                    MorphWeights = Array.Empty<HalfFloat>(),
-                    Overlays = Array.Empty<VisualsOverlayBlock>()
+                    Decals = [],
+                    Gradients = [],
+                    Colors = [0x322c0000, 0x543110a2, 0x65b42104],
+                    Palettes = [],
+                    Patterns = [],
+                    OrnamentGroupIds = [],
+                    CziMapAssetIds = [],
+                    MorphWeights = [],
+                    Overlays = []
                 }
             },
             Unk1 = 0,
@@ -1049,19 +1052,19 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
         GetType().GetProperty($"StatusEffects_{index}").SetValue(this, data, null);
-        
+
         // CombatController
         if (Character_CombatController != null)
         {
             Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
             Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, data, null);
         }
-        
+
         // CombatView
         Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
         Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, data, null);
     }
-    
+
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
         Logger.Debug("Character.ClearStatusEffect Index {Index}, Time {Time}, Id {DebugEffectId}", index, time, debugEffectId);
@@ -1069,14 +1072,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
         GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
-        
+
         // CombatController
         if (Character_CombatController != null)
         {
             Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
             Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, null, null);
         }
-        
+
         // CombatView
         Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
         Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, null, null);
@@ -1120,14 +1123,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             // Member
             GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
             GetType().GetProperty($"StatusEffects_{index}").SetValue(this, null, null);
-            
+
             // CombatController
             if (Character_CombatController != null)
             {
                 Character_CombatController.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatController, time, null);
                 Character_CombatController.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatController, null, null);
             }
-            
+
             // CombatView
             Character_CombatView.GetType().GetProperty($"StatusEffectsChangeTime_{index}Prop").SetValue(Character_CombatView, time, null);
             Character_CombatView.GetType().GetProperty($"StatusEffects_{index}Prop").SetValue(Character_CombatView, null, null);
@@ -1141,7 +1144,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         byte firstFreeIndex = InvalidIndex;
         for (byte i = 0; i < MaxMapMarkerCount; i++)
         {
-            if (MapMarkers[i] == null)
+            if (_mapMarkers[i] == null)
             {
                 firstFreeIndex = i;
                 break;
@@ -1160,21 +1163,21 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             EncounterMarkerId = data.EncounterMarkerId,
         };
 
-        MapMarkers[firstFreeIndex] = state;
+        _mapMarkers[firstFreeIndex] = state;
 
         SetMapMarker(firstFreeIndex, data);
     }
 
     public void RemoveEncounterMapMarkers(ulong encounterId)
     {
-        for (byte i = 0; i < MapMarkers.Length; i++)
+        for (byte i = 0; i < _mapMarkers.Length; i++)
         {
-            if (MapMarkers[i] == null)
+            if (_mapMarkers[i] == null)
             {
                 continue;
             }
 
-            if (MapMarkers[i].EncounterId.Backing == encounterId)
+            if (_mapMarkers[i].EncounterId.Backing == encounterId)
             {
                 SetMapMarker(i, null);
             }
@@ -1192,7 +1195,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Player.Inventory.EquipItemByGUID(loadoutId, slot, guid);
         ApplyLoadout(CurrentLoadout);
     }
-    
+
     public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)
     {
         Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
@@ -1236,8 +1239,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         {
             weapon = weaponDetails.Alt;
         }
-  
-        var weaponAttributesDict = weaponAttributes.ToDictionary((StatsData p) => p.Id);
+
+        var weaponAttributesDict = weaponAttributes.ToDictionary(p => p.Id);
 
         float weaponAttributeSpread = 1f;
         float weaponAttributeRateOfFire = 1f;
@@ -1300,6 +1303,62 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Character_BaseController?.HostilityInfoProp = HostilityInfo;
     }
 
+    public void SetMaxHealth(int newValue, bool resetCurrent)
+    {
+        MaxHealth = new()
+        {
+            Value = newValue,
+            Time = Shard.CurrentTime,
+        };
+
+        Character_ObserverView?.MaxHealthProp = MaxHealth;
+        Character_BaseController?.MaxHealthProp = MaxHealth;
+
+        if (resetCurrent)
+        {
+            SetCurrentHealth(MaxHealth.Value);
+        }
+        else
+        {
+            SetCurrentHealth(Math.Min(MaxHealth.Value, CurrentHealth));
+        }
+    }
+
+    public void SetMaxShields(int newValue, bool resetCurrent)
+    {
+        MaxShields = new()
+        {
+            Value = newValue,
+            Time = Shard.CurrentTime,
+        };
+
+        Character_BaseController?.MaxShieldsProp = MaxShields;
+
+        if (resetCurrent)
+        {
+            SetCurrentShields(MaxShields.Value);
+        }
+        else
+        {
+            SetCurrentShields(Math.Min(MaxShields.Value, CurrentShields));
+        }
+    }
+
+    public void SetCurrentHealth(int newValue)
+    {
+        CurrentHealth = Math.Min(Math.Max(0, newValue), MaxHealth.Value);
+        byte pct = MaxHealth.Value > 0 ? (byte)(((float)CurrentHealth / MaxHealth.Value) * 100) : (byte)0;
+
+        Character_ObserverView?.CurrentHealthPctProp = pct;
+        Character_BaseController?.CurrentHealthProp = CurrentHealth;
+    }
+
+    public void SetCurrentShields(int newValue)
+    {
+        CurrentShields = Math.Min(Math.Max(0, newValue), MaxShields.Value);
+        Character_BaseController?.CurrentShieldsProp = CurrentShields;
+    }
+
     private void InitFields()
     {
         Position = new Vector3();
@@ -1316,19 +1375,19 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         StaticInfo = new StaticInfoData();
         CharacterState = new CharacterStateData { State = CharacterStateData.CharacterStatus.Living, Time = Shard.CurrentTime };
         HostilityInfo = new HostilityInfoData { Flags = 0 | HostilityInfoData.HostilityFlags.Faction, FactionId = 1 };
-        MaxShields = new MaxVital { Value = 0, Time = Shard.CurrentTime };
-        MaxHealth = new MaxVital { Value = 19192, Time = Shard.CurrentTime };
+        SetMaxShields(0, true);
+        SetMaxHealth(19192, true);
         GibVisualsInfo = new GibVisuals { Id = 0, Time = Shard.CurrentTime };
         ProcessDelay = new ProcessDelayData { Unk1 = 30721, Unk2 = 236 };
         Emote = new EmoteData { Id = 0, Time = 0 };
         DockedParams = new DockedParamsData { Unk1 = new EntityId { Backing = 0 }, Unk2 = Vector3.Zero, Unk3 = 0 };
-        AssetOverrides = new AssetOverridesField { Ids = Array.Empty<uint>() };
-        VisualOverrides = new VisualOverridesField { Data = Array.Empty<VisualOverridesData>() };
+        AssetOverrides = new AssetOverridesField { Ids = [] };
+        VisualOverrides = new VisualOverridesField { Data = [] };
         CurrentEquipment = new EquipmentData { };
         CharacterStats = new CharacterStatsData
         {
-            ItemAttributes = new StatsData[]
-            {
+            ItemAttributes =
+            [
                 new() { Id = 5, Value = 156.414169f }, new() { Id = 6, Value = 1037.8347f }, new() { Id = 7, Value = 177.44128f }, new() { Id = 12, Value = 16.250000f }, new() { Id = 35, Value = 300 },
                 new() { Id = 36, Value = 250 }, new() { Id = 37, Value = 2.092090f }, new() { Id = 142, Value = 12.55f }, new() { Id = 143, Value = 1136 }, new() { Id = 144, Value = 18.433180f },
                 new() { Id = 173, Value = 10 }, new() { Id = 186, Value = 11.40f }, new() { Id = 959, Value = 1 }, new() { Id = 1050, Value = 34.5f }, new() { Id = 1051, Value = 13.824884f },
@@ -1339,14 +1398,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 new() { Id = 1737, Value = 5486.919434f }, new() { Id = 1746, Value = 9.320923f }, new() { Id = 1785, Value = 1.084000f }, new() { Id = 1835, Value = 5932.512207f },
                 new() { Id = 1904, Value = 4 }, new() { Id = 1905, Value = 2 }, new() { Id = 1987, Value = 8 }, new() { Id = 2034, Value = 22 }, new() { Id = 2037, Value = 9887.518555f },
                 new() { Id = 2039, Value = 9 }, new() { Id = 2042, Value = 12.252850f }
-            },
+            ],
             Unk1 = 0,
-            WeaponA = Array.Empty<StatsData>(),
+            WeaponA = [],
             Unk2 = 0,
-            WeaponB = Array.Empty<StatsData>(),
+            WeaponB = [],
             Unk3 = 0,
-            AttributeCategories1 = Array.Empty<StatsData>(),
-            AttributeCategories2 = Array.Empty<StatsData>()
+            AttributeCategories1 = [],
+            AttributeCategories2 = []
         };
 
         EnergyParams = new EnergyParamsData { Max = 1000.0f, Delay = 500, Recharge = 156.0f, Time = Shard.CurrentTime };
@@ -1402,8 +1461,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             CharacterStateProp = CharacterState,
             HostilityInfoProp = HostilityInfo,
             PersonalFactionStanceProp = null,
-            CurrentHealthProp = 0,
-            CurrentShieldsProp = 0,
+            CurrentHealthProp = CurrentHealth,
+            CurrentShieldsProp = CurrentShields,
             MaxShieldsProp = MaxShields,
             MaxHealthProp = MaxHealth,
             CurrentDurabilityPctProp = 100,
@@ -1431,7 +1490,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             CachedAssetsProp = null,
             RespawnTimesProp = null,
             ProgressionXpProp = 0,
-            PermanentStatusEffectsProp = new PermanentStatusEffectsData { Effects = Array.Empty<PermanentStatusEffectsInnerData>() },
+            PermanentStatusEffectsProp = new PermanentStatusEffectsData { Effects = [] },
             XpBoostModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
             XpPermanentModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
             XpZoneModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
@@ -1457,7 +1516,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             LevelProp = HardcodedCharacterData.Level,
             EffectiveLevelProp = HardcodedCharacterData.EffectiveLevel,
             LevelResetCountProp = 0,
-            OldestDeployablesProp = new OldestDeployablesField { Data = Array.Empty<OldestDeployablesData>() },
+            OldestDeployablesProp = new OldestDeployablesField { Data = [] },
             PerkRespecsProp = 0,
             ArcStatusProp = null,
             LeaveZoneTimeProp = null,
@@ -1532,7 +1591,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             WeaponAgilityModProp = 1.0f,
             CombatFlagsProp = new CombatFlagsData { Value = 0, Time = Shard.CurrentTime },
             PermissionFlagsProp = PermissionFlags,
-            NemesesProp = new NemesesData { Values = Array.Empty<ulong>() },
+            NemesesProp = new NemesesData { Values = [] },
             SuperChargeProp = new SuperChargeData { Value = 100, Op = 0 }
         };
         Character_MissionAndMarkerController = new MissionAndMarkerController();
@@ -1686,7 +1745,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 result += (ulong)pair.Key;
             }
         }
-        
+
         return result;
     }
 

@@ -1,4 +1,4 @@
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 /// <summary>
 /// Aptitude Command Types

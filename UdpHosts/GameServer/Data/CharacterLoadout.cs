@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
-using GameServer.Data.SDB;
+using GameServer.StaticDB;
 
 namespace GameServer.Data;
 
@@ -49,17 +48,17 @@ public enum AbilitySlotType
 public class CharacterLoadout
 {
     public static readonly LoadoutSlotType[] LoadoutAbilitySlots =
-    {
+    [
         LoadoutSlotType.Ability1,
         LoadoutSlotType.Ability2,
         LoadoutSlotType.Ability3,
         LoadoutSlotType.AbilityHKM,
         LoadoutSlotType.GearAuxWeapon,
         LoadoutSlotType.GearMedicalSystem
-    };
+    ];
 
     public static readonly LoadoutSlotType[] LoadoutChassisSlots =
-    {
+    [
         LoadoutSlotType.GearTorso,
         LoadoutSlotType.GearAuxWeapon,
         LoadoutSlotType.GearMedicalSystem,
@@ -70,15 +69,15 @@ public class CharacterLoadout
         LoadoutSlotType.GearOS,
         LoadoutSlotType.GearGadget1,
         LoadoutSlotType.GearGadget2
-    };
+    ];
 
     public static readonly LoadoutSlotType[] LoadoutWeaponSlots =
-    {
+    [
         LoadoutSlotType.Primary,
         LoadoutSlotType.Secondary,
-    };
+    ];
 
-    public static readonly Dictionary<LoadoutSlotType, AbilitySlotType> LoadoutToAbilitySlotMap = new Dictionary<LoadoutSlotType, AbilitySlotType>()
+    public static readonly Dictionary<LoadoutSlotType, AbilitySlotType> LoadoutToAbilitySlotMap = new()
     {
         { LoadoutSlotType.Ability1, AbilitySlotType.Ability1 },
         { LoadoutSlotType.Ability2, AbilitySlotType.Ability2 },
@@ -87,7 +86,7 @@ public class CharacterLoadout
         { LoadoutSlotType.GearAuxWeapon, AbilitySlotType.AbilityAux },
         { LoadoutSlotType.GearMedicalSystem, AbilitySlotType.AbilityMedical },
     };
-    public static readonly Dictionary<AbilitySlotType, LoadoutSlotType> AbilityToLoadoutSlotMap = new Dictionary<AbilitySlotType, LoadoutSlotType>()
+    public static readonly Dictionary<AbilitySlotType, LoadoutSlotType> AbilityToLoadoutSlotMap = new()
     {
         { AbilitySlotType.Ability1, LoadoutSlotType.Ability1 },
         { AbilitySlotType.Ability2, LoadoutSlotType.Ability2 },
@@ -99,12 +98,12 @@ public class CharacterLoadout
         { AbilitySlotType.AbilityCalldownGlider, LoadoutSlotType.Glider }
     };
 
-    public Dictionary<LoadoutSlotType, uint> SlottedItems = new Dictionary<LoadoutSlotType, uint>();
+    public Dictionary<LoadoutSlotType, uint> SlottedItems = [];
 
     // Module and Character Scalars is an assumption that has not been completely confirmed. I'm not sure what the exact rule for separation between the two categories is.
-    public Dictionary<ushort, float> ItemAttributes = new Dictionary<ushort, float>();
-    public Dictionary<ushort, float> ItemModuleScalars = new Dictionary<ushort, float>();
-    public Dictionary<ushort, float> ItemCharacterScalars = new Dictionary<ushort, float>();
+    public Dictionary<ushort, float> ItemAttributes = [];
+    public Dictionary<ushort, float> ItemModuleScalars = [];
+    public Dictionary<ushort, float> ItemCharacterScalars = [];
 
     private static readonly Dictionary<ushort, float> _fallbackAttributes = new()
     {
@@ -120,13 +119,9 @@ public class CharacterLoadout
         { 1377, 130 }, // Sprint Speed
     };
 
-    private static readonly Dictionary<ushort, float> _fallbackModuleScalars = new()
-    {
-    };
+    private static readonly Dictionary<ushort, float> _fallbackModuleScalars = [];
 
-    private static readonly Dictionary<ushort, float> _fallbackCharacterScalars = new()
-    {
-    };
+    private static readonly Dictionary<ushort, float> _fallbackCharacterScalars = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CharacterLoadout"/> class.
@@ -149,22 +144,22 @@ public class CharacterLoadout
     public uint GliderID { get; set; }
     public uint ChassisID { get; set; }
     public uint BackpackID { get; set; }
-    public uint ChassisChangeTime { get; set; } = 0;
+    public uint ChassisChangeTime { get; set; }
     public ChassisWarpaintResult ChassisWarpaint { get; set; }
 
     public VisualsBlock GetChassisVisuals()
     {
         return new VisualsBlock
         {
-            Decals = Array.Empty<VisualsDecalsBlock>(),
+            Decals = [],
             Gradients = ChassisWarpaint.Gradients,
             Colors = ChassisWarpaint.Colors,
             Palettes = ChassisWarpaint.Palettes,
-            Patterns = Array.Empty<VisualsPatternBlock>(),
-            OrnamentGroupIds = Array.Empty<uint>(),
-            CziMapAssetIds = Array.Empty<uint>(),
-            MorphWeights = Array.Empty<HalfFloat>(),
-            Overlays = Array.Empty<VisualsOverlayBlock>()
+            Patterns = [],
+            OrnamentGroupIds = [],
+            CziMapAssetIds = [],
+            MorphWeights = [],
+            Overlays = []
         };
     }
 
@@ -182,7 +177,7 @@ public class CharacterLoadout
 
     public SlottedModule[] GetBackpackModules()
     {
-        return SlottedItems
+        return [.. SlottedItems
         .Where(slotted => LoadoutAbilitySlots.Contains(slotted.Key))
         .Select((slotted) =>
         {
@@ -193,13 +188,12 @@ public class CharacterLoadout
                 Flags = 0,
                 Unk2 = 0,
             };
-        })
-        .ToArray();
+        })];
     }
 
     public SlottedModule[] GetChassisModules()
     {
-        return SlottedItems
+        return [.. SlottedItems
         .Where(slotted => LoadoutChassisSlots.Contains(slotted.Key))
         .Select((slotted) =>
         {
@@ -210,13 +204,12 @@ public class CharacterLoadout
                 Flags = 0,
                 Unk2 = 0,
             };
-        })
-        .ToArray();
+        })];
     }
 
     public StatsData[] GetItemAttributes()
     {
-        return ItemAttributes
+        return [.. ItemAttributes
         .Select((pair) =>
         {
             return new StatsData()
@@ -224,8 +217,7 @@ public class CharacterLoadout
                 Id = pair.Key,
                 Value = pair.Value
             };
-        })
-        .ToArray();
+        })];
     }
 
     public StatsData[] GetPrimaryWeaponAttributes()
@@ -248,7 +240,7 @@ public class CharacterLoadout
             }
         }
 
-        return result
+        return [.. result
         .Select((pair) =>
         {
             return new StatsData()
@@ -256,8 +248,7 @@ public class CharacterLoadout
                 Id = pair.Key,
                 Value = pair.Value
             };
-        })
-        .ToArray();
+        })];
     }
 
     public StatsData[] GetSecondaryWeaponAttributes()
@@ -280,7 +271,7 @@ public class CharacterLoadout
             }
         }
 
-        return result
+        return [.. result
         .Select((pair) =>
         {
             return new StatsData()
@@ -288,13 +279,12 @@ public class CharacterLoadout
                 Id = pair.Key,
                 Value = pair.Value
             };
-        })
-        .ToArray();
+        })];
     }
 
     public StatsData[] GetItemModuleScalars()
     {
-        return ItemModuleScalars
+        return [.. ItemModuleScalars
         .Select((pair) =>
         {
             return new StatsData()
@@ -302,13 +292,12 @@ public class CharacterLoadout
                 Id = pair.Key,
                 Value = pair.Value
             };
-        })
-        .ToArray();
+        })];
     }
 
     public StatsData[] GetItemCharacterScalars()
     {
-        return ItemCharacterScalars
+        return [.. ItemCharacterScalars
         .Select((pair) =>
         {
             return new StatsData()
@@ -316,8 +305,7 @@ public class CharacterLoadout
                 Id = pair.Key,
                 Value = pair.Value
             };
-        })
-        .ToArray();
+        })];
     }
 
     private void InitFromLoadoutReferenceData(LoadoutReferenceData refData)

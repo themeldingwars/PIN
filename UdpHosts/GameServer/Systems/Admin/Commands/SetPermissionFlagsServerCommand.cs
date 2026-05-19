@@ -1,7 +1,7 @@
 using GameServer.Entities.Character;
 using static AeroMessages.GSS.V66.Character.Controller.PermissionFlagsData;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 // TODO: Implement ability to pick flags, for now I just need cheat_float :)
 [ServerCommand("Set Character PermissionFlags", "pflags [value]", "pflags", "pflag", "float")]
@@ -25,7 +25,7 @@ public class SetPermissionFlagsServerCommand : ServerCommand
         character.SetPermissionFlag(CharacterPermissionFlags.cheat_float, newFloatValue);
 
         SourceFeedback($"Setting CharacterPermissionFlags.cheat_float to {newFloatValue}", context);
-        
+
         const uint customRef = 99999991;
         if (newFloatValue)
         {

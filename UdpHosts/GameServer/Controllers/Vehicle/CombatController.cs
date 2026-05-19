@@ -1,10 +1,10 @@
 ﻿using AeroMessages.GSS.V66.Vehicle.Command;
 using AeroMessages.GSS.V66.Vehicle.Event;
-using GameServer.Aptitude;
 using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS.Vehicle;
 using GameServer.Extensions;
 using GameServer.Packets;
+using GameServer.Systems.Aptitude;
 using Serilog;
 
 namespace GameServer.Controllers.Vehicle;

@@ -1,6 +1,6 @@
 using FauFau.Util.CommmonDataTypes;
 
-namespace GameServer.Data.SDB.Records.dbcharacter;
+namespace GameServer.StaticDB.Records.dbcharacter;
 public record class CharInfo
 {
     public Vector3 ProjectileOffset { get; set; }

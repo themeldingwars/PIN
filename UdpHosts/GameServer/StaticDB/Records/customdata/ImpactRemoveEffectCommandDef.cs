@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.customdata;
+namespace GameServer.StaticDB.Records.customdata;
 public record class ImpactRemoveEffectCommandDef : ICommandDef
 {
     public uint Id { get; set; }

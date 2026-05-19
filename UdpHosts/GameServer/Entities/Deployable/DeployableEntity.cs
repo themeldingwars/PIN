@@ -1,11 +1,10 @@
-using System;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Deployable.View;
-using GameServer.Aptitude;
 using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
+using GameServer.Systems.Aptitude;
 
 namespace GameServer.Entities.Deployable;
 
@@ -35,9 +34,9 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public uint AbilitySrcId { get; set; }
     public uint GibVisualsID { get; set; }
     public float Scale { get; set; }
-    public int MaxHealth { get; set; } = 0;
-    public uint PoweredOnAbility { get; set; } = 0;
-    public uint PoweredOffAbility { get; set; } = 0;
+    public int MaxHealth { get; set; }
+    public uint PoweredOnAbility { get; set; }
+    public uint PoweredOffAbility { get; set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -199,16 +198,16 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
             AttachedToProp = new EntityId { Backing = 0 },
             CharacterStatsProp = new CharacterStatsData
             {
-                ItemAttributes = Array.Empty<StatsData>(),
+                ItemAttributes = [],
                 Unk1 = 0,
-                WeaponA = Array.Empty<StatsData>(),
+                WeaponA = [],
                 Unk2 = 0,
-                WeaponB = Array.Empty<StatsData>(),
+                WeaponB = [],
                 Unk3 = 0,
-                AttributeCategories1 = Array.Empty<StatsData>(),
-                AttributeCategories2 = Array.Empty<StatsData>()
+                AttributeCategories1 = [],
+                AttributeCategories2 = []
             },
-            WarpaintColorsProp = Array.Empty<ushort>(),
+            WarpaintColorsProp = [],
             PersonalFactionStanceProp = null,
             SinFlagsProp = 0,
             SinFactionsAcquiredByProp = null,

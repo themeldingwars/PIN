@@ -4,7 +4,7 @@ using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using GameServer.Entities.Character;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 public interface IAptitudeTarget
 {

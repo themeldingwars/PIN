@@ -1,7 +1,7 @@
 using System.Text;
 using GameServer.Entities.Character;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Print server weapon info", "dbg_weapon", "dbg_weapon")]
 public class DebugWeaponTemplateServerCommand : ServerCommand

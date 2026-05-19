@@ -10,9 +10,9 @@ using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using DebugPipeProto;
-using GameServer.Data.SDB;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using GameServer.StaticDB;
 using GameServer.Systems.SystemEvents;
 using Serilog;
 
@@ -293,6 +293,9 @@ public partial class PhysicsEngine
         }
         else
         {
+            var timeoutPosition = origin + (direction * maxRange);
+            var timeoutDirection = -Vector3.Normalize(direction);
+            DebugProjectileHitCallbacks?.SendDebugProjectileTimeout(source, trace, timeoutPosition, timeoutDirection);
         }
     }
 
@@ -338,7 +341,7 @@ public partial class PhysicsEngine
         public int ChildIndex;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AllowTest(CollidableReference collidable)
+        public readonly bool AllowTest(CollidableReference collidable)
         {
             if (AvoidSourceBody && collidable.Mobility != CollidableMobility.Static && collidable.BodyHandle.Equals(SourceBody))
             {
@@ -349,7 +352,7 @@ public partial class PhysicsEngine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AllowTest(CollidableReference collidable, int childIndex)
+        public readonly bool AllowTest(CollidableReference collidable, int childIndex)
         {
             if (AvoidSourceBody && collidable.Mobility != CollidableMobility.Static && collidable.BodyHandle.Equals(SourceBody))
             {

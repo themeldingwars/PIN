@@ -38,7 +38,7 @@ public abstract class Base
 
         try
         {
-            _ = method.Invoke(this, new object[] { client, player, entityId, packet });
+            _ = method.Invoke(this, [client, player, entityId, packet]);
         }
         catch (TargetInvocationException e)
         {

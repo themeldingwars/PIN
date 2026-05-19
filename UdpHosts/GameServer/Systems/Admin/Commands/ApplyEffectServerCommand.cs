@@ -1,7 +1,7 @@
-using GameServer.Aptitude;
-using GameServer.Data.SDB;
+using GameServer.StaticDB;
+using GameServer.Systems.Aptitude;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Apply a status effect", "applyeffect <effectId>", "applyeffect", "apply_effect", "apt_apply")]
 public class ApplyEffectServerCommand : ServerCommand

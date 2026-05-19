@@ -1,6 +1,6 @@
 using AeroMessages.GSS.V66.Character;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Debug AttachedTo", "dbgattach <unk2> <unk3>", "dbgattach")]
 public class DebugAttachedToServerCommand : ServerCommand

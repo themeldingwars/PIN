@@ -1,6 +1,6 @@
 using GameServer.Entities;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Interaction;
 
 public class BeginInteractionCommand : ICommand
 {

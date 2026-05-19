@@ -1,7 +1,7 @@
-using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Interaction;
 
 public class InteractionTypeCommand : Command, ICommand
 {

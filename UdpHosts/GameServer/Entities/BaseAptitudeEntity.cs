@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
 using AeroMessages.GSS.V66;
-using GameServer.Aptitude;
 using GameServer.Entities.Character;
+using GameServer.Systems.Aptitude;
 
 namespace GameServer.Entities;
 
@@ -21,7 +20,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
     public CharacterEntity Owner { get; }
 
-    public List<EffectState> GetActiveEffects() => ActiveEffects.ToList<EffectState>();
+    public List<EffectState> GetActiveEffects() => [.. ActiveEffects];
 
     public override string ToString()
     {

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.apttf;
+namespace GameServer.StaticDB.Records.apttf;
 public record class tfSetAnimCtrlParamCommandDef : ICommandDef
 {
     public uint Id { get; set; }

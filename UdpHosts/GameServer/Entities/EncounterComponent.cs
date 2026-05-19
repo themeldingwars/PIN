@@ -18,7 +18,7 @@ public class EncounterComponent
 
     public ulong EncounterId { get; set; }
     public IEncounter Instance { get; set; }
-    public uint ProximityDistance { get; set; } = 0;
+    public uint ProximityDistance { get; set; }
     public IEncounterDef SpawnDef { get; set; }
     public Event Events { get; set; }
     public bool Handles(Event type) => Events.HasFlag(type);

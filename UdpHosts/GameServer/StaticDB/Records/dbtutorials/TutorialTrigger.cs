@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbtutorials;
+namespace GameServer.StaticDB.Records.dbtutorials;
 public record class TutorialTrigger
 {
 }

@@ -1,4 +1,4 @@
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Custom;
 
 public class CustomPlaceholderCommand : ICommand
 {
@@ -9,7 +9,7 @@ public class CustomPlaceholderCommand : ICommand
         Label = label;
         Id = id;
     }
-    
+
     public uint Id { get; set; }
 
     public bool Execute(Context context)

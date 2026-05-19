@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbfabrication;
+namespace GameServer.StaticDB.Records.dbfabrication;
 public record class ActionEffect
 {
     public float Value2 { get; set; }

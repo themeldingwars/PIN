@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbitems;
+namespace GameServer.StaticDB.Records.dbitems;
 public record class ItemSetAttributeRangeEntries
 {
     public uint AttributeId { get; set; }

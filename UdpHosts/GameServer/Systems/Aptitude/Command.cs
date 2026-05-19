@@ -1,7 +1,7 @@
-using GameServer.Data.SDB.Records;
+using GameServer.StaticDB.Records;
 using Serilog;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 public abstract class Command(ICommandDef par)
 {

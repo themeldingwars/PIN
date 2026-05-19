@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbconfig;
+namespace GameServer.StaticDB.Records.dbconfig;
 public record class ConsoleVariable
 {
     public string Value { get; set; }

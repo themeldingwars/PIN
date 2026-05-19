@@ -1,5 +1,5 @@
 using System.Numerics;
-using GameServer.Data.SDB.Records.customdata;
+using GameServer.StaticDB.Records.customdata;
 
 namespace GameServer.StaticDB.Records.customdata.Encounters;
 

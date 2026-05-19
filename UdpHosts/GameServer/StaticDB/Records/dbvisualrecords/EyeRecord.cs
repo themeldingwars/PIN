@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbvisualrecords;
+namespace GameServer.StaticDB.Records.dbvisualrecords;
 public record class EyeRecord
 {
     // public Vec4 ScleraColor { get; set; }

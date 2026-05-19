@@ -2,10 +2,10 @@ using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.ResourceNode.View;
-using GameServer.Aptitude;
-using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.StaticDB.Records.aptfs;
+using GameServer.Systems.Aptitude;
 
 namespace GameServer.Entities.Thumper;
 
@@ -45,7 +45,7 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public uint NodeType { get; set; }
     public uint BeaconType { get; set; }
-    public float Progress { get; set; } = 0.00f;
+    public float Progress { get; set; }
     public ThumpingCharacterInfoStruct ThumpingCharacterInfo { get; set; }
     public StateInfoStruct StateInfo { get; set; }
     public ScopeBubbleInfoData ScopeBubble { get; set; } = new ScopeBubbleInfoData()
@@ -55,10 +55,10 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
     };
     public float Scale { get; set; }
 
-    public uint LandedAbility { get; set; } = 0;
-    public uint CompletedAbility { get; set; } = 0;
-    public uint CalldownTimeMs { get; set; } = 0;
-    public uint MaxHealth { get; set; } = 0;
+    public uint LandedAbility { get; set; }
+    public uint CompletedAbility { get; set; }
+    public uint CalldownTimeMs { get; set; }
+    public uint MaxHealth { get; set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }

@@ -7,11 +7,7 @@ using Aero.Gen;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Melding.View;
-using GameServer.Aptitude;
 using GameServer.Data;
-using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.aptfs;
-using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
 using GameServer.Entities.AreaVisualData;
 using GameServer.Entities.Carryable;
@@ -24,6 +20,10 @@ using GameServer.Entities.Thumper;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Extensions;
+using GameServer.StaticDB;
+using GameServer.StaticDB.Records.aptfs;
+using GameServer.StaticDB.Records.customdata;
+using GameServer.Systems.Aptitude;
 using Serilog;
 using Timer = System.Threading.Timer;
 
@@ -39,7 +39,7 @@ public class EntityManager
     private readonly ulong _scopeCheckIntervalMs = 5000;
     private readonly ulong _lifetimeCheckIntervalMs = 1000;
     private readonly ConcurrentDictionary<ulong, HashSet<INetworkPlayer>> _scopedPlayersByEntity = new();
-    private readonly ConcurrentQueue<ScopeInRequest> _queuedScopeIn = new ConcurrentQueue<ScopeInRequest>();
+    private readonly ConcurrentQueue<ScopeInRequest> _queuedScopeIn = new();
     private readonly ConcurrentDictionary<ulong, Lifetime> _lifetimeByEntity = new();
     private uint _counter;
     private ulong _lastUpdateFlush;
@@ -352,12 +352,12 @@ public class EntityManager
 
             if (factionTest)
             {
-                var accord = SpawnCharacter(290, new Vector3(1.5f, 15f, 0f)); // Accord Assault (1)
-                var chosen = SpawnCharacter(1196, new Vector3(3.5f, 15f, 0f)); // Chosen Fiend (2)
-                var melding = SpawnCharacter(528, new Vector3(5.5f, 15f, 0f)); // Melded Aranha (6)
-                var gaea = SpawnCharacter(2342, new Vector3(7.5f, 15f, 0f)); // Aranha (7)
-                var tanken = SpawnCharacter(2407, new Vector3(9.5f, 15f, 0f)); // Tanken Saboteur (17)
-                var blackh = SpawnCharacter(1304, new Vector3(11.5f, 15f, 0f)); // Black Hills Bandit (22)
+                SpawnCharacter(290, new Vector3(1.5f, 15f, 0f)); // Accord Assault (1)
+                SpawnCharacter(1196, new Vector3(3.5f, 15f, 0f)); // Chosen Fiend (2)
+                SpawnCharacter(528, new Vector3(5.5f, 15f, 0f)); // Melded Aranha (6)
+                SpawnCharacter(2342, new Vector3(7.5f, 15f, 0f)); // Aranha (7)
+                SpawnCharacter(2407, new Vector3(9.5f, 15f, 0f)); // Tanken Saboteur (17)
+                SpawnCharacter(1304, new Vector3(11.5f, 15f, 0f)); // Black Hills Bandit (22)
             }
         }
     }
@@ -518,7 +518,7 @@ public class EntityManager
 
     public void Add(ulong guid, IEntity entity)
     {
-        _scopedPlayersByEntity.TryAdd(guid, new());
+        _ = _scopedPlayersByEntity.TryAdd(guid, []);
         _shard.Entities.Add(guid, entity);
         OnAddedEntity(entity);
     }
@@ -526,7 +526,7 @@ public class EntityManager
     public void Add(IEntity entity)
     {
         var guid = new Core.Data.EntityGuid(_serverId, _shard.CurrentTime, _counter++, (byte)Enums.GSS.Controllers.Character);
-        _scopedPlayersByEntity.TryAdd(guid.Full, new());
+        _ = _scopedPlayersByEntity.TryAdd(guid.Full, []);
         _shard.Entities.Add(guid.Full, entity);
         OnAddedEntity(entity);
     }
@@ -548,7 +548,7 @@ public class EntityManager
         {
             OnRemovedEntity(entity);
             _shard.Entities.Remove(guid);
-            _scopedPlayersByEntity.TryRemove(guid, out var v);
+            _ = _scopedPlayersByEntity.TryRemove(guid, out _);
         }
     }
 

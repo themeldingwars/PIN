@@ -4,15 +4,15 @@ using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Outpost.View;
 using GameServer.Data;
-using GameServer.Data.SDB.Records.customdata;
+using GameServer.StaticDB.Records.customdata;
 
 namespace GameServer.Entities.Outpost;
 
 public sealed class OutpostEntity : BaseEntity
 {
-    private static readonly Random Rng = new();
+    private static readonly Random _rng = new();
 
-    public OutpostEntity(IShard shard, ulong eid, Data.SDB.Records.customdata.Outpost record)
+    public OutpostEntity(IShard shard, ulong eid, StaticDB.Records.customdata.Outpost record)
         : base(shard, eid)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Outpost };
@@ -27,11 +27,11 @@ public sealed class OutpostEntity : BaseEntity
     public ulong EncounterId { get; set; }
     public ScopeBubbleInfoData ScopeBubbleInfo { get; set; }
 
-    public SpawnPoint RandomSpawnPoint => SpawnPoints[Rng.Next(SpawnPoints.Count)];
+    public SpawnPoint RandomSpawnPoint => SpawnPoints[_rng.Next(SpawnPoints.Count)];
     public bool IsCapturedByHostiles => HardcodedCharacterData.HostileFactionIds.Contains(Outpost_ObserverView.FactionIdProp);
     private List<SpawnPoint> SpawnPoints { get; set; } = [];
 
-    private void InitFields(Data.SDB.Records.customdata.Outpost record)
+    private void InitFields(StaticDB.Records.customdata.Outpost record)
     {
         Position = record.Position;
         ScopeBubbleInfo = new ScopeBubbleInfoData()
@@ -41,7 +41,7 @@ public sealed class OutpostEntity : BaseEntity
         };
     }
 
-    private void InitViews(Data.SDB.Records.customdata.Outpost record)
+    private void InitViews(StaticDB.Records.customdata.Outpost record)
     {
         Outpost_ObserverView = new ObserverView
         {
@@ -67,7 +67,7 @@ public sealed class OutpostEntity : BaseEntity
         };
     }
 
-    private void AddSpawnPoints(Data.SDB.Records.customdata.Outpost record)
+    private void AddSpawnPoints(StaticDB.Records.customdata.Outpost record)
     {
         if (record.SpawnPoints.Count == 0)
         {

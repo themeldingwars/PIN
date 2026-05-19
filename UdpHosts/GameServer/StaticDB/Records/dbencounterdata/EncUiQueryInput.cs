@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbencounterdata;
+namespace GameServer.StaticDB.Records.dbencounterdata;
 public record class EncUiQueryInput
 {
     public uint QueryId { get; set; }

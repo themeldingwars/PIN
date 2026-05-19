@@ -1,6 +1,6 @@
 using FauFau.Util.CommmonDataTypes;
 
-namespace GameServer.Data.SDB.Records.dbcharacter;
+namespace GameServer.StaticDB.Records.dbcharacter;
 public record class Deployable
 {
     // public Vec3 VisualOffset { get; set; }

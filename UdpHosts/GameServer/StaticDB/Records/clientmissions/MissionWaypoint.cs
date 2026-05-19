@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.clientmissions;
+namespace GameServer.StaticDB.Records.clientmissions;
 public record class MissionWaypoint
 {
     // public Vec3 location { get; set; }

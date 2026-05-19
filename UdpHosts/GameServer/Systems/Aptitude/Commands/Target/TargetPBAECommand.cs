@@ -1,10 +1,10 @@
 ﻿using System.Linq;
 using System.Numerics;
-using GameServer.Data.SDB.Records.apt;
 using GameServer.Entities;
 using GameServer.Enums;
+using GameServer.StaticDB.Records.apt;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Target;
 
 public class TargetPBAECommand : Command, ICommand
 {

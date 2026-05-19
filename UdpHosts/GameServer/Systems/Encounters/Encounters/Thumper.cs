@@ -8,68 +8,67 @@ namespace GameServer.Systems.Encounters.Encounters;
 public class Thumper : BaseEncounter, IInteractionHandler
 {
     private static readonly uint _updateFrequency = ThumperState.THUMPING.CountdownTime() / 100;
+    private readonly ThumperEntity _thumper;
     private ulong _lastUpdate;
-
-    private ThumperEntity thumper;
 
     public Thumper(IShard shard, ulong entityId, HashSet<INetworkPlayer> participants, ThumperEntity thumperEntity)
         : base(shard, entityId, participants)
     {
-        thumper = thumperEntity;
+        _thumper = thumperEntity;
 
         Shard.EncounterMan.StartUpdatingEncounter(this);
     }
 
     public void OnInteraction(BaseEntity actingEntity, BaseEntity target)
     {
-        switch ((ThumperState)thumper.StateInfo.State)
+        switch ((ThumperState)_thumper.StateInfo.State)
         {
             case ThumperState.THUMPING:
-                Shard.Abilities.HandleActivateAbility(Shard, thumper, thumper.CompletedAbility);
+                Shard.Abilities.HandleActivateAbility(Shard, _thumper, _thumper.CompletedAbility);
 
-                thumper.TransitionToState(ThumperState.LEAVING);
+                _thumper.TransitionToState(ThumperState.LEAVING);
                 break;
             case ThumperState.COMPLETED:
-                thumper.StateInfo = thumper.StateInfo with { CountdownTime = Shard.CurrentTime };
+                _thumper.StateInfo = _thumper.StateInfo with { CountdownTime = Shard.CurrentTime };
                 break;
         }
     }
 
     public override void OnUpdate(ulong currentTime)
     {
-        if (Shard.CurrentTime >= thumper.StateInfo.CountdownTime)
+        if (Shard.CurrentTime >= _thumper.StateInfo.CountdownTime)
         {
-            switch ((ThumperState)thumper.StateInfo.State)
+            switch ((ThumperState)_thumper.StateInfo.State)
             {
                 case ThumperState.LANDING:
-                    Shard.Abilities.HandleActivateAbility(Shard, thumper, thumper.LandedAbility);
+                    Shard.Abilities.HandleActivateAbility(Shard, _thumper, _thumper.LandedAbility);
                     break;
                 case ThumperState.WARMINGUP:
-                    Shard.Abilities.HandleActivateAbility(Shard, thumper, 34579);
+                    Shard.Abilities.HandleActivateAbility(Shard, _thumper, 34579);
                     break;
                 case ThumperState.THUMPING:
-                    thumper.SetProgress(1);
-                    Shard.Abilities.HandleActivateAbility(Shard, thumper, 34215);
+                    _thumper.SetProgress(1);
+                    Shard.Abilities.HandleActivateAbility(Shard, _thumper, 34215);
                     break;
                 case ThumperState.CLOSING:
                     break;
                 case ThumperState.COMPLETED:
-                    Shard.Abilities.HandleActivateAbility(Shard, thumper, 34216);
+                    Shard.Abilities.HandleActivateAbility(Shard, _thumper, 34216);
                     break;
                 case ThumperState.LEAVING:
                     OnSuccess();
                     break;
             }
 
-            if (thumper.StateInfo.State < (byte)ThumperState.LEAVING)
+            if (_thumper.StateInfo.State < (byte)ThumperState.LEAVING)
             {
-                thumper.TransitionToState((ThumperState)(thumper.StateInfo.State + 1));
+                _thumper.TransitionToState((ThumperState)(_thumper.StateInfo.State + 1));
             }
         }
-        else if (thumper.StateInfo.State == (byte)ThumperState.THUMPING && currentTime > _lastUpdate + _updateFrequency)
+        else if (_thumper.StateInfo.State == (byte)ThumperState.THUMPING && currentTime > _lastUpdate + _updateFrequency)
         {
-            thumper.SetProgress((float)(Shard.CurrentTime - thumper.StateInfo.Time)
-                                / (thumper.StateInfo.CountdownTime - thumper.StateInfo.Time));
+            _thumper.SetProgress((float)(Shard.CurrentTime - _thumper.StateInfo.Time)
+                                / (_thumper.StateInfo.CountdownTime - _thumper.StateInfo.Time));
 
             _lastUpdate = currentTime;
         }
@@ -79,7 +78,7 @@ public class Thumper : BaseEncounter, IInteractionHandler
     {
         Shard.EncounterMan.StopUpdatingEncounter(this);
 
-        Shard.EntityMan.Remove(thumper);
+        Shard.EntityMan.Remove(_thumper);
 
         base.OnSuccess();
     }

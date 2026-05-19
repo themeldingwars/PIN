@@ -1,8 +1,25 @@
-using System.Collections.Generic;
-using GameServer.Data.SDB;
+using GameServer.StaticDB;
+using GameServer.Systems.Aptitude.Commands.Activation;
+using GameServer.Systems.Aptitude.Commands.Calldown;
+using GameServer.Systems.Aptitude.Commands.Custom;
+using GameServer.Systems.Aptitude.Commands.Deployable;
+using GameServer.Systems.Aptitude.Commands.Duration;
+using GameServer.Systems.Aptitude.Commands.Encounter;
+using GameServer.Systems.Aptitude.Commands.Impact;
+using GameServer.Systems.Aptitude.Commands.Interaction;
+using GameServer.Systems.Aptitude.Commands.Logic;
+using GameServer.Systems.Aptitude.Commands.Modifier;
+using GameServer.Systems.Aptitude.Commands.Movement;
+using GameServer.Systems.Aptitude.Commands.NPC;
+using GameServer.Systems.Aptitude.Commands.Object;
+using GameServer.Systems.Aptitude.Commands.Other;
+using GameServer.Systems.Aptitude.Commands.Register;
+using GameServer.Systems.Aptitude.Commands.Requirement;
+using GameServer.Systems.Aptitude.Commands.Self;
+using GameServer.Systems.Aptitude.Commands.Target;
 using Serilog;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 public class Factory
 {
@@ -48,9 +65,11 @@ public class Factory
 
     public Chain LoadChain(uint chainId)
     {
-        var chain = new Chain();
-        chain.Id = chainId;
-        chain.Commands = new List<ICommand>();
+        var chain = new Chain
+        {
+            Id = chainId,
+            Commands = []
+        };
 
         uint next = chainId;
         while (next != 0)
@@ -75,8 +94,7 @@ public class Factory
         var commandTypeRec = SDBInterface.GetCommandType(typeId);
         var commandType = (CommandType)commandTypeRec.Id;
 
-        // :) Fix this null terminator later
-        if (commandTypeRec.Environment == "client\0")
+        if (commandTypeRec.Environment == "client")
         {
             // Far as I know we don't care about client commands on the server, though the params can be helpful.
             return new CustomNOOPCommand(commandType.ToString(), commandId);

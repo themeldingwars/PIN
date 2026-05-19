@@ -14,12 +14,12 @@ namespace GameServer.Systems.Chat;
 public class ChatService
 {
     public static readonly ChatChannel[] PublicBroadcastChannels =
-    {
+    [
         ChatChannel.Zone,
         ChatChannel.ZoneLang,
         ChatChannel.Say,
         ChatChannel.Yell,
-    };
+    ];
 
     private readonly Shard _shard;
     private readonly EventBus _eventBus;

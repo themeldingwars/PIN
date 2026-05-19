@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbmatchmaking;
+namespace GameServer.StaticDB.Records.dbmatchmaking;
 public record class LFGCategory
 {
     public uint LocalizedNameId { get; set; }

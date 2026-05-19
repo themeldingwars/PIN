@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Serilog;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 public class Chain
 {

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbelitelevels;
+namespace GameServer.StaticDB.Records.dbelitelevels;
 public record class EliteLevelsBattleFrameTable
 {
     public uint NameId { get; set; }

@@ -7,10 +7,10 @@ using AeroMessages.Common;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.GSS.V66.Generic;
-using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using GameServer.StaticDB;
+using GameServer.StaticDB.Records.aptfs;
 using GameServer.Systems.Encounters.Encounters;
 
 namespace GameServer.Systems.Encounters;
@@ -68,7 +68,7 @@ public class EncounterManager
         var thumper = new Thumper(
           _shard,
           _shard.GetNextGuid(),
-          new HashSet<INetworkPlayer>() { owner.Player },
+          [owner.Player],
           thumperEntity);
 
         thumperEntity.Encounter = new EncounterComponent() { EncounterId = thumper.EntityId, Instance = thumper };
@@ -83,7 +83,7 @@ public class EncounterManager
         foreach (var entry in CustomDBInterface.GetZoneMeldingRepulsors(zoneId))
         {
             var guid = _shard.GetNextGuid((byte)Controller.Encounter);
-            Add(guid, new MeldingRepulsor(_shard, guid, new HashSet<INetworkPlayer>(), entry.Value));
+            Add(guid, new MeldingRepulsor(_shard, guid, [], entry.Value));
         }
 
         foreach (var entry in CustomDBInterface.GetZoneLgvRaces(zoneId))
@@ -213,7 +213,7 @@ public class EncounterManager
                   {
                       EncounterId = encounter.AeroEntityId,
                       Header = encounter.View.GetHeader(),
-                      SinCard = new SinCardData[] { },
+                      SinCard = [],
                       SchemaVersion = 2,
                       ShadowFieldValues = serializedData.ToArray()
                   };
@@ -239,7 +239,7 @@ public class EncounterManager
                   {
                       EncounterId = encounter.AeroEntityId,
                       ShadowFieldValues = serializedData.ToArray(),
-                      BlobData = new byte[] { },
+                      BlobData = [],
                   };
 
         foreach (var player in encounter.Participants)

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.clientmissions;
+namespace GameServer.StaticDB.Records.clientmissions;
 public record class MissionObjective
 {
     public uint WaypointId { get; set; }

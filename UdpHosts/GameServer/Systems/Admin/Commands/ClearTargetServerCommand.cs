@@ -1,4 +1,4 @@
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Clear target for server commands", "clear", "clear", "targetclear", "cleartarget", "untarget", "removetarget", "remtarget", "deletetarget", "deltarget")]
 public class ClearTargetServerCommand : ServerCommand

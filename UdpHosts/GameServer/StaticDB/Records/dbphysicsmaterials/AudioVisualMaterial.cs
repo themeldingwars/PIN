@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbphysicsmaterials;
+namespace GameServer.StaticDB.Records.dbphysicsmaterials;
 public record class AudioVisualMaterial
 {
     public string Name { get; set; }

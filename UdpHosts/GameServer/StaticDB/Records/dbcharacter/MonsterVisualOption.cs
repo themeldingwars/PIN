@@ -1,8 +1,8 @@
-namespace GameServer.Data.SDB.Records.dbcharacter;
+namespace GameServer.StaticDB.Records.dbcharacter;
 
 public record class MonsterVisualOption
 {
-    public int Parent { get; set; }
-    public long Value { get; set; }
-    public int Type { get; set; }
+    public uint Parent { get; set; }
+    public uint Value { get; set; }
+    public byte Type { get; set; }
 }

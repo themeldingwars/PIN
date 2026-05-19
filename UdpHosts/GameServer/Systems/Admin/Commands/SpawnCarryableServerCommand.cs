@@ -1,7 +1,7 @@
 using System.Numerics;
-using GameServer.Data.SDB;
+using GameServer.StaticDB;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Spawn a carryable by carryableTypeId, optionally at a location.", "carryable <characterTypeId> [<x> <y> <z>]", "carryable", "spawn_carryable")]
 public class SpawnCarryableServerCommand : ServerCommand
@@ -26,7 +26,7 @@ public class SpawnCarryableServerCommand : ServerCommand
             SourceFeedback("No carryable data for this typeId", context);
             return;
         }
-        
+
         if (parameters.Length == 4)
         {
             Vector3? paramPosition = ParseVector3Parameters(parameters, 1);

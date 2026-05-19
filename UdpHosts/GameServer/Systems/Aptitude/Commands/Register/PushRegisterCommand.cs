@@ -1,6 +1,6 @@
-using GameServer.Data.SDB.Records.apt;
+using GameServer.StaticDB.Records.apt;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Register;
 
 public class PushRegisterCommand : Command, ICommand
 {

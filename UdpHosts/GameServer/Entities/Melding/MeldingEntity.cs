@@ -37,10 +37,10 @@ public sealed class MeldingEntity : BaseEntity
             TimestampMicro = 0,
             Unk2 = 0,
             Unk3 = 0,
-            FromPoints = Array.Empty<Vector3>(),
-            FromTangents = Array.Empty<Vector3>(),
-            ToPoints = Array.Empty<Vector3>(),
-            ToTangets = Array.Empty<Vector3>(),
+            FromPoints = [],
+            FromTangents = [],
+            ToPoints = [],
+            ToTangets = [],
         };
         ScopeBubbleInfo = new ScopeBubbleInfoData()
         {

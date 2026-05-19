@@ -1,7 +1,7 @@
 using System.Linq;
-using GameServer.Data.SDB.Records.customdata;
+using GameServer.StaticDB.Records.customdata;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Impact;
 
 public class ImpactRemoveEffectCommand : Command, ICommand
 {

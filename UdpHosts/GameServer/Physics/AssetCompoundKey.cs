@@ -16,19 +16,19 @@ public struct AssetCompoundKey : IEquatable<AssetCompoundKey>
         Offset = offset;
     }
 
-    public bool Equals(AssetCompoundKey other)
+    public readonly bool Equals(AssetCompoundKey other)
     {
         return AssetId == other.AssetId &&
                BitConverter.SingleToInt32Bits(Scale) == BitConverter.SingleToInt32Bits(other.Scale) &&
                Offset == other.Offset;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         return obj is AssetCompoundKey other && Equals(other);
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         unchecked
         {

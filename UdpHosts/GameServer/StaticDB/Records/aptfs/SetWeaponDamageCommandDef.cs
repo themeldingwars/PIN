@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.aptfs;
+namespace GameServer.StaticDB.Records.aptfs;
 public record class SetWeaponDamageCommandDef : ICommandDef
 {
     public float Dmgmaxvalue { get; set; }

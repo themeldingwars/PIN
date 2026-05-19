@@ -1,6 +1,6 @@
-using GameServer.Data.SDB.Records.apt;
+using GameServer.StaticDB.Records.apt;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Initiate;
 
 public class PassiveInitiationCommand : Command, ICommand
 {

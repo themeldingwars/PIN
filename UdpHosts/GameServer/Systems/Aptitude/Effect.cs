@@ -1,8 +1,8 @@
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 public class Effect
 {
-    public Data.SDB.Records.apt.StatusEffectData Data;
+    public StaticDB.Records.apt.StatusEffectData Data;
     public Chain ApplyChain;
     public Chain DurationChain;
     public Chain UpdateChain;

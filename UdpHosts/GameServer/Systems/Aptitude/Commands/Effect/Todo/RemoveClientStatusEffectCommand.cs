@@ -1,6 +1,6 @@
-using GameServer.Data.SDB.Records.aptfs;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Effect;
 
 public class RemoveClientStatusEffectCommand : Command, ICommand
 {

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dblocalization;
+namespace GameServer.StaticDB.Records.dblocalization;
 public record class NameGeneratorOrderMap
 {
     public uint SuffixId { get; set; }

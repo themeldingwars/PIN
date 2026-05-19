@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.aptfs;
+namespace GameServer.StaticDB.Records.aptfs;
 public record class RequireLevelCommandDef : ICommandDef
 {
     public uint Id { get; set; }

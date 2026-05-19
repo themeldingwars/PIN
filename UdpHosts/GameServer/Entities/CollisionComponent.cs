@@ -1,5 +1,5 @@
 using System.Numerics;
-using GameServer.Data.SDB.Records.dbcharacter;
+using GameServer.StaticDB.Records.dbcharacter;
 
 namespace GameServer.Entities;
 

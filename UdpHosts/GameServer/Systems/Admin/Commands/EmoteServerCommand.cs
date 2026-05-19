@@ -1,7 +1,7 @@
 using AeroMessages.GSS.V66.Character;
 using GameServer.Entities.Character;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Perform an emote by id. Only displays on remote views.", "emote <id>", "emote")]
 public class EmoteServerCommand : ServerCommand

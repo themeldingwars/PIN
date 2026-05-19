@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace GameServer.Data.SDB.Records.customdata;
+namespace GameServer.StaticDB.Records.customdata;
 public record Outpost
 {
     public uint Id { get; set; }

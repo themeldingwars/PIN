@@ -1,9 +1,9 @@
 using System.Numerics;
 using AeroMessages.GSS.V66.Character.Event;
-using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Impact;
 
 public class ForcePushCommand : Command, ICommand
 {

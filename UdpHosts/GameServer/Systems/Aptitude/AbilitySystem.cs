@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using AeroMessages.GSS.V66.Character.Command;
-using GameServer.Data.SDB;
 using GameServer.Enums;
+using GameServer.StaticDB;
 using Serilog;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude;
 
 public class AbilitySystem
 {

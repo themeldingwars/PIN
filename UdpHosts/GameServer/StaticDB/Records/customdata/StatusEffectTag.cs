@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace GameServer.Data.SDB.Records.customdata;
+namespace GameServer.StaticDB.Records.customdata;
 
 public record StatusEffectTag
 {

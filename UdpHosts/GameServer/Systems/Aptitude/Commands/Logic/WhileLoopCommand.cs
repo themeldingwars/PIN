@@ -1,6 +1,6 @@
-using GameServer.Data.SDB.Records.apt;
+using GameServer.StaticDB.Records.apt;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Logic;
 
 public class WhileLoopCommand : Command, ICommand
 {
@@ -26,7 +26,7 @@ public class WhileLoopCommand : Command, ICommand
 
         var prevExecutionHint = context.ExecutionHint;
         context.ExecutionHint = ExecutionHint.Logic;
-    
+
         uint lap = 0;
         while (lap < MaximumLaps)
         {

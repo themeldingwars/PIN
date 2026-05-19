@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Numerics;
-using AeroMessages.Common;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
 using AeroMessages.GSS.V66.Character.Command;
 using AeroMessages.GSS.V66.Character.Event;
 using GameServer.Data;
-using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
@@ -15,6 +12,8 @@ using GameServer.Entities.Vehicle;
 using GameServer.Enums.GSS.Character;
 using GameServer.Extensions;
 using GameServer.Packets;
+using GameServer.StaticDB;
+using GameServer.StaticDB.Records.customdata;
 using GameServer.Systems.Encounters;
 using Serilog;
 using static AeroMessages.GSS.V66.Character.Command.NonDevDebugCommand;
@@ -38,8 +37,8 @@ public class BaseController : Base
         var fetchQueueInfoResponse = new FetchQueueInfoResponse
         {
             Succes = 0,
-            Queues = new FetchQueueData[]
-            {
+            Queues =
+            [
                 new FetchQueueData
                 {
                     QueueId = 2121,
@@ -50,16 +49,16 @@ public class BaseController : Base
                     DisplayKeyDesc = "MATCH_MAP_PROVING_GROUND_DESC",
                     ZoneId = 1155,
                     MissionId = 497,
-                    Certs = new QueueCertsData[]
-                    {
+                    Certs =
+                    [
                         new QueueCertsData
                         {
                             CertId = 3589,
                             Passed = 1
                         }
-                    },
-                    Difficulties = new QueueDifficultiesData[]
-                    {
+                    ],
+                    Difficulties =
+                    [
                         new QueueDifficultiesData
                         {
                             DifficultyId = 6922,
@@ -102,18 +101,18 @@ public class BaseController : Base
                             MinPlayers = 1,
                             MaxPlayers = 5
                         }
-                    },
-                    RewardsWinnerItems = new QueueRewardsItemData[] { },
-                    RewardsWinnerLoots = new QueueRewardsLootData[]
-                    {
+                    ],
+                    RewardsWinnerItems = [],
+                    RewardsWinnerLoots =
+                    [
                         new QueueRewardsLootData { LootTableId = 10133, DifficultyKey = "CHALLENGE_MODE" },
                         new QueueRewardsLootData { LootTableId = 10134, DifficultyKey = "HARD_MODE" },
                         new QueueRewardsLootData { LootTableId = 10132, DifficultyKey = "NORMAL_MODE" }
-                    },
-                    RewardsLooserItems = new QueueRewardsItemData[] { },
-                    RewardsLooserLoots = new QueueRewardsLootData[] { }
+                    ],
+                    RewardsLooserItems = [],
+                    RewardsLooserLoots = []
                 }
-            }
+            ]
         };
     }
 
@@ -169,7 +168,7 @@ public class BaseController : Base
         var setSteamIdPacket = packet.Unpack<SetSteamUserId>();
         player.SteamUserId = setSteamIdPacket.SteamUserId;
         _logger.Debug("Entity {EntityId:x8} Steam user id (Aero): {SteamUserId}", entityId, player.SteamUserId);
-        
+
         // var conventional = packet.Read<SetSteamIdRequest>();
         // _logger.Verbose("Packet Data: {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
         // _logger.Verbose("Entity {0:x8} Steam user id (conventional): {1}", entityId, conventional.SteamId);
@@ -197,7 +196,7 @@ public class BaseController : Base
         {
             return;
         }
-    
+
         var character = player.CharacterEntity;
         var abilities = client.AssignedShard.Abilities;
         abilities.HandleDeployableCalldownRequest(character.EntityId, deployableCalldownRequest);
@@ -211,7 +210,7 @@ public class BaseController : Base
         {
             return;
         }
-    
+
         var character = player.CharacterEntity;
         var abilities = client.AssignedShard.Abilities;
         abilities.HandleResourceNodeBeaconCalldownRequest(character.EntityId, thumperCalldownRequest);
@@ -245,9 +244,9 @@ public class BaseController : Base
             {
                 var response = new AddOrUpdateInteractives()
                 {
-                    Entities = new ulong[] { query.Entity.Backing },
-                    InteractionTypes = new byte[] { entity.GetInteractionType() },
-                    InteractionDurationsMs = new uint[] { entity.GetInteractionDuration() },
+                    Entities = [query.Entity.Backing],
+                    InteractionTypes = [entity.GetInteractionType()],
+                    InteractionDurationsMs = [entity.GetInteractionDuration()],
                 };
                 client.NetChannels[ChannelType.ReliableGss].SendMessage(response, player.CharacterEntity.EntityId);
             }
@@ -255,7 +254,7 @@ public class BaseController : Base
             {
                 var response = new RemoveInteractives
                 {
-                    Entities = new EntityId[] { query.Entity }
+                    Entities = [query.Entity]
                 };
                 client.NetChannels[ChannelType.ReliableGss].SendMessage(response, player.CharacterEntity.EntityId);
             }
@@ -271,7 +270,7 @@ public class BaseController : Base
     {
         var resourceLocationInfosResponse = new ResourceLocationInfosResponse
         {
-            Data = new ResourceLocationInfo[] { },
+            Data = [],
             Unk = 0x01
         };
 
@@ -283,8 +282,8 @@ public class BaseController : Base
     {
         var friendsListResponse = new FriendsListResponse
         {
-            Unk1 = new FriendsListData[]
-            {
+            Unk1 =
+            [
                 new FriendsListData
                 {
                     Unk1 = 9162788533740412926,
@@ -303,7 +302,7 @@ public class BaseController : Base
                     Unk5 = 1471686583,
                     Unk6 = 1
                 }
-            },
+            ],
             Unk2 = 0
         };
 
@@ -318,7 +317,7 @@ public class BaseController : Base
             ScanId = 0,
             Position = new Vector3 { X = 0, Y = 0, Z = 0 },
             Valid = 0x00,
-            Composition = new ResourceCompositionData[] { }
+            Composition = []
         };
 
         client.NetChannels[ChannelType.ReliableGss].SendMessage(mapOpened, player.CharacterEntity.EntityId);
@@ -435,7 +434,7 @@ public class BaseController : Base
             // Several UI components (like PaperdollSlotting) only refresh when ON_LEVEL_CHANGED fires.
             // Since we dont yet implement progression we just force an update here.
             if (player.CharacterEntity.Character_BaseController != null)
-            {   
+            {
                 player.CharacterEntity.Character_BaseController.LevelProp = HardcodedCharacterData.Level;
                 player.CharacterEntity.Character_BaseController.EffectiveLevelProp = HardcodedCharacterData.EffectiveLevel;
             }
@@ -455,7 +454,7 @@ public class BaseController : Base
     public void SlotGearRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var request = packet.Unpack<SlotGearRequest>();
-        
+
         player.CharacterEntity.EquipItemByGUID(request.LoadoutId, (LoadoutSlotType)request.SlotIdx, request.ItemGUID);
 
         var response = new SlotGearResponse()
@@ -466,17 +465,17 @@ public class BaseController : Base
                            Unk1 = request.Unk,
                            Result = 1,
                        };
-        
+
         client.NetChannels[ChannelType.ReliableGss].SendMessage(response, entityId);
     }
-    
+
     [MessageID((byte)Commands.SlotVisualRequest)]
     public void SlotVisualRequest(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var request = packet.Unpack<SlotVisualRequest>();
-        
+
         player.CharacterEntity.EquipVisualBySdbId(request.LoadoutId, (LoadoutVisualType)request.SlotIdx1, (LoadoutSlotType)request.SlotIdx2, request.ItemSdbId);
-        
+
         var response = new SlotVisualResponse()
                        {
                            ConfigId = 1,
@@ -484,7 +483,7 @@ public class BaseController : Base
                            LoadoutId = request.LoadoutId,
                            Result = 1,
                        };
-        
+
         client.NetChannels[ChannelType.ReliableGss].SendMessage(response, entityId);
     }
 

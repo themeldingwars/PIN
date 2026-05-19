@@ -1,6 +1,6 @@
 using FauFau.Util.CommmonDataTypes;
 
-namespace GameServer.Data.SDB.Records.dbcharacter;
+namespace GameServer.StaticDB.Records.dbcharacter;
 public record class Monster
 {
     // public Vec4f extra_color_3 { get; set; }

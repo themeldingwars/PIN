@@ -1,6 +1,6 @@
 using GameServer.Entities;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin;
 
 public class ServerCommandContext
 {

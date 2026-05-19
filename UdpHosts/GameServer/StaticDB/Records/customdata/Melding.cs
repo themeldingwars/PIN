@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace GameServer.Data.SDB.Records.customdata;
+namespace GameServer.StaticDB.Records.customdata;
 public record class Melding
 {
     public uint Id { get; set; }

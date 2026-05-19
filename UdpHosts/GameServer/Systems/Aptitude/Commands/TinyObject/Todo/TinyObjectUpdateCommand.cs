@@ -1,6 +1,6 @@
-using GameServer.Data.SDB.Records.customdata;
+using GameServer.StaticDB.Records.customdata;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.TinyObject;
 
 public class TinyObjectUpdateCommand : Command, ICommand
 {

@@ -1,9 +1,9 @@
 using System;
 using AeroMessages.GSS.V66.Character;
-using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.customdata;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Other;
 
 public class AwardRedBeansCommand : Command, ICommand
 {

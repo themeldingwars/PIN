@@ -29,7 +29,7 @@ public class LogSystemEnricher : ILogEventEnricher
     {
         foreach (var (prefix, name) in _overrideMap)
         {
-            if (sourceContext.StartsWith(prefix))
+            if (sourceContext.StartsWith(prefix, System.StringComparison.InvariantCulture))
             {
                 return name;
             }

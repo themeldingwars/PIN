@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using GameServer.Controllers;
-using GameServer.Data.SDB;
 using GameServer.GRPC;
+using GameServer.StaticDB;
 using GameServer.Test;
 using Serilog;
 using Shared.Udp;
@@ -17,15 +17,15 @@ namespace GameServer;
 
 internal class GameServer : PacketServer
 {
-    private const double GameTickRate = 1.0 / 60.0;
-    private const int MinPlayersPerShard = 16;
-    private const int MaxPlayersPerShard = 64;
+    private const double _gameTickRate = 1.0 / 60.0;
+    private const int _minPlayersPerShard = 16;
+    private const int _maxPlayersPerShard = 64;
 
     private readonly ConcurrentDictionary<uint, INetworkPlayer> _clientMap;
     private readonly ConcurrentDictionary<ulong, IShard> _shards;
 
     private readonly ulong _serverId;
-    private GameServerSettings  _settings;
+    private readonly GameServerSettings  _settings;
 
     private byte _nextShardId;
 
@@ -117,7 +117,7 @@ internal class GameServer : PacketServer
     {
         foreach (var shard in _shards.Values.OrderBy(s => s.CurrentPlayers))
         {
-            if (shard.CurrentPlayers < MaxPlayersPerShard)
+            if (shard.CurrentPlayers < _maxPlayersPerShard)
             {
                 return shard;
             }
@@ -129,7 +129,7 @@ internal class GameServer : PacketServer
     private IShard NewShard(CancellationToken ct)
     {
         var id = _serverId | (uint)(_nextShardId++ << 8) | (byte)Enums.GSS.Controllers.GenericShard;
-        var shard = _shards.AddOrUpdate(id, new Shard(GameTickRate, id, _settings, this, Logger), (_, old) => old);
+        var shard = _shards.AddOrUpdate(id, new Shard(_gameTickRate, id, _settings, this, Logger), (_, old) => old);
 
         shard.Run(ct);
 

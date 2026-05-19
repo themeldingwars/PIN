@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbvisualrecords;
+namespace GameServer.StaticDB.Records.dbvisualrecords;
 public record class OrnamentRecord
 {
     // public Matrix4x4 RelativeTransform { get; set; }

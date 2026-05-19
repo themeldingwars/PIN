@@ -3,7 +3,7 @@ using GameServer.Entities;
 using GameServer.Entities.Character;
 using Serilog;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin;
 
 public abstract class ServerCommand
 {

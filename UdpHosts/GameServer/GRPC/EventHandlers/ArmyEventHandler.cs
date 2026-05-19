@@ -176,6 +176,7 @@ public static class ArmyEventHandler
     }
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
+#pragma warning disable IDE1006
     private record ArmyMessage
     {
         public string      message_type { get; init; }
@@ -195,5 +196,6 @@ public static class ArmyEventHandler
         public ulong  id      { get; init; }
         public string message { get; init; }
     }
+#pragma warning restore IDE1006
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 }

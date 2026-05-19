@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records;
+namespace GameServer.StaticDB.Records;
 
 public interface ICommandDef
 {

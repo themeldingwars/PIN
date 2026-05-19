@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.apt;
+namespace GameServer.StaticDB.Records.apt;
 public record class ReturnCommandDef : ICommandDef
 {
     public uint Id { get; set; }

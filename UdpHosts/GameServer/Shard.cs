@@ -5,11 +5,12 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using GameServer.Aptitude;
 using GameServer.Data;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
+using GameServer.Systems.Admin;
+using GameServer.Systems.Aptitude;
 using GameServer.Systems.Chat;
 using GameServer.Systems.Encounters;
 using GameServer.Systems.EntityManager;
@@ -24,7 +25,7 @@ namespace GameServer;
 
 public class Shard : IShard
 {
-    private const double NetworkTickRate = 1.0 / 20.0;
+    private const double _networkTickRate = 1.0 / 20.0;
 
     private long _startTime;
     private double _lastNetTick;
@@ -164,7 +165,7 @@ public class Shard : IShard
 
     protected virtual bool ShouldNetworkTick(double deltaTime, ulong currentTime)
     {
-        return deltaTime >= NetworkTickRate;
+        return deltaTime >= _networkTickRate;
     }
 
     private void RunThread(CancellationToken ct)

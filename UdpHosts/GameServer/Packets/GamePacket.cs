@@ -27,12 +27,12 @@ public struct GamePacket
     /// <summary>
     ///     The count of bytes in the packet, including the header
     /// </summary>
-    public int TotalBytes => PacketData.Length;
+    public readonly int TotalBytes => PacketData.Length;
 
     /// <summary>
     ///     The count of bytes that haven't been read yet considering <see cref="CurrentPosition" /> and <see cref="TotalBytes" />
     /// </summary>
-    public int BytesRemaining => TotalBytes - CurrentPosition;
+    public readonly int BytesRemaining => TotalBytes - CurrentPosition;
 
     /// <summary>
     ///     The time the packet was received by the server
@@ -57,14 +57,14 @@ public struct GamePacket
         return PacketData.Slice(p, len);
     }
 
-    public T Peek<T>()
+    public readonly T Peek<T>()
         where T : struct
     {
         var buf = PacketData[CurrentPosition..];
         return Deserializer.Read<T>(ref buf);
     }
 
-    public ReadOnlyMemory<byte> Peek(int len)
+    public readonly ReadOnlyMemory<byte> Peek(int len)
     {
         return PacketData.Slice(CurrentPosition, len);
     }

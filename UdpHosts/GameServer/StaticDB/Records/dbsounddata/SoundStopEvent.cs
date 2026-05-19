@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbsounddata;
+namespace GameServer.StaticDB.Records.dbsounddata;
 public record class SoundStopEvent
 {
 }

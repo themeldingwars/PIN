@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbdialogdata;
+namespace GameServer.StaticDB.Records.dbdialogdata;
 public record class BattleChatterDescriptions
 {
     public float SpreadMeters { get; set; }

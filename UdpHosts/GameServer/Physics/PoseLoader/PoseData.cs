@@ -34,12 +34,7 @@ public class PoseData
         }
         */
 
-        var file = ini.Sections.GetValueOrDefault("File");
-        if (file == null)
-        {
-            throw new InvalidDataException(".pose file did not contain a File section");
-        }
-
+        var file = ini.Sections.GetValueOrDefault("File") ?? throw new InvalidDataException(".pose file did not contain a File section");
         if (file.GetValueOrDefault("Version") != "1" || file.GetValueOrDefault("Type") != "Pose" || file.GetValueOrDefault("Name") == null)
         {
             foreach (var (field, value) in file)
@@ -175,7 +170,7 @@ public class PoseData
         int lastIndex = input.LastIndexOf('\\');
         if (lastIndex >= 0)
         {
-            return Path.GetFileNameWithoutExtension(input.Substring(lastIndex + 1));
+            return Path.GetFileNameWithoutExtension(input[(lastIndex + 1)..]);
         }
 
         return string.Empty;

@@ -8,10 +8,10 @@ using AeroMessages.GSS.V66.Vehicle;
 using AeroMessages.GSS.V66.Vehicle.Command;
 using AeroMessages.GSS.V66.Vehicle.Controller;
 using AeroMessages.GSS.V66.Vehicle.View;
-using GameServer.Aptitude;
-using GameServer.Data.SDB;
 using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
+using GameServer.StaticDB;
+using GameServer.Systems.Aptitude;
 
 namespace GameServer.Entities.Vehicle;
 
@@ -69,7 +69,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public INetworkPlayer OwningPlayer { get; set; }
     public bool IsPlayerOwned => OwningPlayer != null;
 
-    public Vector3 Velocity { get; set; } = new Vector3();
+    public Vector3 Velocity { get; set; }
     public Vector3 AimDirection { get; set; } = new Vector3(0.70707911253f, 0.707134246826f, 0.000504541851114f); // Look kinda forward instead of up
     public short MovementState { get; set; } = unchecked((short)0x8000);
     public uint MovementTime { get; set; }
@@ -82,7 +82,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     {
         Data = new uint[8]
     };
-    public byte[] Flags { get; set; } = { 0x00, 0x04, 0x00, 0x00 };
+    public byte[] Flags { get; set; } = [0x00, 0x04, 0x00, 0x00];
     public byte EngineState { get; set; } = 2; // TEMP
     public byte PathState { get; set; } = 1;
     public Dictionary<sbyte, SeatConfig> Occupants { get; set; } = new Dictionary<sbyte, SeatConfig>()
@@ -94,7 +94,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         { 4, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
         { 5, new SeatConfig { Occupant = null, Role = AttachmentRole.None, Posture = 0, } },
     };
-    public List<TurretEntity> Turrets { get; set; } = new List<TurretEntity>();
+    public List<TurretEntity> Turrets { get; set; } = [];
     public Dictionary<byte, DeployableIdsData> DeployableData { get; set; } = new Dictionary<byte, DeployableIdsData>()
     {
         { 0, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
@@ -130,10 +130,10 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public uint CurrentHealth { get; set; }
     public uint MaxHealth { get; set; }
-    public uint CurrentShields { get; set; } = 0;
-    public uint MaxShields { get; set; } = 0;
-    public uint CurrentResources { get; set; } = 0;
-    public uint MaxResources { get; set; } = 0;
+    public uint CurrentShields { get; set; }
+    public uint MaxShields { get; set; }
+    public uint CurrentResources { get; set; }
+    public uint MaxResources { get; set; }
     public byte WaterLevelAndDesc { get; set; }
     public byte EffectsFlags { get; set; }
     public byte SinFlags { get; set; }
@@ -204,9 +204,9 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public StatusEffectData? StatusEffects_30 { get; set; }
     public StatusEffectData? StatusEffects_31 { get; set; }
 
-    public uint SpawnAbility { get; set; } = 0;
-    public uint DespawnAbility { get; set; } = 0;
-    public uint DeathAbility { get; set; } = 0;
+    public uint SpawnAbility { get; set; }
+    public uint DespawnAbility { get; set; }
+    public uint DeathAbility { get; set; }
 
     public void Load(VehicleInfoResult vehicleInfo)
     {

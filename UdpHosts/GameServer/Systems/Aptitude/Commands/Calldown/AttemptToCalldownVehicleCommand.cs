@@ -1,7 +1,7 @@
-using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Calldown;
 
 public class AttemptToCalldownVehicleCommand : Command, ICommand
 {
@@ -16,7 +16,7 @@ public class AttemptToCalldownVehicleCommand : Command, ICommand
     public bool Execute(Context context)
     {
         var caller = context.Self;
-        
+
         var request = context.Abilities.TryConsumeVehicleCalldownRequest(caller.EntityId);
         if (request != null)
         {

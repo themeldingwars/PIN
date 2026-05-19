@@ -121,7 +121,7 @@ public class TagfileLoader
 
     private StaticDescription[] ProcessContainer(HkpListShapeObject obj, ref ITagfileExternalStorage layer)
     {
-        List<StaticDescription> result = new();
+        List<StaticDescription> result = [];
 
         foreach (var childInfo in obj.ChildInfo)
         {
@@ -137,7 +137,7 @@ public class TagfileLoader
             }
         }
 
-        return result.ToArray();
+        return [.. result];
     }
 
     private StaticDescription[] ProcessContainer(HkpMoppBvTreeShapeObject obj, ref ITagfileExternalStorage layer)
@@ -148,7 +148,7 @@ public class TagfileLoader
 
     private StaticDescription[] ProcessContainer(HkRootLevelContainerObject obj, ref ITagfileExternalStorage layer)
     {
-        List<StaticDescription> result = new();
+        List<StaticDescription> result = [];
 
         foreach (var namedVariant in obj.NamedVariants)
         {
@@ -171,7 +171,7 @@ public class TagfileLoader
             }
         }
 
-        return result.ToArray();
+        return [.. result];
     }
 
     private StaticDescription[] ProcessContainer(HkpRigidBody obj, ref ITagfileExternalStorage layer)
@@ -203,13 +203,13 @@ public class TagfileLoader
         var rot = Quaternion.Normalize(Quaternion.CreateFromRotationMatrix(matrix));
         var parentPose = new RigidPose(pos, rot);
 
-        return childShapeStaticArr.Select((StaticDescription childShapeStatic) =>
+        return [.. childShapeStaticArr.Select(childShapeStatic =>
         {
             // Apply the transform of hkpRigidBody directly to the children without losing their local poses
             RigidPose.MultiplyWithoutOverlap(childShapeStatic.Pose, parentPose, out var transformedPose);
             childShapeStatic.Pose = transformedPose;
             return childShapeStatic;
-        }).ToArray();
+        })];
     }
 
     private StaticDescription[] ProcessModifier(HkpConvexTranslateShapeObject obj, ref ITagfileExternalStorage layer)
@@ -219,11 +219,11 @@ public class TagfileLoader
 
         var pos = new Vector3(obj.Translation[0], obj.Translation[1], obj.Translation[2]);
 
-        return childShapeStaticArr.Select((StaticDescription childShapeStatic) =>
+        return [.. childShapeStaticArr.Select(childShapeStatic =>
         {
             childShapeStatic.Pose.Position = pos;
             return childShapeStatic;
-        }).ToArray();
+        })];
     }
 
     private StaticDescription[] ProcessModifier(HkpTransformShapeObject obj, ref ITagfileExternalStorage layer)
@@ -234,7 +234,7 @@ public class TagfileLoader
         var rot = new Quaternion(obj.Rotation[0], obj.Rotation[1], obj.Rotation[2], obj.Rotation[3]);
         var pos = new Vector3(obj.Transform[3][0], obj.Transform[3][1], obj.Transform[3][2]);
 
-        return childShapeStaticArr.Select((StaticDescription childShapeStatic) =>
+        return [.. childShapeStaticArr.Select(childShapeStatic =>
         {
             if (childShapeStatic.Shape.Type == Mesh.Id)
             {
@@ -251,7 +251,7 @@ public class TagfileLoader
             childShapeStatic.Pose.Orientation = rot;
             childShapeStatic.Pose.Position = pos;
             return childShapeStatic;
-        }).ToArray();
+        })];
     }
 
     private StaticDescription[] ProcessModifier(HkpConvexTransformShapeObject obj, ref ITagfileExternalStorage layer)
@@ -279,12 +279,12 @@ public class TagfileLoader
             0);
         var rot = Quaternion.Normalize(Quaternion.CreateFromRotationMatrix(matrix));
 
-        return childShapeStaticArr.Select((StaticDescription childShapeStatic) =>
+        return [.. childShapeStaticArr.Select(childShapeStatic =>
         {
             childShapeStatic.Pose.Orientation = rot;
             childShapeStatic.Pose.Position = pos;
             return childShapeStatic;
-        }).ToArray();
+        })];
     }
 
     private StaticDescription[] ProcessShape(HkpBoxShapeObject obj, ref ITagfileExternalStorage layer)
@@ -337,7 +337,7 @@ public class TagfileLoader
 
     private StaticDescription[] ProcessShape(HkpExtendedMeshShapeObject obj, ref ITagfileExternalStorage layer)
     {
-        List<StaticDescription> result = new();
+        List<StaticDescription> result = [];
 
         foreach (var tripart in obj.TrianglesSubparts)
         {
@@ -385,7 +385,7 @@ public class TagfileLoader
             }
         }
 
-        return result.ToArray();
+        return [.. result];
     }
 
     private StaticDescription[] ProcessShape(HkpConvexVerticesShapeObject obj, ref ITagfileExternalStorage layer)
@@ -459,11 +459,10 @@ public class TagfileLoader
     {
         for (int faceIndex = 0; faceIndex < hullData.FaceStartIndices.Length; ++faceIndex)
         {
-            hullData.GetFace(faceIndex, out var face);
+            hullData.GetFace(faceIndex, out _);
 
             Vector3 faceNormal = default;
-
-            hullData.GetFace(faceIndex, out face);
+            hullData.GetFace(faceIndex, out var face);
 
             var a = points[face[0]];
             var b = points[face[1]];

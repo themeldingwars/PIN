@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbquickchatdata;
+namespace GameServer.StaticDB.Records.dbquickchatdata;
 public record class QuickChatCategory
 {
     public uint NameId { get; set; }

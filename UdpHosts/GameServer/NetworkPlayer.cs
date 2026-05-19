@@ -8,8 +8,8 @@ using AeroMessages.GSS.V66.Character.Controller;
 using AeroMessages.GSS.V66.Character.Event;
 using AeroMessages.Matrix.V25;
 using GameServer.Data;
-using GameServer.Data.SDB.Records.customdata;
 using GameServer.GRPC;
+using GameServer.StaticDB.Records.customdata;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
 using Serilog;
@@ -59,7 +59,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         if (existing != null)
         {
             Logger.Warning("Closing login because entity with this id is already zoned in");
-            var resp = new AeroMessages.Control.CloseConnection { Unk = new byte[] { 0, 0, 0, 0 } };
+            var resp = new AeroMessages.Control.CloseConnection { Unk = [0, 0, 0, 0] };
             NetChannels[ChannelType.Control].SendMessage(resp);
             return;
         }
@@ -110,7 +110,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         Status = IPlayer.PlayerStatus.LoggedIn;
 
         // WelcomeToTheMatrix
-        var wel = new WelcomeToTheMatrix { PlayerID = PlayerId, Unk1 = Array.Empty<byte>(), Unk2 = Array.Empty<byte>() };
+        var wel = new WelcomeToTheMatrix { PlayerID = PlayerId, Unk1 = [], Unk2 = [] };
         NetChannels[ChannelType.Matrix].SendMessage(wel);
 
         Zone zone;
@@ -193,17 +193,17 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         baseController.RegionUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
         baseController.PersonalFactionStanceProp = new PersonalFactionStanceData
         {
-            Friendly = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0x09, 0x0e, 0x5d, 0xff, 0x5f, 0x08, 0x00, 0x00 } },
-            Hostile = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = new byte[] { 0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00 } }
+            Friendly = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = [0x09, 0x0e, 0x5d, 0xff, 0x5f, 0x08, 0x00, 0x00] },
+            Hostile = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = [0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00] }
         };
         NetChannels[ChannelType.ReliableGss].SendChanges(baseController, CharacterEntity.EntityId);
 
         // Hack to add in jetpack fx until we hook up item effects
-        CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(986), new Aptitude.Context(AssignedShard, CharacterEntity)
+        CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(986), new Systems.Aptitude.Context(AssignedShard, CharacterEntity)
         {
             InitTime = AssignedShard.CurrentTime,
         });
-        CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(472), new Aptitude.Context(AssignedShard, CharacterEntity)
+        CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(472), new Systems.Aptitude.Context(AssignedShard, CharacterEntity)
         {
             InitTime = AssignedShard.CurrentTime,
         });

@@ -5,7 +5,7 @@ namespace GameServer.Physics.IniLoader;
 
 public class IniData
 {
-    public Dictionary<string, Dictionary<string, string>> Sections { get; } = new();
+    public Dictionary<string, Dictionary<string, string>> Sections { get; } = [];
 
     public string? GetValue(string section, string key)
     {

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB;
+namespace GameServer.StaticDB;
 
 using System.Collections.Generic;
 using Records.apt;

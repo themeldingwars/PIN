@@ -1,9 +1,9 @@
 ﻿using AeroMessages.GSS.V66.Character.Controller;
-using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Other;
 
 public class ConsumeSuperChargeCommand : Command, ICommand
 {

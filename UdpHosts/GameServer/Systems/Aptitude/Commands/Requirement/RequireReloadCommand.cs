@@ -1,7 +1,7 @@
-﻿using GameServer.Data.SDB.Records.aptfs;
-using GameServer.Entities.Character;
+﻿using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Requirement;
 
 public class RequireReloadCommand : Command, ICommand
 {

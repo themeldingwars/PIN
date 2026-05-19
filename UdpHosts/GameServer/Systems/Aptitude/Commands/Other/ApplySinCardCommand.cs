@@ -1,10 +1,10 @@
-using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities.Carryable;
 using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
 using GameServer.Entities.Vehicle;
+using GameServer.StaticDB.Records.customdata;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Other;
 
 public class ApplySinCardCommand : Command, ICommand
 {

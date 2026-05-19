@@ -5,9 +5,9 @@ using System.Numerics;
 using System.Text.Json;
 using System.Threading;
 using AeroMessages.GSS.V66.Generic;
-using GameServer.Data.SDB;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using GameServer.StaticDB;
 using Serilog;
 
 namespace GameServer.Systems.WeaponSim;
@@ -18,7 +18,7 @@ public class WeaponSim
     private readonly Shard _shard;
     private readonly ILogger _logger;
     private readonly ulong _updateIntervalMs = 50;
-    private ulong _lastUpdate = 0;
+    private ulong _lastUpdate;
 
     public WeaponSim(Shard shard)
     {

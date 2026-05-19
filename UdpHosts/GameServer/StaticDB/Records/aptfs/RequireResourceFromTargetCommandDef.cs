@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.aptfs;
+namespace GameServer.StaticDB.Records.aptfs;
 public record class RequireResourceFromTargetCommandDef : ICommandDef
 {
     public int Amount { get; set; }

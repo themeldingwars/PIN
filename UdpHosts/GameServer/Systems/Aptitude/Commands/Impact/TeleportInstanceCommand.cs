@@ -1,9 +1,9 @@
 ﻿using AeroMessages.Matrix.V25;
-using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.customdata;
 using GameServer.Test;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Impact;
 
 public class TeleportInstanceCommand : Command, ICommand
 {

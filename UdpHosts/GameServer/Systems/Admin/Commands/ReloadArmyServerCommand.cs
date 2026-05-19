@@ -1,6 +1,6 @@
 using AeroMessages.GSS.V66.Character.Event;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Reload Army UI", "rarmy", "rarmy", "reloadarmy")]
 public class ReloadArmyServerCommand : ServerCommand

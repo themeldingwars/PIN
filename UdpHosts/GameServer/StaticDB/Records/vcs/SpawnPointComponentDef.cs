@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.vcs;
+namespace GameServer.StaticDB.Records.vcs;
 public record class SpawnPointComponentDef
 {
     public uint AutoEjectStatusfxId { get; set; }

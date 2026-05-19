@@ -1,8 +1,8 @@
 using System.Numerics;
-using GameServer.Data.SDB.Records.customdata;
 using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.customdata;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Calldown;
 
 public class CalldownVehicleCommand : Command, ICommand
 {

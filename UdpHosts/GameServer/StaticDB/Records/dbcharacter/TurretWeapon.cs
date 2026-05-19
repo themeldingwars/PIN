@@ -1,6 +1,6 @@
 using FauFau.Util.CommmonDataTypes;
 
-namespace GameServer.Data.SDB.Records.dbcharacter;
+namespace GameServer.StaticDB.Records.dbcharacter;
 public record class TurretWeapon
 {
     public Vector3 PhysicalOrigin { get; set; }

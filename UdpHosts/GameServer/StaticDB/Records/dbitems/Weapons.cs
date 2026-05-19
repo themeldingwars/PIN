@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GameServer.Data.SDB.Records.dbitems;
+namespace GameServer.StaticDB.Records.dbitems;
 public record class Weapons
 {
     public uint WarpaintPaletteId { get; set; }

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbphysicsmaterials;
+namespace GameServer.StaticDB.Records.dbphysicsmaterials;
 public record class PhysicsMaterial
 {
     public float AIPathingCost { get; set; }

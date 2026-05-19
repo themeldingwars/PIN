@@ -261,7 +261,7 @@ public class NetworkClient : INetworkClient
                     Unk5 = 0,
                     IsEverlastingGobsocket = 0,
                     HaveUnk7 = 0,
-                    Unk8 = Array.Empty<byte>()
+                    Unk8 = []
                 });
                 break;
             case MatrixPacketType.LogInstrumentation:
@@ -316,7 +316,7 @@ public class NetworkClient : INetworkClient
 
     private List<string> SplitConsoleMessage(string input)
     {
-        List<string> result = new List<string>();
+        List<string> result = [];
 
         int index = 0;
 

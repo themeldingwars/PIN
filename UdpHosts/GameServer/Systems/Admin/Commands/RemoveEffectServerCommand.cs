@@ -1,7 +1,7 @@
-using GameServer.Aptitude;
-using GameServer.Data.SDB;
+using GameServer.StaticDB;
+using GameServer.Systems.Aptitude;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Remove a status effect", "removeeffect <effectId>", "removeeffect", "remove_effect", "apt_remove", "apt_clear", "apt_cancel")]
 public class RemoveEffectServerCommand : ServerCommand

@@ -15,19 +15,19 @@ namespace GameServer;
 
 public class Channel
 {
-    private const int ProtocolHeaderSize = 80; // UDP + IP
-    private const int GameSocketHeaderSize = 4;
-    private const int TotalHeaderSize = ProtocolHeaderSize + GameSocketHeaderSize;
-    private const int MaxPacketSize = PacketServer.MTU - TotalHeaderSize;
-    
-    private static readonly byte[] XorByte = { 0xFF, 0xAA, 0xCC  };
+    private const int _protocolHeaderSize = 80; // UDP + IP
+    private const int _gameSocketHeaderSize = 4;
+    private const int _totalHeaderSize = _protocolHeaderSize + _gameSocketHeaderSize;
+    private const int _maxPacketSize = PacketServer.MTU - _totalHeaderSize;
+
+    private static readonly byte[] _xorByte = [0xFF, 0xAA, 0xCC];
 
     private readonly ILogger _logger;
 
     private readonly INetworkClient _client;
     private readonly ConcurrentQueue<GamePacket> _incomingPackets;
     private readonly ConcurrentQueue<Memory<byte>> _outgoingPackets;
-    private SortedDictionary<ushort, GamePacket> _incomingSplitMessagePackets;
+    private readonly SortedDictionary<ushort, GamePacket> _incomingSplitMessagePackets;
 
     private Channel(ChannelType channelType, bool isSequenced, bool isReliable,  bool isGSS, INetworkClient networkClient, ILogger logger)
     {
@@ -42,13 +42,13 @@ public class Channel
 
         _incomingPackets = new ConcurrentQueue<GamePacket>();
         _outgoingPackets = new ConcurrentQueue<Memory<byte>>();
-        _incomingSplitMessagePackets = new SortedDictionary<ushort, GamePacket>();
+        _incomingSplitMessagePackets = [];
     }
 
     public delegate void PacketAvailableDelegate(GamePacket packet);
-    
+
     public event PacketAvailableDelegate? PacketAvailable;
-    
+
     private ChannelType Type { get; }
     private bool IsSequenced { get; }
     private bool IsReliable { get; }
@@ -97,7 +97,7 @@ public class Channel
                 var data = packet.Peek(packet.BytesRemaining).ToArray();
                 for (var i = 0; i < data.Length; i++)
                 {
-                    data[i] ^= XorByte[xorIndex];
+                    data[i] ^= _xorByte[xorIndex];
                 }
 
                 packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(data));
@@ -116,7 +116,7 @@ public class Channel
                     .SelectMany((pair) => pair.Value.Peek(pair.Value.BytesRemaining).ToArray())
                     .ToArray();
                     _incomingSplitMessagePackets.Clear();
-                    
+
                     var combinedPacket = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(combined));
 
                     _client.SendAck(Type, sequenceNumber, packet.Received);
@@ -142,7 +142,7 @@ public class Channel
 
                 PacketAvailable?.Invoke(packet);
             }
-            
+
             LastActivity = DateTime.Now;
         }
     }
@@ -264,7 +264,7 @@ public class Channel
 
         // Generate and send
         var controllerId = (Enums.GSS.Controllers)aeroMsgAttr.ControllerId;
-        var messageData = new Memory<byte>(new byte[0]);
+        var messageData = new Memory<byte>([]);
         return SendPacketMemory(entityId, 6, controllerId, ref messageData);
     }
 
@@ -383,7 +383,7 @@ public class Channel
                     var typecode = (Enums.GSS.Controllers)aeroMessageIdAttribute.ControllerId;
                     return SendPacketMemory(entityId, messageId, typecode, ref packetMemory);
                 }
-            
+
             case AeroMessageIdAttribute.MsgType.Control:
                 return SendPacketMemoryMatrix(messageId, ref packetMemory); // Everything's gonna be just fine
             default:
@@ -472,7 +472,7 @@ public class Channel
         // TODO: Send UGSS messages that are split over RGSS
         while (packetData.Length > 0)
         {
-            var length = Math.Min(packetData.Length + headerLength, MaxPacketSize);
+            var length = Math.Min(packetData.Length + headerLength, _maxPacketSize);
 
             var t = new Memory<byte>(new byte[length]);
             packetData[..(length - headerLength)].CopyTo(t[headerLength..]);
@@ -491,7 +491,7 @@ public class Channel
                 }
             }
 
-            var header = new GamePacketHeader(Type, 0, packetData.Length + headerLength > MaxPacketSize, (ushort)t.Length);
+            var header = new GamePacketHeader(Type, 0, packetData.Length + headerLength > _maxPacketSize, (ushort)t.Length);
             var headerData = Serializer.WritePrimitive(Utils.SimpleFixEndianness(header.PacketHeader));
             headerData.CopyTo(t);
 

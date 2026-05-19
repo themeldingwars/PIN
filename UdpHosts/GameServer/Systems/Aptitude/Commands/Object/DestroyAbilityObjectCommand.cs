@@ -1,7 +1,7 @@
-﻿using GameServer.Data.SDB.Records.customdata;
-using GameServer.Entities;
+﻿using GameServer.Entities;
+using GameServer.StaticDB.Records.customdata;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Object;
 
 public class DestroyAbilityObjectCommand : Command, ICommand
 {

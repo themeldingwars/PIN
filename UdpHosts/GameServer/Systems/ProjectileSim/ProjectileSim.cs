@@ -1,6 +1,6 @@
 using System.Numerics;
-using GameServer.Data.SDB.Records.dbitems;
 using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.dbitems;
 
 namespace GameServer.Systems.ProjectileSim;
 

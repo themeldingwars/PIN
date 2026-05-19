@@ -1,7 +1,7 @@
-using GameServer.Data.SDB.Records.apt;
 using GameServer.Enums;
+using GameServer.StaticDB.Records.apt;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Register;
 
 public class SetRegisterCommand : Command, ICommand
 {

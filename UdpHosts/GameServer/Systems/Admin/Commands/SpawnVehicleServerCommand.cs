@@ -1,7 +1,7 @@
 using System.Numerics;
-using GameServer.Data.SDB;
+using GameServer.StaticDB;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Spawn a vehicle by vehicleTypeId, optionally at a location.", "vehicle <vehicleTypeId> [<x> <y> <z>]", "vehicle", "spawn_vehicle")]
 public class SpawnVehicleServerCommand : ServerCommand
@@ -26,7 +26,7 @@ public class SpawnVehicleServerCommand : ServerCommand
             SourceFeedback("No vehicle data for this typeId", context);
             return;
         }
-        
+
         var orientation = context.SourcePlayer.CharacterEntity.Orientation;
 
         if (parameters.Length == 4)

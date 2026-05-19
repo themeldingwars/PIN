@@ -1,7 +1,7 @@
 using System.Numerics;
-using GameServer.Data.SDB;
+using GameServer.StaticDB;
 
-namespace GameServer.Admin;
+namespace GameServer.Systems.Admin.Commands;
 
 [ServerCommand("Spawn a deployable by deployableTypeId, optionally at a location.", "deployable <deployableTypeId> [<x> <y> <z>]", "deployable", "spawn_deployable")]
 public class SpawnDeployableServerCommand : ServerCommand

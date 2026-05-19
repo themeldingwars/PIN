@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbstats;
+namespace GameServer.StaticDB.Records.dbstats;
 public record class Stat
 {
     public uint NameId { get; set; }

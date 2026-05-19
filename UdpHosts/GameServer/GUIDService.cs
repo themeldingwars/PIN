@@ -1,9 +1,9 @@
-namespace GameServer.Data;
+namespace GameServer;
 
 public static class GuidService
 {
-    private const byte MainServerId = 31;
-    private static uint MainCounter = 0;
+    private const byte _mainServerId = 31;
+    private static uint _mainCounter;
 
     // https://github.com/themeldingwars/Documentation/wiki/Firefall-Guid-System#type-typecode
     public enum AdditionalTypes : byte
@@ -21,7 +21,7 @@ public static class GuidService
 
     public static ulong GetNext(uint time, byte type = (byte)Enums.GSS.Controllers.Generic)
     {
-        return new Core.Data.EntityGuid(MainServerId, time, MainCounter++, type).Full;
+        return new Core.Data.EntityGuid(_mainServerId, time, _mainCounter++, type).Full;
     }
 
     public static ulong GetNext(IShard shard, Enums.GSS.Controllers type = Enums.GSS.Controllers.Generic)
@@ -31,6 +31,6 @@ public static class GuidService
 
     public static ulong GetNext(IShard shard, byte type = (byte)Enums.GSS.Controllers.Generic)
     {
-        return new Core.Data.EntityGuid(MainServerId, shard.CurrentTime, MainCounter++, type).Full;
+        return new Core.Data.EntityGuid(_mainServerId, shard.CurrentTime, _mainCounter++, type).Full;
     }
 }

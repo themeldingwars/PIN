@@ -1,7 +1,7 @@
-﻿using GameServer.Data.SDB;
-using GameServer.Data.SDB.Records.aptfs;
+﻿using GameServer.StaticDB;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Target;
 
 public class TargetByEffectTagCommand : Command, ICommand
 {

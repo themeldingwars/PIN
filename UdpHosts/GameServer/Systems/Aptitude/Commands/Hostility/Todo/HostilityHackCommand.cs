@@ -1,6 +1,6 @@
-using GameServer.Data.SDB.Records.customdata;
+using GameServer.StaticDB.Records.customdata;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Hostility;
 
 public class HostilityHackCommand : Command, ICommand
 {

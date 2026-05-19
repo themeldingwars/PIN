@@ -1,7 +1,7 @@
-﻿using GameServer.Data.SDB.Records.aptfs;
-using GameServer.Entities.Character;
+﻿using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Requirement;
 
 public class RequireSprintModifierCommand : Command, ICommand
 {
@@ -19,7 +19,7 @@ public class RequireSprintModifierCommand : Command, ICommand
 
         // NOTE: Investigate target handling
         var target = context.Self;
-        
+
         if (target is CharacterEntity character)
         {
             result = character.MovementStateContainer.Sprint;

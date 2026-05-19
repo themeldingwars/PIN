@@ -1,7 +1,7 @@
-using GameServer.Data.SDB.Records.aptfs;
 using GameServer.Entities.Character;
+using GameServer.StaticDB.Records.aptfs;
 
-namespace GameServer.Aptitude;
+namespace GameServer.Systems.Aptitude.Commands.Requirement;
 
 public class RequireWeaponArmedCommand : Command, ICommand
 {
@@ -21,7 +21,7 @@ public class RequireWeaponArmedCommand : Command, ICommand
         if (target is CharacterEntity character)
         {
             var selectedIndex = character.WeaponIndex.Index;
-            
+
             // The command seems to consider 1 holstered, 2 primary, 3 secondary.
             // The net view uses 0, 1, 2 instead.
             result = Params.WeaponIndex == (selectedIndex + 1);

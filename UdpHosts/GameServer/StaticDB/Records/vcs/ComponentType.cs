@@ -1,4 +1,4 @@
-﻿namespace GameServer.Data.SDB.Records.vcs;
+﻿namespace GameServer.StaticDB.Records.vcs;
 
 // There are 30 distinct sdb_guid values in vcs::BaseComponentDef
 // Each sdb_guid appears in only one of <Type>ComponentDef tables

@@ -1,4 +1,4 @@
-namespace GameServer.Data.SDB.Records.dbsubzonegrid;
+namespace GameServer.StaticDB.Records.dbsubzonegrid;
 public record class SubZoneRecord
 {
     public uint? CameraLocalPfxId1 { get; set; }
