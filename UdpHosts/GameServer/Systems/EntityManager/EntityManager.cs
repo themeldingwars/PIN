@@ -184,10 +184,12 @@ public class EntityManager
             deployableEntity.Scoping = new ScopingComponent() { Range = deployableInfo.ScopeRange };
         }
 
-        if (deployableInfo.CollisionId != 0)
+        if (deployableInfo.CollisionId == 0)
         {
-            deployableEntity.Collision = new CollisionComponent() { HitboxCollisionId = deployableInfo.CollisionId, Scale = deployableInfo.Scale };
+            _logger.Warning("Deployable {typeId} info has no collision id, what do?", typeId);
         }
+
+        deployableEntity.Collision = new CollisionComponent() { HitboxCollisionId = deployableInfo.CollisionId, Scale = deployableInfo.Scale };
 
         _shard.Physics.CreateKineticEntity(deployableEntity);
         _shard.Physics.UpdateEntity(deployableEntity);
