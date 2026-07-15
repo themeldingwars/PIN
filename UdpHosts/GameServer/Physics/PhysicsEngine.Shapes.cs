@@ -78,6 +78,22 @@ public partial class PhysicsEngine
                 var assetId = hkx.Filename;
                 var assetPath = Path.Combine(_assetsPath, $"{assetId}.pinasset.json");
                 var statics = TagfileLoader.LoadRigidBody(Vector3.Zero, assetPath);
+                if (statics.Length == 0)
+                {
+                    _logger.Debug("No shapes from tagfile, returning a placeholder", shapeDef);
+                    shapeId = Simulation.Shapes.Add(new Sphere(1));
+                    builder.AddForKinematic(shapeId, pose, 1);
+                    result.Add(childIndex++, new ActivePoseShapeData()
+                    {
+                        DamageMod = shapeDef.DamageMod,
+                        HitTagType = shapeDef.HitTagType,
+                        Material = shapeDef.Material,
+                        Name = shapeDef.Name,
+                        ShapeFlags = shapeDef.Flags,
+                        ShapeId = shapeId,
+                    });
+                }
+
                 for (int i = 0; i < statics.Length; i++)
                 {
                     var stat = statics[i];
