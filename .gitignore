@@ -8,6 +8,7 @@
 Webhosts/WebHost.WebAsset/Assets/*
 !Webhosts/WebHost.WebAsset/Assets/.gitkeep
 UdpHosts/GameServer/App.config
+Tools/**/config.json
 *.pfi
 *.bkp
 *.dtmp
