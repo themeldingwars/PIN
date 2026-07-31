@@ -65,6 +65,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuPhysics", "Lib\BepuPhys
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuUtilities", "Lib\BepuPhysics2\BepuUtilities\BepuUtilities.csproj", "{9B396A99-729A-4273-8E18-6F722EED16B7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{6DEE58F8-3F1A-4694-8842-39D181C1E1B5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinimalSDB", "Tools\MinimalSDB\MinimalSDB.csproj", "{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -155,6 +159,10 @@ Global
 		{9B396A99-729A-4273-8E18-6F722EED16B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B396A99-729A-4273-8E18-6F722EED16B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B396A99-729A-4273-8E18-6F722EED16B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -181,6 +189,7 @@ Global
 		{77FA934A-D394-400E-BD4D-484495814280} = {95240733-4E61-4B10-B175-65EEBD026D7E}
 		{24616F0E-DEB2-418F-BC48-F1308FDEDC2E} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
 		{9B396A99-729A-4273-8E18-6F722EED16B7} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
+		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F} = {6DEE58F8-3F1A-4694-8842-39D181C1E1B5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7BF1BD43-A851-45C0-86F8-490A8E4FA305}
