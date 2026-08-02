@@ -104,9 +104,17 @@ public class GameServerModule : Module
                 settings.AssetDBPath = ConfigurationManager.AppSettings["AssetDBPath"];
             }
 
-            if (ConfigurationManager.AppSettings["AssetsPath"] != null)
+            if (ConfigurationManager.AppSettings["CachePath"] != null)
             {
-                settings.AssetsPath = ConfigurationManager.AppSettings["AssetsPath"];
+                settings.CachePath = ConfigurationManager.AppSettings["CachePath"];
+            }
+
+            if (ConfigurationManager.AppSettings["ForceReloadZone"] != null)
+            {
+                if (bool.TryParse(ConfigurationManager.AppSettings["ForceReloadZone"], out bool forceReload))
+                {
+                    settings.ForceReloadZone = forceReload;
+                }
             }
 
             return settings;

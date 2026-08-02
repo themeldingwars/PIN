@@ -15,84 +15,86 @@ using GameServer.Entities.Character;
 using GameServer.StaticDB;
 using GameServer.Systems.SystemEvents;
 using Serilog;
+using Shared.Collision;
+using Shared.Collision.ZoneLoading;
 
 namespace GameServer.Physics;
 
 /// <summary>
-///    Main
+///    Runs physics simulations (primarily hit detection)
 /// </summary>
 public partial class PhysicsEngine
 {
     public const float TargetTimestepDuration = 50; // (1/20f)
+    public const float TargetDebugTickDuration = 200;
 
     private readonly ILogger _logger;
     private readonly EventBus _eventBus;
+    private readonly ZoneLoader _zoneLoader;
+    private readonly RigidBodyLoader _rigidBodyLoader;
     private readonly Dictionary<BodyHandle, ulong> _bodyToEntityId = [];
     private readonly Dictionary<ulong, BodyHandle> _entityIdToBody = [];
     private readonly Dictionary<ulong, AssetCompoundKey> _entityIdToAssetKey = [];
-    private readonly string _assetsPath = string.Empty;
     private readonly string _mapsPath = string.Empty;
+    private readonly string _cachePath = string.Empty;
+    private readonly bool _forceReload;
+    private readonly bool _isDebugPipeClient;
+
     private TypedIndex _fallbackShape;
     private int _debugEntityIndex = -1;
+    private double _debugTimeAccumulator;
 
-    public PhysicsEngine(EventBus eventBus, uint zoneId, string mapsPath = "", string assetDBPath = "", string assetsPath = "", bool loadMapsCollision = false, DebugProjectileHitCallbacks? debugProjectileHitCallbacks = null, bool isDebugPipeClient = false)
+    public PhysicsEngine(EventBus eventBus, uint zoneId, string mapsPath = "", string assetDBPath = "", bool loadMapsCollision = false, DebugProjectileHitCallbacks? debugProjectileHitCallbacks = null, bool isDebugPipeClient = false, string cachePath = "", bool forceReload = false)
     {
         _eventBus = eventBus;
         _logger = Log.Logger.ForContext<PhysicsEngine>();
-        _assetsPath = assetsPath;
         _mapsPath = mapsPath;
+        _cachePath = cachePath;
+        _forceReload = forceReload;
         DebugProjectileHitCallbacks = debugProjectileHitCallbacks;
 
-        // Determine number of threads to use
         var targetThreadCount = int.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
 
-        // Setup BepuPhysics
         BufferPool = new BufferPool();
         ThreadDispatcher = new ThreadDispatcher(targetThreadCount);
         Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new Vector3(0, 0, -8)), new SolveDescription(8, 1));
 
-        // Default shapes
         _fallbackShape = Simulation.Shapes.Add(new Sphere(0.9f));
 
-        // Construct loaders
-        TagfileLoader = new TagfileLoader.TagfileLoader(Simulation, BufferPool, ThreadDispatcher);
-        ZoneLoader = new ZoneLoader.ZoneLoader(Simulation, BufferPool, ThreadDispatcher, TagfileLoader);
+        _zoneLoader = new ZoneLoader(Simulation, BufferPool, ThreadDispatcher, mapsPath, cachePath);
+        _rigidBodyLoader = new RigidBodyLoader(Simulation, BufferPool, ThreadDispatcher, assetDBPath, cachePath);
         PoseLoader = new PoseLoader.PoseLoader(assetDBPath);
 
+        _isDebugPipeClient = isDebugPipeClient;
         DebugInitialize(isDebugPipeClient, zoneId);
 
-        // Load zone
         if (loadMapsCollision)
         {
-            LoadZone(zoneId, mapsPath);
+            LoadZone(zoneId);
         }
     }
 
-    public event Action? OnZoneLoaded;
+    public long? ZoneFileTimestamp { get; private set; }
 
     public Simulation Simulation { get; protected set; }
     public BufferPool BufferPool { get; private set; }
     public ThreadDispatcher ThreadDispatcher { get; private set; }
     public double TimeAccumulator { get; protected set; }
-    public TagfileLoader.TagfileLoader TagfileLoader { get; private set; }
-    public ZoneLoader.ZoneLoader ZoneLoader { get; private set; }
     public PoseLoader.PoseLoader PoseLoader { get; private set; }
     private DebugProjectileHitCallbacks? DebugProjectileHitCallbacks { get; set; }
 
-    public void LoadZone(uint zoneId, string mapsPath = "")
+    public void LoadZone(uint zoneId)
     {
-        _logger.Debug("LoadZone {zoneId}", zoneId);
-        var cachePath = Physics.ZoneLoader.SimulationCache.GetCachePath(mapsPath, zoneId);
-        if (!Physics.ZoneLoader.SimulationCache.TryLoad(Simulation, BufferPool, ThreadDispatcher, cachePath))
+        var ts = _zoneLoader.LoadZone(zoneId, _forceReload);
+        if (ts.HasValue)
         {
-            var ok = ZoneLoader.LoadCollision(mapsPath, zoneId);
-            if (ok)
-            {
-                Physics.ZoneLoader.SimulationCache.Save(Simulation, BufferPool, cachePath);
-            }
+            ZoneFileTimestamp = ts.Value;
         }
+    }
 
-        OnZoneLoaded?.Invoke();
+    public StaticDescription[] LoadRigidBody(string assetId)
+    {
+        return _rigidBodyLoader.Load(assetId);
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -103,7 +105,16 @@ public partial class PhysicsEngine
             DebugProcessMessages();
             Simulation.Timestep(TargetTimestepDuration, ThreadDispatcher);
             TimeAccumulator -= TargetTimestepDuration;
-            DebugSendTickUpdate();
+        }
+
+        if (!ct.IsCancellationRequested && !_isDebugPipeClient)
+        {
+            _debugTimeAccumulator += deltaTime;
+            if (_debugTimeAccumulator >= TargetDebugTickDuration)
+            {
+                DebugSendTickUpdate();
+                _debugTimeAccumulator = 0;
+            }
         }
     }
 
@@ -262,27 +273,24 @@ public partial class PhysicsEngine
                 bodyPosition.Z -= 0.9f;
                 DebugProjectileHitCallbacks?.SendDebugProjectilePoseHit(source, trace, hitPosition, bodyPosition);
 
-                // Temporary debug testing below
                 var hitEntityId = _bodyToEntityId.GetValueOrDefault(hitHandler.HitCollidable.BodyHandle);
                 if (hitEntityId != 0)
                 {
                     var body = Simulation.Bodies[hitHandler.HitCollidable.BodyHandle];
                     var shape = body.Collidable.Shape;
-                    bool headshot = false;
-                    bool crit = false;
                     if (_poseCompoundToAssetId.ContainsKey(shape))
                     {
                         var poseId = _poseCompoundToAssetId[shape];
                         var poseData = _assetIdToPoseCompoundData[poseId];
                         var poseShapeData = poseData[hitHandler.ChildIndex];
-                        var physicsMaterial = SDBInterface.GetPhysicsMaterial((uint)poseShapeData.Material); // TODO: Material can be 0 which will result in null here, but what should we do? Is there a default to fallback to?
+                        var physicsMaterial = SDBInterface.GetPhysicsMaterial((uint)poseShapeData.Material);
 
-                        headshot = poseShapeData.ShapeFlags.Headshot;
-                        crit = physicsMaterial?.IsCritHit == 1;
+                        var headshot = poseShapeData.ShapeFlags.Headshot;
+                        var crit = physicsMaterial?.IsCritHit == 1;
                         var damageMod = poseShapeData.DamageMod;
 
-                        _logger.Debug($"ProjectileRayCast Impact on {poseShapeData.Name}");
-                        _logger.Debug($"You hit {poseShapeData.Name} of {hitEntityId}");
+                        _logger.Debug("ProjectileRayCast Impact on {ShapeName}", poseShapeData.Name);
+                        _logger.Debug("You hit {ShapeName} of {EntityId}", poseShapeData.Name, hitEntityId);
                         if (source.IsPlayerControlled)
                         {
                             _eventBus.Enqueue(new DebugChatDirectMessageEvent($"You hit {poseShapeData.Name} of {hitEntityId}", source.Player));
@@ -365,11 +373,7 @@ public partial class PhysicsEngine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, CollidableReference collidable, int childIndex)
         {
-            // We are only interested in the earliest hit. This callback is executing within the traversal, so modifying maximumT informs the traversal
-            // that it can skip any AABBs which are more distant than the new maximumT.
             maximumT = t;
-
-            // Cache the earliest impact.
             T = t;
             HitCollidable = collidable;
             Normal = normal;

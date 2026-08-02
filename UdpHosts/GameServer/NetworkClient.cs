@@ -23,7 +23,7 @@ public class NetworkClient : INetworkClient
 {
     protected readonly ILogger Logger;
 
-    protected NetworkClient(IPEndPoint endPoint, uint socketId, ILogger logger)
+    protected internal NetworkClient(IPEndPoint endPoint, uint socketId, ILogger logger)
     {
         Logger = logger;
         SocketId = socketId;
@@ -32,7 +32,7 @@ public class NetworkClient : INetworkClient
         NetLastActive = DateTime.Now;
     }
 
-    public ClientStatus NetClientStatus { get; private set; }
+    public ClientStatus NetClientStatus { get; internal set; }
     public uint SocketId { get; }
     public IPEndPoint RemoteEndpoint { get; }
     public DateTime NetLastActive { get; private set; }

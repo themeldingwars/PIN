@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using GameServer.Data;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
 using GameServer.Physics;
@@ -44,7 +43,7 @@ public class Shard : IShard
         Encounters = new ConcurrentDictionary<ulong, IEncounter>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
         EventBus = new EventBus();
-        Physics = new PhysicsEngine(EventBus, Settings.ZoneId, Settings.MapsPath, Settings.AssetDBPath, Settings.AssetsPath, Settings.LoadMapsCollision, new DebugProjectileHitCallbacks(this));
+        Physics = new PhysicsEngine(EventBus, Settings.ZoneId, Settings.MapsPath, Settings.AssetDBPath, Settings.LoadMapsCollision, new DebugProjectileHitCallbacks(this), false, Settings.CachePath, Settings.ForceReloadZone);
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);

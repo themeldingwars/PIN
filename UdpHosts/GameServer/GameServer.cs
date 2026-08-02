@@ -28,6 +28,7 @@ internal class GameServer : PacketServer
     private readonly GameServerSettings  _settings;
 
     private byte _nextShardId;
+    private bool _isReady;
 
     public GameServer(GameServerSettings serverSettings,
                       ILogger logger,
@@ -62,6 +63,9 @@ internal class GameServer : PacketServer
         {
             _ = ListenGrpcAsync(ct);
         }
+
+        _isReady = true;
+        Logger.Information("Server is ready to accept connections.");
     }
 
     protected override async void ServerRunThreadAsync(CancellationToken ct)
@@ -101,6 +105,14 @@ internal class GameServer : PacketServer
         if (!_clientMap.ContainsKey(socketId))
         {
             var newClient = new NetworkPlayer(packet.RemoteEndpoint, socketId, Logger);
+
+            if (!_isReady)
+            {
+                var rejected = new NetworkClient(packet.RemoteEndpoint, socketId, Logger);
+                rejected.NetClientStatus = ClientStatus.Aborted;
+                Logger.Information("Rejected connection from {Endpoint} — server not ready.", packet.RemoteEndpoint);
+                return rejected;
+            }
 
             client = _clientMap.AddOrUpdate(socketId, newClient, (_, nc) => nc);
             _ = GetNextShard(ct).MigrateIn((INetworkPlayer)client);

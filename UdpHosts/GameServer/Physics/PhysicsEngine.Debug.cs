@@ -232,7 +232,7 @@ public partial class PhysicsEngine
             switch (msg.PayloadCase)
             {
                 case PipeMessage.PayloadOneofCase.LoadZone:
-                    LoadZone(msg.LoadZone.ZoneId, _mapsPath);
+                    LoadZone(msg.LoadZone.ZoneId);
                     break;
 
                 case PipeMessage.PayloadOneofCase.LoadEntities:
