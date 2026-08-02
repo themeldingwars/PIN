@@ -232,7 +232,7 @@ public class EntityManager
 
             var timer = new Timer(state =>
                  {
-                     _logger.ForContext<AbilitySystem>().Information("Deployable: Executing ability {PoweredOnAbility}", poweredOnAbility);
+                     _logger.ForContext<AbilitySystem>().Information("Deployable: Executing powered on ability {PoweredOnAbility}", poweredOnAbility);
                      _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, poweredOnAbility);
 
                      ((Timer)state)?.Dispose();

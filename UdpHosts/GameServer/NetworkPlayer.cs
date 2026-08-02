@@ -313,7 +313,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         {
             InstanceId = AssignedShard.InstanceId,
             ZoneId = CurrentZone.ID,
-            ZoneTimestamp = (long)CurrentZone.Timestamp,
+            ZoneTimestamp = AssignedShard.Physics.ZoneFileTimestamp ?? (long)CurrentZone.Timestamp,
             ZoneFlags = 0,
             ZoneOwner = "r5_exec",
             StreamingProtocol = 0x4c5f,

@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebHost.CatchAll", "WebHost
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Data", "Lib\Shared.Data\Shared.Data.csproj", "{75EB6F4E-F38B-448F-9EB0-39097DB61E33}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Collision", "Lib\Shared.Collision\Shared.Collision.csproj", "{4D497A81-211C-4335-AAF8-1E8CEA202FA3}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Data", "Lib\Core.Data\Core.Data.csproj", "{F77029A1-3ECB-4464-9909-9A7D1E977A86}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebHost.Store", "WebHosts\WebHost.Store\WebHost.Store.csproj", "{0EDF188A-18CC-4ADA-943F-523B040A3135}"
@@ -68,6 +70,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{6DEE58F8-3F1A-4694-8842-39D181C1E1B5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinimalSDB", "Tools\MinimalSDB\MinimalSDB.csproj", "{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CollisionGenerator", "Tools\CollisionGenerator\CollisionGenerator.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -163,6 +167,14 @@ Global
 		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D497A81-211C-4335-AAF8-1E8CEA202FA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D497A81-211C-4335-AAF8-1E8CEA202FA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D497A81-211C-4335-AAF8-1E8CEA202FA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D497A81-211C-4335-AAF8-1E8CEA202FA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -190,6 +202,8 @@ Global
 		{24616F0E-DEB2-418F-BC48-F1308FDEDC2E} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
 		{9B396A99-729A-4273-8E18-6F722EED16B7} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
 		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F} = {6DEE58F8-3F1A-4694-8842-39D181C1E1B5}
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890} = {6DEE58F8-3F1A-4694-8842-39D181C1E1B5}
+		{4D497A81-211C-4335-AAF8-1E8CEA202FA3} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7BF1BD43-A851-45C0-86F8-490A8E4FA305}

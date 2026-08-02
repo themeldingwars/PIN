@@ -1,6 +1,5 @@
 #nullable enable
 using System.Collections.Generic;
-using System.IO;
 using System.Numerics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -76,8 +75,7 @@ public partial class PhysicsEngine
                 _logger.Debug("Pose {PoseFileName} - {ShapeName} is HKX shape {Filename}", poseDef.Name, name, hkx.Filename);
 
                 var assetId = hkx.Filename;
-                var assetPath = Path.Combine(_assetsPath, $"{assetId}.pinasset.json");
-                var statics = TagfileLoader.LoadRigidBody(Vector3.Zero, assetPath);
+                var statics = LoadRigidBody(assetId);
                 if (statics.Length == 0)
                 {
                     _logger.Debug("No shapes from tagfile, returning a placeholder", shapeDef);

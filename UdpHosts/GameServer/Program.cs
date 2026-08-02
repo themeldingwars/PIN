@@ -60,6 +60,11 @@ internal static class Program
         {
             settings.LogLevel = options.LogLevel;
         }
+
+        if (options.ForceReload)
+        {
+            settings.ForceReloadZone = options.ForceReload;
+        }
     }
 
     /// <summary>

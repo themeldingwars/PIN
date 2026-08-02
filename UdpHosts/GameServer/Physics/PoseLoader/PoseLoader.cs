@@ -28,10 +28,7 @@ public class PoseLoader
             return;
         }
 
-        _availableFolders = [.. Directory.GetDirectories(_assetRoot)
-                     .Select(Path.GetFileName)
-                     .Where(name => name != null && name.All(char.IsDigit))
-                     .Select(name => name!)];
+        _availableFolders = new(AssetPathResolver.ScanAvailableFolders(_assetRoot));
 
         _logger.Information("PoseLoader initialized with {FolderCount} folders", _availableFolders.Count);
     }
@@ -87,33 +84,6 @@ public class PoseLoader
 
     private string? ResolvePath(string assetId)
     {
-        if (_pathCache.TryGetValue(assetId, out var cached))
-        {
-            return cached;
-        }
-
-        string folderName = (int.Parse(assetId) / 1000 * 1000).ToString("D8");
-
-        if (!_availableFolders.Contains(folderName))
-        {
-            return null;
-        }
-
-        string folderPath = Path.Combine(_assetRoot, folderName);
-        if (!Directory.Exists(folderPath))
-        {
-            return null;
-        }
-
-        var file = Directory.EnumerateFiles(folderPath)
-                            .FirstOrDefault(f => Path.GetFileNameWithoutExtension(f) == assetId);
-
-        if (file != null)
-        {
-            _pathCache[assetId] = file;
-            return file;
-        }
-
-        return null;
+        return AssetPathResolver.Resolve(_assetRoot, assetId, ".pose", _availableFolders, _pathCache);
     }
 }
