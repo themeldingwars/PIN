@@ -64,15 +64,17 @@ public class EntityManager
         return _scopedPlayersByEntity.TryGetValue(entityId, out var players) && players.Contains(player);
     }
 
-    public CharacterEntity SpawnCharacter(uint typeId, Vector3 position, CharacterEntity owner = null)
+    public CharacterEntity SpawnCharacter(uint typeId, Vector3 position, CharacterEntity owner = null, bool canBleedout = false)
     {
         var characterEntity = new CharacterEntity(_shard, _shard.GetNextGuid(), owner);
         characterEntity.LoadMonster(typeId);
+        characterEntity.CanBleedout = canBleedout;
         characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, _shard.CurrentTime);
         characterEntity.SetPosition(position);
         characterEntity.SetSpawnPose();
         _shard.Physics.CreateKineticEntity(characterEntity);
         _shard.Physics.UpdateEntity(characterEntity);
+        _shard.CharacterLifecycle.OnCharacterCreated(characterEntity);
         Add(characterEntity.EntityId, characterEntity);
         return characterEntity;
     }
@@ -133,6 +135,8 @@ public class EntityManager
         deployableEntity.SetOrientation(orientation);
         deployableEntity.SetAimDirection(aimDirection);
         deployableEntity.Scale = deployableInfo.Scale;
+        deployableEntity.SetMaxHealth(deployableInfo.StartHitpoints);
+        deployableEntity.SetCurrentHealth(deployableInfo.StartHitpoints);
 
         // Determine faction
         byte factionId = 1;
@@ -551,9 +555,20 @@ public class EntityManager
         _shard.Entities.TryGetValue(guid, out IEntity entity);
         if (entity != null)
         {
+            if (entity is CharacterEntity characterEntity)
+            {
+                _shard.CharacterLifecycle.OnCharacterRemoved(characterEntity);
+            }
+
+            if (_shard.Physics.HasEntity(entity))
+            {
+                _shard.Physics.RemoveEntity(entity);
+            }
+
             OnRemovedEntity(entity);
             _shard.Entities.Remove(guid);
             _ = _scopedPlayersByEntity.TryRemove(guid, out _);
+            _ = _lifetimeByEntity.TryRemove(guid, out _);
         }
     }
 

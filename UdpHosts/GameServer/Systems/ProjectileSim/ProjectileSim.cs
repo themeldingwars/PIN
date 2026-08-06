@@ -153,7 +153,7 @@ public class ProjectileSim
                     var source = GetSourceEntity(projectile);
                     if (source != null)
                     {
-                        _shard.Physics.HandleProjectileImpactDebug(source, projectile.TraceId, hit);
+                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit);
                     }
                 }
             }

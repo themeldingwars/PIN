@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS.V66;
@@ -34,7 +35,9 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public uint AbilitySrcId { get; set; }
     public uint GibVisualsID { get; set; }
     public float Scale { get; set; }
-    public int MaxHealth { get; set; }
+    public int MaxHealth { get; private set; }
+    public int CurrentHealth { get; private set; }
+    public bool IsDead { get; private set; }
     public uint PoweredOnAbility { get; set; }
     public uint PoweredOffAbility { get; set; }
 
@@ -151,6 +154,31 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     {
         HostilityInfo = newValue;
         Deployable_ObserverView.HostilityInfoProp = HostilityInfo;
+    }
+
+    public void SetMaxHealth(int newValue)
+    {
+        MaxHealth = newValue;
+        Deployable_ObserverView.MaxHealthProp = MaxHealth;
+    }
+
+    public void SetCurrentHealth(int newValue)
+    {
+        CurrentHealth = Math.Min(Math.Max(0, newValue), MaxHealth);
+        byte pct = MaxHealth > 0 ? (byte)(((float)CurrentHealth / MaxHealth) * 100) : (byte)0;
+
+        Deployable_ObserverView.CurrentHealthPctProp = pct;
+    }
+
+    public void SetGibVisuals(uint gibVisualsId)
+    {
+        GibVisualsID = gibVisualsId;
+        Deployable_ObserverView.GibVisualsIDProp = GibVisualsID;
+    }
+
+    public void MarkDead()
+    {
+        IsDead = true;
     }
 
     public override bool IsInteractable()

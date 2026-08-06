@@ -107,6 +107,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         AssignedShard.Physics.CreateKineticEntity(CharacterEntity);
 
         CharacterEntity.SetControllingPlayer(this);
+        CharacterEntity.CanBleedout = true;
+        AssignedShard.CharacterLifecycle.OnCharacterCreated(CharacterEntity);
         CharacterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Spawning, AssignedShard.CurrentTime);
         Status = IPlayer.PlayerStatus.LoggedIn;
 
@@ -221,11 +223,22 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         AssignedShard.Physics.UpdateEntity(CharacterEntity);
         CharacterEntity.Alive = true; // Accept MovementInputs only after Respawn
+        AssignedShard.CharacterLifecycle.OnCharacterCreated(CharacterEntity);
     }
 
     public void Ready()
     {
         Status = IPlayer.PlayerStatus.Playing;
+    }
+
+    public void RequestRevive(INetworkPlayer reviver)
+    {
+        if (reviver == null || CharacterEntity == null)
+        {
+            return;
+        }
+
+        AssignedShard.CharacterLifecycle.TryRevive(CharacterEntity, reviver.CharacterEntity);
     }
 
     public void Jump()

@@ -6,10 +6,13 @@ using GameServer.Entities.Outpost;
 using GameServer.Physics;
 using GameServer.Systems.Admin;
 using GameServer.Systems.Aptitude;
+using GameServer.Systems.CharacterLifecycle;
 using GameServer.Systems.Chat;
+using GameServer.Systems.Combat;
 using GameServer.Systems.Encounters;
 using GameServer.Systems.EntityManager;
 using GameServer.Systems.MovementRelay;
+using GameServer.Systems.PlayerRespawn;
 using GameServer.Systems.ProjectileSim;
 using GameServer.Systems.WeaponSim;
 using Serilog;
@@ -34,6 +37,9 @@ public interface IShard : IPacketSender
     WeaponSim WeaponSim { get; }
     ChatService Chat { get; }
     AdminService Admin { get; }
+    DamageSystem Damage { get; }
+    CharacterLifecycleService CharacterLifecycle { get; }
+    PlayerRespawnService PlayerRespawn { get; }
     uint ZoneId { get; }
     ILogger Logger { get; }
 

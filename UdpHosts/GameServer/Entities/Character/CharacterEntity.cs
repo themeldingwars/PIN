@@ -70,11 +70,13 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public short MovementState { get; set; }
     public ushort MovementShortTime { get; set; }
     public bool Alive { get; set; }
+    public bool CanBleedout { get; set; } = false;
     public short TimeSinceLastJump { get; set; }
     public bool IsAirborne { get; set; }
     public bool IsMoving { get => MovementStateContainer.Sprint || MovementStateContainer.Movement; }
     public bool IsCrouching { get => MovementStateContainer.Crouch; }
     public bool IsAttached { get => AttachedToEntity != null; }
+    public bool IsAlive { get => CharacterState.State.Equals(CharacterStateData.CharacterStatus.Living); }
 
     public Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> CurrentPermissions { get; set; } = new Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool>()
     {
@@ -144,6 +146,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public IEntity AttachedToEntity { get; set; }
     public int SelectedLoadout { get; set; }
     public List<DeployableEntity> OwnedDeployables { get; set; } = [];
+    public RespawnTimesData? RespawnTimes { get; private set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -1337,6 +1340,56 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Character_BaseController?.CurrentShieldsProp = CurrentShields;
     }
 
+    public void SetRespawnTimes(RespawnTimesData newValue)
+    {
+        RespawnTimes = newValue;
+        Character_ObserverView?.RespawnTimesProp = RespawnTimes;
+        Character_BaseController?.RespawnTimesProp = RespawnTimes;
+    }
+
+    public void SetGibVisualsInfo(uint gibVisualsId, uint time)
+    {
+        GibVisualsInfo = new GibVisuals { Id = gibVisualsId, Time = time };
+        Character_ObserverView.GibVisualsIDProp = GibVisualsInfo;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.GibVisualsIdProp = GibVisualsInfo;
+        }
+    }
+
+    public bool TryGetGibVisualsId(out uint gibVisualsId)
+    {
+        gibVisualsId = 0;
+        uint chassisId = CurrentLoadout?.ChassisID ?? 0;
+        if (chassisId == 0)
+        {
+            return false;
+        }
+
+        var battleframe = SDBInterface.GetBattleframe(chassisId);
+        if (battleframe == null || battleframe.GibsetId == 0)
+        {
+            return false;
+        }
+
+        gibVisualsId = battleframe.GibsetId;
+        return true;
+    }
+
+    public ulong GetCurrentPermissionsValue()
+    {
+        ulong result = 0ul;
+        foreach (var pair in CurrentPermissions)
+        {
+            if (pair.Value)
+            {
+                result += (ulong)pair.Key;
+            }
+        }
+
+        return result;
+    }
+
     private static void BuildWeaponSlotDetails(ActiveWeaponDetails[,] cache, int index, uint weaponId, StatsData[] weaponAttributes)
     {
         if (weaponId == 0)
@@ -1777,20 +1830,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Character_CombatController.GetType().GetProperty($"StatusEffects_{i}Prop").SetValue(Character_CombatController, sourceData, null);
             }
         }
-    }
-
-    private ulong GetCurrentPermissionsValue()
-    {
-        ulong result = 0ul;
-        foreach (var pair in CurrentPermissions)
-        {
-            if (pair.Value)
-            {
-                result += (ulong)pair.Key;
-            }
-        }
-
-        return result;
     }
 
     private void SetMapMarker(byte index, PersonalMapMarkerData? data)

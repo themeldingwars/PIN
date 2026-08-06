@@ -10,10 +10,14 @@ using GameServer.Entities.Outpost;
 using GameServer.Physics;
 using GameServer.Systems.Admin;
 using GameServer.Systems.Aptitude;
+using GameServer.Systems.CharacterLifecycle;
 using GameServer.Systems.Chat;
+using GameServer.Systems.Combat;
 using GameServer.Systems.Encounters;
 using GameServer.Systems.EntityManager;
 using GameServer.Systems.MovementRelay;
+using GameServer.Systems.NpcDeath;
+using GameServer.Systems.PlayerRespawn;
 using GameServer.Systems.ProjectileSim;
 using GameServer.Systems.SystemEvents;
 using GameServer.Systems.WeaponSim;
@@ -54,6 +58,12 @@ public class Shard : IShard
         ProjectileSim = new ProjectileSim(this, debugCallbacks);
         Chat = new ChatService(this, EventBus);
         Admin = new AdminService(this);
+        var npcDeathRules = new StandardNpcDeathRules();
+        Damage = new DamageSystem(EventBus, this, npcDeathRules);
+        Combat = new CombatSim(EventBus, EntityMan, Damage, this);
+        CharacterLifecycle = new CharacterLifecycleService(this, EventBus, new StandardCharacterLifecycleRules());
+        PlayerRespawn = new PlayerRespawnService(this, EventBus, new StandardPlayerRespawnRules(), CharacterLifecycle);
+        NpcDeath = new NpcDeathService(this, EventBus, npcDeathRules);
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
     }
 
@@ -73,6 +83,11 @@ public class Shard : IShard
     public WeaponSim WeaponSim { get; }
     public ChatService Chat { get; }
     public AdminService Admin { get; }
+    public DamageSystem Damage { get; }
+    public CombatSim Combat { get; }
+    public CharacterLifecycleService CharacterLifecycle { get; }
+    public PlayerRespawnService PlayerRespawn { get; }
+    public NpcDeathService NpcDeath { get; }
     public ulong InstanceId { get; }
     public uint ZoneId { get; private set; }
     public ulong CurrentTimeLong { get; private set; }
@@ -108,6 +123,9 @@ public class Shard : IShard
         Abilities.Tick(deltaTime, currentTime, ct);
         WeaponSim.Tick(deltaTime, currentTime, ct);
         ProjectileSim.Tick(deltaTime, currentTime, ct);
+        Damage.Tick(deltaTime, currentTime, ct);
+        CharacterLifecycle.Tick(deltaTime, currentTime, ct);
+        PlayerRespawn.Tick(deltaTime, currentTime, ct);
         EventBus.Flush();
 
         return true;
