@@ -147,7 +147,14 @@ public class WeaponSim
             // Shambles
             float mult = (float)weaponSimState.AccumulatedSpreadTime / weapon.SpreadRampTime;
             float spreadRange = weapon.MaxSpread - weapon.MinSpread;
-            spreadValue += mult * spreadRange;
+            if (inverse)
+            {
+                spreadValue -= mult * spreadRange;
+            }
+            else
+            {
+                spreadValue += mult * spreadRange;
+            }
         }
 
         // If max spread is set, ensure we are not above maxSpread, even if minSpread > maxSpread (BioCrossbow, AR ADS)
