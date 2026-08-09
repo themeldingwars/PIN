@@ -850,7 +850,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             Character_BaseController.CharacterStateProp = CharacterState;
         }
     }
-    
+
     public void SetControllingPlayer(INetworkPlayer player)
     {
         Player = player;
@@ -1204,6 +1204,26 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     }
 
 #nullable enable
+
+    public StatsData[] GetActiveWeaponAttributes()
+    {
+        StatsData[] weaponAttributes;
+        switch (WeaponIndex.Index)
+        {
+            case 2:
+                weaponAttributes = CurrentLoadout.GetSecondaryWeaponAttributes();
+                break;
+            case 1:
+                weaponAttributes = CurrentLoadout.GetPrimaryWeaponAttributes();
+                break;
+            case 0:
+            default:
+                // Console.WriteLine($"GetActiveWeaponAttributes fails because invalid selected weapon index {WeaponIndex.Index}");
+                return [];
+        }
+
+        return weaponAttributes;
+    }
 
     // TODO: cache this
     public ActiveWeaponDetails? GetActiveWeaponDetails()

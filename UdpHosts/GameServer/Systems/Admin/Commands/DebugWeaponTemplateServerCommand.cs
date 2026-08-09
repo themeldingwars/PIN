@@ -1,5 +1,6 @@
 using System.Text;
 using GameServer.Entities.Character;
+using GameServer.StaticDB;
 
 namespace GameServer.Systems.Admin.Commands;
 
@@ -113,6 +114,17 @@ public class DebugWeaponTemplateServerCommand : ServerCommand
         stringBuilder.AppendLine($"MsAgilityReturnDelay: {info.Weapon.MsAgilityReturnDelay}");
         stringBuilder.AppendLine($"-----");
         */
+
+        stringBuilder.AppendLine($"----- Attributes");
+        var stats = character.GetActiveWeaponAttributes();
+        for (int i = 0; i < stats.Length; i++)
+        {
+            var stat = stats[i];
+            var attr = SDBInterface.GetAttributeDefinition(stat.Id);
+            stringBuilder.AppendLine($"{stat.Id} {attr.Name} {stat.Value}");
+        }
+
+        stringBuilder.AppendLine($"-----");
 
         var message = stringBuilder.ToString();
 

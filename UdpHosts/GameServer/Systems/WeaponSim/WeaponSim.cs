@@ -7,6 +7,7 @@ using System.Threading;
 using AeroMessages.GSS.V66.Generic;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using GameServer.Enums;
 using GameServer.StaticDB;
 using Serilog;
 
@@ -271,12 +272,15 @@ public class WeaponSim
 
         var spreadPct = GetCurrentSpreadPct(entity, weapon, weaponSimState, weaponSpreadFactor, time);
 
+        var ammo = SDBInterface.GetAmmo(weapon.AmmoId);
         var eventData = new DebugWeaponSimEventData()
         {
             WeaponName = weapon.DebugName,
             SpreadPct = spreadPct,
             WeaponId = weaponId,
             AccumulatedSpreadTime = weaponSimState.AccumulatedSpreadTime,
+            WeaponFlags = ((WeaponTemplateFlags)weapon.WeaponFlags).ToString(),
+            AmmoFlags = ammo != null ? ((AmmoFlags)ammo.Flags).ToString() : "[N/A]"
         };
 
         try
@@ -329,5 +333,7 @@ public class WeaponSim
         public float SpreadPct { get; set; }
         public uint WeaponId { get; set; }
         public uint AccumulatedSpreadTime { get; set; }
+        public string WeaponFlags { get; set; }
+        public string AmmoFlags { get; set; }
     }
 }
