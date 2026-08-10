@@ -58,6 +58,22 @@ public static partial class PRNG
         return t1 ^ t2 ^ bullet ^ time;
     }
 
+    public static float Float(uint seed)
+    {
+        // High 32 bits of: x * 0x797A8D77
+        uint h = (uint)((seed * 0x797A8D77UL) >> 32);
+
+        h ^= seed;
+
+        uint y =
+            ((uint)Table[h & 0xFF] << 24) |
+            ((uint)Table[(h >> 24) & 0xFF] << 16) |
+            ((uint)Table[(h >> 8)  & 0xFF] << 8) |
+            Table[(h >> 16) & 0xFF];
+
+        return y * (1.0f / 4294967296.0f);
+    }
+
     public static void Spread(uint time, byte slotIndex, byte bullet, Vector3 aimForward, Vector3 aimRight, Vector3 aimUp, float spreadPct, Vector3 lastSpreadDir, uint lastSpreadTime, out Vector3 result)
     {
         if (spreadPct < 0.001)

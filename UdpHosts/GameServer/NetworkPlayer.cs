@@ -100,6 +100,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
         var loadoutRefData = Inventory.GetLoadoutReferenceData(loadoutId);
         var loadout = new CharacterLoadout(loadoutRefData);
+        AssignedShard.Admin.ApplyEquipmentOverrides(this, loadout);
         CharacterEntity.ApplyLoadout(loadout);
 
         // Collision data should have been initialized now, create physics representation

@@ -343,6 +343,9 @@ public class EntityManager
         // Checkerboard, Harvester/Crash Down
         if (_shard.ZoneId == 12 || _shard.ZoneId == 1003)
         {
+            // Battleframe Station
+            SpawnDeployable(395, new Vector3(0, 0, 0f), Quaternion.Identity);
+
             bool vehicleTest = true;
             bool factionTest = false;
             if (vehicleTest)

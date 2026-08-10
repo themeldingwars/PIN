@@ -18,6 +18,7 @@ using GameServer.StaticDB.Records.dbitems;
 using GameServer.StaticDB.Records.dbvisualrecords;
 using GameServer.Systems.Aptitude;
 using GameServer.Systems.Encounters;
+using GameServer.Systems.WeaponSim;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
 using Serilog;
@@ -33,6 +34,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 {
     public const byte MaxMapMarkerCount = 64;
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
+    private ActiveWeaponDetails[,] _weaponDetailsCache;
 
     public CharacterEntity(IShard shard, ulong eid, CharacterEntity owner = null)
         : base(shard, eid, owner)
@@ -432,7 +434,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void ApplyLoadout(CharacterLoadout loadout)
     {
+        Shard.Admin.ApplyEquipmentOverrides(Player, loadout);
         CurrentLoadout = loadout;
+        RebuildWeaponDetailsCache(loadout);
 
         var emptyVisuals = new VisualsBlock
         {
@@ -1205,96 +1209,50 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
 #nullable enable
 
-    public StatsData[] GetActiveWeaponAttributes()
+    public Dictionary<ushort, float> GetActiveWeaponAttributes()
     {
-        StatsData[] weaponAttributes;
-        switch (WeaponIndex.Index)
-        {
-            case 2:
-                weaponAttributes = CurrentLoadout.GetSecondaryWeaponAttributes();
-                break;
-            case 1:
-                weaponAttributes = CurrentLoadout.GetPrimaryWeaponAttributes();
-                break;
-            case 0:
-            default:
-                // Console.WriteLine($"GetActiveWeaponAttributes fails because invalid selected weapon index {WeaponIndex.Index}");
-                return [];
-        }
-
-        return weaponAttributes;
+        var details = GetActiveWeaponDetails();
+        return details?.Attributes ?? [];
     }
 
-    // TODO: cache this
     public ActiveWeaponDetails? GetActiveWeaponDetails()
     {
-        // Weapon
-        uint weaponId;
-        StatsData[] weaponAttributes;
-        switch (WeaponIndex.Index)
+        if (_weaponDetailsCache == null)
         {
-            case 2:
-                weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary);
-                weaponAttributes = CurrentLoadout.GetSecondaryWeaponAttributes();
-                break;
-            case 1:
-                weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary);
-                weaponAttributes = CurrentLoadout.GetPrimaryWeaponAttributes();
-                break;
-            case 0:
-            default:
-                // Console.WriteLine($"GetActiveWeaponDetails fails because invalid selected weapon index {WeaponIndex.Index}");
-                return null;
-        }
-
-        if (weaponId == 0)
-        {
-            Logger.Warning("GetActiveWeaponDetails failed to get selected weapon id from loadout");
             return null;
         }
 
-        var weaponDetails = SDBUtils.GetDetailedWeaponInfo(weaponId);
-        var weapon = weaponDetails.Main;
-        if (weaponDetails.Alt != null && (FireMode_0.Mode != 0 || FireMode_1.Mode != 0))
+        byte index = WeaponIndex.Index;
+        if (index > 2)
         {
-            weapon = weaponDetails.Alt;
+            Logger.Warning("GetActiveWeaponDetails failed because invalid selected weapon index {Index}", index);
+            return null;
         }
 
-        var weaponAttributesDict = weaponAttributes.ToDictionary(p => p.Id);
-
-        float weaponAttributeSpread = 1f;
-        float weaponAttributeRateOfFire = 1f;
-        try
-        {
-            weaponAttributeSpread = weaponAttributesDict[(ushort)ItemAttributeId.WeaponSpread].Value;
-        }
-        catch (Exception)
-        {
-            Logger.Warning("Failed to get WeaponSpread Attribute");
-        }
-
-        try
-        {
-            weaponAttributeRateOfFire = weaponAttributesDict[(ushort)ItemAttributeId.RateOfFire].Value;
-        }
-        catch (Exception)
-        {
-            Logger.Warning("Failed to get RateOfFire Attribute");
-        }
-
-        // Calculate spread factor using Main even for Underbarrel, based on testing in-game.
-        // Bio Crossbow - Max spread 0, min spread 0.75, attribute spread 1, expected spread 0.75 => Ignore max spread if 0 and use attribute spread
-        float spreadFactor = weaponDetails.Main.MaxSpread > 0f ? weaponAttributeSpread / weaponDetails.Main.MaxSpread : weaponAttributeSpread;
-
-        return new ActiveWeaponDetails()
-        {
-            Weapon = weapon,
-            WeaponId = weaponId,
-            Spread = spreadFactor,
-            RateOfFire = weaponAttributeRateOfFire,
-        };
+        return _weaponDetailsCache[index, IsAltFireMode() ? 1 : 0];
     }
-#nullable disable
+
+    public byte GetActiveFireModeIndex()
+    {
+        return (byte)(IsAltFireMode() ? 1 : 0);
+    }
+
+    public ActiveWeaponDetails? GetWeaponDetails(byte modeIndex)
+    {
+        if (_weaponDetailsCache == null)
+        {
+            return null;
+        }
+
+        byte index = WeaponIndex.Index;
+        if (index > 2 || modeIndex > 1)
+        {
+            return null;
+        }
+
+        return _weaponDetailsCache[index, modeIndex];
+    }
+    #nullable disable
 
     public Vector3 GetProjectileOrigin()
     {
@@ -1377,6 +1335,72 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         CurrentShields = Math.Min(Math.Max(0, newValue), MaxShields.Value);
         Character_BaseController?.CurrentShieldsProp = CurrentShields;
+    }
+
+    private static void BuildWeaponSlotDetails(ActiveWeaponDetails[,] cache, int index, uint weaponId, StatsData[] weaponAttributes)
+    {
+        if (weaponId == 0)
+        {
+            cache[index, 0] = ActiveWeaponDetails.Empty;
+            cache[index, 1] = ActiveWeaponDetails.Empty;
+            return;
+        }
+
+        var weaponDetails = SDBUtils.GetDetailedWeaponInfo(weaponId);
+        if (weaponDetails == null)
+        {
+            cache[index, 0] = ActiveWeaponDetails.Empty;
+            cache[index, 1] = ActiveWeaponDetails.Empty;
+            return;
+        }
+
+        var attributes = weaponAttributes.ToDictionary(p => p.Id, p => p.Value);
+
+        // Weapons missing the Weapon Spread attribute fall back to MinSpread/MaxSpread in WeaponSpreadProfile.Build.
+        float? weaponAttributeSpread = attributes.TryGetValue((ushort)ItemAttributeId.WeaponSpread, out var spreadAttr) ? spreadAttr : null;
+        float weaponAttributeRateOfFire = attributes.GetValueOrDefault((ushort)ItemAttributeId.RateOfFire, 1f);
+
+        // Base/other are built for the active fire mode (Main or Alt/Underbarrel) with the
+        // main weapon's Weapon Spread attribute scale, matching the client pipeline.
+        float msPerBurstOverride = attributes.TryGetValue((ushort)ItemAttributeId.RateOfFire, out var rofAttr) ? rofAttr : 0f;
+
+        var main = new ActiveWeaponDetails()
+        {
+            Weapon = weaponDetails.Main,
+            WeaponId = weaponId,
+            SpreadProfile = WeaponSpreadProfile.Build(weaponDetails.Main, weaponId, weaponAttributeSpread, weaponDetails.Main.MaxSpread, msPerBurstOverride),
+            RateOfFire = weaponAttributeRateOfFire,
+            Attributes = attributes,
+        };
+
+        cache[index, 0] = main;
+        cache[index, 1] = weaponDetails.Alt != null
+            ? new ActiveWeaponDetails()
+            {
+                Weapon = weaponDetails.Alt,
+                WeaponId = weaponId,
+                SpreadProfile = WeaponSpreadProfile.Build(weaponDetails.Alt, weaponId, weaponAttributeSpread, weaponDetails.Main.MaxSpread, msPerBurstOverride),
+                RateOfFire = weaponAttributeRateOfFire,
+                Attributes = attributes,
+            }
+            : main;
+    }
+
+    private bool IsAltFireMode()
+    {
+        return FireMode_0.Mode != 0 || FireMode_1.Mode != 0;
+    }
+
+    private void RebuildWeaponDetailsCache(CharacterLoadout loadout)
+    {
+        var cache = new ActiveWeaponDetails[3, 2];
+        cache[0, 0] = ActiveWeaponDetails.Empty;
+        cache[0, 1] = ActiveWeaponDetails.Empty;
+
+        BuildWeaponSlotDetails(cache, 1, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary), loadout.GetPrimaryWeaponAttributes());
+        BuildWeaponSlotDetails(cache, 2, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary), loadout.GetSecondaryWeaponAttributes());
+
+        _weaponDetailsCache = cache;
     }
 
     private void InitFields()
@@ -1784,9 +1808,25 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public class ActiveWeaponDetails
     {
+        public static readonly ActiveWeaponDetails Empty = new()
+        {
+            Weapon = null,
+            WeaponId = 0,
+            SpreadProfile = default,
+            RateOfFire = 0,
+            Attributes = new Dictionary<ushort, float>(),
+        };
+
         public WeaponTemplateResult Weapon;
         public uint WeaponId;
-        public float Spread;
+        public WeaponSpreadProfile SpreadProfile;
         public float RateOfFire;
+        public Dictionary<ushort, float> Attributes = new();
+
+        public bool IsEmpty => Weapon == null;
+
+        public string DisplayName => Weapon?.DebugName ?? "(not a weapon)";
+
+        public float Spread => SpreadProfile.OtherSpreadPct;
     }
 }

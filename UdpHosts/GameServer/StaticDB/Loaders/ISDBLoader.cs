@@ -54,6 +54,7 @@ public interface ISDBLoader
     Dictionary<uint, Weapons> LoadWeapons();
     Dictionary<uint, WeaponTemplates> LoadWeaponTemplates();
     Dictionary<uint, WeaponTemplateModifiers> LoadWeaponTemplateModifiers();
+    Dictionary<uint, List<WeaponSlot>> LoadWeaponSlot();
     Dictionary<uint, WeaponScope> LoadWeaponScope();
     Dictionary<uint, WeaponUnderbarrel> LoadWeaponUnderbarrel();
     Dictionary<uint, Ammo> LoadAmmo();

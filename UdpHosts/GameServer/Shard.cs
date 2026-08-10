@@ -43,14 +43,15 @@ public class Shard : IShard
         Encounters = new ConcurrentDictionary<ulong, IEncounter>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
         EventBus = new EventBus();
-        Physics = new PhysicsEngine(EventBus, Settings.ZoneId, Settings.MapsPath, Settings.AssetDBPath, Settings.LoadMapsCollision, new DebugProjectileHitCallbacks(this), false, Settings.CachePath, Settings.ForceReloadZone);
+        var debugCallbacks = new DebugProjectileHitCallbacks(this);
+        Physics = new PhysicsEngine(EventBus, Settings.ZoneId, Settings.MapsPath, Settings.AssetDBPath, Settings.LoadMapsCollision, debugCallbacks, false, Settings.CachePath, Settings.ForceReloadZone);
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
         EntityMan = new EntityManager(this);
         EncounterMan = new EncounterManager(this);
         WeaponSim = new WeaponSim(this);
-        ProjectileSim = new ProjectileSim(this);
+        ProjectileSim = new ProjectileSim(this, debugCallbacks);
         Chat = new ChatService(this, EventBus);
         Admin = new AdminService(this);
         EntityRefMap = new ConcurrentDictionary<ushort, Tuple<IEntity, Enums.GSS.Controllers>>();
@@ -106,6 +107,7 @@ public class Shard : IShard
         EncounterMan.Tick(deltaTime, currentTime, ct);
         Abilities.Tick(deltaTime, currentTime, ct);
         WeaponSim.Tick(deltaTime, currentTime, ct);
+        ProjectileSim.Tick(deltaTime, currentTime, ct);
         EventBus.Flush();
 
         return true;
@@ -121,6 +123,7 @@ public class Shard : IShard
             }
 
             Clients.Remove(player.SocketId);
+            Admin.ClearPlayer(player);
             return true;
         }
 

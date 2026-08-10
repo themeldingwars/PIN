@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using AeroMessages.GSS.V66;
 using AeroMessages.GSS.V66.Character;
+using GameServer.Enums;
 using GameServer.StaticDB;
+using Serilog;
 
 namespace GameServer.Data;
 
@@ -105,6 +107,34 @@ public class CharacterLoadout
     public Dictionary<ushort, float> ItemModuleScalars = [];
     public Dictionary<ushort, float> ItemCharacterScalars = [];
 
+    private static readonly Dictionary<string, LoadoutSlotType> _slotNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "primary", LoadoutSlotType.Primary },
+        { "primary_weapon", LoadoutSlotType.Primary },
+        { "secondary", LoadoutSlotType.Secondary },
+        { "secondary_weapon", LoadoutSlotType.Secondary },
+        { "aux_weapon", LoadoutSlotType.GearAuxWeapon },
+        { "auxweapon", LoadoutSlotType.GearAuxWeapon },
+        { "medical", LoadoutSlotType.GearMedicalSystem },
+        { "medical_system", LoadoutSlotType.GearMedicalSystem },
+        { "torso", LoadoutSlotType.GearTorso },
+        { "head", LoadoutSlotType.GearHead },
+        { "arms", LoadoutSlotType.GearArms },
+        { "legs", LoadoutSlotType.GearLegs },
+        { "reactor", LoadoutSlotType.GearReactor },
+        { "os", LoadoutSlotType.GearOS },
+        { "gadget1", LoadoutSlotType.GearGadget1 },
+        { "gadget2", LoadoutSlotType.GearGadget2 },
+        { "backpack", LoadoutSlotType.Backpack },
+        { "ability1", LoadoutSlotType.Ability1 },
+        { "ability2", LoadoutSlotType.Ability2 },
+        { "ability3", LoadoutSlotType.Ability3 },
+        { "abilityhkm", LoadoutSlotType.AbilityHKM },
+        { "ability_hkm", LoadoutSlotType.AbilityHKM },
+        { "vehicle", LoadoutSlotType.Vehicle },
+        { "glider", LoadoutSlotType.Glider },
+    };
+
     private static readonly Dictionary<ushort, float> _fallbackAttributes = new()
     {
         // We fill these in if we somehow don't have them to ensure a playable experience (0 run speed = zzz)
@@ -146,6 +176,42 @@ public class CharacterLoadout
     public uint BackpackID { get; set; }
     public uint ChassisChangeTime { get; set; }
     public ChassisWarpaintResult ChassisWarpaint { get; set; }
+
+    /// <summary>
+    /// Parses a friendly slot name (e.g. "primary_weapon") into a <see cref="LoadoutSlotType"/>.
+    /// </summary>
+    public static bool TryParseSlot(string name, out LoadoutSlotType slot)
+    {
+        return _slotNames.TryGetValue(name, out slot);
+    }
+
+    /// <summary>
+    /// Gets the item type accepted by a loadout slot, or null if the slot does not accept items.
+    /// </summary>
+    public static ItemType? GetAcceptedItemType(LoadoutSlotType slot)
+    {
+        if (LoadoutWeaponSlots.Contains(slot))
+        {
+            return ItemType.Weapon;
+        }
+
+        if (LoadoutAbilitySlots.Contains(slot) || slot is LoadoutSlotType.Vehicle or LoadoutSlotType.Glider)
+        {
+            return ItemType.AbilityModule;
+        }
+
+        if (slot == LoadoutSlotType.Backpack)
+        {
+            return ItemType.Backpack;
+        }
+
+        if (LoadoutChassisSlots.Contains(slot))
+        {
+            return ItemType.FrameModule;
+        }
+
+        return null;
+    }
 
     public VisualsBlock GetChassisVisuals()
     {
@@ -226,18 +292,7 @@ public class CharacterLoadout
         var itemId = SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary);
         if (itemId != 0)
         {
-            var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
-            foreach (var range in itemAttributes.Values)
-            {
-                if (result.ContainsKey(range.AttributeId))
-                {
-                    result[range.AttributeId] += range.Base;
-                }
-                else
-                {
-                    result.Add(range.AttributeId, range.Base);
-                }
-            }
+            MergeItemAttributeRange(result, itemId);
         }
 
         return [.. result
@@ -257,18 +312,7 @@ public class CharacterLoadout
         var itemId = SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary);
         if (itemId != 0)
         {
-            var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
-            foreach (var range in itemAttributes.Values)
-            {
-                if (result.ContainsKey(range.AttributeId))
-                {
-                    result[range.AttributeId] += range.Base;
-                }
-                else
-                {
-                    result.Add(range.AttributeId, range.Base);
-                }
-            }
+            MergeItemAttributeRange(result, itemId);
         }
 
         return [.. result
@@ -306,6 +350,54 @@ public class CharacterLoadout
                 Value = pair.Value
             };
         })];
+    }
+
+    private static void MergeItemAttributeRange(Dictionary<ushort, float> result, uint itemId)
+    {
+        var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
+        foreach (var range in itemAttributes.Values)
+        {
+            if (result.ContainsKey(range.AttributeId))
+            {
+                result[range.AttributeId] += range.Base;
+            }
+            else
+            {
+                result.Add(range.AttributeId, range.Base);
+            }
+        }
+
+        var weaponSlots = SDBInterface.GetWeaponSlots(itemId);
+        if (weaponSlots != null && weaponSlots.Count > 0)
+        {
+            if (weaponSlots.Count > 1)
+            {
+                Log.Warning("Weapon {WeaponId} has {Count} WeaponSlot entries, merging attributes sequentially", itemId, weaponSlots.Count);
+            }
+
+            foreach (var weaponSlot in weaponSlots)
+            {
+                if (weaponSlot.DefaultAbility != 0)
+                {
+                    var abilityModule = SDBInterface.GetAbilityModule(weaponSlot.DefaultAbility);
+                    if (abilityModule != null)
+                    {
+                        var moduleAttributes = SDBInterface.GetItemAttributeRange(weaponSlot.DefaultAbility);
+                        foreach (var range in moduleAttributes.Values)
+                        {
+                            if (result.ContainsKey(range.AttributeId))
+                            {
+                                result[range.AttributeId] += range.Base;
+                            }
+                            else
+                            {
+                                result.Add(range.AttributeId, range.Base);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void InitFromLoadoutReferenceData(LoadoutReferenceData refData)

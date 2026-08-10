@@ -247,64 +247,84 @@ public partial class PhysicsEngine
         });
     }
 
-    public void ProjectileRayCast(Vector3 origin, Vector3 direction, CharacterEntity source, uint trace)
+    public SegmentRaycastHit SegmentRayCast(Vector3 from, Vector3 to, ulong ignoreEntityId)
     {
-        var speed = 500f;
-        var maxRange = 500f;
+        var hitResult = default(SegmentRaycastHit);
+        var direction = Vector3.Normalize(to - from);
+        var distance = Vector3.Distance(from, to);
 
-        DebugProjectileHitCallbacks?.SendDebugProjectileSpawn(source, trace, origin, direction, speed);
+        if (distance < 0.01f)
+        {
+            return hitResult;
+        }
 
         var hitHandler = default(RayHitHandler);
-        hitHandler.T = maxRange;
-        hitHandler.AvoidSourceBody = true;
-        hitHandler.SourceBody = _entityIdToBody[source.EntityId];
+        hitHandler.T = distance;
+        hitHandler.AvoidSourceBody = ignoreEntityId != 0;
+        hitHandler.SourceBody = _entityIdToBody.GetValueOrDefault(ignoreEntityId);
 
-        Simulation.RayCast(origin, direction, float.MaxValue, BufferPool, ref hitHandler);
-        if (hitHandler.T < maxRange)
+        Simulation.RayCast(from, direction, distance, BufferPool, ref hitHandler);
+
+        if (hitHandler.T < distance)
         {
-            var hitPosition = origin + (direction * hitHandler.T);
-            _logger.Debug("HitHandler {Mobility} T {T} HitCollidable {HitCollidable} at {HitPosition}", hitHandler.HitCollidable.Mobility, hitHandler.T, hitHandler.HitCollidable, hitPosition);
+            hitResult.Hit = true;
+            hitResult.T = hitHandler.T;
+            hitResult.HitPosition = from + (direction * hitHandler.T);
+            hitResult.Normal = hitHandler.Normal;
+            hitResult.ChildIndex = hitHandler.ChildIndex;
+            hitResult.Collidable = hitHandler.HitCollidable;
+            hitResult.HitEntityId = _bodyToEntityId.GetValueOrDefault(hitHandler.HitCollidable.BodyHandle);
+        }
 
-            DebugProjectileHitCallbacks?.SendDebugProjectileImpact(source, trace, hitPosition, hitHandler.Normal);
+        return hitResult;
+    }
 
-            if (hitHandler.HitCollidable.Mobility == CollidableMobility.Kinematic)
+    public void HandleProjectileImpactDebug(CharacterEntity source, uint trace, SegmentRaycastHit hit)
+    {
+        DebugProjectileHitCallbacks?.SendDebugProjectileImpact(source, trace, hit.HitPosition, hit.Normal);
+
+        if (hit.Collidable.Mobility == CollidableMobility.Kinematic)
+        {
+            var bodyPosition = Simulation.Bodies[hit.Collidable.BodyHandle].Pose.Position;
+            bodyPosition.Z -= 0.9f;
+            DebugProjectileHitCallbacks?.SendDebugProjectilePoseHit(source, trace, hit.HitPosition, bodyPosition);
+
+            var hitEntityId = _bodyToEntityId.GetValueOrDefault(hit.Collidable.BodyHandle);
+            if (hitEntityId != 0 && TryGetActivePoseShapeData(hit.Collidable, hit.ChildIndex, out var poseShapeData))
             {
-                var bodyPosition = Simulation.Bodies[hitHandler.HitCollidable.BodyHandle].Pose.Position;
-                bodyPosition.Z -= 0.9f;
-                DebugProjectileHitCallbacks?.SendDebugProjectilePoseHit(source, trace, hitPosition, bodyPosition);
+                var physicsMaterial = SDBInterface.GetPhysicsMaterial((uint)poseShapeData.Material);
 
-                var hitEntityId = _bodyToEntityId.GetValueOrDefault(hitHandler.HitCollidable.BodyHandle);
-                if (hitEntityId != 0)
+                var headshot = poseShapeData.ShapeFlags.Headshot;
+                var crit = physicsMaterial?.IsCritHit == 1;
+                var damageMod = poseShapeData.DamageMod;
+
+                _logger.Debug("ProjectileSim Impact on {ShapeName} (headshot={Headshot}, crit={Crit}, damageMod={DamageMod})", poseShapeData.Name, headshot, crit, damageMod);
+                _logger.Debug("You hit {ShapeName} of {EntityId}", poseShapeData.Name, hitEntityId);
+                if (source.IsPlayerControlled)
                 {
-                    var body = Simulation.Bodies[hitHandler.HitCollidable.BodyHandle];
-                    var shape = body.Collidable.Shape;
-                    if (_poseCompoundToAssetId.ContainsKey(shape))
-                    {
-                        var poseId = _poseCompoundToAssetId[shape];
-                        var poseData = _assetIdToPoseCompoundData[poseId];
-                        var poseShapeData = poseData[hitHandler.ChildIndex];
-                        var physicsMaterial = SDBInterface.GetPhysicsMaterial((uint)poseShapeData.Material);
-
-                        var headshot = poseShapeData.ShapeFlags.Headshot;
-                        var crit = physicsMaterial?.IsCritHit == 1;
-                        var damageMod = poseShapeData.DamageMod;
-
-                        _logger.Debug("ProjectileRayCast Impact on {ShapeName}", poseShapeData.Name);
-                        _logger.Debug("You hit {ShapeName} of {EntityId}", poseShapeData.Name, hitEntityId);
-                        if (source.IsPlayerControlled)
-                        {
-                            _eventBus.Enqueue(new DebugChatDirectMessageEvent($"You hit {poseShapeData.Name} of {hitEntityId}", source.Player));
-                        }
-                    }
+                    _eventBus.Enqueue(new DebugChatDirectMessageEvent($"You hit {poseShapeData.Name} of {hitEntityId}", source.Player));
                 }
             }
         }
-        else
+    }
+
+    public bool TryGetActivePoseShapeData(CollidableReference collidable, int childIndex, out ActivePoseShapeData shapeData)
+    {
+        shapeData = default;
+
+        var body = Simulation.Bodies[collidable.BodyHandle];
+        var shape = body.Collidable.Shape;
+        if (!_poseCompoundToAssetId.TryGetValue(shape, out var poseId))
         {
-            var timeoutPosition = origin + (direction * maxRange);
-            var timeoutDirection = -Vector3.Normalize(direction);
-            DebugProjectileHitCallbacks?.SendDebugProjectileTimeout(source, trace, timeoutPosition, timeoutDirection);
+            return false;
         }
+
+        if (!_assetIdToPoseCompoundData.TryGetValue(poseId, out var poseData))
+        {
+            return false;
+        }
+
+        return poseData.TryGetValue(childIndex, out shapeData);
     }
 
     public (bool, Vector3, ulong) TargetRayCast(Vector3 origin, Vector3 direction, CharacterEntity source, float maxRange = 500f)

@@ -57,6 +57,7 @@ public class SDBInterface
     private static Dictionary<uint, Weapons> _weapons;
     private static Dictionary<uint, WeaponTemplates> _weaponTemplates;
     private static Dictionary<uint, WeaponTemplateModifiers> _weaponTemplateModifiers;
+    private static Dictionary<uint, List<WeaponSlot>> _weaponSlot;
     private static Dictionary<uint, WeaponScope> _weaponScope;
     private static Dictionary<uint, WeaponUnderbarrel> _weaponUnderbarrel;
     private static Dictionary<uint, Ammo> _ammo;
@@ -316,6 +317,7 @@ public class SDBInterface
         _weapons = loader.LoadWeapons();
         _weaponTemplates = loader.LoadWeaponTemplates();
         _weaponTemplateModifiers = loader.LoadWeaponTemplateModifiers();
+        _weaponSlot = loader.LoadWeaponSlot();
         _weaponScope = loader.LoadWeaponScope();
         _weaponUnderbarrel = loader.LoadWeaponUnderbarrel();
         _ammo = loader.LoadAmmo();
@@ -599,6 +601,7 @@ public class SDBInterface
     public static Weapons GetWeapon(uint id) => _weapons.GetValueOrDefault(id);
     public static WeaponTemplates GetWeaponTemplate(uint id) => _weaponTemplates.GetValueOrDefault(id);
     public static WeaponTemplateModifiers GetWeaponTemplateModifiers(uint id) => _weaponTemplateModifiers.GetValueOrDefault(id);
+    public static List<WeaponSlot> GetWeaponSlots(uint weaponId) => _weaponSlot.GetValueOrDefault(weaponId);
     public static WeaponScope GetWeaponScope(uint id) => _weaponScope.GetValueOrDefault(id);
     public static WeaponUnderbarrel GetWeaponUnderbarrel(uint id) => _weaponUnderbarrel.GetValueOrDefault(id);
     public static Ammo GetAmmo(uint id) => _ammo.GetValueOrDefault(id);

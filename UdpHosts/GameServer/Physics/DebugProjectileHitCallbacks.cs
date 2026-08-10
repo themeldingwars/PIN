@@ -33,6 +33,25 @@ public struct DebugProjectileHitCallbacks
         }
     }
 
+    public void SendDebugProjectileBounce(CharacterEntity source, uint traceId, Vector3 position, Vector3 normal)
+    {
+        var msg = new TookDebugWeaponHit
+        {
+            Data = new()
+            {
+                Time = Shard.CurrentTime,
+                TraceType = AeroMessages.GSS.V66.TookDebugWeaponHitData.DebugTraceType.Bounce,
+                Unk2_TraceId = traceId,
+                Position = position,
+                Direction = normal,
+            }
+        };
+        if (source.IsPlayerControlled && source.Player.Preferences.DebugWeapon > 0)
+        {
+            source.Player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, source.EntityId);
+        }
+    }
+
     public void SendDebugProjectileImpact(CharacterEntity source, uint traceId, Vector3 position, Vector3 normal)
     {
         var msg = new TookDebugWeaponHit

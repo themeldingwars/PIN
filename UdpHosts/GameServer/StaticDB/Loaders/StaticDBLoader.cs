@@ -1374,6 +1374,13 @@ public class StaticDBLoader : ISDBLoader
             .ToDictionary(row => row.WeaponId);
     }
 
+    public Dictionary<uint, List<WeaponSlot>> LoadWeaponSlot()
+    {
+        return LoadStaticDB<WeaponSlot>("dbitems::WeaponSlot")
+            .GroupBy(row => row.WeaponId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
     public Dictionary<uint, WeaponScope> LoadWeaponScope()
     {
         return LoadStaticDB<WeaponScope>("dbitems::WeaponScope")

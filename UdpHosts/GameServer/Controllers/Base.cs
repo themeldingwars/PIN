@@ -31,7 +31,7 @@ public abstract class Base
 
         if (method == null)
         {
-            logger.Warning("---> Unrecognized MsgID for GSS Packet; Controller = {Controller} Entity = 0x{EntityId:X8} MsgID = {MessageId}!", ControllerID, entityId, msgId);
+            logger.Warning("Unhandled message {ControllerName}::{MessageName} (tc-{ControllerTypecode} mid-{MessageId}) from Entity 0x{EntityId:X8}", Enum.GetName(typeof(Enums.GSS.Controllers), ControllerID), GetUnhandledMessageLookup(ControllerID, msgId), (byte)ControllerID, msgId, entityId);
             logger.Warning(">  {PacketData}", BitConverter.ToString(packet.Peek(packet.BytesRemaining).ToArray()).Replace("-", " "));
             return;
         }
@@ -54,5 +54,23 @@ public abstract class Base
     {
         logger.Warning("Unimplemented Endpoint was called by entity 0x{EntityId:X8}: {ControllerFullName}.{Endpoint}", entityId, typeof(TController).FullName, endpointName);
         logger.Warning(">  {PacketData}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+    }
+
+    private string GetUnhandledMessageLookup(Enums.GSS.Controllers typecode, byte messageId)
+    {
+        if (typecode > Enums.GSS.Controllers.Character && typecode < Enums.GSS.Controllers.Character_DynamicProjectileView)
+        {
+            return Enum.GetName(typeof(Enums.GSS.Character.Commands), messageId) ?? "Unknown";
+        }
+        else if (typecode > Enums.GSS.Controllers.Vehicle && typecode < Enums.GSS.Controllers.Vehicle_MovementView)
+        {
+            return Enum.GetName(typeof(Enums.GSS.Vehicle.Commands), messageId) ?? "Unknown";
+        }
+        else if (typecode > Enums.GSS.Controllers.Turret && typecode < Enums.GSS.Controllers.Turret_ObserverView)
+        {
+            return Enum.GetName(typeof(Enums.GSS.Turret.Commands), messageId) ?? "Unknown";
+        }
+
+        return "Unknown";
     }
 }

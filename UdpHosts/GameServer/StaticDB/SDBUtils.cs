@@ -413,7 +413,10 @@ public class SDBUtils
             TargetingRange = WeaponTemplateModifier(template.TargetingRange, modifiers?.TargetingRange, modifiers?.TargetingRangeMult),
 
             // Burst
+            // TODO: Investigate attribute scaling for MsPerBurst / ms_per_burst_OverridenByRateOfFireAttribute.
             MsPerBurst = WeaponTemplateModifier(template.MsPerBurst, modifiers?.MsPerBurst, modifiers?.MsPerBurstMult),
+
+            // TODO: Investigate attribute scaling for MsBurstDuration.
             MsBurstDuration = WeaponTemplateModifier(template.MsBurstDuration, modifiers?.MsBurstDuration),
 
             // Chargeup
@@ -438,6 +441,10 @@ public class SDBUtils
             SpreadRampTime = WeaponTemplateModifier(template.SpreadRampTime, modifiers?.SpreadRampTime),
             RunMinSpread = WeaponTemplateModifier(template.RunMinspreadAdd, modifiers?.RunMinspreadAdd),
             JumpMinSpread = WeaponTemplateModifier(template.JumpMinspreadAdd, modifiers?.JumpMinspreadAdd),
+            MinSpreadFrac = WeaponTemplateModifier(template.MinSpreadFrac, modifiers?.MinSpreadFrac),
+            MsRiseReturnDelay = WeaponTemplateModifier(template.MsRiseReturnDelay, modifiers?.MsRiseReturnDelay),
+            RunSpreadRampMult = 1f,
+            JumpSpreadRampMult = 1f,
             MsSpreadReturnDelay = WeaponTemplateModifier(template.MsSpreadReturnDelay, modifiers?.MsSpreadReturnDelay),
             MsSpreadReturn = WeaponTemplateModifier(template.MsSpreadReturn, modifiers?.MsSpreadReturn),
             NoSpreadChance = WeaponTemplateModifier(template.NoSpreadChance, modifiers?.NoSpreadChance, modifiers?.NoSpreadChanceMult),
@@ -450,6 +457,86 @@ public class SDBUtils
             // ?
             MsReturn = WeaponTemplateModifier(template.MsReturn, modifiers?.MsReturn),
         };
+
+        // Cascade module modifiers: WeaponSlot.DefaultAbility -> AbilityModule -> WeaponTemplateModifiers
+        var weaponSlots = SDBInterface.GetWeaponSlots(weaponSdbId);
+        if (weaponSlots != null && weaponSlots.Count > 0)
+        {
+            if (weaponSlots.Count > 1)
+            {
+                _logger.Warning("Weapon {WeaponId} has {Count} WeaponSlot entries, merging modifiers sequentially", weaponSdbId, weaponSlots.Count);
+            }
+
+            foreach (var weaponSlot in weaponSlots)
+            {
+                if (weaponSlot.DefaultAbility != 0)
+                {
+                    var abilityModule = SDBInterface.GetAbilityModule(weaponSlot.DefaultAbility);
+                    if (abilityModule != null)
+                    {
+                        var moduleModifiers = SDBInterface.GetWeaponTemplateModifiers(weaponSlot.DefaultAbility);
+                        if (moduleModifiers != null)
+                        {
+                            result.ScopeId = WeaponTemplateOverrider(result.ScopeId, moduleModifiers.DefaultScopeId);
+                            result.UnderbarrelId = WeaponTemplateOverrider(result.UnderbarrelId, moduleModifiers.DefaultUnderbarrelId);
+                            result.AmmoId = WeaponTemplateOverrider(result.AmmoId, moduleModifiers.DefaultAmmoId);
+                            result.WeaponFlags = WeaponTemplateModifier(result.WeaponFlags, moduleModifiers.WeaponFlags);
+                            result.FireType = WeaponTemplateModifier(result.FireType, moduleModifiers.FireType);
+                            result.Range = WeaponTemplateModifier(result.Range, moduleModifiers.Range, moduleModifiers.RangeMult);
+                            result.EquipEnterMs = WeaponTemplateModifier(result.EquipEnterMs, moduleModifiers.EquipEnterMs);
+                            result.EquipExitMs = WeaponTemplateModifier(result.EquipExitMs, moduleModifiers.EquipExitMs);
+                            result.MeleeAbility = WeaponTemplateOverrider(result.MeleeAbility, moduleModifiers.MeleeAbilityId);
+                            result.AttackAbility = WeaponTemplateOverrider(result.AttackAbility, moduleModifiers.AttackAbilityId);
+                            result.OverchargeAbility = WeaponTemplateOverrider(result.OverchargeAbility, moduleModifiers.OverchargeAbility);
+                            result.BurstAbility = WeaponTemplateOverrider(result.BurstAbility, moduleModifiers.BurstAbilityId);
+                            result.ReloadAbility = WeaponTemplateOverrider(result.ReloadAbility, moduleModifiers.ReloadAbility);
+                            result.EmptyAbility = WeaponTemplateOverrider(result.EmptyAbility, moduleModifiers.ClipEmptyAbility);
+                            result.BaseClipSize = WeaponTemplateModifier(result.BaseClipSize, moduleModifiers.BaseClipSize, moduleModifiers.BaseClipSizeMult);
+                            result.MaxAmmo = WeaponTemplateModifier(result.MaxAmmo, moduleModifiers.MaxAmmo, moduleModifiers.MaxAmmoMult);
+                            result.AmmoPerBurst = WeaponTemplateModifier(result.AmmoPerBurst, moduleModifiers.AmmoPerBurst);
+                            result.MinAmmoPerBurst = WeaponTemplateModifier(result.MinAmmoPerBurst, moduleModifiers.MinAmmoPerBurst);
+                            result.RoundsPerBurst = WeaponTemplateModifier(result.RoundsPerBurst, moduleModifiers.RoundsPerBurst, moduleModifiers.RoundsPerBurstMult);
+                            result.MinRoundsPerBurst = WeaponTemplateModifier(result.MinRoundsPerBurst, moduleModifiers.MinRoundsPerBurst, moduleModifiers.MinRoundsPerBurstMult);
+                            result.RoundReload = WeaponTemplateModifier(result.RoundReload, moduleModifiers.RoundReload);
+                            result.ClipRegenMs = WeaponTemplateModifier(result.ClipRegenMs, moduleModifiers.ClipRegenMs, moduleModifiers.ClipRegenMsMult);
+                            result.ReloadTime = WeaponTemplateModifier(result.ReloadTime, moduleModifiers.ReloadTime, moduleModifiers.ReloadTimeMult);
+                            result.ReloadPenalty = WeaponTemplateModifier(result.ReloadPenalty, moduleModifiers.ReloadPenalty, moduleModifiers.ReloadPenaltyMult);
+                            result.MaxTargets = WeaponTemplateModifier(result.MaxTargets, moduleModifiers.MaxTargets);
+                            result.BurstBonusPerTarget = WeaponTemplateModifier(result.BurstBonusPerTarget, moduleModifiers.BurstbonusPerTarget);
+                            result.TargetingRange = WeaponTemplateModifier(result.TargetingRange, moduleModifiers.TargetingRange, moduleModifiers.TargetingRangeMult);
+                            result.MsPerBurst = WeaponTemplateModifier(result.MsPerBurst, moduleModifiers.MsPerBurst, moduleModifiers.MsPerBurstMult);
+                            result.MsBurstDuration = WeaponTemplateModifier(result.MsBurstDuration, moduleModifiers.MsBurstDuration);
+                            result.MsChargeUp = WeaponTemplateModifier(result.MsChargeUp, moduleModifiers.MsChargeup, moduleModifiers.MsChargeupMult);
+                            result.MsChargeUpMax = WeaponTemplateModifier(result.MsChargeUpMax, moduleModifiers.MsChargeupMax, moduleModifiers.MsChargeupMaxMult);
+                            result.MsChargeUpMin = WeaponTemplateModifier(result.MsChargeUpMin, moduleModifiers.MsChargeupMin, moduleModifiers.MsChargeupMinMult);
+                            result.MsOverchargeDelay = WeaponTemplateModifier(result.MsOverchargeDelay, moduleModifiers.MsOverchargeDelay);
+                            result.MinDamage = WeaponTemplateModifier(result.MinDamage, moduleModifiers.MinDamage, moduleModifiers.MinDamageMult);
+                            result.DamagePerRound = WeaponTemplateModifier(result.DamagePerRound, moduleModifiers.DamagePerRound, moduleModifiers.DamagePerRoundMult);
+                            result.HeadshotMult = WeaponTemplateModifier(result.HeadshotMult, moduleModifiers.HeadshotMult, moduleModifiers.HeadshotMultMult);
+                            result.MinSpread = WeaponTemplateModifier(result.MinSpread, moduleModifiers.MinSpread, moduleModifiers.MinSpreadMult);
+                            result.MaxSpread = WeaponTemplateModifier(result.MaxSpread, moduleModifiers.MaxSpread, moduleModifiers.MaxSpreadMult);
+                            result.StartingSpread = WeaponTemplateModifier(result.StartingSpread, moduleModifiers.StartingSpread, moduleModifiers.StartingSpreadMult);
+                            result.SpreadPerBurst = WeaponTemplateModifier(result.SpreadPerBurst, moduleModifiers.SpreadPerBurst, moduleModifiers.SpreadPerBurstMult);
+                            result.SpreadRampExponent = WeaponTemplateModifier(result.SpreadRampExponent, moduleModifiers.SpreadRampExponent);
+                            result.SpreadRampTime = WeaponTemplateModifier(result.SpreadRampTime, moduleModifiers.SpreadRampTime);
+                            result.RunMinSpread = WeaponTemplateModifier(result.RunMinSpread, moduleModifiers.RunMinspreadAdd);
+                            result.JumpMinSpread = WeaponTemplateModifier(result.JumpMinSpread, moduleModifiers.JumpMinspreadAdd);
+                            result.MinSpreadFrac = WeaponTemplateModifier(result.MinSpreadFrac, moduleModifiers.MinSpreadFrac);
+                            result.MsRiseReturnDelay = WeaponTemplateModifier(result.MsRiseReturnDelay, moduleModifiers.MsRiseReturnDelay);
+                            result.RunSpreadRampMult = 1f;
+                            result.JumpSpreadRampMult = 1f;
+                            result.MsSpreadReturnDelay = WeaponTemplateModifier(result.MsSpreadReturnDelay, moduleModifiers.MsSpreadReturnDelay);
+                            result.MsSpreadReturn = WeaponTemplateModifier(result.MsSpreadReturn, moduleModifiers.MsSpreadReturn);
+                            result.NoSpreadChance = WeaponTemplateModifier(result.NoSpreadChance, moduleModifiers.NoSpreadChance, moduleModifiers.NoSpreadChanceMult);
+                            result.Agility = WeaponTemplateModifier(result.Agility, moduleModifiers.Agility);
+                            result.MsAgilityReturn = WeaponTemplateModifier(result.MsAgilityReturn, moduleModifiers.MsAgilityReturn);
+                            result.MsAgilityReturnDelay = WeaponTemplateModifier(result.MsAgilityReturnDelay, moduleModifiers.MsAgilityReturnDelay);
+                            result.MsReturn = WeaponTemplateModifier(result.MsReturn, moduleModifiers.MsReturn);
+                        }
+                    }
+                }
+            }
+        }
 
         return result;
     }
@@ -490,34 +577,35 @@ public class SDBUtils
         }
     }
 
+    // Applies item modifiers as value = mult*value + add.
     private static sbyte WeaponTemplateModifier(sbyte baseValue, sbyte? modifierValue, float? multiplierValue = 1)
     {
-        return (sbyte)((baseValue + (modifierValue ?? 0)) * (multiplierValue ?? 1));
+        return (sbyte)((baseValue * (multiplierValue ?? 1)) + (modifierValue ?? 0));
     }
 
     private static byte WeaponTemplateModifier(byte baseValue, sbyte? modifierValue, float? multiplierValue = 1)
     {
-        return (byte)((baseValue + (modifierValue ?? 0)) * (multiplierValue ?? 1));
+        return (byte)((baseValue * (multiplierValue ?? 1)) + (modifierValue ?? 0));
     }
 
     private static uint WeaponTemplateModifier(uint baseValue, int? modifierValue, float? multiplierValue = 1)
     {
-        return (uint)((baseValue + (modifierValue ?? 0)) * (multiplierValue ?? 1));
+        return (uint)((baseValue * (multiplierValue ?? 1)) + (modifierValue ?? 0));
     }
 
     private static int WeaponTemplateModifier(int baseValue, int? modifierValue, float? multiplierValue = 1)
     {
-        return (int)((baseValue + (modifierValue ?? 0)) * (multiplierValue ?? 1));
+        return (int)((baseValue * (multiplierValue ?? 1)) + (modifierValue ?? 0));
     }
 
     private static ushort WeaponTemplateModifier(ushort baseValue, short? modifierValue, float? multiplierValue = 1)
     {
-        return (ushort)((baseValue + (modifierValue ?? 0)) * (multiplierValue ?? 1));
+        return (ushort)((baseValue * (multiplierValue ?? 1)) + (modifierValue ?? 0));
     }
 
     private static float WeaponTemplateModifier(float baseValue, float? modifierValue, float? multiplierValue = 1)
     {
-        return (float)((baseValue + (modifierValue ?? 0)) * (multiplierValue ?? 1));
+        return (float)((baseValue * (multiplierValue ?? 1)) + (modifierValue ?? 0));
     }
 }
 
@@ -602,6 +690,10 @@ public class WeaponTemplateResult
     public uint SpreadRampTime;
     public float RunMinSpread;
     public float JumpMinSpread;
+    public float MinSpreadFrac;
+    public uint MsRiseReturnDelay;
+    public float RunSpreadRampMult;
+    public float JumpSpreadRampMult;
     public uint MsSpreadReturnDelay;
     public uint MsSpreadReturn;
     public float NoSpreadChance;

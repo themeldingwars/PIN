@@ -5,7 +5,7 @@ public enum ItemType : byte
     Basic = 0,
     Weapon = 1,
     Chassis = 2,
-    Unk_3 = 3,
+    Backpack = 3,
     AbilityModule = 4,
     FireModule = 5,
     ScopeModule = 6,
