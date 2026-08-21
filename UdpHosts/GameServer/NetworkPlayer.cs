@@ -305,9 +305,9 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         return closestOutpostId;
     }
 
-    public void HandleFireWeaponProjectile(uint time, Vector3 aim)
+    public void HandleFireWeaponProjectile(uint time, Vector3 aim, Vector3? shooterVelocity = null)
     {
-        AssignedShard.WeaponSim.OnFireWeaponProjectile(CharacterEntity, time, aim);
+        AssignedShard.WeaponSim.OnFireWeaponProjectile(CharacterEntity, time, aim, shooterVelocity);
     }
 
     public void EnterZone(Zone z, uint outpostId = 0)

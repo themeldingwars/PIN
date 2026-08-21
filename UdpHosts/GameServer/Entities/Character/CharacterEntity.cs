@@ -18,6 +18,7 @@ using GameServer.StaticDB.Records.dbitems;
 using GameServer.StaticDB.Records.dbvisualrecords;
 using GameServer.Systems.Aptitude;
 using GameServer.Systems.Encounters;
+using GameServer.Systems.MovementRelay;
 using GameServer.Systems.WeaponSim;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
@@ -33,7 +34,15 @@ namespace GameServer.Entities.Character;
 public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public const byte MaxMapMarkerCount = 64;
+    private const int _maxMovementSamples = 32; // ~1.6s at 20 samples/s
+    private const int _maxExtrapolationMs = 100; // How far to predict beyond the newest sample
+    private const float _fallbackRunSpeed = 40.5f; // TODO: Derive from SDB/character stats
+    private const float _fallbackSprintSpeed = 7.0f; // TODO: Derive from SDB/character stats
+    private const float _fallbackCrouchSpeed = 2.5f; // TODO: Derive from SDB/character stats
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
+    private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
+    private int _movementSampleCount;
+    private int _movementSampleNewest;
     private ActiveWeaponDetails[,] _weaponDetailsCache;
 
     public CharacterEntity(IShard shard, ulong eid, CharacterEntity owner = null)
@@ -70,7 +79,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public short MovementState { get; set; }
     public ushort MovementShortTime { get; set; }
     public bool Alive { get; set; }
-    public bool CanBleedout { get; set; } = false;
+    public bool CanBleedout { get; set; }
     public short TimeSinceLastJump { get; set; }
     public bool IsAirborne { get; set; }
     public bool IsMoving { get => MovementStateContainer.Sprint || MovementStateContainer.Movement; }
@@ -251,10 +260,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         var chassisWarpaint = SDBUtils.GetChassisWarpaint(monsterInfo.ChassisId, monsterInfo.FullbodyWarpaintPaletteId, monsterInfo.ArmorWarpaintPaletteId, monsterInfo.BodysuitWarpaintPaletteId, monsterInfo.GlowWarpaintPaletteId);
 
         // TODO: Consider internalizing into the CharacterLoadout instead?
-        var loadout = new CharacterLoadout();
-        loadout.ChassisID = monsterInfo.ChassisId;
-        loadout.BackpackID = monsterInfo.BackpackId;
-        loadout.ChassisWarpaint = chassisWarpaint;
+        var loadout = new CharacterLoadout
+        {
+            ChassisID = monsterInfo.ChassisId,
+            BackpackID = monsterInfo.BackpackId,
+            ChassisWarpaint = chassisWarpaint
+        };
         loadout.SlottedItems[LoadoutSlotType.Primary] = monsterInfo.Weapon1Id;
         loadout.SlottedItems[LoadoutSlotType.Secondary] = monsterInfo.Weapon2Id;
 
@@ -546,10 +557,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         });
 
         SelectedLoadout = loadout.LoadoutID;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.SelectedLoadoutProp = SelectedLoadout;
-        }
+        Character_BaseController?.SelectedLoadoutProp = SelectedLoadout;
 
         if (chassis.SdbId != 0)
         {
@@ -785,58 +793,40 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         CharacterStats = value;
         Character_EquipmentView.CharacterStatsProp = value;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.CharacterStatsProp = value;
-        }
+        Character_BaseController?.CharacterStatsProp = value;
     }
 
     public void SetStaticInfo(StaticInfoData value)
     {
         StaticInfo = value;
         Character_ObserverView.StaticInfoProp = StaticInfo;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.StaticInfoProp = StaticInfo;
-        }
+        Character_BaseController?.StaticInfoProp = StaticInfo;
     }
 
     public void SetTimePlayed(int value)
     {
         TimePlayed = value;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.TimePlayedProp = TimePlayed;
-        }
+        Character_BaseController?.TimePlayedProp = TimePlayed;
     }
 
     public void SetArmyGUID(ulong value)
     {
         ArmyGUID = value;
         Character_ObserverView.ArmyGUIDProp = ArmyGUID;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.ArmyGUIDProp = ArmyGUID;
-        }
+        Character_BaseController?.ArmyGUIDProp = ArmyGUID;
     }
 
     public void SetArmyIsOfficer(sbyte value)
     {
         ArmyIsOfficer = value;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.ArmyIsOfficerProp = ArmyIsOfficer;
-        }
+        Character_BaseController?.ArmyIsOfficerProp = ArmyIsOfficer;
     }
 
     public void SetCurrentEquipment(EquipmentData value)
     {
         CurrentEquipment = value;
         Character_EquipmentView.CurrentEquipmentProp = CurrentEquipment;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.CurrentEquipmentProp = CurrentEquipment;
-        }
+        Character_BaseController?.CurrentEquipmentProp = CurrentEquipment;
     }
 
     public void SetAimDirection(Vector3 newDirection)
@@ -852,10 +842,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             State = characterStatus, Time = time
         };
         Character_ObserverView.CharacterStateProp = CharacterState;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.CharacterStateProp = CharacterState;
-        }
+        Character_BaseController?.CharacterStateProp = CharacterState;
     }
 
     public void SetControllingPlayer(INetworkPlayer player)
@@ -874,10 +861,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         Emote = value;
         Character_ObserverView.EmoteIDProp = value;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.EmoteIDProp = value;
-        }
+        Character_BaseController?.EmoteIDProp = value;
     }
 
     public void SetFireBurst(uint time)
@@ -902,19 +886,13 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             case 0:
                 FireMode_0 = value;
                 Character_CombatView.FireMode_0Prop = FireMode_0;
-                if (Character_CombatController != null)
-                {
-                    Character_CombatController.FireMode_0Prop = FireMode_0;
-                }
+                Character_CombatController?.FireMode_0Prop = FireMode_0;
 
                 break;
             case 1:
                 FireMode_1 = value;
                 Character_CombatView.FireMode_1Prop = FireMode_1;
-                if (Character_CombatController != null)
-                {
-                    Character_CombatController.FireMode_1Prop = FireMode_1;
-                }
+                Character_CombatController?.FireMode_1Prop = FireMode_1;
 
                 break;
         }
@@ -989,10 +967,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetSpawnTime(uint time)
     {
         Character_ObserverView.SpawnTimeProp = time;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.SpawnTimeProp = time;
-        }
+        Character_BaseController?.SpawnTimeProp = time;
     }
 
     public void SetNpcType(ushort npcType)
@@ -1004,11 +979,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         WeaponIndex = value;
         Character_CombatView.WeaponIndexProp = value;
-        
-        if (Character_CombatController != null)
-        {
-            Character_CombatController.WeaponIndexProp = value;
-        }
+
+        Character_CombatController?.WeaponIndexProp = value;
     }
 
     public void SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags flag, bool value)
@@ -1020,36 +992,24 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             Value = (PermissionFlagsData.CharacterPermissionFlags)GetCurrentPermissionsValue(),
         };
 
-        if (Character_CombatController != null)
-        {
-            Character_CombatController.PermissionFlagsProp = PermissionFlags;
-        }
+        Character_CombatController?.PermissionFlagsProp = PermissionFlags;
     }
 
     public void SetGliderProfileId(uint profileId)
     {
-        if (Character_CombatController != null)
-        {
-            Character_CombatController.GliderProfileIdProp = profileId;
-        }
+        Character_CombatController?.GliderProfileIdProp = profileId;
     }
 
     public void SetHoverProfileId(uint profileId)
     {
-        if (Character_CombatController != null)
-        {
-            Character_CombatController.HoverProfileIdProp = profileId;
-        }
+        Character_CombatController?.HoverProfileIdProp = profileId;
     }
 
     public void SetAuthorizedTerminal(AuthorizedTerminalData value)
     {
         AuthorizedTerminal = value;
 
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.AuthorizedTerminalProp = AuthorizedTerminal;
-        }
+        Character_BaseController?.AuthorizedTerminalProp = AuthorizedTerminal;
     }
 
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
@@ -1099,10 +1059,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Collision.AttachmentPoseId = pose;
         Collision.AttachmentPoseOffset = poseOffset;
         Character_ObserverView.AttachedToProp = AttachedTo;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.AttachedToProp = AttachedTo;
-        }
+        Character_BaseController?.AttachedToProp = AttachedTo;
     }
 
     public void ClearAttachedTo()
@@ -1264,17 +1221,144 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public Vector3 GetProjectileOrigin(Vector3 aimDirection)
     {
-        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
-        if (IsCrouching)
+        return CalculateProjectileOrigin(Position, Orientation, IsCrouching, aimDirection);
+    }
+
+    /// <summary>
+    ///     Gets the projectile origin at the given client time, using the interpolated/predicted pose
+    /// </summary>
+    /// <param name="clientTimeMs">Client time in ms to evaluate the pose at</param>
+    /// <param name="aimDirection">The aim direction at the time of firing</param>
+    /// <param name="shooterVelocity">Optional shooter velocity at the time of firing, used to seed the prediction</param>
+    /// <returns>The world space projectile origin</returns>
+    public Vector3 GetProjectileOrigin(uint clientTimeMs, Vector3 aimDirection, Vector3? shooterVelocity = null)
+    {
+        TryGetInterpolatedPose(clientTimeMs, shooterVelocity, out var position, out var orientation, out var movementState);
+        var crouching = new MovementStateContainer { MovementStateValue = (ushort)movementState }.Crouch;
+        return CalculateProjectileOrigin(position, orientation, crouching, aimDirection);
+    }
+
+    /// <summary>
+    ///     Records a movement sample from a client MovementInput command.
+    ///     Only called on the shard thread. Samples older than the newest recorded one are ignored.
+    /// </summary>
+    /// <param name="sample">The movement sample to record</param>
+    public void RecordMovementSample(MovementSample sample)
+    {
+        if (_movementSampleCount > 0)
         {
-            muzzleBase.Z = 1.08f;
+            var newest = _movementSamples[_movementSampleNewest];
+            if (MovementSample.MsSince(newest.ShortTime, sample.ShortTime) > 0x8000)
+            {
+                return; // Out-of-order or stale sample
+            }
         }
 
-        var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(Orientation)); // Match the characters orientation
-        var muzzleOffset = new Vector3(aimDirection.X, aimDirection.Y, aimDirection.Z) * 0.1f; // Offset like a sphere based on aim
-        var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
-        var origin = Position + muzzleOffsetWorld; // Translate to character
-        return origin;
+        var index = (_movementSampleNewest + 1) % _maxMovementSamples;
+        _movementSamples[index] = sample;
+        _movementSampleNewest = index;
+        if (_movementSampleCount < _maxMovementSamples)
+        {
+            _movementSampleCount++;
+        }
+    }
+
+    /// <summary>
+    ///     Gets the character position at the given client time, interpolating between the two newest
+    ///     movement samples when the time falls between them, or extrapolating from the newest sample
+    ///     when the time is in the future relative to it.
+    /// </summary>
+    /// <param name="clientTimeMs">Client time in ms to evaluate the position at</param>
+    /// <param name="shooterVelocity">Optional shooter velocity at the given time, used to seed the extrapolation</param>
+    /// <returns>The estimated character position at the given time</returns>
+    public Vector3 GetInterpolatedPosition(uint clientTimeMs, Vector3? shooterVelocity = null)
+    {
+        TryGetInterpolatedPose(clientTimeMs, shooterVelocity, out var position, out _, out _);
+        return position;
+    }
+
+    /// <summary>
+    ///     Gets the character pose (position, orientation, movement state) at the given client time,
+    ///     using the same interpolation/extrapolation rules as <see cref="GetInterpolatedPosition" />.
+    ///     Falls back to the current entity state when no samples have been recorded.
+    /// </summary>
+    /// <param name="clientTimeMs">Client time in ms to evaluate the pose at</param>
+    /// <param name="shooterVelocity">Optional shooter velocity at the given time, used to seed the extrapolation</param>
+    /// <param name="position">The estimated position at the given time</param>
+    /// <param name="orientation">The estimated orientation at the given time</param>
+    /// <param name="movementState">The estimated movement state value at the given time</param>
+    /// <returns>True when the pose was derived from recorded samples, false when falling back to the current entity state</returns>
+    public bool TryGetInterpolatedPose(uint clientTimeMs, Vector3? shooterVelocity, out Vector3 position, out Quaternion orientation, out short movementState)
+    {
+        position = Position;
+        orientation = Orientation;
+        movementState = MovementState;
+
+        if (_movementSampleCount == 0)
+        {
+            return false;
+        }
+
+        var target = (ushort)clientTimeMs;
+        var newest = _movementSamples[_movementSampleNewest];
+        var previous = _movementSampleCount > 1 ? _movementSamples[(_movementSampleNewest + _maxMovementSamples - 1) % _maxMovementSamples] : default;
+        var ageSinceNewest = MovementSample.MsSince(newest.ShortTime, target);
+
+        if (ageSinceNewest > 0x8000)
+        {
+            // Target is in the past relative to the newest sample (e.g. fire packet arrived before the next movement packet)
+            if (_movementSampleCount > 1)
+            {
+                var ageSincePrevious = MovementSample.MsSince(previous.ShortTime, target);
+                if (ageSincePrevious <= 0x8000)
+                {
+                    // Target lies between the two newest samples: interpolate
+                    var span = MovementSample.MsSince(previous.ShortTime, newest.ShortTime);
+                    var alpha = span > 0 ? ageSincePrevious / (float)span : 1f;
+                    position = Vector3.Lerp(previous.Position, newest.Position, alpha);
+                    QuaternionEx.Slerp(previous.Orientation, newest.Orientation, alpha, out orientation);
+                    movementState = ageSincePrevious * 2 < span ? previous.MovementState : newest.MovementState;
+                    return true;
+                }
+
+                // Target is before all buffered samples: use the oldest one
+                var oldest = _movementSamples[(_movementSampleNewest - _movementSampleCount + 1 + _maxMovementSamples) % _maxMovementSamples];
+                position = oldest.Position;
+                orientation = oldest.Orientation;
+                movementState = oldest.MovementState;
+                return true;
+            }
+
+            position = newest.Position;
+            orientation = newest.Orientation;
+            movementState = newest.MovementState;
+            return true;
+        }
+
+        // Target is at or after the newest sample: extrapolate, clamped to MaxExtrapolationMs
+        var elapsedMs = Math.Min((int)ageSinceNewest, _maxExtrapolationMs);
+        if (elapsedMs > 0)
+        {
+            var velocity = shooterVelocity ?? newest.Velocity;
+            if (velocity.LengthSquared() < 0.25f)
+            {
+                var estimated = EstimateInputVelocity(newest);
+                if (estimated != Vector3.Zero)
+                {
+                    velocity = estimated;
+                }
+            }
+
+            position = newest.Position + (velocity * (elapsedMs / 1000f));
+        }
+        else
+        {
+            position = newest.Position;
+        }
+
+        orientation = newest.Orientation;
+        movementState = newest.MovementState;
+        return true;
     }
 
     public void SetHostilityInfo(HostilityInfoData newValue)
@@ -1351,10 +1435,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         GibVisualsInfo = new GibVisuals { Id = gibVisualsId, Time = time };
         Character_ObserverView.GibVisualsIDProp = GibVisualsInfo;
-        if (Character_BaseController != null)
-        {
-            Character_BaseController.GibVisualsIdProp = GibVisualsInfo;
-        }
+        Character_BaseController?.GibVisualsIdProp = GibVisualsInfo;
     }
 
     public bool TryGetGibVisualsId(out uint gibVisualsId)
@@ -1388,6 +1469,42 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         return result;
+    }
+
+    private static Vector3 CalculateProjectileOrigin(Vector3 position, Quaternion orientation, bool crouching, Vector3 aimDirection)
+    {
+        var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
+        if (crouching)
+        {
+            muzzleBase.Z = 1.08f;
+        }
+
+        var muzzleBaseWorld = QuaternionEx.Transform(muzzleBase, QuaternionEx.Inverse(orientation)); // Match the characters orientation
+        var muzzleOffset = new Vector3(aimDirection.X, aimDirection.Y, aimDirection.Z) * 0.1f; // Offset like a sphere based on aim
+        var muzzleOffsetWorld = muzzleBaseWorld + muzzleOffset; // Apply offset to base in world
+        return position + muzzleOffsetWorld; // Translate to character
+    }
+
+    /// <summary>
+    ///     Estimates the velocity the character is starting to move at, based on the movement input
+    ///     axes and modifiers of a sample, for use when the recorded velocity is near zero
+    /// </summary>
+    private static Vector3 EstimateInputVelocity(MovementSample sample)
+    {
+        var magnitude = MathF.Sqrt((sample.HorizontalInput * sample.HorizontalInput) + (sample.VerticalInput * sample.VerticalInput));
+        if (magnitude < 1f)
+        {
+            return Vector3.Zero;
+        }
+
+        var state = new MovementStateContainer { MovementStateValue = (ushort)sample.MovementState };
+        var speed = state.Sprint ? _fallbackSprintSpeed : state.Crouch ? _fallbackCrouchSpeed : _fallbackRunSpeed;
+
+        // Match the orientation convention used by CalculateProjectileOrigin (local offset transformed by the inverse orientation)
+        var forward = QuaternionEx.Transform(new Vector3(0f, 0f, 1f), QuaternionEx.Inverse(sample.Orientation));
+        var right = QuaternionEx.Transform(new Vector3(1f, 0f, 0f), QuaternionEx.Inverse(sample.Orientation));
+        var direction = (forward * (sample.VerticalInput / magnitude)) + (right * (sample.HorizontalInput / magnitude));
+        return Vector3.Normalize(direction) * speed;
     }
 
     private static void BuildWeaponSlotDetails(ActiveWeaponDetails[,] cache, int index, uint weaponId, StatsData[] weaponAttributes)
@@ -1853,14 +1970,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             WeaponId = 0,
             SpreadProfile = default,
             RateOfFire = 0,
-            Attributes = new Dictionary<ushort, float>(),
+            Attributes = [],
         };
 
         public WeaponTemplateResult Weapon;
         public uint WeaponId;
         public WeaponSpreadProfile SpreadProfile;
         public float RateOfFire;
-        public Dictionary<ushort, float> Attributes = new();
+        public Dictionary<ushort, float> Attributes = [];
 
         public bool IsEmpty => Weapon == null;
 

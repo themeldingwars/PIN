@@ -22,7 +22,20 @@ public class MovementRelay
         var posRotState = poseData.PosRotState;
         character.SetPoseData(poseData, input.ShortTime);
 
-        bool sendJumpActioned = poseData.TimeSinceLastJump < character.TimeSinceLastJump; // Compare the old value before updating 
+        // Record a sample so the pose can be interpolated/predicted between updates
+        character.RecordMovementSample(new MovementSample
+        {
+            ShortTime = input.ShortTime,
+            Position = poseData.PosRotState.Pos,
+            Orientation = poseData.PosRotState.Rot,
+            Velocity = poseData.Velocity,
+            MovementState = posRotState.MovementState,
+            HorizontalInput = input.HorizontalInput,
+            VerticalInput = input.VerticalInput,
+            InputFlags = input.InputFlags
+        });
+
+        bool sendJumpActioned = poseData.TimeSinceLastJump < character.TimeSinceLastJump; // Compare the old value before updating
         character.TimeSinceLastJump = poseData.TimeSinceLastJump;
 
         character.IsAirborne = poseData.GroundTimePositiveAirTimeNegative < 0;
@@ -45,7 +58,7 @@ public class MovementRelay
                             {
                                 Pos = character.Position,
                                 Rot = character.Orientation,
-                                MovementState = movementStateValue // ToDo: This was ushort previously!
+                                MovementState = movementStateValue
                             },
                 Velocity = character.Velocity,
                 JetpackEnergy = poseData.JetpackEnergy,

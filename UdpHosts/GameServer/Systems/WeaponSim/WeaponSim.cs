@@ -41,7 +41,7 @@ public class WeaponSim
         }
     }
 
-    public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir)
+    public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir, Vector3? shooterVelocity = null)
     {
         // Weapon
         var activeWeaponDetails = entity.GetActiveWeaponDetails();
@@ -87,8 +87,8 @@ public class WeaponSim
             maxRadius = maxRadiusAttr;
         }
 
-        // Projectile origin
-        var origin = entity.GetProjectileOrigin(localAimDir);
+        // Projectile origin at the fire time, interpolated/predicted from movement samples
+        var origin = entity.GetProjectileOrigin(time, localAimDir, shooterVelocity);
 
         // Determine number of rounds to fire with this proj
         // If weapon has burst duration, we expect to receive multiple proj calls and only fire 1.
