@@ -27,6 +27,7 @@ public class Context
     public IAptitudeTarget Initiator { get; set; }
     public AptitudeTargets Targets { get; set; }
     public AptitudeTargets FormerTargets { get; set; }
+    public Stack<AptitudeTargets> TargetStack { get; set; } = new();
     public float Register { get; set; }
     public float FormerRegister { get; set; }
     public int Bonus { get; set; }

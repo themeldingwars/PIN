@@ -18,14 +18,22 @@ public class PeekTargetsCommand : Command, ICommand
 
         if (Params.Former == 1)
         {
-            var ok = context.FormerTargets.TryPeek(out _);
+            var ok = context.TargetStack.TryPeek(out var result);
+            if (ok)
+            {
+                context.FormerTargets = result;
+            }
 
             return ok;
         }
 
         if (Params.Current == 1)
         {
-            var ok = context.Targets.TryPeek(out _);
+            var ok = context.TargetStack.TryPeek(out var result);
+            if (ok)
+            {
+                context.Targets = result;
+            }
 
             return ok;
         }

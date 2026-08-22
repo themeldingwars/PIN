@@ -16,15 +16,24 @@ public class PopTargetsCommand : Command, ICommand
     {
         if (Params.Former == 1)
         {
-            var ok = context.FormerTargets.TryPop(out _);
+            var ok = context.TargetStack.TryPop(out var result);
+            if (ok)
+            {
+                context.FormerTargets = result;
+            }
 
             return ok;
         }
 
         if (Params.Current == 1)
         {
-            context.Targets = new AptitudeTargets(context.FormerTargets);
-            context.FormerTargets = new AptitudeTargets();
+            var ok = context.TargetStack.TryPop(out var result);
+            if (ok)
+            {
+                context.Targets = result;
+            }
+
+            return ok;
         }
 
         return true;

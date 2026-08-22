@@ -16,9 +16,9 @@ public class TargetStackEmptyCommand : Command, ICommand
     {
         if (Params.NotEmpty == 1)
         {
-            return context.Targets.Count != 0;
+            return context.TargetStack.Count != 0;
         }
 
-        return context.Targets.Count == 0;
+        return context.TargetStack.Count == 0;
     }
 }
