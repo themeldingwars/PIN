@@ -43,26 +43,45 @@ public class StatModifierCommand : Command, ICommand
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
         var modifierContext = (StatModifierCommandActiveContext)activeCommandContext;
+        var stat = (StatModifierIdentifier)Params.Stat;
+        float value = AbilitySystem.RegistryOp(modifierContext.Register, Params.Value, (Operand)Params.ValueRegop);
+
+        var mod = BuildModifier(Params.Op, stat, value);
+        if (mod == null)
+        {
+            Logger.Warning("{Command} {CommandId} has unsupported Op {Op}", nameof(StatModifierCommand), Params.Id, Params.Op);
+            return;
+        }
+
+        context.StatChangelist[stat] = mod;
+
         if (context.Self is CharacterEntity character)
         {
-            float value = AbilitySystem.RegistryOp(modifierContext.Register, Params.Value, (Operand)Params.ValueRegop);
-
-            var mod = new CharacterEntity.ActiveStatModifier()
-            {
-                Op = Params.Op,
-                Stat = (StatModifierIdentifier)Params.Stat,
-                Value = value,
-            };
-            character.AddStatModifier(Params.Id, mod);
+            character.RefreshStatModifier(stat);
         }
     }
 
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
-        if (context.Self is CharacterEntity character)
+        var stat = (StatModifierIdentifier)Params.Stat;
+        if (context.StatChangelist.Remove(stat) && context.Self is CharacterEntity character)
         {
-            character.RemoveStatModifier(Params.Id, (StatModifierIdentifier)Params.Stat);
+            character.RefreshStatModifier(stat);
         }
+    }
+
+    private static ActiveStatModifier BuildModifier(byte op, StatModifierIdentifier stat, float value)
+    {
+        const float PercentScale = 0.01f;
+        return (int)op switch
+        {
+            0 => new ActiveStatModifier { Stat = stat, Multi = 1.0f, Add = value },                             // add
+            1 => new ActiveStatModifier { Stat = stat, Multi = value * PercentScale, Add = 0.0f },              // percent (value/100)
+            2 => new ActiveStatModifier { Stat = stat, Multi = value, Add = 0.0f },                             // multi
+            3 => new ActiveStatModifier { Stat = stat, Multi = 1.0f, Add = value, Cap = value, HasCap = true }, // floor (max)
+            4 => new ActiveStatModifier { Stat = stat, Multi = value, Add = 0.0f, Cap = value, HasCap = true }, // special (min after multi)
+            _ => null,
+        };
     }
 }
 

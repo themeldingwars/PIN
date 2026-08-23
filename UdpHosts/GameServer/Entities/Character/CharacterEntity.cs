@@ -43,6 +43,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const float _fallbackCrouchSpeed = 2.5f; // TODO: Derive from SDB/character stats
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
+    private readonly Dictionary<StatModifierIdentifier, ActiveStatModifier> _statOverrides = new();
     private int _movementSampleCount;
     private int _movementSampleNewest;
     private ActiveWeaponDetails[,] _weaponDetailsCache;
@@ -51,12 +52,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Character };
-
-        CurrentStatModifiers = [];
-        foreach (StatModifierIdentifier stat in Enum.GetValues(typeof(StatModifierIdentifier)))
-        {
-            CurrentStatModifiers.Add(stat, []);
-        }
 
         InitFields();
         InitViews();
@@ -229,7 +224,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public CharacterLoadout CurrentLoadout { get; set; }
 
-    public Dictionary<StatModifierIdentifier, Dictionary<uint, ActiveStatModifier>> CurrentStatModifiers { get; set; }
     public Dictionary<StatModifierIdentifier, float> BaseStatModifiers { get; set; } = new()
     {
         { StatModifierIdentifier.RunSpeedMult,         1.0f },
@@ -678,15 +672,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void AddStatModifier(uint reference, ActiveStatModifier mod)
     {
-        CurrentStatModifiers[mod.Stat][reference] = mod;
+        _statOverrides[mod.Stat] = mod;
         RefreshStatModifier(mod.Stat);
     }
 
     public void RemoveStatModifier(uint reference, StatModifierIdentifier stat)
     {
-        if (CurrentStatModifiers[stat].ContainsKey(reference))
+        if (_statOverrides.Remove(stat))
         {
-            CurrentStatModifiers[stat].Remove(reference);
             RefreshStatModifier(stat);
         }
     }
@@ -762,30 +755,26 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public float GetCurrentStatModifierValue(StatModifierIdentifier stat)
     {
-        float value = 0;
-        try
-        {
-            value = BaseStatModifiers[stat];
-        }
-        catch
+        float value;
+        if (!BaseStatModifiers.TryGetValue(stat, out value))
         {
             Logger.Warning("MISSING BaseStatModifier for {Stat}", stat);
+            value = 1.0f;
         }
 
-        foreach (ActiveStatModifier mod in CurrentStatModifiers[stat].Values)
+        // From status effect contexts
+        foreach (var effect in GetActiveEffects())
         {
-            if (mod.Op == 1)
+            if (effect is { Context: { } ctx } && ctx.StatChangelist.TryGetValue(stat, out var mod))
             {
-                value += mod.Value;
+                value = FoldStatModifier(value, mod);
             }
-            else if (mod.Op == 2)
-            {
-                value = (value * mod.Value) / 100;
-            }
-            else
-            {
-                Logger.Warning("GetCurrentStatModifierValue Unknown Op {Op}", mod.Op);
-            }
+        }
+
+        // From custom overrides
+        if (_statOverrides.TryGetValue(stat, out var overrideMod))
+        {
+            value = FoldStatModifier(value, overrideMod);
         }
 
         return value;
@@ -1500,6 +1489,27 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         InteractionTarget = target;
     }
 
+    private static float FoldStatModifier(float value, ActiveStatModifier mod)
+    {
+        if (mod.HasCap)
+        {
+            if (mod.Cap > value)
+            {
+                value = (value * mod.Multi) + mod.Add;
+                if (value >= mod.Cap)
+                {
+                    value = mod.Cap;
+                }
+            }
+        }
+        else
+        {
+            value = (value * mod.Multi) + mod.Add;
+        }
+
+        return value;
+    }
+
     private static Vector3 CalculateProjectileOrigin(Vector3 position, Quaternion orientation, bool crouching, Vector3 aimDirection)
     {
         var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
@@ -2037,13 +2047,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         Character_MissionAndMarkerController?.GetType().GetProperty($"PersonalMapMarkers_{index}Prop")
                                             ?.SetValue(Character_MissionAndMarkerController, data);
-    }
-
-    public class ActiveStatModifier
-    {
-        public StatModifierIdentifier Stat { get; set; }
-        public byte Op { get; set; }
-        public float Value { get; set; }
     }
 
     public class ActiveWeaponDetails

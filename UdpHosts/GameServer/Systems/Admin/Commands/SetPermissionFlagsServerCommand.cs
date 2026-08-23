@@ -1,4 +1,5 @@
 using GameServer.Entities.Character;
+using GameServer.Systems.Aptitude;
 using static AeroMessages.GSS.Character.Controller.PermissionFlagsData;
 
 namespace GameServer.Systems.Admin.Commands;
@@ -29,7 +30,7 @@ public class SetPermissionFlagsServerCommand : ServerCommand
         const uint customRef = 99999991;
         if (newFloatValue)
         {
-            character.AddStatModifier(customRef, new Entities.Character.CharacterEntity.ActiveStatModifier { Stat = Enums.StatModifierIdentifier.GravityMult, Value = 50, Op = 2 });
+            character.AddStatModifier(customRef, new ActiveStatModifier { Stat = Enums.StatModifierIdentifier.GravityMult, Multi = 0.5f });
         }
         else
         {

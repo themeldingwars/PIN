@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using GameServer.Enums;
 
 namespace GameServer.Systems.Aptitude;
 
@@ -38,6 +39,8 @@ public class Context
     public CommandResult PreviousResult { get; set; }
 
     public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = [];
+
+    public Dictionary<StatModifierIdentifier, ActiveStatModifier> StatChangelist { get; } = new();
 
     public static Context CopyContext(Context original)
     {
