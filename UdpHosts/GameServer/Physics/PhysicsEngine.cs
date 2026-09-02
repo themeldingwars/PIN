@@ -305,12 +305,7 @@ public partial class PhysicsEngine
                 var damageMod = poseShapeData.DamageMod;
 
                 _logger.Debug("ProjectileSim Impact on {ShapeName} (headshot={Headshot}, crit={Crit}, damageMod={DamageMod})", poseShapeData.Name, headshot, crit, damageMod);
-                _logger.Debug("You hit {ShapeName} of {EntityId}", poseShapeData.Name, hitEntityId);
-                _eventBus.Enqueue(new ProjectileHitEvent(hitEntityId, 1337, source.EntityId, headshot, crit, damageMod));
-                if (source.IsPlayerControlled && source.Player.Preferences.DebugWeapon != 0)
-                {
-                    _eventBus.Enqueue(new DebugChatDirectMessageEvent($"You hit {poseShapeData.Name} of {hitEntityId}", source.Player));
-                }
+                _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, 1337, source.EntityId, headshot, crit, damageMod));
             }
         }
     }

@@ -3,6 +3,7 @@ using GameServer.Entities;
 namespace GameServer.Systems.Combat;
 
 public readonly record struct ProjectileHitEvent(
+    string ShapeName,
     ulong TargetId,
     int DamageAmount,
     ulong SourceId,

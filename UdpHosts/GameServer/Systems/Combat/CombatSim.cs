@@ -1,4 +1,5 @@
 using GameServer.Entities;
+using GameServer.Entities.Character;
 using GameServer.Systems.SystemEvents;
 using Serilog;
 
@@ -47,5 +48,9 @@ public class CombatSim
         var dmg = evt.DamageAmount;
         _damage.ApplyDamage(target, dmg, source);
         _feedback.TookDebugHit(target, source, dmg, evt.HeadShot, evt.Crit);
+        if (source is CharacterEntity sourceChar && sourceChar.IsPlayerControlled && sourceChar.Player.Preferences.DebugWeapon != 0)
+        {
+            _eventBus.Enqueue(new DebugChatDirectMessageEvent($"You hit {evt.ShapeName} of {target}", sourceChar.Player));
+        }
     }
 }
