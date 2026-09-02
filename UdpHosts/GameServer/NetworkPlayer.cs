@@ -141,6 +141,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public void EnterZoneAck()
     {
         AssignedShard.EntityMan.Add(CharacterEntity.EntityId, CharacterEntity);
+        AssignedShard.EntityMan.OnPlayerJoin(this);
     }
 
     public void ExitZoneAck()

@@ -137,6 +137,7 @@ public class Shard : IShard
             }
 
             Clients.Remove(player.SocketId);
+            EntityMan.OnPlayerLeft(player);
             Admin.ClearPlayer(player);
             return true;
         }

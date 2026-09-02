@@ -294,6 +294,12 @@ public class Channel
         return SendPacketMemory(entityId, 6, wireTypecode, ref messageData);
     }
 
+    public bool SendScopeOut(ulong entityId, byte wireTypecode)
+    {
+        var messageData = new Memory<byte>([]);
+        return SendPacketMemory(entityId, 6, wireTypecode, ref messageData);
+    }
+
     /// <summary>
     ///     Send a GSS Controller Keyframe message
     /// </summary>

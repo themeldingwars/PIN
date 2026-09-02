@@ -263,15 +263,8 @@ public class NetworkClient : INetworkClient
                 foreach (var request in query.EntityRequests)
                 {
                     byte typecode = (byte)(request.Entity & 0x00000000000000FFul);
-                    AssignedShard.Entities.TryGetValue(request.Entity & 0xffffffffffffff00, out IEntity entity);
-                    if (entity != null)
-                    {
-                        AssignedShard.EntityMan.KeyframeRequest(this, Player, entity, typecode, request.Checksum);
-                    }
-                    else
-                    {
-                        Logger.Warning("KeyframeRequest failed to find {Entity} ({TypeCode})", request.Entity, typecode);
-                    }
+                    var entityId = request.Entity & 0xffffffffffffff00;
+                    AssignedShard.EntityMan.KeyframeRequest(this, Player, entityId, typecode, request.Checksum);
                 }
 
                 break;

@@ -433,8 +433,9 @@ public class EntityManager
         // Process queued scope-ins
         if (!_queuedScopeIn.IsEmpty && currentTime > _lastScopeIn + _scopeInIntervalMs)
         {
-            bool ok = _queuedScopeIn.TryDequeue(out ScopeInRequest request);
-            if (ok)
+            var processed = 0;
+
+            while (processed < 5 && _queuedScopeIn.TryDequeue(out ScopeInRequest request))
             {
                 ScopeIn(request.Player, request.Entity);
             }
@@ -474,43 +475,11 @@ public class EntityManager
 
             foreach (var entity in entities)
             {
-                float distanceThreshold = entity.GetScopeRange();
                 var currentlyScoped = _scopedPlayersByEntity[entity.EntityId];
-                var entityPosition = entity.Position;
                 foreach (var player in players)
                 {
-                    if (player.CharacterEntity == null)
-                    {
-                        // If we somehow don't have a CharacterEntity, we can't check positions, so why bother scoping in entities.
-                        continue;
-                    }
-
                     bool isScoped = currentlyScoped.Contains(player);
-                    bool shouldBeScoped = false;
-
-                    // Determine shouldBeScoped
-                    if (entity == player.CharacterEntity)
-                    {
-                        // Players local character should probably always be scoped in
-                        shouldBeScoped = true;
-                    }
-                    else if (entity == player.CharacterEntity.AttachedToEntity)
-                    {
-                        // If players local character is attached to something, don't scope that out
-                        shouldBeScoped = true;
-                    }
-                    else if (entity.IsGlobalScope())
-                    {
-                        shouldBeScoped = true;
-                    }
-                    else
-                    {
-                        var playerPosition = player.CharacterEntity.Position;
-                        float distance = Vector3.Distance(entityPosition, playerPosition);
-                        shouldBeScoped = distance <= distanceThreshold;
-                    }
-
-                    // Resolve shouldBeScoped
+                    bool shouldBeScoped = ShouldBeScoped(player, entity);
                     if (isScoped != shouldBeScoped)
                     {
                         if (shouldBeScoped)
@@ -574,9 +543,19 @@ public class EntityManager
         }
     }
 
-    public void KeyframeRequest(INetworkClient client, IPlayer player, IEntity entity, byte typecode, uint clientChecksum)
+    public void KeyframeRequest(INetworkClient client, IPlayer player, ulong entityId, byte typecode, uint clientChecksum)
     {
         WireIds.ResolveGssRoute(client.AssignedShard.Settings.GssProtocolVersion, typecode, out var ns, out var ordinal);
+
+        _shard.Entities.TryGetValue(entityId, out IEntity entity);
+        if (entity == null)
+        {
+           _logger.Warning("KeyframeRequest failed to find {Entity} (tc-{TypeCode})", entityId, typecode);
+
+           // Directly send view scope out using the received wire typecode. This fails for controllers.
+           client.NetChannels[ChannelType.ReliableGss].SendScopeOut(entity.EntityId, typecode);
+           return;
+        }
 
         switch (entity)
         {
@@ -1193,6 +1172,11 @@ public class EntityManager
             return;
         }
 
+        if (_scopedPlayersByEntity[entity.EntityId].Contains(player))
+        {
+            return;
+        }
+
         _scopedPlayersByEntity[entity.EntityId].Add(player);
 
         if (entity is CharacterEntity character)
@@ -1427,13 +1411,13 @@ public class EntityManager
 
     public void ScopeOut(INetworkPlayer player, IEntity entity)
     {
+        _scopedPlayersByEntity[entity.EntityId].Remove(player);
+
         // Avoid sending messages if player is not in the appropriate state
         if (!player.CanReceiveGSS)
         {
             return;
         }
-
-        _scopedPlayersByEntity[entity.EntityId].Remove(player);
 
         if (entity is CharacterEntity character)
         {
@@ -1802,12 +1786,15 @@ public class EntityManager
         if (shouldFlush)
         {
             view.SerializeChangesToMemory(out var update);
-            foreach (var client in _scopedPlayersByEntity[entityId])
+            if (_scopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
             {
-                bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
-                if (shouldSend)
+                foreach (var client in scopedPlayers)
                 {
-                    client.NetChannels[ChannelType.UnreliableGss].SendChanges(view, entityId, update);
+                    bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
+                    if (shouldSend)
+                    {
+                        client.NetChannels[ChannelType.UnreliableGss].SendChanges(view, entityId, update);
+                    }
                 }
             }
         }
@@ -1817,22 +1804,78 @@ public class EntityManager
     where TNormal : class, IAero
     {
         var entityId = entity.EntityId;
-        foreach (var client in _scopedPlayersByEntity[entityId])
+        if (_scopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
         {
-            if (client.CanReceiveGSS)
+            foreach (var client in scopedPlayers)
             {
-                client.NetChannels[ChannelType.UnreliableGss].SendMessage(message, entityId);
+                if (client.CanReceiveGSS)
+                {
+                    client.NetChannels[ChannelType.UnreliableGss].SendMessage(message, entityId);
+                }
             }
+        }
+    }
+
+    public void OnPlayerJoin(INetworkPlayer player)
+    {
+        var entities = _shard.Entities.Values;
+
+        foreach (var entity in entities)
+        {
+            bool shouldBeScoped = ShouldBeScoped(player, entity);
+            if (shouldBeScoped)
+            {
+                _queuedScopeIn.Enqueue(new ScopeInRequest { Player = player, Entity = entity });
+            }
+        }
+    }
+
+    public void OnPlayerLeft(INetworkPlayer player)
+    {
+        foreach (var scopedPlayers in _scopedPlayersByEntity.Values)
+        {
+            scopedPlayers.Remove(player);
+        }
+    }
+
+    private bool ShouldBeScoped(INetworkPlayer player, IEntity entity)
+    {
+        if (player.CharacterEntity == null)
+        {
+            // If we somehow don't have a CharacterEntity, we can't check positions.
+            return false;
+        }
+
+        float distanceThreshold = entity.GetScopeRange();
+        var entityPosition = entity.Position;
+
+        if (entity == player.CharacterEntity)
+        {
+            // Players local character should probably always be scoped in
+            return true;
+        }
+        else if (entity == player.CharacterEntity.AttachedToEntity)
+        {
+            // If players local character is attached to something, don't scope that out
+            return true;
+        }
+        else if (entity.IsGlobalScope())
+        {
+            return true;
+        }
+        else
+        {
+            var playerPosition = player.CharacterEntity.Position;
+            float distance = Vector3.Distance(entityPosition, playerPosition);
+            return distance <= distanceThreshold;
         }
     }
 
     private void OnAddedEntity(IEntity entity)
     {
-        // TEMP: Hack to introduce new entities to connected players. This should be replaced with tick logic that sends down entities based on scope and distance.
         foreach (var client in _shard.Clients.Values)
         {
-            // We don't want to inform players that are still in the early steps of connecting
-            if (client.CanReceiveGSS)
+            if (client.CanReceiveGSS && ShouldBeScoped(client, entity))
             {
                 ScopeIn(client, entity);
             }
@@ -1841,9 +1884,12 @@ public class EntityManager
 
     private void OnRemovedEntity(IEntity entity)
     {
-        foreach (var client in _scopedPlayersByEntity[entity.EntityId])
+        if (_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayers))
         {
-            ScopeOut(client, entity);
+            foreach (var client in scopedPlayers)
+            {
+                ScopeOut(client, entity);
+            }
         }
     }
 
