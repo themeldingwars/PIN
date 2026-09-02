@@ -570,7 +570,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             PoseType poseTypeRecord;
             List<BattleframeVisuals> battleframeVisualGroupRecords;
             BattleframeVisuals battleframeVisualGroupRecord = null;
-            VisualRecord battleframeVisualRecord = null;
+            VisualRecord battleframeVisualRecord;
 
             try
             {
@@ -579,55 +579,52 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 poseTypeRecord = SDBInterface.GetPoseType(battleframeRecord.PosetypeId);
                 battleframeVisualGroupRecords = SDBInterface.GetBattleframeVisuals(battleframeRecord.VisualGroup);
 
-                // Find the appropriate visual record
-                byte retries = 3;
-                do
+                // Find the most appropriate visual record
+                for (int retry = 3; retry >= 0 && battleframeVisualGroupRecord == null; retry--)
                 {
                     foreach (var record in battleframeVisualGroupRecords)
                     {
                         bool matchesRace = record.Race == race;
                         bool matchesAnyRace = record.Race == 255;
-                        bool matchesGender = (record.Gender == 'F' && gender == 1) || (record.Gender == 'M' && gender == 0);
+                        bool matchesGender =
+                            (record.Gender == 'F' && gender == 1) ||
+                            (record.Gender == 'M' && gender == 0);
                         bool matchesAnyGender = record.Gender == 'X';
 
-                        bool valid = true;
-                        switch (retries)
+                        bool valid = retry switch
                         {
-                            case 3:
-                                // Pick exact match if found
-                                valid = matchesRace && matchesGender;
-                                break;
-                            case 2:
-                                // Otherwise, pick fallback if found
-                                valid = matchesAnyRace && matchesAnyGender;
-                                break;
-                            case 1:
-                                // Try to pick something reasonable
-                                valid = matchesRace || matchesGender;
-                                break;
-                            case 0:
-                                // Pick first result
-                                valid = true;
-                                break;
-                        }
+                            3 => matchesRace && matchesGender,
+                            2 => matchesAnyRace && matchesAnyGender,
+                            1 => matchesRace || matchesGender,
+                            0 => true,
+                            _ => false
+                        };
 
                         if (valid)
                         {
-                            if (retries < 2)
+                            if (retry < 2)
                             {
-                                Log.Warning("Picking uncertain Battleframe VisualRecord {recordId} of group {visualGroup} for chassi {chassiId}.", record.VisualrecId, battleframeRecord.VisualGroup, chassis.SdbId);
+                                Log.Warning(
+                                    "Picking uncertain Battleframe VisualRecord {recordId} of group {visualGroup} for chassi {chassiId}.",
+                                    record.VisualrecId,
+                                    battleframeRecord.VisualGroup,
+                                    chassis.SdbId);
                             }
 
-                            Log.Debug("Selected Battleframe VisualRecord {recordId} of group {visualGroup} for chassi {chassiId} (Had Gender {genderChar}, Race {raceId} ({raceStr}))", record.VisualrecId, battleframeRecord.VisualGroup, chassis.SdbId, gender == 1 ? "F" : "M", race, (CharacterRace)race);
+                            Log.Debug(
+                                "Selected Battleframe VisualRecord {recordId} of group {visualGroup} for chassi {chassiId} (Had Gender {genderChar}, Race {raceId} ({raceStr}))",
+                                record.VisualrecId,
+                                battleframeRecord.VisualGroup,
+                                chassis.SdbId,
+                                gender == 1 ? "F" : "M",
+                                race,
+                                (CharacterRace)race);
 
                             battleframeVisualGroupRecord = record;
                             break;
                         }
                     }
-
-                    retries--;
                 }
-                while (battleframeVisualRecord == null && retries > 0);
 
                 battleframeVisualRecord = SDBInterface.GetVisualRecord(battleframeVisualGroupRecord.VisualrecId);
             }
