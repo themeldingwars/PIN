@@ -276,7 +276,13 @@ public partial class PhysicsEngine
             hitResult.Normal = hitHandler.Normal;
             hitResult.ChildIndex = hitHandler.ChildIndex;
             hitResult.Collidable = hitHandler.HitCollidable;
-            hitResult.HitEntityId = _bodyToEntityId.GetValueOrDefault(hitHandler.HitCollidable.BodyHandle);
+
+            // Only a body-owned collidable has a body handle. A read on a
+            // static collidable (zone terrain, with LoadMapsCollision on)
+            // stops the process with a Bepu assertion.
+            hitResult.HitEntityId = hitHandler.HitCollidable.Mobility != CollidableMobility.Static
+                ? _bodyToEntityId.GetValueOrDefault(hitHandler.HitCollidable.BodyHandle)
+                : 0;
         }
 
         return hitResult;
