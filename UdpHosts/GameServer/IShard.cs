@@ -32,6 +32,9 @@ public interface IShard : IPacketSender
     MovementRelay Movement { get; }
     EntityManager EntityMan { get; }
     EncounterManager EncounterMan { get; }
+
+    /// <summary>Authored hive sites for the wave-eruption behavior of the thumper encounter.</summary>
+    Systems.World.HiveIndex Hives { get; }
     AbilitySystem Abilities { get; }
     ProjectileSim ProjectileSim { get; }
     WeaponSim WeaponSim { get; }

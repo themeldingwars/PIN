@@ -28,7 +28,8 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         LandedAbility = commandDef.LandedAbility;
         CompletedAbility = commandDef.CompletedAbility;
         CalldownTimeMs = commandDef.CalldownTimeMs;
-        MaxHealth = (uint)commandDef.Health;
+        MaxHealth = commandDef.Health > 0 ? (uint)commandDef.Health : 5000;
+        CurrentHealth = MaxHealth;
         Interaction = new InteractionComponent()
           {
               Type = InteractionType.GenericHold,
@@ -59,6 +60,18 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
     public uint CompletedAbility { get; set; }
     public uint CalldownTimeMs { get; set; }
     public uint MaxHealth { get; set; }
+
+    public uint CurrentHealth { get; private set; }
+
+    /// <summary>True when the health of the thumper is zero.</summary>
+    public bool IsDestroyed => CurrentHealth == 0;
+
+    /// <summary>
+    ///     True when NPCs can attack the thumper: it has health, and its
+    ///     state is between warm-up and departure.
+    /// </summary>
+    public bool IsAttackable => CurrentHealth > 0
+        && StateInfo.State is >= (byte)ThumperState.WARMINGUP and < (byte)ThumperState.LEAVING;
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -161,6 +174,26 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
     {
         HostilityInfo = newValue;
         ResourceNode_ObserverView?.HostilityInfoProp = HostilityInfo;
+    }
+
+    /// <summary>
+    ///     Decreases the thumper health. At zero health, the thumper goes
+    ///     to the DESTROYED state.
+    /// </summary>
+    public void Damage(uint amount)
+    {
+        if (IsDestroyed)
+        {
+            return;
+        }
+
+        CurrentHealth = amount >= CurrentHealth ? 0 : CurrentHealth - amount;
+        ResourceNode_ObserverView.CurrentHealthPctProp = (byte)(CurrentHealth * 100 / MaxHealth);
+
+        if (IsDestroyed)
+        {
+            TransitionToState(ThumperState.DESTROYED);
+        }
     }
 
     public void TransitionToState(ThumperState newState)

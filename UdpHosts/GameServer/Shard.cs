@@ -47,11 +47,14 @@ public class Shard : IShard
         EventBus = new EventBus();
         var debugCallbacks = new DebugProjectileHitCallbacks(this);
         Physics = new PhysicsEngine(EventBus, Settings.ZoneId, Settings.MapsPath, Settings.AssetDBPath, Settings.LoadMapsCollision, debugCallbacks, false, Settings.CachePath, Settings.ForceReloadZone);
-        AI = new AIEngine();
+        AI = new AIEngine(this);
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
         EntityMan = new EntityManager(this);
         EncounterMan = new EncounterManager(this);
+        Hives = new Systems.World.HiveIndex(
+            string.IsNullOrWhiteSpace(Settings.CachePath) ? "runtime-data" : Settings.CachePath,
+            Settings.ZoneId);
         WeaponSim = new WeaponSim(this);
         ProjectileSim = new ProjectileSim(this, debugCallbacks);
         Chat = new ChatService(this, EventBus);
@@ -75,6 +78,8 @@ public class Shard : IShard
     public MovementRelay Movement { get; }
     public EntityManager EntityMan { get; }
     public EncounterManager EncounterMan { get; }
+
+    public Systems.World.HiveIndex Hives { get; }
     public AbilitySystem Abilities { get; }
     public ProjectileSim ProjectileSim { get; }
     public WeaponSim WeaponSim { get; }

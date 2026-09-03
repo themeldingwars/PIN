@@ -253,6 +253,41 @@ public partial class PhysicsEngine
         });
     }
 
+    /// <summary>
+    ///     Probes the static zone geometry straight down and returns the
+    ///     ground height at a position. Kinematic bodies (characters,
+    ///     deployables) are ignored, so that an NPC below the probe cannot
+    ///     appear as terrain. Returns null when the probe hits no static
+    ///     geometry (zone collision not loaded, or outside the mesh).
+    /// </summary>
+    /// <param name="position">The probe position. X and Y select the column; Z is the reference height.</param>
+    /// <param name="walkableEntityId">Optional. The surface of this kinematic entity also counts as ground. A climber can then walk on the hull of the entity.</param>
+    /// <param name="probeUp">The probe start height above the position, in meters.</param>
+    /// <param name="probeDown">The probe depth below the start, in meters.</param>
+    public float? GetGroundHeight(Vector3 position, ulong walkableEntityId = 0, float probeUp = 40f, float probeDown = 120f)
+    {
+        var from = position + new Vector3(0f, 0f, probeUp);
+        var distance = probeUp + probeDown;
+
+        var hitHandler = default(RayHitHandler);
+        hitHandler.T = distance;
+        hitHandler.StaticsOnly = true;
+        if (walkableEntityId != 0 && _entityIdToBody.TryGetValue(walkableEntityId, out var walkableBody))
+        {
+            hitHandler.HasWalkableBody = true;
+            hitHandler.WalkableBody = walkableBody;
+        }
+
+        Simulation.RayCast(from, new Vector3(0f, 0f, -1f), distance, BufferPool, ref hitHandler);
+
+        if (hitHandler.T < distance)
+        {
+            return from.Z - hitHandler.T;
+        }
+
+        return null;
+    }
+
     public SegmentRaycastHit SegmentRayCast(Vector3 from, Vector3 to, ulong ignoreEntityId)
     {
         var hitResult = default(SegmentRaycastHit);
@@ -279,7 +314,13 @@ public partial class PhysicsEngine
             hitResult.Normal = hitHandler.Normal;
             hitResult.ChildIndex = hitHandler.ChildIndex;
             hitResult.Collidable = hitHandler.HitCollidable;
-            hitResult.HitEntityId = _bodyToEntityId.GetValueOrDefault(hitHandler.HitCollidable.BodyHandle);
+
+            // Only a body-owned collidable has a body handle. A read on a
+            // static collidable (zone terrain, with LoadMapsCollision on)
+            // stops the process with a Bepu assertion.
+            hitResult.HitEntityId = hitHandler.HitCollidable.Mobility != CollidableMobility.Static
+                ? _bodyToEntityId.GetValueOrDefault(hitHandler.HitCollidable.BodyHandle)
+                : 0;
         }
 
         return hitResult;
@@ -371,6 +412,9 @@ public partial class PhysicsEngine
         public float T;
         public CollidableReference HitCollidable;
         public bool AvoidSourceBody;
+        public bool StaticsOnly;
+        public bool HasWalkableBody;
+        public BodyHandle WalkableBody;
         public BodyHandle SourceBody;
         public Vector3 Normal;
         public int ChildIndex;
@@ -378,6 +422,13 @@ public partial class PhysicsEngine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool AllowTest(CollidableReference collidable)
         {
+            // StaticsOnly accepts static geometry, plus one optional walkable body
+            if (StaticsOnly && collidable.Mobility != CollidableMobility.Static
+                && !(HasWalkableBody && collidable.BodyHandle.Equals(WalkableBody)))
+            {
+                return false;
+            }
+
             if (AvoidSourceBody && collidable.Mobility != CollidableMobility.Static && collidable.BodyHandle.Equals(SourceBody))
             {
                 return false;
@@ -389,6 +440,12 @@ public partial class PhysicsEngine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool AllowTest(CollidableReference collidable, int childIndex)
         {
+            if (StaticsOnly && collidable.Mobility != CollidableMobility.Static
+                && !(HasWalkableBody && collidable.BodyHandle.Equals(WalkableBody)))
+            {
+                return false;
+            }
+
             if (AvoidSourceBody && collidable.Mobility != CollidableMobility.Static && collidable.BodyHandle.Equals(SourceBody))
             {
                 return false;

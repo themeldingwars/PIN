@@ -1219,6 +1219,23 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return GetProjectileOrigin(AimDirection);
     }
 
+    /// <summary>
+    ///     Returns the muzzle height for NPC projectiles. It is the top of
+    ///     the scaled physics capsule of the rig. The AIEngine value
+    ///     NpcMuzzleFraction adjusts it.
+    /// </summary>
+    public float GetNpcMuzzleHeight()
+    {
+        var height = 1.62f;
+        if (Collision is CharacterCollisionComponent { PoseTypeRecord: not null } collision
+            && collision.PoseTypeRecord.PhysicsHeight > 0.1f)
+        {
+            height = collision.PoseTypeRecord.PhysicsHeight * Math.Max(collision.Scale, 0.1f);
+        }
+
+        return Math.Clamp(height * AIEngine.NpcMuzzleFraction, 0.3f, 4f);
+    }
+
     public Vector3 GetProjectileOrigin(Vector3 aimDirection)
     {
         return CalculateProjectileOrigin(Position, Orientation, IsCrouching, aimDirection);

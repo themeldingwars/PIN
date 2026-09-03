@@ -71,6 +71,20 @@ public class MovementRelay
         client.NetChannels[ChannelType.UnreliableGss].SendMessage(confirmedPose, character.EntityId);
 
         // Forward update to remote clients
+        BroadcastCharacterPose(character, sendJumpActioned, input.ShortTime);
+    }
+
+    /// <summary>
+    ///     Sends the current pose of a character to all playing clients.
+    ///     The AI engine also uses this method for server-moved NPCs.
+    /// </summary>
+    public void BroadcastCharacterPose(Entities.Character.CharacterEntity character, bool sendJumpActioned = false, ushort jumpShortTime = 0)
+    {
+        // Keep the physics body in sync for server-moved characters (AI).
+        // ProcessMovementInput does this for players, but no code did it
+        // for NPCs. NPC hitboxes then stayed at their spawn position.
+        _shard.Physics.UpdateEntity(character);
+
         var currentPose = new CurrentPoseUpdate
         {
             Data = new AeroMessages.GSS.CurrentPoseUpdateData
@@ -90,7 +104,7 @@ public class MovementRelay
             {
                 if (sendJumpActioned)
                 {
-                    remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(new JumpActioned { ShortTime = input.ShortTime }, character.EntityId);
+                    remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(new JumpActioned { ShortTime = jumpShortTime }, character.EntityId);
                 }
 
                 remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(currentPose, character.EntityId);
