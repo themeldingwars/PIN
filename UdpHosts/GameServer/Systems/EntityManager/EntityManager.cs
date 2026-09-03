@@ -1200,12 +1200,15 @@ public class EntityManager
             return;
         }
 
-        if (_scopedPlayersByEntity[entity.EntityId].Contains(player))
+        // The entity can die or despawn while its scope-in request waits in
+        // the queue. NPCs that die in combat make this frequent. A direct
+        // index then stops the server with a KeyNotFoundException.
+        if (!_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayers))
         {
             return;
         }
 
-        _scopedPlayersByEntity[entity.EntityId].Add(player);
+        scopedPlayers.Add(player);
 
         if (entity is CharacterEntity character)
         {
@@ -1445,6 +1448,12 @@ public class EntityManager
         if (!player.CanReceiveGSS)
         {
             return;
+        }
+
+        // The entity can already be removed. Refer to the same guard in ScopeIn.
+        if (_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayers))
+        {
+            scopedPlayers.Remove(player);
         }
 
         if (entity is CharacterEntity character)
