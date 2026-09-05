@@ -14,6 +14,7 @@ using GameServer.Systems.EntityManager;
 using GameServer.Systems.MovementRelay;
 using GameServer.Systems.PlayerRespawn;
 using GameServer.Systems.ProjectileSim;
+using GameServer.Systems.SystemEvents;
 using GameServer.Systems.WeaponSim;
 using Serilog;
 using Shared.Udp;
@@ -43,6 +44,7 @@ public interface IShard : IPacketSender
     uint ZoneId { get; }
     ILogger Logger { get; }
     GameServerSettings Settings { get; }
+    EventBus EventBus { get; }
 
     int CurrentPlayers => Clients.Count;
 
