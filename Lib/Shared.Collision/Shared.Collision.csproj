@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -8,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="4.3.1" />
-    <PackageReference Include="SharpCompress" Version="0.50.0" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="SharpCompress" Version="0.50.4" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
   </ItemGroup>
 
@@ -17,5 +16,4 @@
     <ProjectReference Include="..\BepuPhysics2\BepuPhysics\BepuPhysics.csproj" />
     <ProjectReference Include="..\Shared.Common\Shared.Common.csproj" />
   </ItemGroup>
-
 </Project>

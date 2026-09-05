@@ -30,7 +30,7 @@ public partial class PhysicsEngine
         }
 
         List<CreateKineticEntity> entities = [];
-        foreach(var (entityId, bodyHandle) in _entityIdToBody)
+        foreach (var (entityId, bodyHandle) in _entityIdToBody)
         {
             ref var currentPose = ref Simulation.Bodies[bodyHandle].Pose;
             var key = _entityIdToAssetKey[entityId];
@@ -65,7 +65,7 @@ public partial class PhysicsEngine
         }
 
         List<UpdateEntity> updates = [];
-        foreach(var (entityId, bodyHandle) in _entityIdToBody)
+        foreach (var (entityId, bodyHandle) in _entityIdToBody)
         {
             ref var currentPose = ref Simulation.Bodies[bodyHandle].Pose;
             var key = _entityIdToAssetKey[entityId];

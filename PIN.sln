@@ -73,6 +73,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinimalSDB", "Tools\Minimal
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CollisionGenerator", "Tools\CollisionGenerator\CollisionGenerator.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Debug", "Lib\Shared.Debug\Shared.Debug.csproj", "{62A7B791-6762-4B82-A5F4-7B9F10F0A16D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -175,6 +177,10 @@ Global
 		{4D497A81-211C-4335-AAF8-1E8CEA202FA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D497A81-211C-4335-AAF8-1E8CEA202FA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D497A81-211C-4335-AAF8-1E8CEA202FA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62A7B791-6762-4B82-A5F4-7B9F10F0A16D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62A7B791-6762-4B82-A5F4-7B9F10F0A16D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62A7B791-6762-4B82-A5F4-7B9F10F0A16D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62A7B791-6762-4B82-A5F4-7B9F10F0A16D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -204,6 +210,7 @@ Global
 		{0D7010DD-1BAD-44BE-AEB0-977EFC2E0D9F} = {6DEE58F8-3F1A-4694-8842-39D181C1E1B5}
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890} = {6DEE58F8-3F1A-4694-8842-39D181C1E1B5}
 		{4D497A81-211C-4335-AAF8-1E8CEA202FA3} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
+		{62A7B791-6762-4B82-A5F4-7B9F10F0A16D} = {5B823ADB-335C-4A93-BB60-E2AA16E3E2DB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7BF1BD43-A851-45C0-86F8-490A8E4FA305}
