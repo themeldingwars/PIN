@@ -17,16 +17,16 @@ public abstract class Command : ICommand
     /// <summary>
     /// The standard execution logic
     /// </summary>
-    /// <param name="context"></param>
-    /// <param name="result"></param>
+    /// <param name="context">apt::Context</param>
+    /// <param name="result">Result</param>
     public abstract void Execute(Context context, ref CommandResult result);
 
     /// <summary>
-    ///
+    /// Used frequently but unsure why
     /// </summary>
-    /// <param name="context"></param>
-    /// <param name="result"></param>
-    public virtual void Func1(Context context, ref CommandResult result)
+    /// <param name="context">apt::Context</param>
+    /// <param name="result">Result</param>
+    public virtual void Test(Context context, ref CommandResult result)
     {
         result.SetPass(StatusCode.None);
     }
@@ -34,7 +34,7 @@ public abstract class Command : ICommand
     /// <summary>
     /// Triggered by mResetFlags
     /// </summary>
-    /// <param name="context"></param>
+    /// <param name="context">apt::Context</param>
     // public abstract void Reset(Context context);
     public virtual void Reset(Context context)
     {
@@ -42,18 +42,18 @@ public abstract class Command : ICommand
     }
 
     /// <summary>
-    ///
+    /// TODO: Add data, std::any Data seems related to cooldown info
     /// </summary>
-    /// <param name="context"></param>
-    public virtual void Func3(Context context)
+    /// <param name="context">apt::Context</param>
+    public virtual void Cooldown(Context context)
     {
         return;
     }
 
     /// <summary>
-    ///
+    /// When the ability is slotted, seems to be used to preload and cache stuff
     /// </summary>
-    /// <param name="context"></param>
+    /// <param name="context">apt::Context</param>
     public virtual void Slot(Context context)
     {
         return;

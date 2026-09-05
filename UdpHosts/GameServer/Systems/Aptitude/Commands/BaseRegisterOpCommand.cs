@@ -9,7 +9,7 @@ public abstract class BaseRegisterOpCommand : Command
     {
     }
 
-    public override void Func1(Context context, ref CommandResult result)
+    public override void Test(Context context, ref CommandResult result)
     {
         Execute(context, ref result);
     }

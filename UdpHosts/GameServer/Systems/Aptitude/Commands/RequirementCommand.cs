@@ -11,7 +11,7 @@ public abstract class RequirementCommand : Command
 
     public override void Execute(Context context, ref CommandResult result)
     {
-        Func1(context, ref result);
+        Test(context, ref result);
     }
 
     public override void Reset(Context context)
