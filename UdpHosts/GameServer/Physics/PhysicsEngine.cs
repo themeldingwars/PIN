@@ -288,7 +288,7 @@ public partial class PhysicsEngine
         return hitResult;
     }
 
-    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit)
+    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, bool isAbilityProjectile = false)
     {
         DebugProjectileHitCallbacks?.SendDebugProjectileImpact(source, trace, hit.HitPosition, hit.Normal);
 
@@ -308,7 +308,7 @@ public partial class PhysicsEngine
                 var damageMod = poseShapeData.DamageMod;
 
                 _logger.Debug("ProjectileSim Impact on {ShapeName} (headshot={Headshot}, crit={Crit}, damageMod={DamageMod})", poseShapeData.Name, headshot, crit, damageMod);
-                _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, 1337, source.EntityId, headshot, crit, damageMod));
+                _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, 1337, source.EntityId, headshot, crit, damageMod, isAbilityProjectile));
             }
         }
     }

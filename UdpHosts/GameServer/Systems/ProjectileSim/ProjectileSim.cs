@@ -25,7 +25,7 @@ public class ProjectileSim
         _activeProjectiles = new ConcurrentDictionary<(ulong EntityId, uint TraceId), ActiveProjectile>();
     }
 
-    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius)
+    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, bool isAbilityProjectile = false)
     {
         var ammoFlags = new AmmoFlags(ammo.Flags);
         bool isDrunk = DrunkMissile.IsActive(ammo);
@@ -65,7 +65,8 @@ public class ProjectileSim
             AccumulatedDt = 0f,
             ImpactRadius = impactRadius,
             MaxRadius = maxRadius,
-            IsDrunk = isDrunk
+            IsDrunk = isDrunk,
+            IsAbilityProjectile = isAbilityProjectile
         };
 
         _activeProjectiles.TryAdd((entity.EntityId, trace), projectile);
@@ -153,7 +154,7 @@ public class ProjectileSim
                     var source = GetSourceEntity(projectile);
                     if (source != null)
                     {
-                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit);
+                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.IsAbilityProjectile);
                     }
                 }
             }

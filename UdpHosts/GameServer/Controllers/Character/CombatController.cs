@@ -41,19 +41,49 @@ public class CombatController : Base
     public void FireWeaponProjectile(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var fireWeaponProjectile = packet.Unpack<FireWeaponProjectile>();
+        var character = player.CharacterEntity;
 
         Vector3? shooterVelocity = fireWeaponProjectile.HaveShooterVelocity == 1 ? fireWeaponProjectile.ShooterVelocity : null;
-        player.HandleFireWeaponProjectile(fireWeaponProjectile.Time, fireWeaponProjectile.AimDirection, shooterVelocity);
 
-        var weaponProjectileFired = new WeaponProjectileFired
+        var pendingAbility = character.TryConsumeAbilityProjectile(fireWeaponProjectile.Time);
+        if (pendingAbility.HasValue)
         {
-            ShortTime = (ushort)fireWeaponProjectile.Time,
-            Aim = fireWeaponProjectile.AimDirection,
-            HaveShooterVelocity = fireWeaponProjectile.HaveShooterVelocity,
-            ShooterVelocity = fireWeaponProjectile.ShooterVelocity
-        };
+            var pending = pendingAbility.Value;
+            character.Shard.WeaponSim.OnFireAbilityProjectile(character, pending, fireWeaponProjectile.Time, fireWeaponProjectile.AimDirection, shooterVelocity);
 
-        client.NetChannels[ChannelType.ReliableGss].SendMessage(weaponProjectileFired, player.CharacterEntity.EntityId);
+            var abilityProjectileFired = new AbilityProjectileFired
+            {
+                ShortTime = (ushort)fireWeaponProjectile.Time,
+                MaybeHalfs = default,
+                Aim = fireWeaponProjectile.AimDirection,
+                AmmoType = (ushort)pending.AmmoType,
+                Range = pending.Range,
+                Unk1 = 0,
+                Unk2 = pending.BurstCount,
+                Unk3 = 0,
+                Unk4 = 0,
+                Unk5 = 0,
+                Hardpoint = pending.Hardpoint,
+                UnkFlag = 0,
+                UnkFlaggedEntity = 0,
+            };
+
+            client.NetChannels[ChannelType.ReliableGss].SendMessage(abilityProjectileFired, character.EntityId);
+        }
+        else
+        {
+            player.HandleFireWeaponProjectile(fireWeaponProjectile.Time, fireWeaponProjectile.AimDirection, shooterVelocity);
+
+            var weaponProjectileFired = new WeaponProjectileFired
+            {
+                ShortTime = (ushort)fireWeaponProjectile.Time,
+                Aim = fireWeaponProjectile.AimDirection,
+                HaveShooterVelocity = fireWeaponProjectile.HaveShooterVelocity,
+                ShooterVelocity = fireWeaponProjectile.ShooterVelocity
+            };
+
+            client.NetChannels[ChannelType.ReliableGss].SendMessage(weaponProjectileFired, character.EntityId);
+        }
     }
 
     [MessageID(GssCharacterCommand.FireEnd)]

@@ -41,9 +41,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const float _fallbackRunSpeed = 4.5f; // TODO: Derive from SDB/character stats
     private const float _fallbackSprintSpeed = 7.0f; // TODO: Derive from SDB/character stats
     private const float _fallbackCrouchSpeed = 2.5f; // TODO: Derive from SDB/character stats
+    private const int _maxAbilityProjectilePending = 8; // safety cap for queued ability projectiles
+    private const uint _abilityProjectileStaleMs = 1000; // a queued ability projectile older than this is dropped
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
     private readonly Dictionary<AptitudeStat, ActiveStatModifier> _statOverrides = new();
+    private readonly Queue<PendingAbilityProjectile> _pendingAbilityProjectiles = new();
     private int _movementSampleCount;
     private int _movementSampleNewest;
     private ActiveWeaponDetails[,] _weaponDetailsCache;
@@ -1227,6 +1230,65 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         TryGetInterpolatedPose(clientTimeMs, shooterVelocity, out var position, out var orientation, out var movementState);
         var crouching = new MovementStateContainer { MovementStateValue = (ushort)movementState }.Crouch;
         return CalculateProjectileOrigin(position, orientation, crouching, aimDirection);
+    }
+
+    /// <summary>
+    ///     Queues an ability projectile to be fired.
+    /// </summary>
+    /// <param name="projectile">Pending data</param>
+    public void EnqueueAbilityProjectile(PendingAbilityProjectile projectile)
+    {
+        if (_pendingAbilityProjectiles.Count >= _maxAbilityProjectilePending)
+        {
+            _pendingAbilityProjectiles.Dequeue();
+        }
+
+        _pendingAbilityProjectiles.Enqueue(projectile);
+    }
+
+    /// <summary>
+    ///     Consumes the oldest pending ability projectile that is still valid for the given fire time,
+    ///     returning null when none is pending.
+    /// </summary>
+    /// <param name="fireTime">Gametime</param>
+    /// <returns>PendingAbilityProjectile or null if none can be consumed</returns>
+    public PendingAbilityProjectile? TryConsumeAbilityProjectile(uint fireTime)
+    {
+        while (_pendingAbilityProjectiles.Count > 0)
+        {
+            var front = _pendingAbilityProjectiles.Peek();
+            int age = (int)(fireTime - front.ActivationTime);
+            if (age < -(_abilityProjectileStaleMs / 2) || age > (int)_abilityProjectileStaleMs)
+            {
+                _pendingAbilityProjectiles.Dequeue();
+                continue;
+            }
+
+            _pendingAbilityProjectiles.Dequeue();
+            return front;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Drops any pending ability projectiles that are too old relative to the given time.
+    /// </summary>
+    /// <param name="currentTime">Gametime</param>
+    public void ExpireAbilityProjectiles(uint currentTime)
+    {
+        while (_pendingAbilityProjectiles.Count > 0)
+        {
+            var front = _pendingAbilityProjectiles.Peek();
+            int age = (int)(currentTime - front.ActivationTime);
+            if (age < -(_abilityProjectileStaleMs / 2) || age > (int)_abilityProjectileStaleMs)
+            {
+                _pendingAbilityProjectiles.Dequeue();
+                continue;
+            }
+
+            break;
+        }
     }
 
     /// <summary>

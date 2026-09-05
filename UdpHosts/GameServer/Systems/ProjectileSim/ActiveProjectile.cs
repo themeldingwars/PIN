@@ -42,4 +42,5 @@ public struct ActiveProjectile
     public float MaxRadius;
 
     public bool IsDrunk;
+    public bool IsAbilityProjectile;
 }

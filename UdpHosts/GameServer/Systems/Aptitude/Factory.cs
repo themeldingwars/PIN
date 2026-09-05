@@ -2,6 +2,7 @@ using GameServer.StaticDB;
 using GameServer.Systems.Aptitude.Commands.Activation;
 using GameServer.Systems.Aptitude.Commands.Calldown;
 using GameServer.Systems.Aptitude.Commands.Custom;
+using GameServer.Systems.Aptitude.Commands.Damage;
 using GameServer.Systems.Aptitude.Commands.Deployable;
 using GameServer.Systems.Aptitude.Commands.Duration;
 using GameServer.Systems.Aptitude.Commands.Encounter;
@@ -277,8 +278,8 @@ public class Factory
                 return new PeekTargetsCommand(SDBInterface.GetPeekTargetsCommandDef(commandId));
             case CommandType.RequirementServer:
                 return new RequirementServerCommand(SDBInterface.GetRequirementServerCommandDef(commandId));
-            // case CommandType.FireProjectile:
-            //     return new FireProjectileCommand(SDBInterface.GetFireProjectileCommandDef(commandId));
+            case CommandType.FireProjectile:
+                return new FireProjectileCommand(SDBInterface.GetFireProjectileCommandDef(commandId));
             case CommandType.ApplyFreeze:
                 return new ApplyFreezeCommand(SDBInterface.GetApplyFreezeCommandDef(commandId));
             // case CommandType.ClimbLedge:

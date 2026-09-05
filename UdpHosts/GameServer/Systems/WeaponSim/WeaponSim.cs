@@ -125,6 +125,63 @@ public class WeaponSim
         weaponSimState.LastBurstTime = time;
     }
 
+    /// <summary>
+    ///     Fires an ability projectile using the aim vector from the client's FireWeaponProjectile
+    ///     TODO: Homing, aim-at-target and body/hardpoint origin offsets
+    /// </summary>
+    /// <param name="entity">Character that fires</param>
+    /// <param name="pending">Ability projectile info</param>
+    /// <param name="time">Time of firing</param>
+    /// <param name="localAimDir">The aim direction at the time of firing</param>
+    /// <param name="shooterVelocity">The shooter velocity at the time of firing</param>
+    public void OnFireAbilityProjectile(CharacterEntity entity, PendingAbilityProjectile pending, uint time, Vector3 localAimDir, Vector3? shooterVelocity = null)
+    {
+        var ammo = SDBInterface.GetAmmo(pending.AmmoType);
+        if (ammo == null)
+        {
+            _logger.Warning("Will not fire ability projectile because failed to get ammo {AmmoType} (exec {ExecId})", pending.AmmoType, pending.ExecutionId);
+            return;
+        }
+
+        // Stub: spawn from the weapon muzzle origin (body/hardpoint offset not implemented yet).
+        var origin = entity.GetProjectileOrigin(pending.QueueTime, localAimDir, shooterVelocity);
+
+        // TODO: Should we really load from weapon?
+        var attrsDict = entity.GetActiveWeaponDetails()?.Attributes;
+
+        float projectileSpeed = ammo.ProjectileSpeed;
+        if (ammo.ProjectileSpeedStat != 0 && attrsDict != null && attrsDict.TryGetValue(ammo.ProjectileSpeedStat, out var speedAttr))
+        {
+            projectileSpeed = speedAttr;
+        }
+
+        float impactRadius = ammo.ImpactRadius;
+        if (ammo.ImpactRadiusStat != 0 && attrsDict != null && attrsDict.TryGetValue(ammo.ImpactRadiusStat, out var impactAttr))
+        {
+            impactRadius = impactAttr;
+        }
+
+        float maxRadius = ammo.MaxRadius;
+        if (ammo.MaxRadiusStat != 0 && attrsDict != null && attrsDict.TryGetValue(ammo.MaxRadiusStat, out var maxRadiusAttr))
+        {
+            maxRadius = maxRadiusAttr;
+        }
+
+        byte roundsToFire = pending.BurstCount > 0 ? pending.BurstCount : (byte)1;
+        Vector3 aimForward = Vector3.Normalize(localAimDir);
+        Vector3 aimRight = Vector3.Normalize(Vector3.Cross(aimForward, Vector3.UnitZ));
+        Vector3 aimUp = Vector3.Normalize(Vector3.Cross(aimRight, aimForward));
+
+        for (byte round = 0; round < roundsToFire; round++)
+        {
+            PRNG.PRNG.Spread(time, 0, round, aimForward, aimRight, aimUp, pending.Spread, Vector3.Zero, 0, out Vector3 direction);
+            uint trace = PRNG.PRNG.Trace(time, round);
+            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, pending.Range, projectileSpeed, impactRadius, maxRadius, isAbilityProjectile: true);
+        }
+
+        _logger.Debug("Fired ability projectile ammo={AmmoType} range={Range} burst={Burst} entity={Entity} exec={ExecId}", pending.AmmoType, pending.Range, roundsToFire, entity.EntityId, pending.ExecutionId);
+    }
+
     // Keeps one spread state per fire mode (mirrors the client's firstMode/secondMode), so each mode
     // carries its own accumulated spread/heat history. On a weapon or fire-mode change the newly
     // activated mode is re-seeded to match the client switch handler (see WeaponSpreadMath.SeedModeStateOnSwitch).
