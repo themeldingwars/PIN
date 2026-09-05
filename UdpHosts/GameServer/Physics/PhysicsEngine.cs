@@ -36,22 +36,17 @@ public partial class PhysicsEngine
     private readonly Dictionary<BodyHandle, ulong> _bodyToEntityId = [];
     private readonly Dictionary<ulong, BodyHandle> _entityIdToBody = [];
     private readonly Dictionary<ulong, AssetCompoundKey> _entityIdToAssetKey = [];
-    private readonly string _mapsPath = string.Empty;
-    private readonly string _cachePath = string.Empty;
-    private readonly bool _forceReload;
-    private readonly bool _isDebugPipeClient;
+    private readonly PhysicsEngineSettings _settings;
 
-    private TypedIndex _fallbackShape;
+    private readonly TypedIndex _fallbackShape;
     private int _debugEntityIndex = -1;
     private double _debugTimeAccumulator;
 
-    public PhysicsEngine(EventBus eventBus, uint zoneId, string mapsPath = "", string assetDBPath = "", bool loadMapsCollision = false, DebugProjectileHitCallbacks? debugProjectileHitCallbacks = null, bool isDebugPipeClient = false, string cachePath = "", bool forceReload = false)
+    public PhysicsEngine(PhysicsEngineSettings settings, EventBus eventBus, DebugProjectileHitCallbacks? debugProjectileHitCallbacks = null)
     {
+        _settings = settings;
         _eventBus = eventBus;
         _logger = Log.Logger.ForContext<PhysicsEngine>();
-        _mapsPath = mapsPath;
-        _cachePath = cachePath;
-        _forceReload = forceReload;
         DebugProjectileHitCallbacks = debugProjectileHitCallbacks;
 
         var targetThreadCount = int.Max(1, Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
@@ -62,16 +57,18 @@ public partial class PhysicsEngine
 
         _fallbackShape = Simulation.Shapes.Add(new Sphere(0.9f));
 
-        _zoneLoader = new ZoneLoader(Simulation, BufferPool, ThreadDispatcher, mapsPath, cachePath);
-        _rigidBodyLoader = new RigidBodyLoader(Simulation, BufferPool, ThreadDispatcher, assetDBPath, cachePath);
-        PoseLoader = new PoseLoader.PoseLoader(assetDBPath);
+        _zoneLoader = new ZoneLoader(Simulation, BufferPool, ThreadDispatcher, _settings.MapsPath, _settings.CachePath);
+        _rigidBodyLoader = new RigidBodyLoader(Simulation, BufferPool, ThreadDispatcher, _settings.AssetDBPath, _settings.CachePath);
+        PoseLoader = new PoseLoader.PoseLoader(_settings.AssetDBPath);
 
-        _isDebugPipeClient = isDebugPipeClient;
-        DebugInitialize(isDebugPipeClient, zoneId);
-
-        if (loadMapsCollision)
+        if (_settings.EnableDebugPipe)
         {
-            LoadZone(zoneId);
+            DebugInitialize(_settings.IsDebugPipeClient, _settings.ZoneId);
+        }
+
+        if (_settings.LoadMapsCollision)
+        {
+            LoadZone(_settings.ZoneId);
         }
     }
 
@@ -86,7 +83,7 @@ public partial class PhysicsEngine
 
     public void LoadZone(uint zoneId)
     {
-        var ts = _zoneLoader.LoadZone(zoneId, _forceReload);
+        var ts = _zoneLoader.LoadZone(zoneId, _settings.ForceReload);
         if (ts.HasValue)
         {
             ZoneFileTimestamp = ts.Value;
@@ -108,7 +105,7 @@ public partial class PhysicsEngine
             TimeAccumulator -= TargetTimestepDuration;
         }
 
-        if (!ct.IsCancellationRequested && !_isDebugPipeClient)
+        if (!ct.IsCancellationRequested && !_settings.IsDebugPipeClient)
         {
             _debugTimeAccumulator += deltaTime;
             if (_debugTimeAccumulator >= TargetDebugTickDuration)

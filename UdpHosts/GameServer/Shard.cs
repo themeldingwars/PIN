@@ -46,7 +46,19 @@ public class Shard : IShard
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
         EventBus = new EventBus();
         var debugCallbacks = new DebugProjectileHitCallbacks(this);
-        Physics = new PhysicsEngine(EventBus, Settings.ZoneId, Settings.MapsPath, Settings.AssetDBPath, Settings.LoadMapsCollision, debugCallbacks, false, Settings.CachePath, Settings.ForceReloadZone);
+        Physics = new PhysicsEngine(new()
+        {
+            ZoneId = Settings.ZoneId,
+            MapsPath = Settings.MapsPath,
+            AssetDBPath = Settings.AssetDBPath,
+            LoadMapsCollision = Settings.LoadMapsCollision,
+            IsDebugPipeClient = false,
+            EnableDebugPipe = false,
+            CachePath = Settings.CachePath,
+            ForceReload = Settings.ForceReloadZone
+        },
+        EventBus,
+        debugCallbacks);
         AI = new AIEngine();
         Movement = new MovementRelay(this);
         Abilities = new AbilitySystem(this);
