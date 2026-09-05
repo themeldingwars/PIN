@@ -40,6 +40,7 @@ public struct ActiveProjectile
     public float AccumulatedDt;
     public float ImpactRadius;
     public float MaxRadius;
+    public float Damage;
 
     public bool IsDrunk;
     public bool IsAbilityProjectile;

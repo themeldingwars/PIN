@@ -38,11 +38,13 @@ public class CombatSim
         if (target == null)
         {
             _logger.Warning("Dropping ProjectileHitEvent hit because could not get target {targetId}", evt.TargetId);
+            return;
         }
 
         if (source == null)
         {
-            _logger.Warning("Dropping ProjectileHitEvent hit because could not get source {targetId}", evt.SourceId);
+            _logger.Warning("Dropping ProjectileHitEvent hit because could not get source {sourceId}", evt.SourceId);
+            return;
         }
 
         var dmg = evt.DamageAmount;

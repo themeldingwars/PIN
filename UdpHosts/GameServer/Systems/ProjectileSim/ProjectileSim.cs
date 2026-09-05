@@ -25,7 +25,7 @@ public class ProjectileSim
         _activeProjectiles = new ConcurrentDictionary<(ulong EntityId, uint TraceId), ActiveProjectile>();
     }
 
-    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, bool isAbilityProjectile = false)
+    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, float damage, bool isAbilityProjectile = false)
     {
         var ammoFlags = new AmmoFlags(ammo.Flags);
         bool isDrunk = DrunkMissile.IsActive(ammo);
@@ -65,12 +65,13 @@ public class ProjectileSim
             AccumulatedDt = 0f,
             ImpactRadius = impactRadius,
             MaxRadius = maxRadius,
+            Damage = damage,
             IsDrunk = isDrunk,
             IsAbilityProjectile = isAbilityProjectile
         };
 
         _activeProjectiles.TryAdd((entity.EntityId, trace), projectile);
-        _logger.Debug("Spawned {Type} projectile trace={Trace}, speed={Speed}, range={Range}, lifetime={Lifetime}ms, impactRadius={ImpactRadius}, maxRadius={MaxRadius}", ammoFlags.Simulation, trace, projectileSpeed, range, lifetimeMs, impactRadius, maxRadius);
+        _logger.Debug("Spawned {Type} projectile trace={Trace}, speed={Speed}, range={Range}, lifetime={Lifetime}ms, impactRadius={ImpactRadius}, maxRadius={MaxRadius}, damage={Damage}", ammoFlags.Simulation, trace, projectileSpeed, range, lifetimeMs, impactRadius, maxRadius, damage);
         SendDebugSpawn(entity, trace, origin, direction, projectileSpeed);
     }
 
@@ -154,7 +155,7 @@ public class ProjectileSim
                     var source = GetSourceEntity(projectile);
                     if (source != null)
                     {
-                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.IsAbilityProjectile);
+                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.ImpactRadius, projectile.Damage, projectile.IsAbilityProjectile);
                     }
                 }
             }

@@ -288,29 +288,63 @@ public partial class PhysicsEngine
         return hitResult;
     }
 
-    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, bool isAbilityProjectile = false)
+    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, float impactRadius, float damage, bool isAbilityProjectile = false)
     {
         DebugProjectileHitCallbacks?.SendDebugProjectileImpact(source, trace, hit.HitPosition, hit.Normal);
 
-        if (hit.Collidable.Mobility == CollidableMobility.Kinematic)
+        int damageAmount = Math.Max(0, (int)MathF.Round(damage));
+        if (damageAmount <= 0)
         {
-            var bodyPosition = Simulation.Bodies[hit.Collidable.BodyHandle].Pose.Position;
-            bodyPosition.Z -= 0.9f;
-            DebugProjectileHitCallbacks?.SendDebugProjectilePoseHit(source, trace, hit.HitPosition, bodyPosition);
+            return;
+        }
 
-            var hitEntityId = _bodyToEntityId.GetValueOrDefault(hit.Collidable.BodyHandle);
-            if (hitEntityId != 0 && TryGetActivePoseShapeData(hit.Collidable, hit.ChildIndex, out var poseShapeData))
+        if (hit.HitEntityId != 0)
+        {
+            bool emittedDirectHit = TryEmitDirectHit(source, trace, hit.Collidable, hit.ChildIndex, hit.HitPosition, hit.HitEntityId, damageAmount, isAbilityProjectile);
+            if (!emittedDirectHit)
             {
-                var physicsMaterial = SDBInterface.GetPhysicsMaterial((uint)poseShapeData.Material);
-
-                var headshot = poseShapeData.ShapeFlags.Headshot;
-                var crit = physicsMaterial?.IsCritHit == 1;
-                var damageMod = poseShapeData.DamageMod;
-
-                _logger.Debug("ProjectileSim Impact on {ShapeName} (headshot={Headshot}, crit={Crit}, damageMod={DamageMod})", poseShapeData.Name, headshot, crit, damageMod);
-                _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, 1337, source.EntityId, headshot, crit, damageMod, isAbilityProjectile));
+                EmitGenericProjectileHit(hit.HitEntityId, damageAmount, source.EntityId, isAbilityProjectile, isSplash: false);
             }
         }
+
+        if (impactRadius > 0f)
+        {
+            var targets = QueryEntityIdsInSphere(hit.HitPosition, impactRadius, source.EntityId);
+            foreach (var targetId in targets)
+            {
+                if (targetId == hit.HitEntityId)
+                {
+                    continue;
+                }
+
+                EmitGenericProjectileHit(targetId, damageAmount, source.EntityId, isAbilityProjectile, isSplash: true);
+            }
+        }
+    }
+
+    public List<ulong> QueryEntityIdsInSphere(Vector3 center, float radius, ulong ignoreEntityId)
+    {
+        var results = new List<ulong>();
+        if (radius <= 0f)
+        {
+            return results;
+        }
+
+        bool hasIgnoreBody = _entityIdToBody.TryGetValue(ignoreEntityId, out var ignoreBody);
+        var enumerator = new EntitySphereEnumerator
+        {
+            Center = center,
+            Radius = radius,
+            IgnoreEntityId = ignoreEntityId,
+            IgnoreBody = ignoreBody,
+            HasIgnoreBody = hasIgnoreBody,
+            Engine = this,
+            Results = results,
+            Seen = new HashSet<ulong>()
+        };
+
+        Simulation.BroadPhase.GetOverlaps(center - new Vector3(radius), center + new Vector3(radius), BufferPool, ref enumerator);
+        return results;
     }
 
     public bool TryGetActivePoseShapeData(CollidableReference collidable, int childIndex, out ActivePoseShapeData shapeData)
@@ -351,6 +385,55 @@ public partial class PhysicsEngine
         }
 
         return (outHit, outPos, outEnt);
+    }
+
+    private static bool SphereIntersectsAabb(Vector3 center, float radius, Vector3 min, Vector3 max)
+    {
+        var closest = Vector3.Clamp(center, min, max);
+        var delta = center - closest;
+        return delta.LengthSquared() <= radius * radius;
+    }
+
+    private bool TryEmitDirectHit(CharacterEntity source, uint trace, CollidableReference collidable, int childIndex, Vector3 hitPosition, ulong hitEntityId, int damageAmount, bool isAbilityProjectile)
+    {
+        if (collidable.Mobility != CollidableMobility.Kinematic)
+        {
+            return false;
+        }
+
+        var bodyPosition = Simulation.Bodies[collidable.BodyHandle].Pose.Position;
+        bodyPosition.Z -= 0.9f;
+        DebugProjectileHitCallbacks?.SendDebugProjectilePoseHit(source, trace, hitPosition, bodyPosition);
+
+        if (hitEntityId == 0)
+        {
+            return false;
+        }
+
+        if (!TryGetActivePoseShapeData(collidable, childIndex, out var poseShapeData))
+        {
+            return false;
+        }
+
+        var physicsMaterial = SDBInterface.GetPhysicsMaterial((uint)poseShapeData.Material);
+
+        var headshot = poseShapeData.ShapeFlags.Headshot;
+        var crit = physicsMaterial?.IsCritHit == 1;
+        var damageMod = poseShapeData.DamageMod;
+
+        _logger.Debug("ProjectileSim Impact on {ShapeName} (headshot={Headshot}, crit={Crit}, damageMod={DamageMod})", poseShapeData.Name, headshot, crit, damageMod);
+        _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, damageAmount, source.EntityId, headshot, crit, damageMod, isAbilityProjectile));
+        return true;
+    }
+
+    private void EmitGenericProjectileHit(ulong targetId, int damageAmount, ulong sourceId, bool isAbilityProjectile, bool isSplash)
+    {
+        if (damageAmount <= 0)
+        {
+            return;
+        }
+
+        _eventBus.Enqueue(new ProjectileHitEvent("body", targetId, damageAmount, sourceId, false, false, -1f, isAbilityProjectile, isSplash));
     }
 
     partial void DebugInitialize(bool isDebugPipeClient, uint zoneId);
@@ -403,6 +486,57 @@ public partial class PhysicsEngine
             HitCollidable = collidable;
             Normal = normal;
             ChildIndex = childIndex;
+        }
+    }
+
+    private struct EntitySphereEnumerator : IBreakableForEach<CollidableReference>
+    {
+        public Vector3 Center;
+        public float Radius;
+        public ulong IgnoreEntityId;
+        public BodyHandle IgnoreBody;
+        public bool HasIgnoreBody;
+        public PhysicsEngine Engine;
+        public List<ulong> Results;
+        public HashSet<ulong> Seen;
+
+        public bool LoopBody(CollidableReference collidable)
+        {
+            if (collidable.Mobility == CollidableMobility.Static)
+            {
+                return true;
+            }
+
+            var bodyHandle = collidable.BodyHandle;
+            if (HasIgnoreBody && bodyHandle.Equals(IgnoreBody))
+            {
+                return true;
+            }
+
+            if (!Engine._bodyToEntityId.TryGetValue(bodyHandle, out var entityId))
+            {
+                return true;
+            }
+
+            if (entityId == IgnoreEntityId || !Seen.Add(entityId))
+            {
+                return true;
+            }
+
+            var body = Engine.Simulation.Bodies[bodyHandle];
+            var shape = body.Collidable.Shape;
+            if (!shape.Exists)
+            {
+                return true;
+            }
+
+            Engine.Simulation.Shapes[shape.Type].ComputeBounds(shape.Index, body.Pose, out var min, out var max);
+            if (SphereIntersectsAabb(Center, Radius, min, max))
+            {
+                Results.Add(entityId);
+            }
+
+            return true;
         }
     }
 }

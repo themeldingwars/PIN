@@ -87,6 +87,8 @@ public class WeaponSim
             maxRadius = maxRadiusAttr;
         }
 
+        float damage = ResolveWeaponDamage(weapon, attrsDict);
+
         // Projectile origin at the fire time, interpolated/predicted from movement samples
         var origin = entity.GetProjectileOrigin(time, localAimDir, shooterVelocity);
 
@@ -113,7 +115,7 @@ public class WeaponSim
             uint lastSpreadTime = weaponSimState.LastSpreadTime;
             PRNG.PRNG.Spread(time, weapon.SlotIndex, round, aimForward, aimRight, aimUp, spreadPct, lastSpreadDirection, lastSpreadTime, out Vector3 direction);
             uint trace = PRNG.PRNG.Trace(time, round);
-            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, range, projectileSpeed, impactRadius, maxRadius);
+            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, range, projectileSpeed, impactRadius, maxRadius, damage);
             weaponSimState.LastSpreadDirection = direction;
             weaponSimState.LastSpreadTime = time;
         }
@@ -167,6 +169,11 @@ public class WeaponSim
             maxRadius = maxRadiusAttr;
         }
 
+        var activeWeaponDetails = entity.GetActiveWeaponDetails();
+        float damage = pending.UseWeaponDamage && activeWeaponDetails != null && activeWeaponDetails.Weapon != null
+            ? ResolveWeaponDamage(activeWeaponDetails.Weapon, attrsDict)
+            : pending.Damage;
+
         byte roundsToFire = pending.BurstCount > 0 ? pending.BurstCount : (byte)1;
         Vector3 aimForward = Vector3.Normalize(localAimDir);
         Vector3 aimRight = Vector3.Normalize(Vector3.Cross(aimForward, Vector3.UnitZ));
@@ -176,10 +183,21 @@ public class WeaponSim
         {
             PRNG.PRNG.Spread(time, 0, round, aimForward, aimRight, aimUp, pending.Spread, Vector3.Zero, 0, out Vector3 direction);
             uint trace = PRNG.PRNG.Trace(time, round);
-            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, pending.Range, projectileSpeed, impactRadius, maxRadius, isAbilityProjectile: true);
+            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, pending.Range, projectileSpeed, impactRadius, maxRadius, damage, isAbilityProjectile: true);
         }
 
         _logger.Debug("Fired ability projectile ammo={AmmoType} range={Range} burst={Burst} entity={Entity} exec={ExecId}", pending.AmmoType, pending.Range, roundsToFire, entity.EntityId, pending.ExecutionId);
+    }
+
+    private static float ResolveWeaponDamage(WeaponTemplateResult weapon, IReadOnlyDictionary<ushort, float> attributes)
+    {
+        float damage = weapon.DamagePerRound;
+        if (attributes != null && attributes.TryGetValue((ushort)ItemAttributeId.WeaponDamage, out var damageAttribute))
+        {
+            damage = damageAttribute;
+        }
+
+        return damage;
     }
 
     // Keeps one spread state per fire mode (mirrors the client's firstMode/secondMode), so each mode
