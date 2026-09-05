@@ -43,7 +43,7 @@ public class StatModifierCommand : Command, ICommand
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
         var modifierContext = (StatModifierCommandActiveContext)activeCommandContext;
-        var stat = (StatModifierIdentifier)Params.Stat;
+        var stat = (AptitudeStat)Params.Stat;
         float value = AbilitySystem.RegistryOp(modifierContext.Register, Params.Value, (Operand)Params.ValueRegop);
 
         var mod = BuildModifier(Params.Op, stat, value);
@@ -63,14 +63,14 @@ public class StatModifierCommand : Command, ICommand
 
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
-        var stat = (StatModifierIdentifier)Params.Stat;
+        var stat = (AptitudeStat)Params.Stat;
         if (context.StatChangelist.Remove(stat) && context.Self is CharacterEntity character)
         {
             character.RefreshStatModifier(stat);
         }
     }
 
-    private static ActiveStatModifier BuildModifier(byte op, StatModifierIdentifier stat, float value)
+    private static ActiveStatModifier BuildModifier(byte op, AptitudeStat stat, float value)
     {
         const float PercentScale = 0.01f;
         return (int)op switch

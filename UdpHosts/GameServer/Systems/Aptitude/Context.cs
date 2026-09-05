@@ -40,7 +40,7 @@ public class Context
 
     public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = [];
 
-    public Dictionary<StatModifierIdentifier, ActiveStatModifier> StatChangelist { get; } = new();
+    public Dictionary<AptitudeStat, ActiveStatModifier> StatChangelist { get; } = new();
 
     public static Context CopyContext(Context original)
     {

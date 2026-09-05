@@ -43,7 +43,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const float _fallbackCrouchSpeed = 2.5f; // TODO: Derive from SDB/character stats
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
-    private readonly Dictionary<StatModifierIdentifier, ActiveStatModifier> _statOverrides = new();
+    private readonly Dictionary<AptitudeStat, ActiveStatModifier> _statOverrides = new();
     private int _movementSampleCount;
     private int _movementSampleNewest;
     private ActiveWeaponDetails[,] _weaponDetailsCache;
@@ -224,25 +224,25 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public CharacterLoadout CurrentLoadout { get; set; }
 
-    public Dictionary<StatModifierIdentifier, float> BaseStatModifiers { get; set; } = new()
+    public Dictionary<AptitudeStat, float> BaseStatModifiers { get; set; } = new()
     {
-        { StatModifierIdentifier.RunSpeedMult,         1.0f },
-        { StatModifierIdentifier.FireRateModifier,     1.0f },
-        { StatModifierIdentifier.FwdRunSpeedMult,      1.0f },
-        { StatModifierIdentifier.JumpHeightMult,       1.0f },
-        { StatModifierIdentifier.AirControlMult,       1.0f },
-        { StatModifierIdentifier.ThrustStrengthMult,   1.0f },
-        { StatModifierIdentifier.ThrustAirControl,     1.0f },
-        { StatModifierIdentifier.Friction,             1.0f },
-        { StatModifierIdentifier.AmmoConsumption,      1.0f },
-        { StatModifierIdentifier.MaxTurnRate,          0.0f },
-        { StatModifierIdentifier.TurnSpeed,            1.0f },
-        { StatModifierIdentifier.TimeDilation,         1.0f },
-        { StatModifierIdentifier.AccuracyModifier,     1.0f },
-        { StatModifierIdentifier.GravityMult,          1.0f },
-        { StatModifierIdentifier.AirResistanceMult,    1.0f },
-        { StatModifierIdentifier.WeaponChargeupMod,    1.0f },
-        { StatModifierIdentifier.WeaponDamageDealtMod, 1.0f },
+        { AptitudeStat.Speed,         1.0f },
+        { AptitudeStat.FireRateModifier,     1.0f },
+        { AptitudeStat.ForwardSpeed,      1.0f },
+        { AptitudeStat.JumpHeight,       1.0f },
+        { AptitudeStat.AirControl,       1.0f },
+        { AptitudeStat.ThrustStrength,   1.0f },
+        { AptitudeStat.ThrustAirControl,     1.0f },
+        { AptitudeStat.Friction,             1.0f },
+        { AptitudeStat.AmmoConsumption,      1.0f },
+        { AptitudeStat.MaxTurnRate,          0.0f },
+        { AptitudeStat.TurnSpeed,            1.0f },
+        { AptitudeStat.TimeDilation,         1.0f },
+        { AptitudeStat.AccuracyModifier,     1.0f },
+        { AptitudeStat.Gravity,          1.0f },
+        { AptitudeStat.AirResistance,    1.0f },
+        { AptitudeStat.WeaponChargeupMod,    1.0f },
+        { AptitudeStat.WeaponDamageDealtMod, 1.0f },
     };
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
@@ -676,7 +676,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         RefreshStatModifier(mod.Stat);
     }
 
-    public void RemoveStatModifier(uint reference, StatModifierIdentifier stat)
+    public void RemoveStatModifier(uint reference, AptitudeStat stat)
     {
         if (_statOverrides.Remove(stat))
         {
@@ -684,7 +684,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
-    public void RefreshStatModifier(StatModifierIdentifier stat)
+    public void RefreshStatModifier(AptitudeStat stat)
     {
         if (Character_CombatController != null)
         {
@@ -698,62 +698,62 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
             switch (stat)
             {
-                case StatModifierIdentifier.RunSpeedMult:
+                case AptitudeStat.Speed:
                     Character_CombatController.RunSpeedMultProp = value;
                     break;
-                case StatModifierIdentifier.FireRateModifier:
+                case AptitudeStat.FireRateModifier:
                     Character_CombatController.FireRateModifierProp = value;
                     break;
-                case StatModifierIdentifier.FwdRunSpeedMult:
+                case AptitudeStat.ForwardSpeed:
                     Character_CombatController.FwdRunSpeedMultProp = value;
                     break;
-                case StatModifierIdentifier.JumpHeightMult:
+                case AptitudeStat.JumpHeight:
                     Character_CombatController.JumpHeightMultProp = value;
                     break;
-                case StatModifierIdentifier.AirControlMult:
+                case AptitudeStat.AirControl:
                     Character_CombatController.AirControlMultProp = value;
                     break;
-                case StatModifierIdentifier.ThrustStrengthMult:
+                case AptitudeStat.ThrustStrength:
                     Character_CombatController.ThrustStrengthMultProp = value;
                     break;
-                case StatModifierIdentifier.ThrustAirControl:
+                case AptitudeStat.ThrustAirControl:
                     Character_CombatController.ThrustAirControlProp = value;
                     break;
-                case StatModifierIdentifier.Friction:
+                case AptitudeStat.Friction:
                     Character_CombatController.FrictionProp = value;
                     break;
-                case StatModifierIdentifier.AmmoConsumption:
+                case AptitudeStat.AmmoConsumption:
                     Character_CombatController.AmmoConsumptionProp = value;
                     break;
-                case StatModifierIdentifier.MaxTurnRate:
+                case AptitudeStat.MaxTurnRate:
                     Character_CombatController.MaxTurnRateProp = value;
                     break;
-                case StatModifierIdentifier.TurnSpeed:
+                case AptitudeStat.TurnSpeed:
                     Character_CombatController.TurnSpeedProp = value;
                     break;
-                case StatModifierIdentifier.TimeDilation:
+                case AptitudeStat.TimeDilation:
                     Character_CombatController.TimeDilationProp = value;
                     break;
-                case StatModifierIdentifier.AccuracyModifier:
+                case AptitudeStat.AccuracyModifier:
                     Character_CombatController.AccuracyModifierProp = value;
                     break;
-                case StatModifierIdentifier.GravityMult:
+                case AptitudeStat.Gravity:
                     Character_CombatController.GravityMultProp = value;
                     break;
-                case StatModifierIdentifier.AirResistanceMult:
+                case AptitudeStat.AirResistance:
                     Character_CombatController.AirResistanceMultProp = value;
                     break;
-                case StatModifierIdentifier.WeaponChargeupMod:
+                case AptitudeStat.WeaponChargeupMod:
                     Character_CombatController.WeaponChargeupModProp = value;
                     break;
-                case StatModifierIdentifier.WeaponDamageDealtMod:
+                case AptitudeStat.WeaponDamageDealtMod:
                     Character_CombatController.WeaponDamageDealtModProp = value;
                     break;
             }
         }
     }
 
-    public float GetCurrentStatModifierValue(StatModifierIdentifier stat)
+    public float GetCurrentStatModifierValue(AptitudeStat stat)
     {
         float value;
         if (!BaseStatModifiers.TryGetValue(stat, out value))

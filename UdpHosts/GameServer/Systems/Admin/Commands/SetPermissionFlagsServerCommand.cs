@@ -30,11 +30,11 @@ public class SetPermissionFlagsServerCommand : ServerCommand
         const uint customRef = 99999991;
         if (newFloatValue)
         {
-            character.AddStatModifier(customRef, new ActiveStatModifier { Stat = Enums.StatModifierIdentifier.GravityMult, Multi = 0.5f });
+            character.AddStatModifier(customRef, new ActiveStatModifier { Stat = Enums.AptitudeStat.Gravity, Multi = 0.5f });
         }
         else
         {
-            character.RemoveStatModifier(customRef, Enums.StatModifierIdentifier.GravityMult);
+            character.RemoveStatModifier(customRef, Enums.AptitudeStat.Gravity);
         }
     }
 }
