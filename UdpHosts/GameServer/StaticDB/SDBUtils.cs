@@ -306,6 +306,16 @@ public class SDBUtils
                     result.HullSegment = SDBInterface.GetHullSegmentComponentDef(componentId);
                     break;
 
+                case ComponentType.Light:
+                case ComponentType.Camera:
+                case ComponentType.LightSensor:
+                case ComponentType.Exhaust:
+                case ComponentType.HeadLight:
+                case ComponentType.GroundEffects:
+                case ComponentType.Warpaint:
+                    // Presumably only relevant for client visuals
+                    break;
+
                 default:
                     _logger.Debug("Unhandled vehicle component, id: {componentId}, type: {componentType}", componentId, componentType);
                     break;
