@@ -342,7 +342,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, TinyObjectCreateCommandDef> LoadTinyObjectCreateCommandDef()
     {
-        return LoadJSON<TinyObjectCreateCommandDef>("./StaticDB/CustomData/Todo/aptgss_agsTinyObjectCreateCommandDef.json")
+        return LoadJSON<TinyObjectCreateCommandDef>("./StaticDB/CustomData/aptgss_agsTinyObjectCreateCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 

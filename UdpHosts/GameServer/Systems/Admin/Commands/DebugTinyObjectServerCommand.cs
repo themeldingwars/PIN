@@ -1,5 +1,4 @@
 using GameServer.StaticDB;
-using GameServer.Systems.Aptitude;
 
 namespace GameServer.Systems.Admin.Commands;
 
