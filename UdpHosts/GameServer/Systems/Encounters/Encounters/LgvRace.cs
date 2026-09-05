@@ -82,18 +82,20 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
         timer.Change(30_000, Timeout.Infinite);
 
         _finishLine = Shard.EntityMan.SpawnAreaVisualData(data.Finish.Position, new ScopingComponent() { Range = 150 });
-        _finishLine.AreaVisualData_ParticleEffectsView.ParticleEffects_0Prop = new ParticleEffect()
-            {
-                PfxEntityId = AeroEntityId,
-                PfxAssetId = _pfxFinishLine,
-                Position = data.Finish.Position,
-                Rotation = data.Finish.Orientation,
-                Unk9 = 1,
-                Unk10 = 1,
-                Scale = 0.7f,
-                HaveUnk4 = 0,
-                HaveUnk12 = 0,
-            };
+        _finishLine.SetPosition(data.Finish.Position);
+        _finishLine.AddParticleEffect(new ParticleEffect()
+        {
+            PfxEntityId = AeroEntityId,
+            PfxAssetId = _pfxFinishLine,
+            Position = data.Finish.Position,
+            Rotation = data.Finish.Orientation,
+            Unk9 = 1,
+            Unk10 = 1,
+            Scale = 0.7f,
+            HaveUnk4 = 0,
+            HaveUnk12 = 0,
+        });
+
         _finishLine.Encounter = new EncounterComponent()
             {
                 EncounterId = entityId,

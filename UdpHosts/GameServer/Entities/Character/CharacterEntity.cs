@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Aero.Gen;
 using AeroMessages.Common;
 using AeroMessages.GSS;
 using AeroMessages.GSS.Character;
@@ -34,9 +35,10 @@ namespace GameServer.Entities.Character;
 public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     public const byte MaxMapMarkerCount = 64;
+    public const byte MaxTinyCount = 32;
     private const int _maxMovementSamples = 32; // ~1.6s at 20 samples/s
     private const int _maxExtrapolationMs = 100; // How far to predict beyond the newest sample
-    private const float _fallbackRunSpeed = 40.5f; // TODO: Derive from SDB/character stats
+    private const float _fallbackRunSpeed = 4.5f; // TODO: Derive from SDB/character stats
     private const float _fallbackSprintSpeed = 7.0f; // TODO: Derive from SDB/character stats
     private const float _fallbackCrouchSpeed = 2.5f; // TODO: Derive from SDB/character stats
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
@@ -70,6 +72,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public CombatView Character_CombatView { get; set; }
     public MovementView Character_MovementView { get; set; }
     public TinyObjectView Character_TinyObjectView { get; set; }
+
+    public bool IsTinyObjectActive => Character_TinyObjectView != null;
 
     public new CharacterCollisionComponent Collision { get; set; }
     public INetworkPlayer Player { get; set; }
@@ -1468,6 +1472,28 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return result;
     }
 
+    public void AddTinyObject(TinyObjectData data)
+    {
+        uint index = GetFreeTinyIndex();
+        if (index == InvalidIndex)
+        {
+            index = 0;
+        }
+
+        SetTinyObject(index, data);
+    }
+
+    public uint GetFreeTinyIndex()
+    {
+        InitTinyObjectView();
+        return GetFreeIndexOfArrayProperty(Character_TinyObjectView, "TinyObjects", MaxTinyCount);
+    }
+
+    public void SetTinyObject(uint index, TinyObjectData data)
+    {
+        SetIndexOfArrayProperty(Character_TinyObjectView, "TinyObjects", index, data);
+    }
+
     private static Vector3 CalculateProjectileOrigin(Vector3 position, Quaternion orientation, bool crouching, Vector3 aimDirection)
     {
         var muzzleBase = new Vector3(0.2f, 0.0f, 1.62f); // TODO: Should probably vary by character
@@ -1568,6 +1594,61 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         BuildWeaponSlotDetails(cache, 2, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary), loadout.GetSecondaryWeaponAttributes());
 
         _weaponDetailsCache = cache;
+    }
+
+    private void InitTinyObjectView()
+    {
+        if (Character_TinyObjectView != null)
+        {
+            return;
+        }
+
+        Character_TinyObjectView = new TinyObjectView();
+    }
+
+    private void SetIndexOfArrayProperty(IAeroViewInterface view, string propertyName, uint index, object data)
+    {
+        view.GetType().GetProperty($"{propertyName}_{index}Prop").SetValue(view, data, null);
+    }
+
+    private void ClearIndexOfArrayProperty(IAeroViewInterface view, string propertyName, uint index)
+    {
+        view.GetType().GetProperty($"{propertyName}_{index}Prop").SetValue(view, null, null);
+    }
+
+    private uint GetFreeIndexOfArrayProperty(IAeroViewInterface view, string propertyName, uint max)
+    {
+        uint firstFreeIndex = InvalidIndex;
+        for (byte i = 0; i < max; i++)
+        {
+            var obj = view.GetType().GetProperty($"{propertyName}_{i}Prop").GetValue(view);
+            if (obj == null)
+            {
+                if (firstFreeIndex == InvalidIndex)
+                {
+                    firstFreeIndex = i;
+                    break;
+                }
+            }
+        }
+
+        return firstFreeIndex;
+    }
+
+    private bool IsArrayPropertyEmpty(IAeroViewInterface view, string propertyName, uint max)
+    {
+        bool result = false;
+        for (byte i = 0; i < max; i++)
+        {
+            var obj = view.GetType().GetProperty($"{propertyName}_{i}Prop").GetValue(view);
+            if (obj != null)
+            {
+                result = true;
+                break;
+            }
+        }
+
+        return result;
     }
 
     private void InitFields()

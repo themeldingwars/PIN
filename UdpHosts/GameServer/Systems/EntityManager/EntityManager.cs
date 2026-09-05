@@ -18,6 +18,7 @@ using GameServer.Entities.Melding;
 using GameServer.Entities.MeldingBubble;
 using GameServer.Entities.Outpost;
 using GameServer.Entities.Thumper;
+using GameServer.Entities.TinyObject;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Extensions;
@@ -283,10 +284,11 @@ public class EntityManager
 
     public AreaVisualDataEntity SpawnAreaVisualData(Vector3 position, ScopingComponent scoping)
     {
-        var areaVisualData = new AreaVisualDataEntity(_shard, _shard.GetNextGuid())
-            {
-                Scoping = scoping, Position = position,
-            };
+        var areaVisualData = new AreaVisualDataEntity(_shard, _shard.GetNextGuid(), position)
+        {
+            Scoping = scoping,
+            Position = position,
+        };
         Add(areaVisualData.EntityId, areaVisualData);
         return areaVisualData;
     }
@@ -325,6 +327,32 @@ public class EntityManager
         carryableEntity.SetPosition(position);
         Add(carryableEntity.EntityId, carryableEntity);
         return carryableEntity;
+    }
+
+    public TinyObjectEntity SpawnTinyObject(uint type, Vector3 position, CharacterEntity container)
+    {
+        var containerIndex = container.GetFreeTinyIndex();
+        var tinyObjectInfo = SDBInterface.GetTinyObject(type);
+        var hostility = container.HostilityInfo;
+        var tinyObjectEntity = new TinyObjectEntity(_shard, _shard.GetNextGuid(), tinyObjectInfo, position, hostility, container, containerIndex);
+        if (tinyObjectEntity.Collision != null)
+        {
+            _shard.Physics.CreateKineticEntity(tinyObjectEntity);
+            _shard.Physics.UpdateEntity(tinyObjectEntity);
+        }
+
+        Add(tinyObjectEntity.EntityId, tinyObjectEntity);
+        container.SetTinyObject(containerIndex, tinyObjectEntity.Data);
+
+        if (tinyObjectEntity.SpawnEffectId != 0)
+        {
+            _shard.Abilities.DoApplyEffect(tinyObjectEntity.SpawnEffectId, tinyObjectEntity, new Context(_shard, tinyObjectEntity)
+            {
+                InitTime = _shard.CurrentTime,
+            });
+        }
+
+        return tinyObjectEntity;
     }
 
     // TODO: Remove these in favor of using the files
