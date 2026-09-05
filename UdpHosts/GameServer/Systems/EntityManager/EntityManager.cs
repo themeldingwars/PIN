@@ -553,7 +553,7 @@ public class EntityManager
            _logger.Warning("KeyframeRequest failed to find {Entity} (tc-{TypeCode})", entityId, typecode);
 
            // Directly send view scope out using the received wire typecode. This fails for controllers.
-           client.NetChannels[ChannelType.ReliableGss].SendScopeOut(entity.EntityId, typecode);
+           client.NetChannels[ChannelType.ReliableGss].SendScopeOut(entityId, typecode);
            return;
         }
 
