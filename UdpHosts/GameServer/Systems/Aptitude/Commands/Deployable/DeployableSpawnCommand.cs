@@ -27,7 +27,7 @@ public class DeployableSpawnCommand : Command, ICommand
             if (entity == null)
             {
                 Logger.Warning("{Command} {CommandId}, Failed to spawn?", nameof(DeployableSpawnCommand), Params.Id);
-                result.SetFail();
+                result.SetPass();
                 return;
             }
 
@@ -41,8 +41,8 @@ public class DeployableSpawnCommand : Command, ICommand
         }
         else
         {
-            Logger.Warning("Don't know which deployable to spawn in {Command} {CommandId}, failing.", nameof(DeployableSpawnCommand), Params.Id);
-            result.SetFail();
+            Logger.Warning("Don't know which deployable to spawn in {Command} {CommandId}", nameof(DeployableSpawnCommand), Params.Id);
+            result.SetPass();
             return;
         }
     }
