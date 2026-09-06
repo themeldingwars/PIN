@@ -4,7 +4,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Aero.Gen" Version="1.5.0" />
+    <PackageReference Include="Aero.Gen" Version="1.6.0" />
     <PackageReference Include="Autofac" Version="9.3.2" />
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="Google.Protobuf" Version="3.34.1" />
