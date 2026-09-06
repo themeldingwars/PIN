@@ -18,6 +18,7 @@ jobs:
           - { name: Windows, os: windows-2025 }
           - { name: macOS, os: macos-15 }
         dotnet:
+          - { name: .NET 9, version: "9.0.x" }
           - { name: .NET 10, version: "10.0.x" }
           - { name: .NET 11, version: "11.0.x" }
 
@@ -41,14 +42,14 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Publish
-        if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
+        if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 9'
         run: |
           dotnet publish --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -o Publish
           cp ./Start.cmd ./Publish
           cp ./README.md ./Publish
           cp ./CHANGELOG.md ./Publish
       - name: Upload Artifact
-        if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
+        if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 9'
         uses: actions/upload-artifact@v6
         with:
           name: PIN-${{ github.sha }}

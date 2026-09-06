@@ -53,7 +53,7 @@ public class ZoneLoader
 
         foreach (var chunkRef in chunkRefs)
         {
-            _logger.Information("Loading chunk ({CurrentCount}/{TotalCount}) {ChunkName}", chunkRefs.IndexOf(chunkRef) + 1, chunkRefs.Length, chunkRef.Name);
+            _logger.Information("Loading chunk ({CurrentCount}/{TotalCount}) {ChunkName}", Array.IndexOf(chunkRefs, chunkRef) + 1, chunkRefs.Length, chunkRef.Name);
             var chunkPath = Path.Combine(_mapsPath, "chunks", $"{chunkRef.Name}.gtchunk");
 
             var statics = ChunkProcessor.ProcessChunk(chunkPath, _cachePath, _simulation, _pool, _dispatcher, forceReload);

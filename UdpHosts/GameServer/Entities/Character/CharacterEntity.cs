@@ -559,7 +559,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         });
 
         SelectedLoadout = loadout.LoadoutID;
-        Character_BaseController?.SelectedLoadoutProp = SelectedLoadout;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.SelectedLoadoutProp = SelectedLoadout;
+        }
 
         if (chassis.SdbId != 0)
         {
@@ -786,41 +790,65 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetCharacterStats(CharacterStatsData value)
     {
         CharacterStats = value;
-        Character_EquipmentView.CharacterStatsProp = value;
-        Character_BaseController?.CharacterStatsProp = value;
+        Character_EquipmentView.CharacterStatsProp = CharacterStats;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.CharacterStatsProp = CharacterStats;
+        }
     }
 
     public void SetStaticInfo(StaticInfoData value)
     {
         StaticInfo = value;
         Character_ObserverView.StaticInfoProp = StaticInfo;
-        Character_BaseController?.StaticInfoProp = StaticInfo;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.StaticInfoProp = StaticInfo;
+        }
     }
 
     public void SetTimePlayed(int value)
     {
         TimePlayed = value;
-        Character_BaseController?.TimePlayedProp = TimePlayed;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.TimePlayedProp = TimePlayed;
+        }
     }
 
     public void SetArmyGUID(ulong value)
     {
         ArmyGUID = value;
         Character_ObserverView.ArmyGUIDProp = ArmyGUID;
-        Character_BaseController?.ArmyGUIDProp = ArmyGUID;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.ArmyGUIDProp = ArmyGUID;
+        }
     }
 
     public void SetArmyIsOfficer(sbyte value)
     {
         ArmyIsOfficer = value;
-        Character_BaseController?.ArmyIsOfficerProp = ArmyIsOfficer;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.ArmyIsOfficerProp = ArmyIsOfficer;
+        }
     }
 
     public void SetCurrentEquipment(EquipmentData value)
     {
         CurrentEquipment = value;
         Character_EquipmentView.CurrentEquipmentProp = CurrentEquipment;
-        Character_BaseController?.CurrentEquipmentProp = CurrentEquipment;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.CurrentEquipmentProp = CurrentEquipment;
+        }
     }
 
     public void SetAimDirection(Vector3 newDirection)
@@ -836,7 +864,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             State = characterStatus, Time = time
         };
         Character_ObserverView.CharacterStateProp = CharacterState;
-        Character_BaseController?.CharacterStateProp = CharacterState;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.CharacterStateProp = CharacterState;
+        }
     }
 
     public void SetControllingPlayer(INetworkPlayer player)
@@ -854,8 +886,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetEmote(EmoteData value)
     {
         Emote = value;
-        Character_ObserverView.EmoteIDProp = value;
-        Character_BaseController?.EmoteIDProp = value;
+        Character_ObserverView.EmoteIDProp = Emote;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.EmoteIDProp = Emote;
+        }
     }
 
     public void SetFireBurst(uint time)
@@ -880,13 +916,19 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             case 0:
                 FireMode_0 = value;
                 Character_CombatView.FireMode_0Prop = FireMode_0;
-                Character_CombatController?.FireMode_0Prop = FireMode_0;
+                if (Character_CombatController != null)
+                {
+                    Character_CombatController.FireMode_0Prop = FireMode_0;
+                }
 
                 break;
             case 1:
                 FireMode_1 = value;
                 Character_CombatView.FireMode_1Prop = FireMode_1;
-                Character_CombatController?.FireMode_1Prop = FireMode_1;
+                if (Character_CombatController != null)
+                {
+                    Character_CombatController.FireMode_1Prop = FireMode_1;
+                }
 
                 break;
         }
@@ -961,7 +1003,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetSpawnTime(uint time)
     {
         Character_ObserverView.SpawnTimeProp = time;
-        Character_BaseController?.SpawnTimeProp = time;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.SpawnTimeProp = time;
+        }
     }
 
     public void SetNpcType(ushort npcType)
@@ -972,9 +1018,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetWeaponIndex(WeaponIndexData value)
     {
         WeaponIndex = value;
-        Character_CombatView.WeaponIndexProp = value;
+        Character_CombatView.WeaponIndexProp = WeaponIndex;
 
-        Character_CombatController?.WeaponIndexProp = value;
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.WeaponIndexProp = WeaponIndex;
+        }
     }
 
     public void SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags flag, bool value)
@@ -986,24 +1035,36 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             Value = (PermissionFlagsData.CharacterPermissionFlags)GetCurrentPermissionsValue(),
         };
 
-        Character_CombatController?.PermissionFlagsProp = PermissionFlags;
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.PermissionFlagsProp = PermissionFlags;
+        }
     }
 
     public void SetGliderProfileId(uint profileId)
     {
-        Character_CombatController?.GliderProfileIdProp = profileId;
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.GliderProfileIdProp = profileId;
+        }
     }
 
     public void SetHoverProfileId(uint profileId)
     {
-        Character_CombatController?.HoverProfileIdProp = profileId;
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.HoverProfileIdProp = profileId;
+        }
     }
 
     public void SetAuthorizedTerminal(AuthorizedTerminalData value)
     {
         AuthorizedTerminal = value;
 
-        Character_BaseController?.AuthorizedTerminalProp = AuthorizedTerminal;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.AuthorizedTerminalProp = AuthorizedTerminal;
+        }
     }
 
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
@@ -1053,7 +1114,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Collision.AttachmentPoseId = pose;
         Collision.AttachmentPoseOffset = poseOffset;
         Character_ObserverView.AttachedToProp = AttachedTo;
-        Character_BaseController?.AttachedToProp = AttachedTo;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.AttachedToProp = AttachedTo;
+        }
     }
 
     public void ClearAttachedTo()
@@ -1417,8 +1482,16 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetHostilityInfo(HostilityInfoData newValue)
     {
         HostilityInfo = newValue;
-        Character_ObserverView?.HostilityInfoProp = HostilityInfo;
-        Character_BaseController?.HostilityInfoProp = HostilityInfo;
+
+        if (Character_ObserverView != null)
+        {
+            Character_ObserverView.HostilityInfoProp = HostilityInfo;
+        }
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.HostilityInfoProp = HostilityInfo;
+        }
     }
 
     public void SetMaxHealth(int newValue, bool resetCurrent)
@@ -1429,8 +1502,15 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             Time = Shard.CurrentTime,
         };
 
-        Character_ObserverView?.MaxHealthProp = MaxHealth;
-        Character_BaseController?.MaxHealthProp = MaxHealth;
+        if (Character_ObserverView != null)
+        {
+            Character_ObserverView.MaxHealthProp = MaxHealth;
+        }
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.MaxHealthProp = MaxHealth;
+        }
 
         if (resetCurrent)
         {
@@ -1450,7 +1530,10 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             Time = Shard.CurrentTime,
         };
 
-        Character_BaseController?.MaxShieldsProp = MaxShields;
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.MaxShieldsProp = MaxShields;
+        }
 
         if (resetCurrent)
         {
@@ -1467,28 +1550,51 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         CurrentHealth = Math.Min(Math.Max(0, newValue), MaxHealth.Value);
         byte pct = MaxHealth.Value > 0 ? (byte)(((float)CurrentHealth / MaxHealth.Value) * 100) : (byte)0;
 
-        Character_ObserverView?.CurrentHealthPctProp = pct;
-        Character_BaseController?.CurrentHealthProp = CurrentHealth;
+        if (Character_ObserverView != null)
+        {
+            Character_ObserverView.CurrentHealthPctProp = pct;
+        }
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.CurrentHealthProp = CurrentHealth;
+        }
     }
 
     public void SetCurrentShields(int newValue)
     {
         CurrentShields = Math.Min(Math.Max(0, newValue), MaxShields.Value);
-        Character_BaseController?.CurrentShieldsProp = CurrentShields;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.CurrentShieldsProp = CurrentShields;
+        }
     }
 
     public void SetRespawnTimes(RespawnTimesData newValue)
     {
         RespawnTimes = newValue;
-        Character_ObserverView?.RespawnTimesProp = RespawnTimes;
-        Character_BaseController?.RespawnTimesProp = RespawnTimes;
+
+        if (Character_ObserverView != null)
+        {
+            Character_ObserverView.RespawnTimesProp = RespawnTimes;
+        }
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.RespawnTimesProp = RespawnTimes;
+        }
     }
 
     public void SetGibVisualsInfo(uint gibVisualsId, uint time)
     {
         GibVisualsInfo = new GibVisuals { Id = gibVisualsId, Time = time };
         Character_ObserverView.GibVisualsIDProp = GibVisualsInfo;
-        Character_BaseController?.GibVisualsIdProp = GibVisualsInfo;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.GibVisualsIdProp = GibVisualsInfo;
+        }
     }
 
     public bool TryGetGibVisualsId(out uint gibVisualsId)

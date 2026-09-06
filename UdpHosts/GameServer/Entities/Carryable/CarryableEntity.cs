@@ -141,7 +141,7 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
     public void SetHostilityInfo(HostilityInfoData newValue)
     {
         HostilityInfo = newValue;
-        CarryableObject_ObserverView?.HostilityProp = HostilityInfo;
+        CarryableObject_ObserverView.HostilityProp = HostilityInfo;
     }
 
     public override bool IsInteractable()

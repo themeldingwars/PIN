@@ -160,7 +160,7 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
     public void SetHostilityInfo(HostilityInfoData newValue)
     {
         HostilityInfo = newValue;
-        ResourceNode_ObserverView?.HostilityInfoProp = HostilityInfo;
+        ResourceNode_ObserverView.HostilityInfoProp = HostilityInfo;
     }
 
     public void TransitionToState(ThumperState newState)

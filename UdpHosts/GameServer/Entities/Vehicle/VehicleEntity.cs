@@ -607,8 +607,16 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public void SetHostilityInfo(HostilityInfoData newValue)
     {
         HostilityInfo = newValue;
-        Vehicle_ObserverView?.HostilityInfoProp = HostilityInfo;
-        Vehicle_BaseController?.HostilityInfoProp = HostilityInfo;
+
+        if (Vehicle_ObserverView != null)
+        {
+            Vehicle_ObserverView.HostilityInfoProp = HostilityInfo;
+        }
+
+        if (Vehicle_BaseController != null)
+        {
+            Vehicle_BaseController.HostilityInfoProp = HostilityInfo;
+        }
     }
 
     private void InitFields()

@@ -92,7 +92,11 @@ public sealed class TurretEntity : BaseEntity
     {
         HostilityInfo = newValue;
         Turret_ObserverView.HostilityInfoProp = HostilityInfo;
-        Turret_BaseController?.HostilityInfoProp = HostilityInfo;
+
+        if (Turret_BaseController != null)
+        {
+            Turret_BaseController.HostilityInfoProp = HostilityInfo;
+        }
     }
 
     private void InitControllers()

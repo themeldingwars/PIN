@@ -59,15 +59,31 @@ public sealed class AreaVisualDataEntity : BaseEntity
     public void SetPosition(Vector3 value)
     {
         Position = value;
-        AreaVisualData_ObserverView?.PositionProp = Position;
-        AreaVisualData_MapMarkerView?.PositionProp = Position;
-        AreaVisualData_ForceShieldView?.PositionProp = Position;
+
+        if (AreaVisualData_ObserverView != null)
+        {
+            AreaVisualData_ObserverView.PositionProp = Position;
+        }
+
+        if (AreaVisualData_MapMarkerView != null)
+        {
+            AreaVisualData_MapMarkerView.PositionProp = Position;
+        }
+
+        if (AreaVisualData_ForceShieldView != null)
+        {
+            AreaVisualData_ForceShieldView.PositionProp = Position;
+        }
     }
 
     public void SetScopeBubble(ScopeBubbleInfoData value)
     {
         ScopeBubble = value;
-        AreaVisualData_ObserverView?.ScopeBubbleInfoProp = ScopeBubble;
+
+        if (AreaVisualData_ObserverView != null)
+        {
+            AreaVisualData_ObserverView.ScopeBubbleInfoProp = ScopeBubble;
+        }
     }
 
     public uint GetFreeFlagIndex()
