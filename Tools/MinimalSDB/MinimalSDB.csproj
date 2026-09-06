@@ -3,10 +3,8 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FauFau" Version="1.5.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Lib\Bitter\Bitter\Bitter.csproj" />
+    <PackageReference Include="FauFau" Version="1.5.3" />
+    <PackageReference Include="TMW.Bitter" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>

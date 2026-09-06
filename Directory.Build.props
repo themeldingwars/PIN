@@ -5,8 +5,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(MSBuildProjectName)' != 'AeroMessages' And
                               '$(MSBuildProjectName)' != 'BepuPhysics' And
-                              '$(MSBuildProjectName)' != 'BepuUtilities' And
-                              '$(MSBuildProjectName)' != 'Bitter'">
+                              '$(MSBuildProjectName)' != 'BepuUtilities'">
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <AnalysisLevel>latest</AnalysisLevel>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/stylecop.ruleset</CodeAnalysisRuleSet>
