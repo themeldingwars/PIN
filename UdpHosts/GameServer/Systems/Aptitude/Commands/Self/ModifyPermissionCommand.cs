@@ -93,6 +93,16 @@ public class ModifyPermissionCommand : Command, ICommand
         Restore(character, PermissionFlagsData.CharacterPermissionFlags.jetpack, previous);
     }
 
+    private static Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> ReadPermissions(CharacterEntity character)
+    {
+        return new Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool>
+        {
+            { PermissionFlagsData.CharacterPermissionFlags.glider, character.CurrentPermissions[PermissionFlagsData.CharacterPermissionFlags.glider] },
+            { PermissionFlagsData.CharacterPermissionFlags.glider_hud, character.CurrentPermissions[PermissionFlagsData.CharacterPermissionFlags.glider_hud] },
+            { PermissionFlagsData.CharacterPermissionFlags.jetpack, character.CurrentPermissions[PermissionFlagsData.CharacterPermissionFlags.jetpack] },
+        };
+    }
+
     private void Restore(CharacterEntity character, PermissionFlagsData.CharacterPermissionFlags flag, Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> previous)
     {
         // Only the flags this command actually touched are restored.
@@ -130,16 +140,6 @@ public class ModifyPermissionCommand : Command, ICommand
             PermissionFlagsData.CharacterPermissionFlags.glider_hud => Params.GliderHud == true,
             PermissionFlagsData.CharacterPermissionFlags.jetpack => Params.Jetpack == true,
             _ => false,
-        };
-    }
-
-    private static Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> ReadPermissions(CharacterEntity character)
-    {
-        return new Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool>
-        {
-            { PermissionFlagsData.CharacterPermissionFlags.glider, character.CurrentPermissions[PermissionFlagsData.CharacterPermissionFlags.glider] },
-            { PermissionFlagsData.CharacterPermissionFlags.glider_hud, character.CurrentPermissions[PermissionFlagsData.CharacterPermissionFlags.glider_hud] },
-            { PermissionFlagsData.CharacterPermissionFlags.jetpack, character.CurrentPermissions[PermissionFlagsData.CharacterPermissionFlags.jetpack] },
         };
     }
 

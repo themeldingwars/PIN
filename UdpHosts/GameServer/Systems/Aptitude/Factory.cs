@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using GameServer.StaticDB;
+using GameServer.StaticDB.Records.customdata;
 using GameServer.Systems.Aptitude.Commands.Activation;
 using GameServer.Systems.Aptitude.Commands.Calldown;
 using GameServer.Systems.Aptitude.Commands.Cooldown;
@@ -407,7 +408,7 @@ public class Factory
             case CommandType.SetScopeBubble:
                 // The definition table only carries ids, so give unknown rows a definition of their own instead
                 // of handing a null to a command that has to report its id in its logs.
-                return new SetScopeBubbleCommand(CustomDBInterface.GetSetScopeBubbleCommandDef(commandId) ?? new GameServer.StaticDB.Records.customdata.SetScopeBubbleCommandDef { Id = commandId });
+                return new SetScopeBubbleCommand(CustomDBInterface.GetSetScopeBubbleCommandDef(commandId) ?? new SetScopeBubbleCommandDef { Id = commandId });
             // case CommandType.MeldingBubble:
             //     return new MeldingBubbleCommand(CustomDBInterface.GetMeldingBubbleCommandDef(commandId));
             // case CommandType.MindControl:

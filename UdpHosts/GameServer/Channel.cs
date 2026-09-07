@@ -94,6 +94,17 @@ public class Channel
                };
     }
 
+    /// <summary>
+    ///     Sequence numbers wrap at 16 bit, so "newer than" has to be compared with modular arithmetic instead of
+    ///     a plain <c>&gt;</c>. A plain comparison stops acking anything for the 32768 packets after a wrap.
+    /// </summary>
+    private static bool IsNewerSequence(ushort candidate, ushort lastAck)
+    {
+        var delta = unchecked((ushort)(candidate - lastAck));
+
+        return delta is > 0 and < 0x8000;
+    }
+
     public void HandlePacket(GamePacket packet)
     {
         _incomingPackets.Enqueue(packet);
@@ -185,45 +196,6 @@ public class Channel
 
             LastActivity = DateTime.Now;
         }
-    }
-
-    private void StoreSplitFragment(ushort sequenceNumber, GamePacket packet)
-    {
-        // A retransmitted fragment carries the same sequence number again. Inserting it into the reassembler has
-        // to overwrite rather than throw: the ArgumentException escaped through the shard thread and took the
-        // whole shard down, which is what the client sees as a dead connection.
-        _incomingSplitMessagePackets[sequenceNumber] = packet;
-        _splitDeadline = DateTime.Now.AddMilliseconds(SplitTimeoutMs);
-
-        if (_incomingSplitMessagePackets.Count > MaxSplitFragments)
-        {
-            _logger.Warning("Channel {Channel} gave up reassembling a split message: more than {Max} fragments arrived",
-                Type, MaxSplitFragments);
-
-            AbandonSplitMessage();
-        }
-    }
-
-    private bool IsSplitStalled()
-    {
-        return DateTime.Now > _splitDeadline;
-    }
-
-    private void AbandonSplitMessage()
-    {
-        InSplitMode = false;
-        _incomingSplitMessagePackets.Clear();
-    }
-
-    /// <summary>
-    ///     Sequence numbers wrap at 16 bit, so "newer than" has to be compared with modular arithmetic instead of
-    ///     a plain <c>&gt;</c>. A plain comparison stops acking anything for the 32768 packets after a wrap.
-    /// </summary>
-    private static bool IsNewerSequence(ushort candidate, ushort lastAck)
-    {
-        var delta = unchecked((ushort)(candidate - lastAck));
-
-        return delta is > 0 and < 0x8000;
     }
 
     /// <summary>
@@ -620,4 +592,36 @@ public class Channel
 
         return true;
     }
+
+    private void StoreSplitFragment(ushort sequenceNumber, GamePacket packet)
+    {
+        // A retransmitted fragment carries the same sequence number again. Inserting it into the reassembler has
+        // to overwrite rather than throw: the ArgumentException escaped through the shard thread and took the
+        // whole shard down, which is what the client sees as a dead connection.
+        _incomingSplitMessagePackets[sequenceNumber] = packet;
+        _splitDeadline = DateTime.Now.AddMilliseconds(SplitTimeoutMs);
+
+        if (_incomingSplitMessagePackets.Count > MaxSplitFragments)
+        {
+            _logger.Warning(
+                "Channel {Channel} gave up reassembling a split message: more than {Max} fragments arrived",
+                Type,
+                MaxSplitFragments
+            );
+
+            AbandonSplitMessage();
+        }
+    }
+
+    private bool IsSplitStalled()
+    {
+        return DateTime.Now > _splitDeadline;
+    }
+
+    private void AbandonSplitMessage()
+    {
+        InSplitMode = false;
+        _incomingSplitMessagePackets.Clear();
+    }
+
 }
