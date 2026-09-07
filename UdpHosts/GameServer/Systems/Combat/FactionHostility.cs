@@ -71,7 +71,6 @@ public class FactionHostility
         var found = _factionFriendlyDict.TryGetValue(key, out bool result);
         if (found)
         {
-            Log.Debug($"FactionHostility {sourceFactionId} is {(result ? string.Empty : "NOT")} Friendly with {targetFactionId}");
             return result;
         }
         else
@@ -87,7 +86,6 @@ public class FactionHostility
         var found = _factionHostileDict.TryGetValue(key, out bool result);
         if (found)
         {
-            Log.Debug($"FactionHostility {sourceFactionId} is {(result ? string.Empty : "NOT")} Hostile with {targetFactionId}");
             return result;
         }
         else
