@@ -137,7 +137,8 @@ jobs:
             Write-Host $output
             Write-Host "::notice::SMOKE-EXITCODE=$($process.ExitCode)"
             Write-Host "::notice::SMOKE-HAS-TERMINATED=$($output -match 'GameServer terminated:')"
-            Write-Host "::notice::SMOKE-HAS-BITTER=$($output -match \"Could not load file or assembly 'Bitter'\")"
+            $hasBitterError = $output -match "Could not load file or assembly 'Bitter'"
+            Write-Host "::notice::SMOKE-HAS-BITTER=$hasBitterError"
             Write-Host "::notice::SMOKE-HAS-INCOMPLETE=$($output -match 'installation is incomplete')"
             $output -split "`n" | Where-Object { $_ -ne '' } | Select-Object -First 20 | ForEach-Object {
               $line = ($_ -replace '::', ';')
