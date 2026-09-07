@@ -142,7 +142,10 @@ public class Channel
             {
                 _client.SendAck(Type, sequenceNumber, packet.Received);
 
-                if (IsNewerSequence(sequenceNumber, LastAck))
+                // Sequence numbers wrap at 16 bit, so "newer than" has to be compared with modular
+                // arithmetic instead of a plain >: a plain comparison stops moving LastAck forward for
+                // the 32768 packets after a wrap.
+                if (unchecked((ushort)(sequenceNumber - LastAck)) is > 0 and < 0x8000)
                 {
                     LastAck = sequenceNumber;
                 }
@@ -580,17 +583,6 @@ public class Channel
         }
 
         return true;
-    }
-
-    /// <summary>
-    ///     Sequence numbers wrap at 16 bit, so "newer than" has to be compared with modular arithmetic instead of
-    ///     a plain <c>&gt;</c>. A plain comparison stops acking anything for the 32768 packets after a wrap.
-    /// </summary>
-    private static bool IsNewerSequence(ushort candidate, ushort lastAck)
-    {
-        var delta = unchecked((ushort)(candidate - lastAck));
-
-        return delta is > 0 and < 0x8000;
     }
 
     private void StoreSplitFragment(ushort sequenceNumber, GamePacket packet)
