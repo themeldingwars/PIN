@@ -1,5 +1,6 @@
 using System;
-using System.Configuration;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -45,35 +46,39 @@ public class GameServerModule : Module
         {
             var settings = new GameServerSettings();
 
-            if (ConfigurationManager.AppSettings["Port"] != null)
+            // Read straight from the XML config file: ConfigurationManager cannot be used because it
+            // resolves the file through Assembly.CodeBase, which throws in the single-file GameServer.exe.
+            var appSettings = AppConfigFile.Settings;
+
+            if (appSettings["Port"] != null)
             {
-                settings.Port = ushort.Parse(ConfigurationManager.AppSettings["Port"]);
+                settings.Port = ushort.Parse(appSettings["Port"]);
             }
 
-            if (ConfigurationManager.AppSettings["ClientVersion"] != null)
+            if (appSettings["ClientVersion"] != null)
             {
-                settings.ClientVersion = ConfigurationManager.AppSettings["ClientVersion"];
+                settings.ClientVersion = appSettings["ClientVersion"];
             }
 
-            if (ConfigurationManager.AppSettings["ClientEnvironment"] != null)
+            if (appSettings["ClientEnvironment"] != null)
             {
-                settings.ClientEnvironment = ConfigurationManager.AppSettings["ClientEnvironment"];
+                settings.ClientEnvironment = appSettings["ClientEnvironment"];
             }
 
-            if (ConfigurationManager.AppSettings["ClientBranch"] != null)
+            if (appSettings["ClientBranch"] != null)
             {
-                settings.ClientBranch = ConfigurationManager.AppSettings["ClientBranch"];
+                settings.ClientBranch = appSettings["ClientBranch"];
             }
 
-            if (ConfigurationManager.AppSettings["serilog:minimum-level"] != null)
+            if (appSettings["serilog:minimum-level"] != null)
             {
-                if (Enum.TryParse(ConfigurationManager.AppSettings["serilog:minimum-level"], out LogEventLevel result))
+                if (Enum.TryParse(appSettings["serilog:minimum-level"], out LogEventLevel result))
                 {
                     settings.LogLevel = result;
                 }
             }
 
-            var logOutputs = ConfigurationManager.AppSettings["serilog:write-to"];
+            var logOutputs = appSettings["serilog:write-to"];
             if (logOutputs != null)
             {
                 if (Enum.TryParse(logOutputs, true, out GameServerSettings.LogOutput outputs))
@@ -82,28 +87,28 @@ public class GameServerModule : Module
                 }
             }
 
-            if (ConfigurationManager.AppSettings["GrpcChannelAddress"] != null)
+            if (appSettings["GrpcChannelAddress"] != null)
             {
-                settings.GrpcChannelAddress = ConfigurationManager.AppSettings["GrpcChannelAddress"];
+                settings.GrpcChannelAddress = appSettings["GrpcChannelAddress"];
             }
 
-            if (ConfigurationManager.AppSettings["StaticDBPath"] != null)
+            if (appSettings["StaticDBPath"] != null)
             {
-                settings.StaticDBPath = ConfigurationManager.AppSettings["StaticDBPath"];
+                settings.StaticDBPath = appSettings["StaticDBPath"];
             }
 
-            if (ConfigurationManager.AppSettings["ZoneId"] != null)
+            if (appSettings["ZoneId"] != null)
             {
-                settings.ZoneId = uint.Parse(ConfigurationManager.AppSettings["ZoneId"]);
+                settings.ZoneId = uint.Parse(appSettings["ZoneId"]);
             }
 
-            if (ConfigurationManager.AppSettings["MapsPath"] != null)
+            if (appSettings["MapsPath"] != null)
             {
-                settings.MapsPath = ConfigurationManager.AppSettings["MapsPath"];
+                settings.MapsPath = appSettings["MapsPath"];
 
-                if (ConfigurationManager.AppSettings["LoadMapsCollision"] != null)
+                if (appSettings["LoadMapsCollision"] != null)
                 {
-                    if (bool.TryParse(ConfigurationManager.AppSettings["LoadMapsCollision"], out bool value))
+                    if (bool.TryParse(appSettings["LoadMapsCollision"], out bool value))
                     {
                         settings.LoadMapsCollision = value;
                     }
@@ -114,9 +119,9 @@ public class GameServerModule : Module
                 }
             }
 
-            if (ConfigurationManager.AppSettings["LoadZoneEntities"] != null)
+            if (appSettings["LoadZoneEntities"] != null)
             {
-                if (bool.TryParse(ConfigurationManager.AppSettings["LoadZoneEntities"], out bool value))
+                if (bool.TryParse(appSettings["LoadZoneEntities"], out bool value))
                 {
                     settings.LoadZoneEntities = value;
                 }
@@ -126,27 +131,27 @@ public class GameServerModule : Module
                 }
             }
 
-            if (ConfigurationManager.AppSettings["AssetDBPath"] != null)
+            if (appSettings["AssetDBPath"] != null)
             {
-                settings.AssetDBPath = ConfigurationManager.AppSettings["AssetDBPath"];
+                settings.AssetDBPath = appSettings["AssetDBPath"];
             }
 
-            if (ConfigurationManager.AppSettings["CachePath"] != null)
+            if (appSettings["CachePath"] != null)
             {
-                settings.CachePath = ConfigurationManager.AppSettings["CachePath"];
+                settings.CachePath = appSettings["CachePath"];
             }
 
-            if (ConfigurationManager.AppSettings["ForceReloadZone"] != null)
+            if (appSettings["ForceReloadZone"] != null)
             {
-                if (bool.TryParse(ConfigurationManager.AppSettings["ForceReloadZone"], out bool forceReload))
+                if (bool.TryParse(appSettings["ForceReloadZone"], out bool forceReload))
                 {
                     settings.ForceReloadZone = forceReload;
                 }
             }
 
-            if (ConfigurationManager.AppSettings["BatchOutgoingPackets"] != null)
+            if (appSettings["BatchOutgoingPackets"] != null)
             {
-                if (bool.TryParse(ConfigurationManager.AppSettings["BatchOutgoingPackets"], out bool batchOutgoingPackets))
+                if (bool.TryParse(appSettings["BatchOutgoingPackets"], out bool batchOutgoingPackets))
                 {
                     settings.BatchOutgoingPackets = batchOutgoingPackets;
                 }
@@ -169,10 +174,10 @@ public class GameServerModule : Module
             var settings = ctx.Resolve<GameServerSettings>();
             var initialLevel = settings.LogLevel ?? LogEventLevel.Debug;
             settings.LevelSwitch.MinimumLevel = initialLevel;
-            var appSettings = ConfigurationManager.AppSettings;
+            var appSettings = AppConfigFile.Settings;
 
             var loggerConfig = new LoggerConfiguration()
-                .ReadFrom.AppSettings()
+                .ReadFrom.KeyValuePairs(SerilogDirectives(appSettings))
                 .Enrich.FromLogContext()
                 .Enrich.With<LogSystemEnricher>();
 
@@ -260,6 +265,11 @@ public class GameServerModule : Module
             var logger = loggerConfig.CreateLogger();
             Log.Logger = logger;
 
+            if (AppConfigFile.FilePath != null)
+            {
+                logger.Debug("Loaded application settings from {ConfigPath}", AppConfigFile.FilePath);
+            }
+
             return logger;
         })
         .As<ILogger>().SingleInstance();
@@ -288,6 +298,33 @@ public class GameServerModule : Module
             return sdb;
         })
         .As<SDB>().SingleInstance();
+    }
+
+    /// <summary>
+    ///     Project the <c>serilog:</c> entries of the legacy appSettings into the key-value form Serilog's own
+    ///     settings reader consumes. This replaces <c>ReadFrom.AppSettings()</c>, which reads
+    ///     <c>ConfigurationManager.AppSettings</c> and therefore crashes the single-file GameServer.exe with
+    ///     "CodeBase is not supported on assemblies loaded from a single-file bundle".
+    /// </summary>
+    /// <param name="appSettings">The appSettings entries read from the XML configuration file.</param>
+    /// <returns>Serilog directives with the <c>serilog:</c> prefix stripped and environment variables expanded.</returns>
+    private static IEnumerable<KeyValuePair<string, string>> SerilogDirectives(NameValueCollection appSettings)
+    {
+        const string SerilogPrefix = "serilog:";
+
+        foreach (var key in appSettings.AllKeys)
+        {
+            if (key == null || !key.StartsWith(SerilogPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var value = appSettings[key] ?? string.Empty;
+
+            yield return new KeyValuePair<string, string>(
+                key[SerilogPrefix.Length..],
+                Environment.ExpandEnvironmentVariables(value));
+        }
     }
 
     /// <summary>

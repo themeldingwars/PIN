@@ -21,8 +21,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Serilog" Version="4.3.1" />
     <PackageReference Include="Serilog.Enrichers.Context" Version="4.6.5" />
-    <PackageReference Include="Serilog.Settings.AppSettings" Version="3.0.0" />
+    <!-- NB: deliberately no Serilog.Settings.AppSettings / System.Configuration.ConfigurationManager here.
+         ConfigurationManager locates its config file through Assembly.CodeBase, which is unsupported in the
+         single-file publish and killed GameServer.exe on startup. App.config is parsed by AppConfigFile instead. -->
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.Map" Version="2.0.0" />
@@ -74,5 +77,13 @@
     <Copy SourceFiles="GameServer.config.example.json"
           DestinationFiles="$(PublishDir)GameServer.config.json"
           Condition="'$(PublishDir)' != '' and !Exists('$(PublishDir)GameServer.config.json')" />
+  </Target>
+  <!-- App.config is not part of the single-file bundle: it stays a loose file that AppConfigFile reads
+       from disk at startup. Make sure it ends up next to the published GameServer.exe. -->
+  <Target Name="PublishAppConfigNextToExecutable" AfterTargets="Publish"
+          Condition="'$(PublishDir)' != '' and Exists('App.config')">
+    <Copy SourceFiles="App.config"
+          DestinationFiles="$(PublishDir)$(TargetFileName).config"
+          Condition="!Exists('$(PublishDir)$(TargetFileName).config')" />
   </Target>
 </Project>

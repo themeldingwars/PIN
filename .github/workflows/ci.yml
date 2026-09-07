@@ -126,6 +126,12 @@ jobs:
             $hasTerminated = $output -match 'GameServer terminated:'
             $hasBitterError = $output -match "Could not load file or assembly 'Bitter'"
             $hasIncompleteError = $output -match 'installation is incomplete'
+            # ConfigurationManager resolves app.config through Assembly.CodeBase, which is unsupported
+            # in a single-file bundle. Reading settings through it used to kill startup before the
+            # Firefall paths were even read; AppConfigFile parses the XML from disk instead.
+            $hasSingleFileConfigError = $output -match 'CodeBase' -or $output -match 'single-file bundle'
+            # Proves configuration loading, logging setup and settings resolution all completed.
+            $reachedStaticDb = $output -match 'Opening SDB from'
 
             if ($process.ExitCode -eq 0) {
               throw 'Smoke test expected GameServer to fail on the dummy StaticDB file.'
@@ -137,6 +143,14 @@ jobs:
 
             if ($hasBitterError -or $hasIncompleteError) {
               throw 'GameServer failed to load the Bitter runtime assembly from its single-file bundle.'
+            }
+
+            if ($hasSingleFileConfigError) {
+              throw 'GameServer crashed reading its configuration inside the single-file bundle (Assembly.CodeBase).'
+            }
+
+            if (-not $reachedStaticDb) {
+              throw 'GameServer did not get past configuration loading to opening the StaticDB.'
             }
           }
           finally {

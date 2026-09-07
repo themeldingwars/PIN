@@ -93,6 +93,29 @@ GitHub release archive it is at the root of the zip (`Publish\`), next to
 `GameServer.exe`. `GameServer.config.example.json` is shipped alongside it as
 a fallback template.
 
+The remaining settings (`Port`, `ZoneId`, `ClientVersion`, `GrpcChannelAddress`,
+the `serilog:` logging keys, ...) still live in the XML `App.config`, which ships
+next to `GameServer.exe` as `GameServer.dll.config`. GameServer parses that file
+directly from disk, so editing it works the same way in a local build and in the
+single-file release build.
+
+### Troubleshooting
+
+**`GameServer terminated: CodeBase is not supported on assemblies loaded from a single-file bundle`**
+
+An outdated release. GameServer used to read `App.config` through
+`ConfigurationManager`, which locates its file via `Assembly.CodeBase` - an API
+that does not exist inside a single-file executable, so the server died on its
+first settings lookup, before it ever opened `GameServer.config.json`. Setting
+the Firefall paths by hand therefore changed nothing. Download the latest PIN
+release (or build from source); no configuration change is needed.
+
+**`StaticDBPath is not configured ...` / `StaticDB file not found at ...`**
+
+The Firefall installation was not auto-detected, or the configured path is
+wrong. Set `StaticDBPath` in `GameServer.config.json` to the full path of
+`system\db\clientdb.sd2`, or point `PIN_FIREFALL_PATH` at the install directory.
+
 ### firefall.ini
 
 ```ini

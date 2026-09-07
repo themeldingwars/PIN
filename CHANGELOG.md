@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- Fix `GameServer terminated: CodeBase is not supported on assemblies loaded from a single-file bundle`, which killed every published `GameServer.exe` on startup. `ConfigurationManager` locates `App.config` through `Assembly.CodeBase`, an API that is unsupported inside a single-file bundle, so the very first settings lookup threw before `GameServer.config.json` was ever read — setting the Firefall paths by hand could not help. The `appSettings` block is now parsed straight from disk by the new `AppConfigFile` (`GameServer.dll.config` / `GameServer.exe.config` / `App.config`, next to the executable or in the working directory), Serilog is configured from those same values instead of `ReadFrom.AppSettings()`, and `System.Configuration.ConfigurationManager` is gone from the GameServer dependency closure
+- Ship `App.config` next to the published `GameServer.exe` (as `GameServer.dll.config`) and read it from there, so `Port`, `ZoneId`, `ClientVersion`, `GrpcChannelAddress` and the `serilog:` keys are configurable in the release build again
+- Explain an unsupported single-file operation as a build problem in the startup error instead of pointing the user at their Firefall paths
+- Assert in the Windows CI and release smoke tests that the published `GameServer.exe` gets past configuration loading to opening the StaticDB, and fail on any `CodeBase` / single-file bundle error — the previous smoke test accepted that crash as a healthy startup failure
+
 - Publish GameServer as a framework-dependent single-file executable with `Bitter` and the rest of its managed dependency closure embedded, preventing missing-assembly startup failures even if loose release files are omitted or separated.
 - Report a missing managed runtime assembly as an incomplete server installation instead of directing the user to the Firefall-path configuration.
 - Pin the Bitter submodule build to version 1.0.0 in `Directory.Build.props` (what FauFau 1.5.1 was compiled against): the PIN product version stamp produced a skewed assembly that failed to load from the single-file bundle at runtime.

@@ -55,7 +55,27 @@ internal static class Program
             return;
         }
 
+        if (IsSingleFileConfigurationFailure(reason))
+        {
+            Console.Error.WriteLine("This is a bug in the build, not a problem with your configuration: the server tried to read its");
+            Console.Error.WriteLine("settings through an API that is unsupported inside a single-file executable. Editing");
+            Console.Error.WriteLine("GameServer.config.json cannot work around it - download the latest PIN release instead.");
+            return;
+        }
+
         Console.Error.WriteLine("Check GameServer.config.json next to GameServer.exe; the README section \"GameServer config\" describes the required values.");
+    }
+
+    /// <summary>
+    ///     Determine whether startup failed because the single-file executable could not resolve a path
+    ///     that only exists for assemblies loaded from disk (<c>Assembly.CodeBase</c> / <c>Assembly.Location</c>).
+    /// </summary>
+    /// <param name="exception">The root startup exception.</param>
+    /// <returns><c>true</c> when the exception reports an unsupported single-file operation.</returns>
+    private static bool IsSingleFileConfigurationFailure(Exception exception)
+    {
+        return exception is NotSupportedException &&
+               exception.Message.Contains("single-file bundle", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
