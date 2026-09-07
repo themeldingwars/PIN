@@ -45,7 +45,8 @@ public class AbilitySystemTests
 
         Assert.False(shard.Entities.ContainsKey(victim.EntityId));
         Assert.True(shard.Entities.ContainsKey(bystander.EntityId));
-        Assert.DoesNotContain(e => e is not null, bystander.GetActiveEffects());
+        // GetActiveEffects returns every effect slot; all of them must be empty.
+        Assert.All(bystander.GetActiveEffects(), Assert.Null);
     }
 
     [Fact]
@@ -81,6 +82,7 @@ public class AbilitySystemTests
                 UpdateFrequency = 100,
                 MaxStackCount = 1
             },
+
             // A duration chain that always fails marks the effect as expired.
             DurationChain = new Chain
             {
