@@ -89,6 +89,17 @@ public class MovementRelay
         };
         foreach (var remoteClient in _shard.Clients.Values)
         {
+            // Never echo the pose back to the client that authored it. It already got the
+            // authoritative answer as a ConfirmedPoseUpdate above; a CurrentPoseUpdate for your own
+            // entity is the "remote avatar" path and makes the client re-apply a pose it is already
+            // predicting locally. While sprinting that arrives every movement tick and continuously
+            // re-drives the movement state, which shows up as the first person animation flickering
+            // between states for as long as shift is held.
+            if (remoteClient.SocketId == client.SocketId)
+            {
+                continue;
+            }
+
             if (remoteClient.Status.Equals(IPlayer.PlayerStatus.Playing))
             {
                 if (sendJumpActioned)
