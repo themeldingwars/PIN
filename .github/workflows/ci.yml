@@ -82,6 +82,71 @@ jobs:
           if ((Get-Item -LiteralPath $executable).Length -lt 1MB) {
             throw 'GameServer.exe is too small to contain its managed dependency bundle.'
           }
+      - name: Smoke-test GameServer startup (Bitter load)
+        if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
+        shell: pwsh
+        run: |
+          # Boot the published single-file GameServer far enough to force the Bitter
+          # assembly load: resolving the server constructs FauFau's StaticDB (which
+          # derives from Bitter's BinaryWrapper) whenever StaticDBPath points at an
+          # existing file. The dummy file carries a 0xFFFFFFFF payload size in the
+          # .sd2 header, so SDB parsing throws immediately after Bitter is loaded: a
+          # healthy build exits 1 with that parse error, while a build with Bitter
+          # missing from its bundle exits 1 with the missing-assembly signature.
+          $publishDirectory = Join-Path $PWD 'Publish'
+          $executable = Join-Path $publishDirectory 'GameServer.exe'
+          $configPath = Join-Path $publishDirectory 'GameServer.config.json'
+          $dummySdb = Join-Path $publishDirectory 'smoke-clientdb.sd2'
+          $stdoutLog = Join-Path $env:RUNNER_TEMP 'gameserver-smoke-stdout.log'
+          $stderrLog = Join-Path $env:RUNNER_TEMP 'gameserver-smoke-stderr.log'
+
+          $configBackup = "$configPath.smoke-bak"
+          $hadConfig = Test-Path -LiteralPath $configPath
+          if ($hadConfig) {
+            Copy-Item -LiteralPath $configPath -Destination $configBackup -Force
+          }
+
+          try {
+            [IO.File]::WriteAllBytes($dummySdb, [byte[]](0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0))
+            @{ StaticDBPath = $dummySdb; MapsPath = $publishDirectory; AssetDBPath = $publishDirectory; CachePath = '' } |
+              ConvertTo-Json | Set-Content -LiteralPath $configPath -Encoding utf8
+
+            Remove-Item -LiteralPath $stdoutLog, $stderrLog -Force -ErrorAction SilentlyContinue
+            $process = Start-Process -FilePath $executable -WorkingDirectory $publishDirectory `
+              -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog `
+              -NoNewWindow -PassThru
+            $process | Wait-Process -Timeout 120 -ErrorAction SilentlyContinue
+            if (-not $process.HasExited) {
+              $process | Stop-Process -Force
+              throw 'Smoke test timed out: GameServer did not exit within 120 seconds.'
+            }
+
+            $output = ((Get-Content -LiteralPath $stdoutLog -Raw) + "`n" + (Get-Content -LiteralPath $stderrLog -Raw))
+            Write-Host $output
+            $hasTerminated = $output -match 'GameServer terminated:'
+            $hasBitterError = $output -match "Could not load file or assembly 'Bitter'"
+            $hasIncompleteError = $output -match 'installation is incomplete'
+
+            if ($process.ExitCode -eq 0) {
+              throw 'Smoke test expected GameServer to fail on the dummy StaticDB file.'
+            }
+
+            if (-not $hasTerminated) {
+              throw 'Smoke test did not reach managed startup.'
+            }
+
+            if ($hasBitterError -or $hasIncompleteError) {
+              throw 'GameServer failed to load the Bitter runtime assembly from its single-file bundle.'
+            }
+          }
+          finally {
+            Remove-Item -LiteralPath $dummySdb, $stdoutLog, $stderrLog -Force -ErrorAction SilentlyContinue
+            if ($hadConfig) {
+              Move-Item -LiteralPath $configBackup -Destination $configPath -Force
+            } else {
+              Remove-Item -LiteralPath $configPath -Force -ErrorAction SilentlyContinue
+            }
+          }
       - name: Upload Artifact
         if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
         uses: actions/upload-artifact@v6

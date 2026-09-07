@@ -13,6 +13,10 @@
     </PropertyGroup>
     <PropertyGroup>
         <Version>0.2.0</Version>
+        <!-- Bitter stays at the version FauFau 1.5.1 was compiled against: a build
+             stamped with the PIN product version fails to load from the single-file
+             GameServer bundle at runtime (missing-assembly startup crash). -->
+        <Version Condition="'$(MSBuildProjectName)' == 'Bitter'">1.0.0</Version>
         <Company>The Melding Wars</Company>
         <Copyright>Copyright © 2019-2026 by The Melding Wars</Copyright>
         <Product>Pirate Intelligence Network</Product>

@@ -51,10 +51,11 @@ internal static class Program
         {
             Console.Error.WriteLine("The GameServer installation is incomplete: a required .NET assembly could not be loaded.");
             Console.Error.WriteLine("Re-extract the complete PIN release archive into a fresh folder and start GameServer.exe from that folder.");
+            Console.Error.WriteLine("If the error persists, download the latest PIN release: a GameServer.exe shipped next to a GameServer.dll is an outdated build.");
             return;
         }
 
-        Console.Error.WriteLine("Check GameServer.config.json next to GameServer.dll; the README section \"GameServer config\" describes the required values.");
+        Console.Error.WriteLine("Check GameServer.config.json next to GameServer.exe; the README section \"GameServer config\" describes the required values.");
     }
 
     /// <summary>
