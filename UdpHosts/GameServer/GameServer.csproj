@@ -38,8 +38,14 @@
          dependency, so reference the submodule project directly and keep its
          assembly in both the build output and the published runtime dependency
          closure. Do not mark this reference PrivateAssets. -->
+    <!-- Pin the submodule build to the Bitter version FauFau 1.5.1 was compiled
+         against. Without this, this repo's Directory.Build.props stamps the
+         submodule with the PIN product version (0.2.0) instead of the 1.0.0
+         FauFau expects, and the skewed build fails to load from the
+         single-file bundle at runtime (missing-assembly startup crash). -->
     <ProjectReference Include="..\..\Lib\Bitter\Bitter\Bitter.csproj">
       <Private>true</Private>
+      <AdditionalProperties>Version=1.0.0</AdditionalProperties>
     </ProjectReference>
     <ProjectReference Include="..\..\Lib\Core.Data\Core.Data.csproj" />
     <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />

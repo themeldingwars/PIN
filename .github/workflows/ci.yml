@@ -112,14 +112,18 @@ jobs:
               ConvertTo-Json | Set-Content -LiteralPath $configPath -Encoding utf8
             Write-Host '::notice::SMOKE-STAGE=config-written'
 
-            foreach ($name in @('GameServer.exe', 'GameServer.dll', 'GameServer.deps.json', 'GameServer.runtimeconfig.json', 'Bitter.dll')) {
+            $states = foreach ($name in @('GameServer.exe', 'GameServer.dll', 'GameServer.deps.json', 'GameServer.runtimeconfig.json', 'Bitter.dll')) {
               $probe = Join-Path $publishDirectory $name
-              if (Test-Path -LiteralPath $probe) {
-                Write-Host "::notice::SMOKE-FILE: $name EXISTS [$((Get-Item -LiteralPath $probe).Length)]"
-              } else {
-                Write-Host "::notice::SMOKE-FILE: $name MISSING"
-              }
+              if (Test-Path -LiteralPath $probe) { "$name=$((Get-Item -LiteralPath $probe).Length)" } else { "$name=MISSING" }
             }
+            Write-Host "::notice::SMOKE-FILES: $($states -join ' ')"
+
+            $exeText = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($executable))
+            $dllTotal = ([regex]::Matches($exeText, 'Bitter\.dll')).Count
+            $dllDeps = ([regex]::Matches($exeText, 'Bitter\.dll":')).Count
+            $v020 = ([regex]::Matches($exeText, 'Bitter/0\.2\.0')).Count
+            $v100 = ([regex]::Matches($exeText, 'Bitter/1\.0\.0')).Count
+            Write-Host "::notice::SMOKE-BYTES: Bitter.dll x$($dllTotal) (deps-shaped x$($dllDeps)) Bitter-0.2.0 x$($v020) Bitter-1.0.0 x$($v100)"
 
             Remove-Item -LiteralPath $stdoutLog, $stderrLog -Force -ErrorAction SilentlyContinue
             $process = Start-Process -FilePath $executable -WorkingDirectory $publishDirectory `
@@ -135,26 +139,23 @@ jobs:
 
             $output = ((Get-Content -LiteralPath $stdoutLog -Raw) + "`n" + (Get-Content -LiteralPath $stderrLog -Raw))
             Write-Host $output
-            Write-Host "::notice::SMOKE-EXITCODE=$($process.ExitCode)"
-            Write-Host "::notice::SMOKE-HAS-TERMINATED=$($output -match 'GameServer terminated:')"
+            $hasTerminated = $output -match 'GameServer terminated:'
             $hasBitterError = $output -match "Could not load file or assembly 'Bitter'"
-            Write-Host "::notice::SMOKE-HAS-BITTER=$hasBitterError"
-            Write-Host "::notice::SMOKE-HAS-INCOMPLETE=$($output -match 'installation is incomplete')"
-            $output -split "`n" | Where-Object { $_ -ne '' } | Select-Object -First 20 | ForEach-Object {
-              $line = ($_ -replace '::', ';')
-              if ($line.Length -gt 400) { $line = $line.Substring(0, 400) }
-              Write-Host "::notice::SMOKE-OUT: $line"
-            }
+            $hasIncompleteError = $output -match 'installation is incomplete'
+            Write-Host "::notice::SMOKE-RESULT: exit=$($process.ExitCode) terminated=$($hasTerminated) bitter=$($hasBitterError) incomplete=$($hasIncompleteError)"
+            $flat = (($output -replace "`r", '') -replace "`n", '%0A' -replace '::', ';')
+            if ($flat.Length -gt 3000) { $flat = $flat.Substring(0, 3000) }
+            Write-Host "::notice::SMOKE-OUT: $flat"
 
             if ($process.ExitCode -eq 0) {
               throw 'Smoke test expected GameServer to fail on the dummy StaticDB file.'
             }
 
-            if ($output -notmatch 'GameServer terminated:') {
+            if (-not $hasTerminated) {
               throw 'Smoke test did not reach managed startup.'
             }
 
-            if ($output -match "Could not load file or assembly 'Bitter'" -or $output -match 'installation is incomplete') {
+            if ($hasBitterError -or $hasIncompleteError) {
               throw 'GameServer failed to load the Bitter runtime assembly from its single-file bundle.'
             }
           }
