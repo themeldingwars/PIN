@@ -138,8 +138,8 @@ public class Factory
                 return new TargetByEffectCommand(SDBInterface.GetTargetByEffectCommandDef(commandId));
             case CommandType.TargetClear:
                 return new TargetClearCommand(SDBInterface.GetTargetClearCommandDef(commandId));
-            // case CommandType.TargetConeAE:
-            //     return new TargetConeAECommand(SDBInterface.GetTargetConeAECommandDef(commandId));
+            case CommandType.TargetConeAE:
+                return new TargetConeAECommand(SDBInterface.GetTargetConeAECommandDef(commandId));
             case CommandType.StatModifier:
                 return new StatModifierCommand(SDBInterface.GetStatModifierCommandDef(commandId));
             case CommandType.TimeDuration:
