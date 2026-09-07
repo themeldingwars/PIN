@@ -83,7 +83,6 @@ public static class TagfileParser
     public static BinaryTagfile ParseTagfile(BinaryReader reader)
     {
         var data = new BinaryTagfile();
-        int objectCounter = 1;
 
         reader.BaseStream.Seek(8, SeekOrigin.Current);
 
@@ -103,7 +102,7 @@ public static class TagfileParser
                     break;
 
                 case ControlTag.TAG_OBJECT_REMEMBER:
-                    var parsed = ParseObject(reader, data, ref objectCounter);
+                    var parsed = ParseObject(reader, data);
                     data.ObjectRoot ??= parsed; // First parsed object becomes root
                     break;
 
@@ -213,7 +212,7 @@ public static class TagfileParser
         return member;
     }
 
-    private static ObjectData ParseObject(BinaryReader reader, BinaryTagfile data, ref int objectCounter)
+    private static ObjectData ParseObject(BinaryReader reader, BinaryTagfile data)
     {
         var (metaRef, unknownFlagMeta) = ParseVarInt(reader);
         if (unknownFlagMeta)
@@ -226,7 +225,6 @@ public static class TagfileParser
         var obj = (ObjectData)ParseObject(reader, meta, data);
         obj.BinIdx = (uint)(1 + data.Objects.Count);
         data.Objects.Add((uint)(1 + data.Objects.Count), obj);
-        objectCounter++;
         return obj;
     }
 
