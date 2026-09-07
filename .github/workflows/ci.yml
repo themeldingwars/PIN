@@ -55,7 +55,9 @@ jobs:
       - name: Publish
         if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
         run: |
-          dotnet publish --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -o Publish
+          dotnet publish UdpHosts/GameServer/GameServer.csproj --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -o Publish
+          dotnet publish UdpHosts/MatrixServer/MatrixServer.csproj --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -o Publish
+          dotnet publish WebHosts/WebHostManager/WebHostManager.csproj --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -o Publish
           cp ./Start.cmd ./Publish
           cp ./README.md ./Publish
           cp ./CHANGELOG.md ./Publish

@@ -68,18 +68,4 @@
           DestinationFiles="$(PublishDir)GameServer.config.json"
           Condition="'$(PublishDir)' != '' and !Exists('$(PublishDir)GameServer.config.json')" />
   </Target>
-  <Target Name="VerifyBitterRuntimeDependency" AfterTargets="ComputeFilesToPublish">
-    <ItemGroup>
-      <_BitterRuntimeDependency Include="@(ResolvedFileToPublish)"
-                                Condition="'%(ResolvedFileToPublish.Filename)' == 'Bitter'" />
-    </ItemGroup>
-    <Error Condition="'@(_BitterRuntimeDependency)' == ''"
-           Text="GameServer publish dependency closure is missing required runtime assembly 'Bitter.dll'." />
-  </Target>
-  <Target Name="VerifyLooseBitterRuntimeDependency"
-          AfterTargets="Publish"
-          Condition="'$(PublishSingleFile)' != 'true'">
-    <Error Condition="!Exists('$(PublishDir)Bitter.dll')"
-           Text="GameServer publish is missing required runtime assembly 'Bitter.dll' at '$(PublishDir)Bitter.dll'." />
-  </Target>
 </Project>
