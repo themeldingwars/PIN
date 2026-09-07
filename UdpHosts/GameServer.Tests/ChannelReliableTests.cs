@@ -33,7 +33,7 @@ public class ChannelReliableTests
         channel.Process(CancellationToken.None);
 
         Assert.Single(delivered);
-        Assert.Equal(new[] { (Reliable, (ushort)0x0505) }, client.SentAcks);
+        Assert.Equal(new[] { (ushort)0x0505 }, AckedSequenceNumbers(client));
     }
 
     [Fact]
@@ -46,13 +46,8 @@ public class ChannelReliableTests
         channel.HandlePacket(Sequenced(Reliable, 0x0505, resendCount: 1));
         channel.Process(CancellationToken.None);
 
-        Assert.Equal(
-            new[]
-            {
-                (Reliable, (ushort)0x0505),
-                (Reliable, (ushort)0x0505),
-            },
-            client.SentAcks);
+        Assert.Equal(new[] { (ushort)0x0505, (ushort)0x0505 }, AckedSequenceNumbers(client));
+        Assert.All(client.SentAcks, ack => Assert.Equal(Reliable, ack.Channel));
     }
 
     [Fact]
@@ -64,7 +59,7 @@ public class ChannelReliableTests
         channel.HandlePacket(Sequenced(Reliable, 0x0101));
         channel.Process(CancellationToken.None);
 
-        Assert.Contains((Reliable, (ushort)0x0101), client.SentAcks);
+        Assert.Contains((ushort)0x0101, AckedSequenceNumbers(client));
     }
 
     [Fact]
@@ -92,14 +87,14 @@ public class ChannelReliableTests
         Assert.Equal(
             new[]
             {
-                (Reliable, (ushort)0x0101),
-                (Reliable, (ushort)0x0202),
-                (Reliable, (ushort)0x0303),
+                (ushort)0x0101,
+                (ushort)0x0202,
+                (ushort)0x0303,
             },
-            client.SentAcks);
+            AckedSequenceNumbers(client));
 
         var message = Assert.Single(delivered);
-        Assert.Equal(new byte[] { 0xAA, 0xBB, 0xCC }, message.PacketData.ToArray());
+        Assert.Equal(new byte[] { 0xAA, 0xBB, 0xCC }, message.PacketData.Span.ToArray());
     }
 
     [Fact]
@@ -116,7 +111,7 @@ public class ChannelReliableTests
         channel.Process(CancellationToken.None);
 
         var message = Assert.Single(delivered);
-        Assert.Equal(new byte[] { 0xAA, 0xBB }, message.PacketData.ToArray());
+        Assert.Equal(new byte[] { 0xAA, 0xBB }, message.PacketData.Span.ToArray());
         Assert.Equal(3, client.SentAcks.Count);
     }
 
@@ -137,7 +132,12 @@ public class ChannelReliableTests
         channel.Process(CancellationToken.None);
 
         var message = Assert.Single(delivered);
-        Assert.Equal(new byte[] { 0x42 }, message.PacketData.ToArray());
+        Assert.Equal(new byte[] { 0x42 }, message.PacketData.Span.ToArray());
+    }
+
+    private static ushort[] AckedSequenceNumbers(FakeNetworkPlayer client)
+    {
+        return [.. client.SentAcks.Select(ack => ack.SequenceNumber)];
     }
 
     /// <summary>
