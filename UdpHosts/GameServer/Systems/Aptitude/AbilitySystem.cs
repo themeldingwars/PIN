@@ -393,8 +393,11 @@ public class AbilitySystem
             // on every run (which is what the not implemented commands used to cause), the status effect fields of
             // the pad and of the player were rewritten and flushed to every client in range dozens of times a
             // second, which is what stalled the connection of the player standing on the panel.
-            _logger.Debug("HandleLocalProximityAbilitySuccess: {Source} is still inside the retry interval ({RetryInterval} ms) of proximity command {CommandId}, ignoring",
-                source, commandDef.RetryInterval, commandId);
+            _logger.Debug(
+                "HandleLocalProximityAbilitySuccess: {Source} is still inside the retry interval ({RetryInterval} ms) of proximity command {CommandId}, ignoring",
+                source,
+                commandDef.RetryInterval,
+                commandId);
 
             return;
         }
