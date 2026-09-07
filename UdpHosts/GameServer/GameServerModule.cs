@@ -271,7 +271,7 @@ public class GameServerModule : Module
             if (string.IsNullOrWhiteSpace(settings.StaticDBPath))
             {
                 throw new InvalidOperationException(
-                    "StaticDBPath is not configured and no Firefall installation could be detected. Edit GameServer.config.json next to GameServer.dll and set \"StaticDBPath\" to the full path of clientdb.sd2, or set PIN_FIREFALL_PATH to your Firefall install directory.");
+                    "StaticDBPath is not configured and no Firefall installation could be detected. Edit GameServer.config.json next to GameServer.exe and set \"StaticDBPath\" to the full path of clientdb.sd2, or set PIN_FIREFALL_PATH to your Firefall install directory.");
             }
 
             if (!File.Exists(settings.StaticDBPath))

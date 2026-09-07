@@ -24,7 +24,7 @@ UdpHosts/GameServer/StaticDB/CustomData/
 and is loaded through `CustomDBLoader` / `CustomDBInterface`.
 
 The path to `clientdb.sd2` (and the `maps` / `assetdb` directories) is read from
-`GameServer.config.json` next to `GameServer.dll`; edit that file instead of hardcoding
+`GameServer.config.json` next to `GameServer.exe`; edit that file instead of hardcoding
 paths in source. On startup the server scans for a Firefall installation and fills in
 any empty `StaticDBPath` / `MapsPath` / `AssetDBPath` automatically (it checks Steam's
 install location, all Steam libraries from `libraryfolders.vdf`, then the server

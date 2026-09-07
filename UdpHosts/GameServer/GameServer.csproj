@@ -3,9 +3,10 @@
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <!-- The generated packet serializers call Bitter at runtime. Bundle managed
-         dependencies into RID-specific publishes so GameServer.exe cannot be
-         separated from Bitter.dll by extraction or release packaging. Local,
+    <!-- FauFau's StaticDB derives from Bitter's BinaryWrapper, so the Bitter
+         assembly must load at runtime. Bundle managed dependencies into
+         RID-specific publishes so GameServer.exe cannot be separated from
+         Bitter.dll by extraction or release packaging. Local,
          framework-independent builds remain unchanged. -->
     <PublishSingleFile Condition="'$(RuntimeIdentifier)' != ''">true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract Condition="'$(RuntimeIdentifier)' != ''">true</IncludeNativeLibrariesForSelfExtract>
@@ -32,8 +33,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Lib\AeroMessages\AeroMessages\AeroMessages.csproj" />
     <ProjectReference Include="..\..\Lib\BepuPhysics2\BepuPhysics\BepuPhysics.csproj" />
-    <!-- Aero.Gen emits packet serialization code that calls Bitter at runtime. Keep its
-         assembly in both the build output and the published runtime dependency closure. -->
+    <!-- FauFau's StaticDB derives from Bitter's BinaryWrapper and calls it while
+         parsing clientdb.sd2. The FauFau NuGet package does not carry a Bitter
+         dependency, so reference the submodule project directly and keep its
+         assembly in both the build output and the published runtime dependency
+         closure. Do not mark this reference PrivateAssets. -->
     <ProjectReference Include="..\..\Lib\Bitter\Bitter\Bitter.csproj">
       <Private>true</Private>
     </ProjectReference>

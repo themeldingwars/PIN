@@ -6,6 +6,8 @@
 
 - Publish GameServer as a framework-dependent single-file executable with `Bitter` and the rest of its managed dependency closure embedded, preventing missing-assembly startup failures even if loose release files are omitted or separated.
 - Report a missing managed runtime assembly as an incomplete server installation instead of directing the user to the Firefall-path configuration.
+- Boot-test the published `GameServer.exe` on Windows CI and the extracted release archive with a dummy StaticDB file, forcing the `Bitter` assembly load so an unbundled dependency fails the build instead of the user.
+- Fix startup and config messages that still pointed at `GameServer.dll` after the single-file switch; the incomplete-installation error now tells stale installs to download the latest release.
 
 ## [0.2.0] - 2026-09-05
 
