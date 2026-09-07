@@ -89,25 +89,29 @@ public class MovementRelay
         };
         foreach (var remoteClient in _shard.Clients.Values)
         {
-            // Never echo the pose back to the client that authored it. It already got the
-            // authoritative answer as a ConfirmedPoseUpdate above; a CurrentPoseUpdate for your own
-            // entity is the "remote avatar" path and makes the client re-apply a pose it is already
-            // predicting locally. While sprinting that arrives every movement tick and continuously
-            // re-drives the movement state, which shows up as the first person animation flickering
-            // between states for as long as shift is held.
-            if (remoteClient.SocketId == client.SocketId)
+            if (!remoteClient.Status.Equals(IPlayer.PlayerStatus.Playing))
             {
                 continue;
             }
 
-            if (remoteClient.Status.Equals(IPlayer.PlayerStatus.Playing))
-            {
-                if (sendJumpActioned)
-                {
-                    remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(new JumpActioned { ShortTime = input.ShortTime }, character.EntityId);
-                }
+            bool isSelf = remoteClient.SocketId == client.SocketId;
 
+            // Never re-apply the "remote avatar" CurrentPoseUpdate to the client that authored it:
+            // it already got the authoritative answer as a ConfirmedPoseUpdate above, and re-applying
+            // its own pose on every movement tick is what made the first person animation flicker
+            // between states while sprinting. So only the pose broadcast is skipped for self.
+            if (!isSelf)
+            {
                 remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(currentPose, character.EntityId);
+            }
+
+            // But the authoring client still needs the JumpActioned acknowledgement to commit a
+            // self-initiated jump/launch (a glider pad reports its launch as a jump via
+            // TimeSinceLastJump resetting). Without it the client starts the launch/wings state and
+            // aborts when the ack never arrives. Remote clients need it too.
+            if (sendJumpActioned)
+            {
+                remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(new JumpActioned { ShortTime = input.ShortTime }, character.EntityId);
             }
         }
     }
