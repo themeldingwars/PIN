@@ -75,9 +75,12 @@ public class CombatController : Base
     public void UseScope(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var query = packet.Unpack<UseScope>();
+
+        // InScope is a signed byte, any non-zero value means "scoped in".
+        // Casting it straight to byte would turn -1 into 255 and make the client disagree with the server.
         player.CharacterEntity.SetFireMode(1, new FireModeData
         {
-           Mode = (byte)query.InScope,
+           Mode = (byte)(query.InScope != 0 ? 1 : 0),
            Time = query.Time,
         });
     }
