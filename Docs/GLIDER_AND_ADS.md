@@ -81,3 +81,22 @@ actually carries a layer value and clears it when the effect ends. Recovering th
   away with the animation. If it does not, the difference is in the effect the scope's `Statusfx`
   id points at: `applyeffect <id>` applies it by hand and `listeffects` shows what a character
   carries, which separates "the server never applied it" from "the effect itself does nothing".
+
+## Covered by the test suite
+
+The parts that do not need a client are pinned in `UdpHosts/GameServer.Tests` (they run in CI
+with the rest of the suite):
+
+- `ChannelReliableTests` - sequenced channels acknowledge every packet they receive, including
+  retransmissions and the ones after a sequence-number wrap; a split message gets each fragment
+  acked, is dispatched exactly once, survives a repeated fragment and cannot wedge a channel.
+- `CharacterRequirementCommandTests` - the requirement commands keep testing the character of the
+  activation when the chain belongs to a deployable, and pass (instead of failing) when there is
+  no character in the chain at all.
+- `ImpactRemoveEffectCommandTests` - a remove-effect command with no effect id removes nothing
+  rather than tearing down the effects of the chain that triggered it.
+- `PermissionAndGliderProfileCommandTests` - glider permissions and the glider profile are handed
+  back when the effect that granted them ends, and one effect cannot switch off what another
+  granted.
+- `JumpActionedDetectionTests` - the jump detection on the 16 bit counter is modular, so a long
+  fall is not reported as a jump.
