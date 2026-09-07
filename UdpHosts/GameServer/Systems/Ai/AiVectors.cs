@@ -18,15 +18,17 @@ public static class AiVectors
     }
 
     /// <summary>
-    ///     Builds the orientation a character must have to look along <paramref name="forward" />.
+    ///     Builds the orientation a character must have to face along <paramref name="forward" />.
     /// </summary>
     /// <remarks>
-    ///     <c>CharacterEntity</c> resolves its facing as
-    ///     <c>QuaternionEx.Transform(new Vector3(0, 0, 1), QuaternionEx.Inverse(Orientation))</c>
-    ///     (see <c>CharacterEntity.CalculateProjectileOrigin</c>), i.e. the character's local +Z
-    ///     axis is where it looks. So the orientation has to be a rotation that carries the
-    ///     world forward direction onto world +Z, which is a 90 degree turn around the axis
-    ///     perpendicular to both.
+    ///     A character's orientation is a yaw-only rotation about the world +Z (up) axis. The
+    ///     model's local frame is +X right, +Y forward, +Z up (see
+    ///     <c>CharacterEntity.CalculateProjectileOrigin</c>, whose muzzle offset is
+    ///     (0.2, 0, 1.62)), and the facing direction is
+    ///     <c>QuaternionEx.Transform(new Vector3(0, 1, 0), QuaternionEx.Inverse(Orientation))</c>.
+    ///     So to face a horizontal <paramref name="forward" />, the inverse orientation must
+    ///     rotate local +Y onto it, which is a yaw-only rotation by
+    ///     <c>Atan2(forward.X, forward.Y)</c>; the orientation itself is that rotation.
     /// </remarks>
     public static Quaternion OrientationFacing(Vector3 forward)
     {
@@ -37,12 +39,7 @@ public static class AiVectors
         }
 
         flat = Vector3.Normalize(flat);
-        var axis = Vector3.Cross(flat, Vector3.UnitZ);
-        if (axis.LengthSquared() < 0.0001f)
-        {
-            return Quaternion.Identity;
-        }
-
-        return Quaternion.CreateFromAxisAngle(Vector3.Normalize(axis), MathF.PI / 2f);
+        float yaw = MathF.Atan2(flat.X, flat.Y);
+        return Quaternion.CreateFromAxisAngle(Vector3.UnitZ, yaw);
     }
 }

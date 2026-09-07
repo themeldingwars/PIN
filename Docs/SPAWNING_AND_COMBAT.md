@@ -161,8 +161,11 @@ keyed by zone (`zone_id`):
 ```
 
 - `type` must be a monster typeId present in the SDB monster table.
-- `orientation` is applied to the spawned character. If you omit it, the spawn
-  falls back to identity (so it is safe to leave out).
+- `orientation` is applied to the spawned character. It is a yaw-only rotation
+  about world +Z; identity stands the model upright facing +Y. If you omit it,
+  the spawn faces along the entity's default aim direction instead.
+- `position`'s `Z` is snapped down to the ground surface when zone collision
+  data is loaded, so a placeholder `Z` of `0` spawns on the terrain.
 - `max_health` / `max_shields` are optional; `0` keeps the entity default.
 - On shard start, `EntityManager.SpawnZoneEntities(zoneId)` runs once (gated on
   `_shard.Settings.LoadZoneEntities`) and spawns every entry for the current
