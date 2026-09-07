@@ -4,6 +4,7 @@ using System.Threading;
 using AeroMessages.GSS.Character.Command;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.Extensions;
 using GameServer.StaticDB;
 using Serilog;
 
@@ -372,7 +373,10 @@ public class AbilitySystem
     {
         var execId = executionId ?? Guid.NewGuid();
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
-        _logger.Information("HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, TargetsCount {targetsCount}", source, commandId, time, targets.Count);
+        // A client that stays in range of a proximity trigger keeps sending this success several times a
+        // second, so the arrival on its own is only worth a Verbose line. The Debug line below the retry gate
+        // marks the activations that actually run something.
+        _logger.Verbose("HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, TargetsCount {targetsCount}", source, commandId, time, targets.Count);
 
         var commandDef = SDBInterface.GetRegisterClientProximityCommandDef(commandId);
 
@@ -381,7 +385,11 @@ public class AbilitySystem
             // The client is allowed to name a proximity command this shard does not know (an item or battleframe
             // whose aptitude data is not in the database we loaded). This used to throw a NullReferenceException
             // straight out of the network tick.
-            _logger.Warning("HandleLocalProximityAbilitySuccess: proximity command {CommandId} is not in aptfs::RegisterClientProximityCommandDef, ignoring", commandId);
+            if (OnceLog.ShouldLog(("unknown-proximity-command", commandId)))
+            {
+                _logger.Warning("HandleLocalProximityAbilitySuccess: proximity command {CommandId} is not in aptfs::RegisterClientProximityCommandDef, ignoring", commandId);
+            }
+
             return;
         }
 
@@ -393,14 +401,16 @@ public class AbilitySystem
             // on every run (which is what the not implemented commands used to cause), the status effect fields of
             // the pad and of the player were rewritten and flushed to every client in range dozens of times a
             // second, which is what stalled the connection of the player standing on the panel.
-            _logger.Debug(
-                "HandleLocalProximityAbilitySuccess: {Source} is still inside the retry interval ({RetryInterval} ms) of proximity command {CommandId}, ignoring",
-                source,
-                commandDef.RetryInterval,
-                commandId);
+            _logger.Verbose("HandleLocalProximityAbilitySuccess: {Source} is still inside the retry interval ({RetryInterval} ms) of proximity command {CommandId}, ignoring", source, commandDef.RetryInterval, commandId);
 
             return;
         }
+
+        _logger.Debug(
+            "HandleLocalProximityAbilitySuccess: running command {CommandId} for {Source} against {TargetsCount} targets",
+            commandId,
+            source,
+            targets.Count);
 
         if (commandDef.AbilityId != 0)
         {
