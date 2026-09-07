@@ -107,7 +107,17 @@ public class Shard : IShard
         // Handle timeout, reliable retransmission, normal rx/tx
         foreach (var client in Clients.Values)
         {
-            client.NetworkTick(deltaTime, currentTime, ct);
+            try
+            {
+                client.NetworkTick(deltaTime, currentTime, ct);
+            }
+            catch (Exception e) when (e is not OperationCanceledException)
+            {
+                // Unpacking and dispatching messages is where a not yet complete controller path can throw. Keep
+                // that to a single client: the other clients in the zone still get their traffic processed, and the
+                // shard thread (and its UDP socket) stays alive.
+                Logger.Error(e, "Shard {ShardId} failed to process network traffic for client {SocketId}", InstanceId, client.SocketId);
+            }
         }
     }
 
@@ -194,15 +204,26 @@ public class Shard : IShard
             var currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
             var delta = currentTime - lastTime;
 
-            if (ShouldNetworkTick(currentTime - _lastNetTick, currentUnixTimestamp))
+            try
             {
-                NetworkTick(currentTime - _lastNetTick, currentUnixTimestamp, ct);
-                _lastNetTick = currentTime;
-            }
+                if (ShouldNetworkTick(currentTime - _lastNetTick, currentUnixTimestamp))
+                {
+                    NetworkTick(currentTime - _lastNetTick, currentUnixTimestamp, ct);
+                    _lastNetTick = currentTime;
+                }
 
-            if (!Tick(delta, currentUnixTimestamp, ct))
+                if (!Tick(delta, currentUnixTimestamp, ct))
+                {
+                    break;
+                }
+            }
+            catch (Exception e) when (e is not OperationCanceledException)
             {
-                break;
+                // This thread is a raw Thread, so an exception escaping a tick does not just skip the tick, it
+                // tears the whole shard down while the process and its UDP socket keep running: every client in
+                // the zone then sees a dead server ("Connection Problem") with nothing in the log pointing at
+                // the cause. Keep serving the other clients and report what broke instead.
+                Logger.Error(e, "Shard {ShardId} threw during the tick at {Time} ms, continuing", InstanceId, currentTime);
             }
 
             lastTime = currentTime;

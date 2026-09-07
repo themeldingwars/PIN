@@ -22,6 +22,20 @@ public class Channel
     private const int _totalHeaderSize = _protocolHeaderSize + _gameSocketHeaderSize;
     private const int _maxPacketSize = PacketServer.MTU - _totalHeaderSize;
 
+    /// <summary>
+    ///     Sanity bound for the fragments of a single split message. A GSS message is split at
+    ///     <see cref="_maxPacketSize" /> bytes, so even the largest messages in the protocol stay far below this.
+    /// </summary>
+    private const int MaxSplitFragments = 128;
+
+    /// <summary>
+    ///     How long a half received split message may wait for its next fragment before the partial message is
+    ///     dropped. The channel must never sit in split mode forever: while it does, every packet that arrives on
+    ///     the channel is swallowed by the reassembler and nothing is dispatched or acknowledged any more, which
+    ///     looks to the client exactly like a dead connection ("Connection Problem").
+    /// </summary>
+    private const int SplitTimeoutMs = 5000;
+
     private static readonly byte[] _xorByte = [0xFF, 0xAA, 0xCC];
 
     private readonly ILogger _logger;
@@ -30,6 +44,11 @@ public class Channel
     private readonly ConcurrentQueue<GamePacket> _incomingPackets;
     private readonly ConcurrentQueue<Memory<byte>> _outgoingPackets;
     private readonly SortedDictionary<ushort, GamePacket> _incomingSplitMessagePackets;
+
+    /// <summary>
+    ///     Moment until which the reassembler waits for the next fragment of a split message.
+    /// </summary>
+    private DateTime _splitDeadline;
 
     private Channel(ChannelType channelType, bool isSequenced, bool isReliable,  bool isGSS, INetworkClient networkClient, ILogger logger, GssVersion gssProtocolVersion, MatrixVersion matrixProtocolVersion)
     {
@@ -107,12 +126,35 @@ public class Channel
                 }
 
                 packet = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(data));
-                _logger.Debug("---> Resent packet!!! C:{Channel}: {PacketBytes} bytes", Type, packet.TotalBytes);
+
+                // Resends are expected while the server is busy (the control channel ack is what tells the client
+                // to stop). Logging every one of them at Debug turned a stall into a console flood, which slowed
+                // the shard down even further, so keep it out of the default level.
+                _logger.Verbose("---> Resent packet!!! C:{Channel}: {PacketBytes} bytes", Type, packet.TotalBytes);
+            }
+
+            // Acknowledge *every* reliable packet we received, including the ones the client retransmitted.
+            // Acking only packets with a sequence number above LastAck means a retransmission is never answered:
+            // the client missed the original ack (that is why it retransmitted), gets nothing back, resends up to
+            // its retry limit and then gives up on the channel, while the server happily keeps running. Re-acking
+            // a duplicate is cheap and the only way the client can learn that the message did arrive.
+            if (IsSequenced && IsReliable)
+            {
+                _client.SendAck(Type, sequenceNumber, packet.Received);
+
+                // Sequence numbers wrap at 16 bit, so "newer than" has to be compared with modular
+                // arithmetic instead of a plain >: a plain comparison stops moving LastAck forward for
+                // the 32768 packets after a wrap.
+                if (unchecked((ushort)(sequenceNumber - LastAck)) is > 0 and < 0x8000)
+                {
+                    LastAck = sequenceNumber;
+                }
             }
 
             if (InSplitMode)
             {
-                _incomingSplitMessagePackets.Add(sequenceNumber, packet);
+                StoreSplitFragment(sequenceNumber, packet);
+
                 if (!packet.Header.IsSplit)
                 {
                     // Finish split mode
@@ -125,27 +167,22 @@ public class Channel
 
                     var combinedPacket = new GamePacket(packet.Header, new ReadOnlyMemory<byte>(combined));
 
-                    _client.SendAck(Type, sequenceNumber, packet.Received);
-                    LastAck = sequenceNumber;
                     PacketAvailable?.Invoke(combinedPacket);
+                }
+                else if (IsSplitStalled())
+                {
+                    AbandonSplitMessage();
                 }
             }
             else if (packet.Header.IsSplit)
             {
                 // Enter split mode
                 InSplitMode = true;
-                _incomingSplitMessagePackets.Add(sequenceNumber, packet);
-                _client.SendAck(Type, sequenceNumber, packet.Received);
-                LastAck = sequenceNumber;
+                _splitDeadline = DateTime.Now.AddMilliseconds(SplitTimeoutMs);
+                StoreSplitFragment(sequenceNumber, packet);
             }
             else
             {
-                if (IsReliable && (sequenceNumber > LastAck || (sequenceNumber < 0xff && LastAck > 0xff00)))
-                {
-                    _client.SendAck(Type, sequenceNumber, packet.Received);
-                    LastAck = sequenceNumber;
-                }
-
                 PacketAvailable?.Invoke(packet);
             }
 
@@ -546,5 +583,35 @@ public class Channel
         }
 
         return true;
+    }
+
+    private void StoreSplitFragment(ushort sequenceNumber, GamePacket packet)
+    {
+        // A retransmitted fragment carries the same sequence number again. Inserting it into the reassembler has
+        // to overwrite rather than throw: the ArgumentException escaped through the shard thread and took the
+        // whole shard down, which is what the client sees as a dead connection.
+        _incomingSplitMessagePackets[sequenceNumber] = packet;
+        _splitDeadline = DateTime.Now.AddMilliseconds(SplitTimeoutMs);
+
+        if (_incomingSplitMessagePackets.Count > MaxSplitFragments)
+        {
+            _logger.Warning(
+                "Channel {Channel} gave up reassembling a split message: more than {Max} fragments arrived",
+                Type,
+                MaxSplitFragments);
+
+            AbandonSplitMessage();
+        }
+    }
+
+    private bool IsSplitStalled()
+    {
+        return DateTime.Now > _splitDeadline;
+    }
+
+    private void AbandonSplitMessage()
+    {
+        InSplitMode = false;
+        _incomingSplitMessagePackets.Clear();
     }
 }

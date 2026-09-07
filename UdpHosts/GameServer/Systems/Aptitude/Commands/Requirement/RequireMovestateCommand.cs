@@ -15,12 +15,21 @@ public class RequireMovestateCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        bool result = false;
+        // The movement state lives on the character, and for an ability owned by a deployable (a glider pad
+        // keeping its launch effect alive) the character is the player who triggered it, not Self.
+        var character = CharacterRequirement.Find(context, false);
 
-        // NOTE: Investigate target handling
-        var target = context.Self;
-        
-        if (target is CharacterEntity character)
+        if (character == null)
+        {
+            // No character in this activation: the requirement cannot be answered, so it cannot be violated.
+            // Returning early (instead of falling through and negating the empty result) keeps a deployable
+            // owned effect from being removed and re-applied every tick.
+            CharacterRequirement.LogNotApplicable(Logger, nameof(RequireMovestateCommand), Params.Id, context);
+
+            return true;
+        }
+
+        bool result = false;
         {
             var movestate = character.MovementStateContainer.Movestate;
 
@@ -72,11 +81,6 @@ public class RequireMovestateCommand : Command, ICommand
             {
                 result = true;
             }
-        }
-        else
-        {
-            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireMovestateCommand), Params.Id);
-            result = false;
         }
 
         if (Params.Negate == 1)

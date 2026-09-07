@@ -78,17 +78,28 @@ public class CombatController : Base
 
         // InScope is a signed byte, any non-zero value means "scoped in".
         // Casting it straight to byte would turn -1 into 255 and make the client disagree with the server.
+        bool inScope = query.InScope != 0;
+
         player.CharacterEntity.SetFireMode(1, new FireModeData
         {
-           Mode = (byte)(query.InScope != 0 ? 1 : 0),
+           Mode = (byte)(inScope ? 1 : 0),
            Time = query.Time,
         });
+
+        // The scope's own status effect is what the client uses for the zoomed view, and it is the server that
+        // has to take it away again: see CharacterEntity.SetScopedState.
+        player.CharacterEntity.SetScopedState(inScope);
     }
 
     [MessageID(GssCharacterCommand.SelectWeapon)]
     public void SelectWeapon(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var query = packet.Unpack<SelectWeapon>();
+
+        // Switching weapons (or fire modes) never keeps the sights of the previous one: without this, a scope
+        // effect whose "scope out" message got lost would hold the zoom over the whole next weapon.
+        player.CharacterEntity.SetScopedState(false);
+
         player.CharacterEntity.SetWeaponIndex(new WeaponIndexData
         {
             Index = query.SelectedWeaponIndex,
@@ -102,6 +113,9 @@ public class CombatController : Base
     public void SelectFireMode(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var query = packet.Unpack<SelectFireMode>();
+
+        player.CharacterEntity.SetScopedState(false);
+
         player.CharacterEntity.SetFireMode(0, new FireModeData
         {
            Mode = query.FireMode,

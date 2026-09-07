@@ -34,6 +34,12 @@
     <PackageReference Include="FauFau" Version="1.5.1" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The unit tests reach into a couple of internals (the reliable channel's sequence comparisons, the
+         movement relay's jump detection) rather than duplicating that logic in the test assembly. -->
+    <InternalsVisibleTo Include="GameServer.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Lib\AeroMessages\AeroMessages\AeroMessages.csproj" />
     <ProjectReference Include="..\..\Lib\BepuPhysics2\BepuPhysics\BepuPhysics.csproj" />
     <!-- FauFau's StaticDB derives from Bitter's BinaryWrapper and calls it while

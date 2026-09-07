@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Serilog;
+using Serilog.Events;
 
 namespace GameServer.Systems.Aptitude;
 
@@ -57,7 +58,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
 
         PrintTargets();
 
-        _logger.Debug("Pushing new target: {target}", target);
+        _logger.Verbose("Pushing new target: {target}", target);
 
         _targets.Add(target);
     }
@@ -72,7 +73,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
         {
             result = _targets[^1];
 
-            _logger.Debug("Popping target: {result}", result);
+            _logger.Verbose("Popping target: {result}", result);
 
             _targets.RemoveAt(_targets.Count - 1);
 
@@ -92,7 +93,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
         {
             result = _targets[^1];
 
-            _logger.Debug("Peeking at target: {result}", result);
+            _logger.Verbose("Peeking at target: {result}", result);
 
             return true;
         }
@@ -111,7 +112,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
     {
         PrintTargets();
 
-        _logger.Debug("Removing first {number} targets", number);
+        _logger.Verbose("Removing first {number} targets", number);
 
         _targets.RemoveRange(0, Math.Min(number, _targets.Count));
     }
@@ -120,7 +121,7 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
     {
         PrintTargets();
 
-        _logger.Debug("Popping last {number} targets", number);
+        _logger.Verbose("Popping last {number} targets", number);
 
         _targets.RemoveRange(_targets.Count - Math.Min(number, _targets.Count), Math.Min(number, _targets.Count));
     }
@@ -137,6 +138,13 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
 
     public void PrintTargets()
     {
+        // Building the target string costs more than the log line it feeds, and this runs on every
+        // push/pop/peek of every chain execution, so only do it when someone can actually read it.
+        if (!_logger.IsEnabled(LogEventLevel.Verbose))
+        {
+            return;
+        }
+
         var s = string.Empty;
 
         foreach (var e in _targets)
@@ -144,6 +152,6 @@ public class AptitudeTargets : IEnumerable<IAptitudeTarget>
             s += e + ", ";
         }
 
-        _logger.Debug("Targets ({count}): {targets}", _targets.Count, s.Trim(',', ' '));
+        _logger.Verbose("Targets ({count}): {targets}", _targets.Count, s.Trim(',', ' '));
     }
 }

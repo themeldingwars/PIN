@@ -4,6 +4,7 @@ using System.Threading;
 using AeroMessages.GSS.Character.Command;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.Extensions;
 using GameServer.StaticDB;
 using Serilog;
 
@@ -26,6 +27,14 @@ public class AbilitySystem
     /// be used to look up category cooldowns.
     /// </summary>
     private readonly Dictionary<uint, uint> _abilityCooldownCategories = [];
+
+    /// <summary>
+    /// Shard time of the last accepted client proximity activation, per (entity, proximity command). Used to
+    /// hold activations to the retry interval of <c>aptfs::RegisterClientProximityCommandDef</c>.
+    /// </summary>
+    private readonly Dictionary<(ulong EntityId, uint CommandId), uint> _proximityActivations = [];
+
+    private uint _proximityActivationsPruneAt;
 
     private ulong _lastUpdate;
 
@@ -364,9 +373,44 @@ public class AbilitySystem
     {
         var execId = executionId ?? Guid.NewGuid();
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
-        _logger.Information("HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, TargetsCount {targetsCount}", source, commandId, time, targets.Count);
+        // A client that stays in range of a proximity trigger keeps sending this success several times a
+        // second, so the arrival on its own is only worth a Verbose line. The Debug line below the retry gate
+        // marks the activations that actually run something.
+        _logger.Verbose("HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, TargetsCount {targetsCount}", source, commandId, time, targets.Count);
 
         var commandDef = SDBInterface.GetRegisterClientProximityCommandDef(commandId);
+
+        if (commandDef == null)
+        {
+            // The client is allowed to name a proximity command this shard does not know (an item or battleframe
+            // whose aptitude data is not in the database we loaded). This used to throw a NullReferenceException
+            // straight out of the network tick.
+            if (OnceLog.ShouldLog(("unknown-proximity-command", commandId)))
+            {
+                _logger.Warning("HandleLocalProximityAbilitySuccess: proximity command {CommandId} is not in aptfs::RegisterClientProximityCommandDef, ignoring", commandId);
+            }
+
+            return;
+        }
+
+        if (!AllowProximityActivation(source, commandId, time, commandDef.RetryInterval))
+        {
+            // The client re-triggers a proximity ability for as long as the player stays in range, on a retry
+            // interval of its own. Everything the ability does is applied through effects, so re-running the whole
+            // chain several times per second only multiplies the work: with the effect re-applied and lost again
+            // on every run (which is what the not implemented commands used to cause), the status effect fields of
+            // the pad and of the player were rewritten and flushed to every client in range dozens of times a
+            // second, which is what stalled the connection of the player standing on the panel.
+            _logger.Verbose("HandleLocalProximityAbilitySuccess: {Source} is still inside the retry interval ({RetryInterval} ms) of proximity command {CommandId}, ignoring", source, commandDef.RetryInterval, commandId);
+
+            return;
+        }
+
+        _logger.Debug(
+            "HandleLocalProximityAbilitySuccess: running command {CommandId} for {Source} against {TargetsCount} targets",
+            commandId,
+            source,
+            targets.Count);
 
         if (commandDef.AbilityId != 0)
         {
@@ -384,6 +428,65 @@ public class AbilitySystem
                 InitTime = time,
                 ExecutionHint = ExecutionHint.Proximity
             });
+        }
+    }
+
+    /// <summary>
+    /// Decides whether an entity may run this proximity command again, honouring the retry interval the
+    /// registration gives it.
+    /// </summary>
+    private bool AllowProximityActivation(IAptitudeTarget source, uint commandId, uint time, uint retryIntervalMs)
+    {
+        if (source == null)
+        {
+            return true;
+        }
+
+        var key = (source.EntityId, commandId);
+
+        if (retryIntervalMs > 0
+            && _proximityActivations.TryGetValue(key, out uint lastActivation)
+            && unchecked(time - lastActivation) < retryIntervalMs)
+        {
+            return false;
+        }
+
+        _proximityActivations[key] = time;
+
+        if (unchecked((int)(time - _proximityActivationsPruneAt)) > 0)
+        {
+            PruneProximityActivations(time);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Forget the activations of entities that are gone, so the bookkeeping of a long running shard does not
+    /// grow without a bound. Runs at most once every thirty seconds of shard time.
+    /// </summary>
+    private void PruneProximityActivations(uint time)
+    {
+        _proximityActivationsPruneAt = time + 30_000;
+
+        if (_proximityActivations.Count <= 1024)
+        {
+            return;
+        }
+
+        List<(ulong EntityId, uint CommandId)> stale = [];
+
+        foreach (var key in _proximityActivations.Keys)
+        {
+            if (!_shard.Entities.ContainsKey(key.EntityId))
+            {
+                stale.Add(key);
+            }
+        }
+
+        foreach (var key in stale)
+        {
+            _proximityActivations.Remove(key);
         }
     }
 

@@ -35,7 +35,13 @@ public class MovementRelay
             InputFlags = input.InputFlags
         });
 
-        bool sendJumpActioned = poseData.TimeSinceLastJump < character.TimeSinceLastJump; // Compare the old value before updating
+        // The client counts the time since its last jump in 16 bit milliseconds and restarts the counter at
+        // zero on every jump, so "a new jump happened" means the value went backwards. Comparing the raw signed
+        // shorts said that every time the counter passed 32767 (about 33 seconds in the air, which is exactly
+        // what a boost panel launch and a failed glider deploy look like), because there the value simply wraps
+        // into the negative range. The client then got a JumpActioned for its own character while it was still
+        // falling, restarted its jump handling and dropped the wings deployment the launch had just started.
+        bool sendJumpActioned = IsJumpCounterReset(character.TimeSinceLastJump, poseData.TimeSinceLastJump);
         character.TimeSinceLastJump = poseData.TimeSinceLastJump;
 
         character.IsAirborne = poseData.GroundTimePositiveAirTimeNegative < 0;
@@ -150,5 +156,19 @@ public class MovementRelay
                 }
             });
         }
+    }
+
+    /// <summary>
+    /// Whether the client's 16 bit "time since last jump" counter went backwards, which is what a new jump looks
+    /// like. The comparison is modular on purpose: the counter runs 0 .. 65535 milliseconds and wraps without
+    /// pausing, so only a step *backwards* of more than half the range may be treated as a reset. A jump that
+    /// happens after ~32.8 s in the air is indistinguishable from the wrap and goes unnoticed, which is the one
+    /// case the previous comparison got wrong in the other direction (it reported a jump at every wrap).
+    /// </summary>
+    internal static bool IsJumpCounterReset(short previous, short current)
+    {
+        var delta = unchecked((ushort)(current - previous));
+
+        return delta >= 0x8000;
     }
 }
