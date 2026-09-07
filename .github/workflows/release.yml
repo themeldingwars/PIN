@@ -85,15 +85,22 @@ jobs:
         shell: pwsh
         run: |
           function Assert-GameServerPayload([string] $directory) {
-            $requiredFiles = @('GameServer.exe', 'GameServer.dll', 'GameServer.deps.json', 'Bitter.dll')
-            $missingFiles = $requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $directory $_)) }
-            if ($missingFiles) {
-              throw "GameServer payload is missing required files: $($missingFiles -join ', ')"
+            $executable = Join-Path $directory 'GameServer.exe'
+            if (-not (Test-Path -LiteralPath $executable)) {
+              throw 'GameServer payload is missing GameServer.exe.'
             }
 
-            $dependencyManifest = Get-Content -LiteralPath (Join-Path $directory 'GameServer.deps.json') -Raw
-            if ($dependencyManifest -notmatch '"Bitter/') {
-              throw 'GameServer.deps.json does not declare the required Bitter runtime dependency.'
+            # GameServer is deliberately a framework-dependent single-file app. Its managed
+            # dependency closure (including Bitter) must be inside the executable rather than
+            # relying on a loose DLL which can be omitted or separated during extraction.
+            $unexpectedFiles = @('GameServer.dll', 'GameServer.deps.json') |
+              Where-Object { Test-Path -LiteralPath (Join-Path $directory $_) }
+            if ($unexpectedFiles) {
+              throw "GameServer was not bundled as a single file; found: $($unexpectedFiles -join ', ')"
+            }
+
+            if ((Get-Item -LiteralPath $executable).Length -lt 1MB) {
+              throw 'GameServer.exe is too small to contain its managed dependency bundle.'
             }
           }
 
