@@ -81,14 +81,36 @@ jobs:
           -p:DebugType=None -p:DebugSymbols=false
           -o Publish
 
-      - name: Bundle release files
+      - name: Bundle and verify release files
         shell: pwsh
         run: |
+          function Assert-GameServerPayload([string] $directory) {
+            $requiredFiles = @('GameServer.exe', 'GameServer.dll', 'GameServer.deps.json', 'Bitter.dll')
+            $missingFiles = $requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $directory $_)) }
+            if ($missingFiles) {
+              throw "GameServer payload is missing required files: $($missingFiles -join ', ')"
+            }
+
+            $dependencyManifest = Get-Content -LiteralPath (Join-Path $directory 'GameServer.deps.json') -Raw
+            if ($dependencyManifest -notmatch '"Bitter/') {
+              throw 'GameServer.deps.json does not declare the required Bitter runtime dependency.'
+            }
+          }
+
+          Assert-GameServerPayload (Join-Path $PWD 'Publish')
+
           Copy-Item Start.cmd Publish\Start.cmd
           Copy-Item README.md Publish\README.md
           Copy-Item CHANGELOG.md Publish\CHANGELOG.md
-          Compress-Archive -Path Publish\* -DestinationPath "PIN-${{ steps.tag.outputs.tag }}-win-x64.zip" -Force
-          Get-ChildItem "PIN-${{ steps.tag.outputs.tag }}-win-x64.zip" | Select-Object Name, Length
+          $zip = "PIN-${{ steps.tag.outputs.tag }}-win-x64.zip"
+          Compress-Archive -Path Publish\* -DestinationPath $zip -Force
+
+          $verificationDirectory = Join-Path $env:RUNNER_TEMP 'pin-release-verify'
+          Remove-Item -LiteralPath $verificationDirectory -Recurse -Force -ErrorAction SilentlyContinue
+          Expand-Archive -LiteralPath $zip -DestinationPath $verificationDirectory -Force
+          Assert-GameServerPayload $verificationDirectory
+
+          Get-ChildItem $zip | Select-Object Name, Length
 
       - name: Create or update GitHub release
         shell: pwsh

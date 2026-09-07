@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Autofac;
 using CommandLine;
 using CommandLine.Text;
@@ -45,7 +46,27 @@ internal static class Program
 
         Console.Error.WriteLine($"GameServer terminated: {reason.Message}");
         Console.Error.WriteLine();
+
+        if (IsMissingRuntimeAssembly(reason))
+        {
+            Console.Error.WriteLine("The GameServer installation is incomplete: a required .NET assembly could not be loaded.");
+            Console.Error.WriteLine("Re-extract the complete PIN release archive into a fresh folder and start GameServer.exe from that folder.");
+            return;
+        }
+
         Console.Error.WriteLine("Check GameServer.config.json next to GameServer.dll; the README section \"GameServer config\" describes the required values.");
+    }
+
+    /// <summary>
+    ///     Determine whether startup failed because a managed assembly is absent rather than because
+    ///     a Firefall data path is invalid.
+    /// </summary>
+    /// <param name="exception">The root startup exception.</param>
+    /// <returns><c>true</c> when the exception reports a missing managed assembly.</returns>
+    private static bool IsMissingRuntimeAssembly(Exception exception)
+    {
+        return (exception is FileNotFoundException or FileLoadException) &&
+               exception.Message.Contains("Could not load file or assembly", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

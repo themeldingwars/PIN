@@ -2,9 +2,10 @@
 
 ## [Unreleased]
 
-### Added
+### Fixed
 
-- Nothing yet
+- Publish `Bitter.dll` as a GameServer runtime dependency and verify both the CI payload and release archive contain it, preventing a missing-assembly startup failure.
+- Report a missing managed runtime assembly as an incomplete server installation instead of directing the user to the Firefall-path configuration.
 
 ## [0.2.0] - 2026-09-05
 
