@@ -110,19 +110,40 @@ jobs:
             [IO.File]::WriteAllBytes($dummySdb, [byte[]](0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0))
             @{ StaticDBPath = $dummySdb; MapsPath = $publishDirectory; AssetDBPath = $publishDirectory; CachePath = '' } |
               ConvertTo-Json | Set-Content -LiteralPath $configPath -Encoding utf8
+            Write-Host '::notice::SMOKE-STAGE=config-written'
+
+            foreach ($name in @('GameServer.exe', 'GameServer.dll', 'GameServer.deps.json', 'GameServer.runtimeconfig.json', 'Bitter.dll')) {
+              $probe = Join-Path $publishDirectory $name
+              if (Test-Path -LiteralPath $probe) {
+                Write-Host "::notice::SMOKE-FILE: $name EXISTS [$((Get-Item -LiteralPath $probe).Length)]"
+              } else {
+                Write-Host "::notice::SMOKE-FILE: $name MISSING"
+              }
+            }
 
             Remove-Item -LiteralPath $stdoutLog, $stderrLog -Force -ErrorAction SilentlyContinue
             $process = Start-Process -FilePath $executable -WorkingDirectory $publishDirectory `
               -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog `
               -NoNewWindow -PassThru
+            Write-Host "::notice::SMOKE-STAGE=started pid=$($process.Id)"
             $process | Wait-Process -Timeout 120 -ErrorAction SilentlyContinue
             if (-not $process.HasExited) {
               $process | Stop-Process -Force
               throw 'Smoke test timed out: GameServer did not exit within 120 seconds.'
             }
+            Write-Host "::notice::SMOKE-STAGE=exited code=$($process.ExitCode)"
 
             $output = ((Get-Content -LiteralPath $stdoutLog -Raw) + "`n" + (Get-Content -LiteralPath $stderrLog -Raw))
             Write-Host $output
+            Write-Host "::notice::SMOKE-EXITCODE=$($process.ExitCode)"
+            Write-Host "::notice::SMOKE-HAS-TERMINATED=$($output -match 'GameServer terminated:')"
+            Write-Host "::notice::SMOKE-HAS-BITTER=$($output -match \"Could not load file or assembly 'Bitter'\")"
+            Write-Host "::notice::SMOKE-HAS-INCOMPLETE=$($output -match 'installation is incomplete')"
+            $output -split "`n" | Where-Object { $_ -ne '' } | Select-Object -First 20 | ForEach-Object {
+              $line = ($_ -replace '::', ';')
+              if ($line.Length -gt 400) { $line = $line.Substring(0, 400) }
+              Write-Host "::notice::SMOKE-OUT: $line"
+            }
 
             if ($process.ExitCode -eq 0) {
               throw 'Smoke test expected GameServer to fail on the dummy StaticDB file.'
