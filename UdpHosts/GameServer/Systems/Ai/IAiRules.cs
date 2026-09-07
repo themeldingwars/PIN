@@ -49,17 +49,16 @@ public interface IAiRules
 
     /// <summary>
     ///     Whether a downward ray cast should pull a moving NPC onto the ground surface.
-    ///     Off by default: PIN has no verified convention for how high a character origin
-    ///     sits above the ground, and getting it wrong sinks or floats every mob in the
-    ///     zone. Turn it on together with <see cref="GroundOffset" /> once that has been
-    ///     confirmed in game.
+    ///     On by default. A character origin sits at the feet (the muzzle offset in
+    ///     <c>CharacterEntity.CalculateProjectileOrigin</c> is (0.2, 0, 1.62), i.e. chest
+    ///     height above the origin), so <see cref="GroundOffset" /> is 0. The probe is a
+    ///     no-op when no zone collision data is loaded.
     /// </summary>
     bool SnapToGround { get; }
 
     /// <summary>
     ///     Height in metres to add to the ground surface when <see cref="SnapToGround" /> is
-    ///     on. For a character whose origin is at the centre of its body this is half the
-    ///     body height.
+    ///     on. 0 for the feet origin convention PIN uses.
     /// </summary>
     float GroundOffset { get; }
 

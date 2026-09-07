@@ -73,8 +73,43 @@ public class EntityManager
         characterEntity.LoadMonster(typeId);
         characterEntity.CanBleedout = canBleedout;
         characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, _shard.CurrentTime);
+
+        // Snap the spawn point down onto the ground so mobs don't spawn sunk into the
+        // terrain or floating above it. A no-op when no zone collision data is loaded.
+        if (_shard.Physics != null)
+        {
+            var grounded = _shard.Physics.FindGround(position);
+            if (grounded.HasValue)
+            {
+                position = grounded.Value;
+            }
+        }
+
         characterEntity.SetPosition(position);
-        characterEntity.SetOrientation(orientation ?? AiVectors.OrientationFacing(characterEntity.AimDirection));
+
+        if (orientation.HasValue)
+        {
+            characterEntity.SetOrientation(orientation.Value);
+
+            // Point the weapon where the body faces (local +Y, transformed by the
+            // inverse orientation) so the pose is coherent.
+            var facing = Vector3.Transform(new Vector3(0f, 1f, 0f), Quaternion.Conjugate(orientation.Value));
+            facing.Z = 0f;
+            if (facing.LengthSquared() > 0.0001f)
+            {
+                characterEntity.SetAimDirection(Vector3.Normalize(facing));
+            }
+        }
+        else
+        {
+            // No explicit orientation: face along the entity's initial aim direction,
+            // projected onto the ground plane.
+            var aim = characterEntity.AimDirection;
+            aim.Z = 0f;
+            characterEntity.SetAimDirection(aim);
+            characterEntity.SetOrientation(AiVectors.OrientationFacing(aim));
+        }
+
         characterEntity.SetSpawnPose();
         _shard.Physics.CreateKineticEntity(characterEntity);
         _shard.Physics.UpdateEntity(characterEntity);
@@ -383,12 +418,10 @@ public class EntityManager
         {
             var spawn = entry.Value;
 
-            // A missing orientation in the JSON deserializes to a zero
-            // Quaternion; pass null so SpawnCharacter derives a proper
-            // horizontal orientation from the entity's initial aim
-            // direction instead of Quaternion.Identity (which makes the
-            // model face straight up and look like it is swimming in the
-            // ground).
+            // A missing orientation in the JSON deserializes to a zero Quaternion, which
+            // is not a valid rotation. Pass null so SpawnCharacter derives a horizontal
+            // facing from the entity's initial aim direction instead. An explicit identity
+            // Quaternion is fine: identity stands the model upright facing world +Y.
             Quaternion? orientation = spawn.Orientation == default ? null : spawn.Orientation;
             var character = SpawnCharacter(spawn.Type, spawn.Position, orientation: orientation);
 

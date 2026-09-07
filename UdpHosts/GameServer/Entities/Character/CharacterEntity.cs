@@ -1570,8 +1570,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         var state = new MovementStateContainer { MovementStateValue = (ushort)sample.MovementState };
         var speed = state.Sprint ? _fallbackSprintSpeed : state.Crouch ? _fallbackCrouchSpeed : _fallbackRunSpeed;
 
-        // Match the orientation convention used by CalculateProjectileOrigin (local offset transformed by the inverse orientation)
-        var forward = QuaternionEx.Transform(new Vector3(0f, 0f, 1f), QuaternionEx.Inverse(sample.Orientation));
+        // Match the orientation convention used by CalculateProjectileOrigin: the model's
+        // local frame is +X right, +Y forward, +Z up, transformed by the inverse orientation.
+        var forward = QuaternionEx.Transform(new Vector3(0f, 1f, 0f), QuaternionEx.Inverse(sample.Orientation));
         var right = QuaternionEx.Transform(new Vector3(1f, 0f, 0f), QuaternionEx.Inverse(sample.Orientation));
         var direction = (forward * (sample.VerticalInput / magnitude)) + (right * (sample.HorizontalInput / magnitude));
         return Vector3.Normalize(direction) * speed;

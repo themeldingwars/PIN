@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Aero.Protocol;
 using Serilog.Core;
 using Serilog.Events;
@@ -95,9 +95,12 @@ public class GameServerSettings
     public uint ZoneId { get; set; } = 448;
 
     /// <summary>
-    ///    Enable loading zone collision data
+    ///    Enable loading zone collision data. Required for NPC ground snapping: without
+    ///    the zone statics there is no terrain to ray cast against, so mobs stay at
+    ///    their spawn height. Loading fails gracefully when <see cref="MapsPath" /> has
+    ///    no zone file.
     /// </summary>
-    public bool LoadMapsCollision { get; set; }
+    public bool LoadMapsCollision { get; set; } = true;
 
     /// <summary>
     ///    Enable loading entities on zone startup

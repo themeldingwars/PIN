@@ -30,7 +30,7 @@ public class StandardAiRules : IAiRules
 
     public int MovementIntervalMs { get; init; } = 50;
 
-    public bool SnapToGround { get; init; }
+    public bool SnapToGround { get; init; } = true;
 
     public float GroundOffset { get; init; }
 

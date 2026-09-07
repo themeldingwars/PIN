@@ -254,7 +254,7 @@ public partial class PhysicsEngine
         });
     }
 
-    public SegmentRaycastHit SegmentRayCast(Vector3 from, Vector3 to, ulong ignoreEntityId)
+    public SegmentRaycastHit SegmentRayCast(Vector3 from, Vector3 to, ulong ignoreEntityId, bool staticOnly = false)
     {
         var hitResult = default(SegmentRaycastHit);
         var delta = to - from;
@@ -271,6 +271,7 @@ public partial class PhysicsEngine
         hitHandler.T = distance;
         hitHandler.AvoidSourceBody = ignoreEntityId != 0;
         hitHandler.SourceBody = _entityIdToBody.GetValueOrDefault(ignoreEntityId);
+        hitHandler.StaticOnly = staticOnly;
 
         Simulation.RayCast(from, direction, distance, BufferPool, ref hitHandler);
 
@@ -286,6 +287,31 @@ public partial class PhysicsEngine
         }
 
         return hitResult;
+    }
+
+    /// <summary>
+    ///     Finds the ground surface under <paramref name="position" /> by casting straight down
+    ///     from far above. Returns the surface position (keeping X and Y), or null when nothing
+    ///     is hit - typically because no zone collision data is loaded.
+    /// </summary>
+    /// <remarks>
+    ///     Used to place freshly spawned mobs on the terrain. The probe only tests static
+    ///     geometry so a player or another mob standing nearby cannot be mistaken for the ground.
+    /// </remarks>
+    public Vector3? FindGround(Vector3 position, ulong ignoreEntityId = 0)
+    {
+        const float searchUp = 10_000f;
+        const float searchDown = 10_000f;
+
+        var from = new Vector3(position.X, position.Y, position.Z + searchUp);
+        var to = new Vector3(position.X, position.Y, position.Z - searchDown);
+        var hit = SegmentRayCast(from, to, ignoreEntityId, staticOnly: true);
+        if (!hit.Hit)
+        {
+            return null;
+        }
+
+        return new Vector3(position.X, position.Y, hit.HitPosition.Z);
     }
 
     public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, int damage = ProjectileSim.LegacyPlaceholderDamage)
@@ -375,12 +401,18 @@ public partial class PhysicsEngine
         public CollidableReference HitCollidable;
         public bool AvoidSourceBody;
         public BodyHandle SourceBody;
+        public bool StaticOnly;
         public Vector3 Normal;
         public int ChildIndex;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool AllowTest(CollidableReference collidable)
         {
+            if (StaticOnly && collidable.Mobility != CollidableMobility.Static)
+            {
+                return false;
+            }
+
             if (AvoidSourceBody && collidable.Mobility != CollidableMobility.Static && collidable.BodyHandle.Equals(SourceBody))
             {
                 return false;
@@ -392,6 +424,11 @@ public partial class PhysicsEngine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool AllowTest(CollidableReference collidable, int childIndex)
         {
+            if (StaticOnly && collidable.Mobility != CollidableMobility.Static)
+            {
+                return false;
+            }
+
             if (AvoidSourceBody && collidable.Mobility != CollidableMobility.Static && collidable.BodyHandle.Equals(SourceBody))
             {
                 return false;

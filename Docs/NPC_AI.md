@@ -7,9 +7,11 @@ It replaces the old `AIEngine` stub, which was an empty `Tick`. Spawned mobs now
 pick a target, walk towards it, shoot at it and give up when they are dragged too
 far from where they spawned.
 
-> The one thing this cannot settle without a running client is the vertical
-> placement of a character origin relative to the ground. Ground snapping is
-> therefore **off by default** - see [Tuning](#5-tuning).
+> Character origins sit at the feet (the muzzle offset is `(0.2, 0, 1.62)` in
+> `CalculateProjectileOrigin`, i.e. chest height above the origin) and the body
+> orientation is a yaw-only rotation about world +Z, confirmed against the
+> spawn points in `StaticDB/CustomData/outpost.json`. Ground snapping is **on by
+> default** - see [Tuning](#5-tuning).
 
 ---
 
@@ -182,7 +184,7 @@ Everything is an `IAiRules` property. `AiEngine` takes an optional instance; pas
 | `DefaultChaseSpeed`  | `8.5`   | m/s when the monster row has no usable `fast_speed`              |
 | `MinTrustedSpeed`    | `0.25`  | Lower bound for trusting an SDB speed                            |
 | `MaxTrustedSpeed`    | `35`    | Upper bound for trusting an SDB speed                            |
-| `SnapToGround`       | `false` | Pull moving NPCs onto the ground with a downward ray cast         |
+| `SnapToGround`       | `true`  | Pull moving NPCs onto the ground with a downward ray cast         |
 | `GroundOffset`       | `0`     | Metres to add to the ground surface when snapping                |
 
 ### Movement speeds come from the database
@@ -196,13 +198,18 @@ teleporting mobs.
 
 ### Ground snapping
 
-`SnapToGround` is off. PIN has no verified convention for how high a character
-origin sits above the ground - `PhysicsEngine.HandleProjectileImpact` shifts a
-body pose down by `0.9` for its debug markers, which hints at a centre origin, but
-nothing in the server relies on it. Guessing wrong would sink or float every mob
-in the zone, so movement is horizontal-only until that has been confirmed in game.
-Turn it on together with a matching `GroundOffset` (half the body height for a
-centre origin) once it has been checked.
+`SnapToGround` is on. The character origin sits at the feet, so `GroundOffset` is
+`0`: the downward ray cast pulls the NPC's origin onto the top surface of the
+static geometry and the mob walks along the terrain instead of floating or
+sinking. Spawned mobs are snapped the same way before they are scoped in
+(`PhysicsEngine.FindGround`), so zone entries with a placeholder `Z` of `0` land
+on the ground instead of spawning deep under it.
+
+The probe only tests static geometry (a nearby player or mob cannot be mistaken
+for the ground), and the wall check ray is raised to torso height so it does not
+graze the terrain the mob is standing on. When no zone collision data is loaded
+(`LoadMapsCollision` off, or no map files) both probes are no-ops and movement
+stays horizontal, exactly as before.
 
 ---
 

@@ -31,8 +31,18 @@ public class AiEngine
     /// <summary>Raise the trace above the feet so the ground probe does not start inside the body.</summary>
     private const float _groundProbeUp = 1.5f;
 
-    /// <summary>How far below the feet the ground probe reaches before we give up.</summary>
-    private const float _groundProbeDown = 3f;
+    /// <summary>
+    ///     How far below the feet the ground probe reaches before we give up. Large so the
+    ///     mob follows the terrain down ledges and slopes instead of floating off them.
+    /// </summary>
+    private const float _groundProbeDown = 100f;
+
+    /// <summary>
+    ///     Height above the feet used for the wall/obstacle ray. Keeping the ray off the
+    ///     ground stops it from grazing the terrain the mob is standing on and reporting a
+    ///     false "blocked" every step.
+    /// </summary>
+    private const float _wallCheckHeight = 1f;
 
     /// <summary>Chest height, used for both the line of sight trace and the aim direction.</summary>
     private const float _eyeHeight = 1.4f;
@@ -407,7 +417,10 @@ public class AiEngine
             return false;
         }
 
-        var hit = physics.SegmentRayCast(from, to, selfEntityId);
+        // Raise the ray to torso height so it does not graze the ground the NPC is
+        // standing on (which would read as an obstacle after ground snapping).
+        var raised = new Vector3(0f, 0f, _wallCheckHeight);
+        var hit = physics.SegmentRayCast(from + raised, to + raised, selfEntityId);
         if (!hit.Hit)
         {
             return false;
@@ -427,7 +440,10 @@ public class AiEngine
 
         var from = new Vector3(candidate.X, candidate.Y, candidate.Z + _groundProbeUp);
         var to = new Vector3(candidate.X, candidate.Y, candidate.Z - _groundProbeDown);
-        var hit = physics.SegmentRayCast(from, to, entity.EntityId);
+
+        // Only static geometry counts as ground; another mob or player standing
+        // nearby must not be mistaken for terrain.
+        var hit = physics.SegmentRayCast(from, to, entity.EntityId, staticOnly: true);
         if (!hit.Hit)
         {
             return candidate;
