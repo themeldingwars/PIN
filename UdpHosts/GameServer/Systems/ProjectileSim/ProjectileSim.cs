@@ -221,9 +221,14 @@ public class ProjectileSim
         if (proj.TargetEntityId != 0 && _shard.Entities.TryGetValue(proj.TargetEntityId, out var target))
         {
             var targetPos = target.Position;
-            var toTarget = Vector3.Normalize(targetPos - basePosition);
-            float homingStrength = proj.Ammo.HomingStrength * 0.01f;
-            proj.Velocity = Vector3.Lerp(proj.Velocity, homingStrength * toTarget, 0.1f);
+            var toTarget = targetPos - basePosition;
+            if (toTarget.LengthSquared() > 0.0001f)
+            {
+                var toTargetDir = Vector3.Normalize(toTarget);
+                float homingStrength = proj.Ammo.HomingStrength * 0.01f;
+                proj.Velocity = Vector3.Lerp(proj.Velocity, homingStrength * toTargetDir, 0.1f);
+            }
+
             basePosition += proj.Velocity * 0.05f;
         }
         else
