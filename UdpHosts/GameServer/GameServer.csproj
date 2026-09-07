@@ -25,8 +25,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Lib\AeroMessages\AeroMessages\AeroMessages.csproj" />
     <ProjectReference Include="..\..\Lib\BepuPhysics2\BepuPhysics\BepuPhysics.csproj" />
+    <!-- Aero.Gen emits packet serialization code that calls Bitter at runtime. Keep its
+         assembly in both the build output and the published runtime dependency closure. -->
     <ProjectReference Include="..\..\Lib\Bitter\Bitter\Bitter.csproj">
-      <PrivateAssets>all</PrivateAssets>
+      <Private>true</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Lib\Core.Data\Core.Data.csproj" />
     <ProjectReference Include="..\..\Lib\Shared.Common\Shared.Common.csproj" />
@@ -58,5 +60,9 @@
     <Copy SourceFiles="GameServer.config.example.json"
           DestinationFiles="$(PublishDir)GameServer.config.json"
           Condition="'$(PublishDir)' != '' and !Exists('$(PublishDir)GameServer.config.json')" />
+  </Target>
+  <Target Name="VerifyBitterRuntimeDependency" AfterTargets="Publish">
+    <Error Condition="!Exists('$(PublishDir)Bitter.dll')"
+           Text="GameServer publish is missing required runtime assembly 'Bitter.dll' at '$(PublishDir)Bitter.dll'." />
   </Target>
 </Project>

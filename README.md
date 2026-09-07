@@ -13,8 +13,8 @@ https://user-images.githubusercontent.com/920861/134824107-03e9f99c-b420-47c7-b7
 1. Install Firefall via Steam (paste `steam://install/227700` into address bar of web browser)
 2. Edit the `firefall.ini` located in `steamapps\common\Firefall`
 3. Add content from below
-4. Download the [latest PIN release](https://github.com/themeldingwars/PIN/releases/latest)
-5. Open `GameServer.config.json` next to `GameServer.dll` (created by the build; if it is missing, copy `GameServer.config.example.json` to `GameServer.config.json`) and set `StaticDBPath`, `MapsPath`, and `AssetDBPath` to your Firefall installation.
+4. Download and extract the [latest PIN release](https://github.com/themeldingwars/PIN/releases/latest) as a complete archive. Keep `GameServer.exe` and every adjacent `.dll` together in the extracted folder.
+5. On its first launch, GameServer automatically finds a normal Steam Firefall installation and writes the paths to `GameServer.config.json`. If it cannot find your copy, set `StaticDBPath`, `MapsPath`, and `AssetDBPath` in that file before trying again; see [GameServer config](#gameserver-config).
 6. Make a backup copy of the original `FirefallClient.exe` in `Firefall\system\bin`
 7. Replace the `FirefallClient.exe` with the patched `FirefallClient.exe` from the PIN release
    - The patched client is **not built by CI** (it is an external binary). Attach it

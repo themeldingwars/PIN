@@ -59,6 +59,21 @@ jobs:
           cp ./Start.cmd ./Publish
           cp ./README.md ./Publish
           cp ./CHANGELOG.md ./Publish
+      - name: Verify GameServer publish payload
+        if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
+        shell: pwsh
+        run: |
+          $publishDirectory = Join-Path $PWD 'Publish'
+          $requiredFiles = @('GameServer.exe', 'GameServer.dll', 'GameServer.deps.json', 'Bitter.dll')
+          $missingFiles = $requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $publishDirectory $_)) }
+          if ($missingFiles) {
+            throw "GameServer publish is missing required files: $($missingFiles -join ', ')"
+          }
+
+          $dependencyManifest = Get-Content -LiteralPath (Join-Path $publishDirectory 'GameServer.deps.json') -Raw
+          if ($dependencyManifest -notmatch '"Bitter/') {
+            throw 'GameServer.deps.json does not declare the required Bitter runtime dependency.'
+          }
       - name: Upload Artifact
         if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
         uses: actions/upload-artifact@v6
