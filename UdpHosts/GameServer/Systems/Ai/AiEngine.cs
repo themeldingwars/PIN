@@ -343,7 +343,17 @@ public class AiEngine
             if (facing.LengthSquared() > 0.0001f)
             {
                 entity.SetOrientation(AiVectors.OrientationFacing(facing));
-                entity.AimDirection = Vector3.Normalize(new Vector3(facing.X, facing.Y, 0f));
+
+                // Only update the aim when the horizontal projection is
+                // non-degenerate.  When the target is directly above or
+                // below the NPC the XY vector has near-zero length and
+                // Normalize would produce NaN, which later crashes the
+                // pose serializer with ArithmeticException.
+                var aimFlat = new Vector3(facing.X, facing.Y, 0f);
+                if (aimFlat.LengthSquared() > 0.0001f)
+                {
+                    entity.AimDirection = Vector3.Normalize(aimFlat);
+                }
             }
         }
 

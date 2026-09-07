@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -257,13 +257,15 @@ public partial class PhysicsEngine
     public SegmentRaycastHit SegmentRayCast(Vector3 from, Vector3 to, ulong ignoreEntityId)
     {
         var hitResult = default(SegmentRaycastHit);
-        var direction = Vector3.Normalize(to - from);
-        var distance = Vector3.Distance(from, to);
+        var delta = to - from;
+        var distance = delta.Length();
 
         if (distance < 0.01f)
         {
             return hitResult;
         }
+
+        var direction = delta / distance;
 
         var hitHandler = default(RayHitHandler);
         hitHandler.T = distance;
