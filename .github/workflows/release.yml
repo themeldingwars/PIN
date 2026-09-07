@@ -157,6 +157,18 @@ jobs:
             if ($output -match "Could not load file or assembly 'Bitter'" -or $output -match 'installation is incomplete') {
               throw 'Shipped GameServer.exe failed to load the Bitter runtime assembly from its single-file bundle.'
             }
+
+            # ConfigurationManager resolves app.config through Assembly.CodeBase, which is unsupported in a
+            # single-file bundle: reading settings through it used to kill startup before the Firefall paths
+            # were even read. AppConfigFile parses the XML from disk instead.
+            if ($output -match 'CodeBase' -or $output -match 'single-file bundle') {
+              throw 'Shipped GameServer.exe crashed reading its configuration inside the single-file bundle (Assembly.CodeBase).'
+            }
+
+            # Proves configuration loading, logging setup and settings resolution all completed.
+            if ($output -notmatch 'Opening SDB from') {
+              throw 'Shipped GameServer.exe did not get past configuration loading to opening the StaticDB.'
+            }
           }
 
           Assert-GameServerBoots $verificationDirectory
