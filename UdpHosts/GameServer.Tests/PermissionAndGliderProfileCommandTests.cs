@@ -2,6 +2,7 @@ using System.Linq;
 using AeroMessages.GSS.Character;
 using AeroMessages.GSS.Character.Controller;
 using GameServer.Entities.Character;
+using GameServer.Entities.Deployable;
 using GameServer.StaticDB.Records.customdata;
 using GameServer.Systems.Aptitude;
 using GameServer.Systems.Aptitude.Commands.Other;
@@ -119,7 +120,7 @@ public class PermissionAndGliderProfileCommandTests
     public void CommandsOnADeployableOwnerDoNotFailTheChain()
     {
         var shard = new FakeShard();
-        var pad = new GameServer.Entities.Deployable.DeployableEntity(shard, shard.GetNextGuid(), type: 395, abilitySrcId: 0);
+        var pad = new DeployableEntity(shard, shard.GetNextGuid(), type: 395, abilitySrcId: 0);
         shard.Entities.Add(pad.EntityId, pad);
 
         var context = new Context(shard, pad);
