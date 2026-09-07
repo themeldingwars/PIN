@@ -2,6 +2,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- The generated packet serializers call Bitter at runtime. Bundle managed
+         dependencies into RID-specific publishes so GameServer.exe cannot be
+         separated from Bitter.dll by extraction or release packaging. Local,
+         framework-independent builds remain unchanged. -->
+    <PublishSingleFile Condition="'$(RuntimeIdentifier)' != ''">true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract Condition="'$(RuntimeIdentifier)' != ''">true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Aero.Gen" Version="1.5.0"/>
@@ -60,9 +67,5 @@
     <Copy SourceFiles="GameServer.config.example.json"
           DestinationFiles="$(PublishDir)GameServer.config.json"
           Condition="'$(PublishDir)' != '' and !Exists('$(PublishDir)GameServer.config.json')" />
-  </Target>
-  <Target Name="VerifyBitterRuntimeDependency" AfterTargets="Publish">
-    <Error Condition="!Exists('$(PublishDir)Bitter.dll')"
-           Text="GameServer publish is missing required runtime assembly 'Bitter.dll' at '$(PublishDir)Bitter.dll'." />
   </Target>
 </Project>

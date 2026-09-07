@@ -55,7 +55,9 @@ jobs:
       - name: Publish
         if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
         run: |
-          dotnet publish --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -p:IncludeNativeLibrariesForSelfExtract=true -o Publish
+          dotnet publish UdpHosts/GameServer/GameServer.csproj --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -o Publish
+          dotnet publish UdpHosts/MatrixServer/MatrixServer.csproj --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -o Publish
+          dotnet publish WebHosts/WebHostManager/WebHostManager.csproj --runtime win-x64 --no-self-contained --configuration Release -p:DebugType=None -p:DebugSymbols=false -p:PublishReadyToRun=true -o Publish
           cp ./Start.cmd ./Publish
           cp ./README.md ./Publish
           cp ./CHANGELOG.md ./Publish
@@ -64,15 +66,21 @@ jobs:
         shell: pwsh
         run: |
           $publishDirectory = Join-Path $PWD 'Publish'
-          $requiredFiles = @('GameServer.exe', 'GameServer.dll', 'GameServer.deps.json', 'Bitter.dll')
-          $missingFiles = $requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $publishDirectory $_)) }
-          if ($missingFiles) {
-            throw "GameServer publish is missing required files: $($missingFiles -join ', ')"
+          $executable = Join-Path $publishDirectory 'GameServer.exe'
+          if (-not (Test-Path -LiteralPath $executable)) {
+            throw 'GameServer publish is missing GameServer.exe.'
           }
 
-          $dependencyManifest = Get-Content -LiteralPath (Join-Path $publishDirectory 'GameServer.deps.json') -Raw
-          if ($dependencyManifest -notmatch '"Bitter/') {
-            throw 'GameServer.deps.json does not declare the required Bitter runtime dependency.'
+          # A framework-dependent single-file publish keeps Bitter and all other managed
+          # dependencies in GameServer.exe, so users cannot receive a mismatched loose payload.
+          $unexpectedFiles = @('GameServer.dll', 'GameServer.deps.json') |
+            Where-Object { Test-Path -LiteralPath (Join-Path $publishDirectory $_) }
+          if ($unexpectedFiles) {
+            throw "GameServer was not bundled as a single file; found: $($unexpectedFiles -join ', ')"
+          }
+
+          if ((Get-Item -LiteralPath $executable).Length -lt 1MB) {
+            throw 'GameServer.exe is too small to contain its managed dependency bundle.'
           }
       - name: Upload Artifact
         if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 10'
