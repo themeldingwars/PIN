@@ -83,7 +83,7 @@ public sealed class FakeShard : IShard
 
     public EncounterManager EncounterMan { get; } = null;
 
-    public AbilitySystem Abilities { get; } = null;
+    public AbilitySystem Abilities { get; set; } = null;
 
     public ProjectileSim ProjectileSim { get; } = null;
 

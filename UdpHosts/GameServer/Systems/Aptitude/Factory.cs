@@ -27,11 +27,11 @@ namespace GameServer.Systems.Aptitude;
 
 public class Factory
 {
-    private readonly Shard _shard;
+    private readonly IShard _shard;
     private readonly ILogger _logger;
     private readonly HashSet<uint> _reportedPlaceholders = [];
 
-    public Factory(Shard shard)
+    public Factory(IShard shard)
     {
         _shard = shard;
         _logger = shard.Logger.ForContext<AbilitySystem>();
