@@ -169,10 +169,74 @@ Other candidates, in rough order of likelihood, for completeness:
 
 ---
 
+---
+
+## 6. Update after #38: the jump acknowledgement was not the cause
+
+§4 was implemented and shipped (`1e06ad2`), and the pad still reports a "Connection
+Problem" with a failed wings deploy. The hypothesis in §2 is therefore **wrong**: the
+authoring client does not need a self `JumpActioned` to commit a launch (it went without
+one for the whole time the pad worked, and having it back changes nothing). The echo stays
+the way #38 left it, but it is not what fixes or breaks the pad.
+
+What the log from that test session actually shows, and what is fixed now:
+
+1. **A client message that was split over several packets wedged the channel, and a
+   retransmission was never re-acked.** `Channel.Process` acknowledged a reliable packet
+   only when its sequence number was strictly greater than `LastAck`, so the retransmission
+   a client sends because *its* ack was late got no answer: the client resent until its
+   retry counter ran out and gave up on the channel ("Resent packet!!! C:Matrix" in the
+   log, then the client's connection error, while the server kept running). Reassembly of a
+   split message (any client message above ~1.3 KB, e.g. a `KeyframeRequest` for a full
+   zone) did not ack the fragments in the middle, inserted them with `SortedDictionary.Add`
+   — which throws on the fragment a client retransmits, straight out of the shard thread —
+   and stayed in split mode forever when the terminating fragment was lost, after which the
+   channel neither dispatches nor acknowledges anything. See `Channel.Process` and
+   `Channel.StoreSplitFragment`.
+2. **Deployable owned ability chains removed and re-applied their effects about every
+   20 ms.** `RequireCState` (like `RequireLevel` and `RequireMovestate`) answered "the
+   owner of this chain is not a `CharacterEntity`" with *failure*, so the effect a glider
+   pad had just applied was expired on the next tick of `AbilitySystem.ProcessTarget`, the
+   client re-triggered the proximity ability, and the cycle started again. Every apply and
+   every removal rewrote the entity's 32 status effect fields and flushed the entity to all
+   scoped clients: that is the traffic spike that makes the acks late in the first place,
+   and it is also why the launch state never settled.
+3. **Both of the above produced a synchronous console flood** (`serilog:minimum-level` is
+   `Debug` and one sink is the console): warnings per tick per effect, plus a line for
+   every target list push/pop/peek. Writing those lines is time the shard thread does not
+   spend serving clients.
+
+The fixes: requirement and register commands now test the character of an activation and
+treat "no character involved" as not applicable instead of failing;
+`ImpactRemoveEffectCommand` without an effect id leaves the effects alone instead of
+warning twice per tick; the channel acknowledges every reliable packet it receives and
+reassembles split messages without throwing or wedging; the target list logging moved below
+the default level; and the shard tick plus the per-client network processing are wrapped so
+one client's bad packet cannot take the shard (and everyone's connection with it) down.
+
+The `JumpActioned` detection did have a real bug of its own, just not the one §2 assumed:
+it compared the client's *signed* 16 bit "time since last jump" counter, so a player who
+stayed in the air past ~33 s (which is exactly what a failed glider deploy looks like) was
+reported a new jump at every wrap, re-driving their jump state in mid air. It is compared
+modulo 65536 now (`MovementRelay.IsJumpCounterReset`).
+
+What is still open, and why the pad may misbehave again: gliding itself depends on commands
+whose data or implementation is missing (`RegisterMovementEffect` is still a placeholder in
+`Factory`, and several rows of `aptgss::SetGliderParametersCommandDef` carry no value), so
+the *flight* after a launch is a separate gap from the *connection* problem this document is
+about. If a launch plays but the wings never open, see `Docs/GLIDER_AND_ADS.md`, which maps
+what the server owns for gliding and for aiming down sights.
+
 ## Status
 
 - [x] Confirmed the pad/launch is client-simulated and server merely mirrors + acks the pose.
 - [x] Isolated the only recent server change on that path (PR #36, `273fce4`).
 - [x] Produced a concrete, low-risk recommended fix (§4) and a fast confirmation build (§3).
-- [x] The §4 fix is **implemented** in `UdpHosts/GameServer/Systems/MovementRelay/MovementRelay.cs` (committed to `arena/01a07d59-pin`; see the CHANGELOG entry).
-- [ ] In-game verification (client-side) — needs you to run the build; server can't confirm it alone. If it does not resolve, do the §3 bisect / §5 packet capture and report back.
+- [x] The §4 fix was implemented and shipped in #38 (`1e06ad2`).
+- [x] **In-game verification of §4: it did not fix the pad.** The §2 hypothesis is disproven, see §6.
+- [x] Real causes found and fixed (§6): the reliable channel's acks and split reassembly, the
+      deployable owned effect removal loop, the log flood they produced, and the unguarded shard tick.
+- [ ] In-game verification of the §6 fixes: step on a boost panel and check that the launch plays and the
+      client stays connected, and that the server log no longer repeats `RequireCStateCommand ... fails
+      because source is not a Character` and `Don't know which effect to remove` while the player stands
+      on the pad.

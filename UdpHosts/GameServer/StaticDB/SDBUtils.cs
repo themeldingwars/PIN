@@ -315,6 +315,21 @@ public class SDBUtils
         return result;
     }
 
+    /// <summary>
+    /// The status effect (<c>dbitems::WeaponScope.Statusfx</c>) that belongs to a scope attachment id. The
+    /// client ties the zoomed view, the sight overlay and the camera restrictions of aiming down sights to
+    /// this effect, so it is the thing that has to come off the character when they stop aiming.
+    /// </summary>
+    public static uint GetScopeStatusFx(uint scopeId)
+    {
+        if (scopeId == 0)
+        {
+            return 0;
+        }
+
+        return SDBInterface.GetWeaponScope(scopeId)?.Statusfx ?? 0;
+    }
+
     public static WeaponInfoResult GetDetailedWeaponInfo(uint weaponSdbId)
     {
         // Get weapon
@@ -333,15 +348,9 @@ public class SDBUtils
             return null;
         }
 
-        // Get main scope and underbarrel
-        uint scopeStatusFx = 0;
+        // The main template already resolved its scope (ScopeStatusFx); get the underbarrel for the alt mode.
+        uint scopeStatusFx = main.ScopeStatusFx;
         WeaponUnderbarrel mainUnderbarrel = null;
-        if (main.ScopeId != 0)
-        {
-            var scope = SDBInterface.GetWeaponScope(main.ScopeId);
-            scopeStatusFx = scope.Statusfx;
-        }
-
         if (main.UnderbarrelId != 0)
         {
             mainUnderbarrel = SDBInterface.GetWeaponUnderbarrel(main.UnderbarrelId);
@@ -538,6 +547,10 @@ public class SDBUtils
             }
         }
 
+        // The status effect that belongs to the sights of this template. Applied to the character while it is
+        // aiming down them, see CharacterEntity.SetScopedState.
+        result.ScopeStatusFx = GetScopeStatusFx(result.ScopeId);
+
         return result;
     }
 
@@ -628,6 +641,13 @@ public class WeaponTemplateResult
 
     // Components
     public uint ScopeId;
+
+    /// <summary>
+    /// Row of <c>dbitems::WeaponScope.Statusfx</c>: the status effect a character carries while it is aiming
+    /// down the sights of this weapon. 0 when the weapon has no scope or the scope carries no effect.
+    /// </summary>
+    public uint ScopeStatusFx;
+
     public uint UnderbarrelId;
     public ushort AmmoId;
 

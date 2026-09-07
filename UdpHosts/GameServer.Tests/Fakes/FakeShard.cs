@@ -166,6 +166,11 @@ public sealed class FakeNetworkPlayer : INetworkPlayer
 
     public List<string> SentDebugMessages { get; } = new();
 
+    /// <summary>
+    ///     Every reliable channel acknowledgement the server sent, in order, as (channel, sequence number).
+    /// </summary>
+    public List<(ChannelType Channel, ushort SequenceNumber)> SentAcks { get; } = [];
+
     public int RespawnCount { get; private set; }
 
     public ulong PlayerId { get; set; } = 0x42;
@@ -213,6 +218,7 @@ public sealed class FakeNetworkPlayer : INetworkPlayer
 
     public void SendAck(ChannelType forChannel, ushort forSequenceNumber, DateTime? received = null)
     {
+        SentAcks.Add((forChannel, forSequenceNumber));
     }
 
     public void SendDebugChat(string message)

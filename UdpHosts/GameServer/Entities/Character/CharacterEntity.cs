@@ -151,6 +151,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public FireModeData FireMode_0 { get; set; }
     public FireModeData FireMode_1 { get; set; }
     public PermissionFlagsData PermissionFlags { get; set; }
+
+    /// <summary>
+    ///     Row of <c>dbcharacter::GliderParameters</c> the client has to use for the flight model of this
+    ///     character. Abilities overwrite it for as long as they last (a boost pad launches you with the flight
+    ///     parameters of its own profile) and hand the previous value back when they end, see
+    ///     <see cref="SetGliderProfileId" />.
+    /// </summary>
+    public uint GliderProfileId { get; private set; }
     public AuthorizedTerminalData AuthorizedTerminal { get; set; } = new AuthorizedTerminalData { TerminalType = 0, TerminalId = 0, TerminalEntityId = 0 };
     public AttachedToData? AttachedTo { get; set; }
     public IEntity AttachedToEntity { get; set; }
@@ -916,6 +924,64 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Character_CombatView.WeaponBurstEndedProp = time;
     }
 
+    /// <summary>
+    ///     The scope (<c>dbitems::WeaponScope.Statusfx</c>) currently held because the character is looking down
+    ///     the sights of the weapon in its hands. 0 when it is not.
+    /// </summary>
+    private uint _scopeStatusFx;
+
+    /// <summary>
+    ///     The character started or stopped aiming down the sights of the weapon in its hands: put the status
+    ///     effect of that weapon's scope on it, or take it off again.
+    ///
+    ///     The client predicts the effect the moment the player scopes in, and the scoped view (the zoom and the
+    ///     overlay that goes with it) hangs off it. Status effect fields of a character belong to the server, so
+    ///     the client cannot take the effect off its own character again: as long as the server never applied it,
+    ///     the animation for returning to hip fire played while the zoom stayed applied, which is the "alt fire
+    ///     mode leaves the screen zoomed in" report. Running it through the effect system instead of only keeping
+    ///     a flag also gives the scope the rest of what it carries, and takes all of it back when the character
+    ///     stops aiming: aim restrictions, movement penalties and whatever else the effect chains on top.
+    /// </summary>
+    public void SetScopedState(bool scoped)
+    {
+        uint effectId = scoped ? GetActiveWeaponDetails()?.ScopeStatusFx ?? 0u : 0u;
+
+        if (effectId == _scopeStatusFx)
+        {
+            // Still aiming with the same sights, or not aiming and holding no scope effect. UseScope is sent
+            // again while the player holds the trigger, so this has to stay quiet.
+            return;
+        }
+
+        if (_scopeStatusFx != 0)
+        {
+            Shard.Abilities?.DoRemoveEffect(this, _scopeStatusFx);
+            _scopeStatusFx = 0;
+        }
+
+        if (effectId == 0)
+        {
+            return;
+        }
+
+        if (SDBInterface.GetStatusEffectData(effectId) == null)
+        {
+            Logger.Debug("[Scope] Weapon scope points at unknown effect {EffectId}, not applying it", effectId);
+            return;
+        }
+
+        if (Shard.Abilities == null)
+        {
+            // Nothing to apply the effect with (shards without an ability system, tests).
+            return;
+        }
+
+        if (Shard.Abilities.DoApplyEffect(effectId, this, new Context(Shard, this) { InitTime = Shard.CurrentTime }))
+        {
+            _scopeStatusFx = effectId;
+        }
+    }
+
     public void SetFireMode(byte index, FireModeData value)
     {
         switch (index)
@@ -1020,6 +1086,20 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Character_CombatController?.WeaponIndexProp = value;
     }
 
+    /// <summary>
+    ///     Set or clear the scope bubble of the character: the replicated state (a layer plus a second, not yet
+    ///     recovered value) that abilities put on an entity, the same field melding bubbles, thumpers and loot
+    ///     objects carry. Layer 0 means "nothing".
+    /// </summary>
+    public void SetScopeBubble(uint layer, uint unk2 = 0)
+    {
+        // ScopeBubbleInfoData is a struct and the view holds a copy of it, so the field has to be assigned
+        // again for the change to be noticed and sent.
+        ScopeBubble = new ScopeBubbleInfoData { Layer = layer, Unk2 = unk2 };
+
+        Character_BaseController?.ScopeBubbleInfoProp = ScopeBubble;
+    }
+
     public void SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags flag, bool value)
     {
         CurrentPermissions[flag] = value;
@@ -1034,6 +1114,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void SetGliderProfileId(uint profileId)
     {
+        GliderProfileId = profileId;
         Character_CombatController?.GliderProfileIdProp = profileId;
     }
 
@@ -1609,6 +1690,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         {
             Weapon = weaponDetails.Main,
             WeaponId = weaponId,
+            ScopeStatusFx = weaponDetails.Main.ScopeStatusFx,
             SpreadProfile = WeaponSpreadProfile.Build(weaponDetails.Main, weaponId, weaponAttributeSpread, weaponDetails.Main.MaxSpread, msPerBurstOverride),
             RateOfFire = weaponAttributeRateOfFire,
             Attributes = attributes,
@@ -1620,6 +1702,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             {
                 Weapon = weaponDetails.Alt,
                 WeaponId = weaponId,
+                ScopeStatusFx = weaponDetails.Alt.ScopeStatusFx,
                 SpreadProfile = WeaponSpreadProfile.Build(weaponDetails.Alt, weaponId, weaponAttributeSpread, weaponDetails.Main.MaxSpread, msPerBurstOverride),
                 RateOfFire = weaponAttributeRateOfFire,
                 Attributes = attributes,
@@ -2051,6 +2134,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         public WeaponTemplateResult Weapon;
         public uint WeaponId;
+
+        /// <summary>
+        /// The status effect of the sights of this weapon (<c>dbitems::WeaponScope.Statusfx</c>), applied while
+        /// the character is aiming down them. 0 when the weapon has no scope.
+        /// </summary>
+        public uint ScopeStatusFx;
         public WeaponSpreadProfile SpreadProfile;
         public float RateOfFire;
         public Dictionary<ushort, float> Attributes = [];

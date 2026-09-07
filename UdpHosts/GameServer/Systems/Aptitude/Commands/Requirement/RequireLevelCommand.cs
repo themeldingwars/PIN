@@ -15,12 +15,18 @@ public class RequireLevelCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
+        // See CharacterRequirement: levels belong to characters, and the character of a deployable owned
+        // chain is the player that triggered it.
+        var character = CharacterRequirement.Find(context, false);
+
+        if (character == null)
+        {
+            CharacterRequirement.LogNotApplicable(Logger, nameof(RequireLevelCommand), Params.Id, context);
+
+            return true;
+        }
+
         bool result = false;
-
-        // NOTE: Investigate target handling
-        var target = context.Self;
-
-        if (target is CharacterEntity character)
         {
             if (Params.FrameLevel == 1)
             {
@@ -29,13 +35,9 @@ public class RequireLevelCommand : Command, ICommand
             else if (Params.SessionLevel == 1)
             {
                 // todo
-                Logger.Information("[{Command} {CommandId}] Session level, level {Level}", nameof(RequireLevelCommand), Params.Id, Params.Level);
+                Logger.Debug("[{Command} {CommandId}] Session level, level {Level}", nameof(RequireLevelCommand), Params.Id, Params.Level);
                 result = true;
             }
-        }
-        else
-        {
-            Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireLevelCommand), Params.Id);
         }
 
         return result;

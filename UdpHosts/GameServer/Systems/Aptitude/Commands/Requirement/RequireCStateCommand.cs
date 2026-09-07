@@ -18,14 +18,11 @@ public class RequireCStateCommand : Command, ICommand
     {
         bool result = false;
 
-        // NOTE: Investigate target handling
-        var source = context.Self;
-        if (Params.FromInitiator == 1)
-        {
-            source = context.Initiator;
-        }
+        // 'Self' is the entity the chain belongs to, which is a deployable for proximity abilities (glider pads,
+        // thumpers, ...). See CharacterRequirement for why testing only Self made those abilities thrash.
+        var character = CharacterRequirement.Find(context, Params.FromInitiator == 1);
 
-        if (source is CharacterEntity character)
+        if (character != null)
         {
             var cstate = character.CharacterState.State;
 
@@ -60,8 +57,9 @@ public class RequireCStateCommand : Command, ICommand
         }
         else
         {
-            Logger.Warning("{Command} {CommandId} fails because source is not a Character. Source is {sourceType}. If this is happening, we should investigate why.", nameof(RequireCStateCommand), Params.Id, source.GetType().Name);
-            result = false;
+            // Nobody in this activation has a character state to check, so the requirement cannot be violated.
+            CharacterRequirement.LogNotApplicable(Logger, nameof(RequireCStateCommand), Params.Id, context);
+            result = true;
         }
 
         return result;

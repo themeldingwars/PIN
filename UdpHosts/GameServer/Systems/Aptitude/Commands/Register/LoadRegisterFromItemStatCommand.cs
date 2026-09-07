@@ -1,5 +1,7 @@
+using System.Linq;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.Extensions;
 using GameServer.StaticDB;
 using GameServer.StaticDB.Records.apt;
 
@@ -21,13 +23,19 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
 
         if (Params.FromTarget == 1)
         {
-            if (context.Targets.Count > 0)
+            // The target list of a proximity ability also holds the deployable that owns it (its area acquire
+            // starts at the pad itself), so take the first *character* in it: the item stat that is being looked
+            // up belongs to the player that walked into range.
+            target = context.Targets.FirstOrDefault(candidate => candidate is CharacterEntity)
+                     ?? (context.Targets.Count > 0 ? context.Targets.Peek() : null);
+
+            if (target == null)
             {
-                target = context.Targets.Peek();
-            }
-            else
-            {
-                Logger.Warning("{Command} {CommandId} has FromTarget specified but we have no target, is something wrong?", nameof(LoadRegisterFromItemStatCommand), Params.Id);
+                if (OnceLog.ShouldLog((nameof(LoadRegisterFromItemStatCommand), "no target", Params.Id)))
+                {
+                    Logger.Debug("[{Command} {CommandId}] FromTarget is set but the chain has no target, leaving the register alone", nameof(LoadRegisterFromItemStatCommand), Params.Id);
+                }
+
                 return true;
             }
         }
@@ -39,7 +47,15 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
 
         if (target is not CharacterEntity character)
         {
-            Logger.Warning("{Command} {CommandId} target is not a Character, is something wrong?", nameof(LoadRegisterFromItemStatCommand), Params.Id);
+            // Item stats belong to characters. A deployable owned chain (a glider pad reading the glider stat of
+            // the player that walked onto it) has no character to read from here, and failing the command the way
+            // the requirement commands used to would make the ability apply and lose its effect over and over.
+            if (OnceLog.ShouldLog((nameof(LoadRegisterFromItemStatCommand), "not a character", Params.Id)))
+            {
+                Logger.Debug("[{Command} {CommandId}] target {TargetType} is not a Character, leaving the register alone",
+                    nameof(LoadRegisterFromItemStatCommand), Params.Id, target?.GetType().Name ?? "nothing");
+            }
+
             return true;
         }
 
