@@ -6,10 +6,7 @@
         <PackageReference Include="FauFau" Version="1.5.1"/>
     </ItemGroup>
     <ItemGroup>
-        <!-- Same version pin as GameServer: FauFau 1.5.1 expects Bitter 1.0.0. -->
-        <ProjectReference Include="..\..\Lib\Bitter\Bitter\Bitter.csproj">
-            <AdditionalProperties>Version=1.0.0</AdditionalProperties>
-        </ProjectReference>
+        <ProjectReference Include="..\..\Lib\Bitter\Bitter\Bitter.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
