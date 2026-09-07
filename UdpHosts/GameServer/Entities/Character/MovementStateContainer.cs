@@ -44,7 +44,9 @@ internal class MovementStateContainer
         }
         else
         {
-            MovementStateValue ^= (ushort)flag;
+            // Clear the bit. This used to be an XOR, which *set* the flag whenever it was already
+            // clear, so e.g. setting Sprint = false on a non-sprinting character turned sprinting on.
+            MovementStateValue &= (ushort)~(ushort)flag;
         }
     }
 }

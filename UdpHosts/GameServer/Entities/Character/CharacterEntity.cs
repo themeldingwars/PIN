@@ -1627,9 +1627,13 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             : main;
     }
 
+    // FireMode_0 is the selected fire mode (main weapon vs. underbarrel / alt weapon), driven by SelectFireMode.
+    // FireMode_1 is the scope (ADS) state, driven by UseScope. Scoping in must NOT switch the active weapon,
+    // otherwise the server starts simulating the underbarrel weapon while the client is still aiming down the
+    // sights of the main weapon (the gun snaps back to hip fire while the zoom stays applied).
     private bool IsAltFireMode()
     {
-        return FireMode_0.Mode != 0 || FireMode_1.Mode != 0;
+        return FireMode_0.Mode != 0;
     }
 
     private void RebuildWeaponDetailsCache(CharacterLoadout loadout)
