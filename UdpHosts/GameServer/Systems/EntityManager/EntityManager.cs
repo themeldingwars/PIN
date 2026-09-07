@@ -25,6 +25,7 @@ using GameServer.Protocol;
 using GameServer.StaticDB;
 using GameServer.StaticDB.Records.aptfs;
 using GameServer.StaticDB.Records.customdata;
+using GameServer.Systems.Ai;
 using GameServer.Systems.Aptitude;
 using Serilog;
 using Timer = System.Threading.Timer;
@@ -73,7 +74,7 @@ public class EntityManager
         characterEntity.CanBleedout = canBleedout;
         characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, _shard.CurrentTime);
         characterEntity.SetPosition(position);
-        characterEntity.SetOrientation(orientation ?? Quaternion.Identity);
+        characterEntity.SetOrientation(orientation ?? AiVectors.OrientationFacing(characterEntity.AimDirection));
         characterEntity.SetSpawnPose();
         _shard.Physics.CreateKineticEntity(characterEntity);
         _shard.Physics.UpdateEntity(characterEntity);
@@ -382,8 +383,13 @@ public class EntityManager
         {
             var spawn = entry.Value;
 
-            // A missing orientation in the JSON deserializes to a zero Quaternion; fall back to identity.
-            var orientation = spawn.Orientation == default ? Quaternion.Identity : spawn.Orientation;
+            // A missing orientation in the JSON deserializes to a zero
+            // Quaternion; pass null so SpawnCharacter derives a proper
+            // horizontal orientation from the entity's initial aim
+            // direction instead of Quaternion.Identity (which makes the
+            // model face straight up and look like it is swimming in the
+            // ground).
+            Quaternion? orientation = spawn.Orientation == default ? null : spawn.Orientation;
             var character = SpawnCharacter(spawn.Type, spawn.Position, orientation: orientation);
 
             if (spawn.MaxHealth > 0)
