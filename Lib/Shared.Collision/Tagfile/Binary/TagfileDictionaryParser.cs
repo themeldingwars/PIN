@@ -201,12 +201,9 @@ public class TagfileDictionaryParser
 
     private static object? ConvertObjectRefOrEmbedded(TagfileParser.ObjectData objData, TagfileParser.BinaryTagfile binary)
     {
-        foreach (var kvp in binary.Objects)
+        if (objData.BinIdx != 0 && binary.Objects.TryGetValue(objData.BinIdx, out var stored) && ReferenceEquals(stored, objData))
         {
-            if (ReferenceEquals(kvp.Value, objData))
-            {
-                return TagfileParser.ObjectRefName(kvp.Key);
-            }
+            return TagfileParser.ObjectRefName(objData.BinIdx);
         }
 
         var allData = ConvertMembers(objData, binary);
