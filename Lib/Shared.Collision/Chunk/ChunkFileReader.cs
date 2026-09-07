@@ -92,21 +92,36 @@ public static class ChunkFileReader
         var dataStart = 16 + (int)rootLength;
         var offset = dataStart;
 
+        // Compute block offsets sequentially, decompress and parse in parallel
+        var decompressTasks = new List<Action>(chunk.Lod.Count * 2);
+
         foreach (var lod in chunk.Lod)
         {
-            var sharedBlock = new byte[lod.CompressedSharedSize];
-            Array.Copy(data, offset, sharedBlock, 0, (int)lod.CompressedSharedSize);
-            lod.SharedDecompressed = DecompressBlock(sharedBlock, (int)lod.UncompressedSharedSize);
-            lod.SharedLayers = WorldLayerParser.ParseLayers(lod.SharedDecompressed, ChunkLodType);
-            offset += (int)lod.CompressedSharedSize;
+            var sharedOffset = offset;
+            var sharedSize = (int)lod.CompressedSharedSize;
+            var sharedUncompressedSize = (int)lod.UncompressedSharedSize;
+            decompressTasks.Add(() =>
+            {
+                var sharedBlock = new byte[sharedSize];
+                Array.Copy(data, sharedOffset, sharedBlock, 0, sharedSize);
+                lod.SharedDecompressed = DecompressBlock(sharedBlock, sharedUncompressedSize);
+                lod.SharedLayers = WorldLayerParser.ParseLayers(lod.SharedDecompressed, ChunkLodType);
+            });
+            offset += sharedSize;
 
             foreach (var sc in lod.SubChunks)
             {
-                var scBlock = new byte[sc.CompressedSize];
-                Array.Copy(data, offset, scBlock, 0, (int)sc.CompressedSize);
-                sc.Decompressed = DecompressBlock(scBlock, (int)sc.UncompressedSize);
-                sc.Layers = WorldLayerParser.ParseLayers(sc.Decompressed, ChunkSubChunkType);
-                offset += (int)sc.CompressedSize;
+                var scOffset = offset;
+                var scSize = (int)sc.CompressedSize;
+                var scUncompressedSize = (int)sc.UncompressedSize;
+                decompressTasks.Add(() =>
+                {
+                    var scBlock = new byte[scSize];
+                    Array.Copy(data, scOffset, scBlock, 0, scSize);
+                    sc.Decompressed = DecompressBlock(scBlock, scUncompressedSize);
+                    sc.Layers = WorldLayerParser.ParseLayers(sc.Decompressed, ChunkSubChunkType);
+                });
+                offset += scSize;
             }
         }
 
@@ -114,6 +129,15 @@ public static class ChunkFileReader
         {
             throw new InvalidDataException(
                 $"Data mismatch: expected 0x{data.Length:X}, got 0x{offset:X}");
+        }
+
+        try
+        {
+            Parallel.ForEach(decompressTasks, task => task());
+        }
+        catch (AggregateException ex)
+        {
+            throw ex.Flatten().InnerExceptions[0];
         }
 
         return chunk;
