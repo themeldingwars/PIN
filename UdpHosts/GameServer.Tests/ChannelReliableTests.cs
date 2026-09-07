@@ -132,7 +132,10 @@ public class ChannelReliableTests
         channel.Process(CancellationToken.None);
 
         var message = Assert.Single(delivered);
-        Assert.Equal(new byte[] { 0x42 }, message.PacketData.Span.ToArray());
+
+        // A packet that was not part of a split message is forwarded to the dispatchers exactly as it arrived,
+        // sequence number included; only reassembled messages are handed over as bare payload.
+        Assert.Equal(new byte[] { 0x40, 0x40, 0x42 }, message.PacketData.Span.ToArray());
     }
 
     private static ushort[] AckedSequenceNumbers(FakeNetworkPlayer client)

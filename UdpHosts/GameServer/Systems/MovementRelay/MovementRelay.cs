@@ -122,6 +122,20 @@ public class MovementRelay
         }
     }
 
+    /// <summary>
+    /// Whether the client's 16 bit "time since last jump" counter went backwards, which is what a new jump looks
+    /// like. The comparison is modular on purpose: the counter runs 0 .. 65535 milliseconds and wraps without
+    /// pausing, so only a step *backwards* of more than half the range may be treated as a reset. A jump that
+    /// happens after ~32.8 s in the air is indistinguishable from the wrap and goes unnoticed, which is the one
+    /// case the previous comparison got wrong in the other direction (it reported a jump at every wrap).
+    /// </summary>
+    internal static bool IsJumpCounterReset(short previous, short current)
+    {
+        var delta = unchecked((ushort)(current - previous));
+
+        return delta >= 0x8000;
+    }
+
     public void VehicleMovementInput(INetworkClient client, IEntity entity, AeroMessages.GSS.Vehicle.Command.MovementInput input)
     {
         var vehicle = entity as Entities.Vehicle.VehicleEntity;
@@ -156,19 +170,5 @@ public class MovementRelay
                 }
             });
         }
-    }
-
-    /// <summary>
-    /// Whether the client's 16 bit "time since last jump" counter went backwards, which is what a new jump looks
-    /// like. The comparison is modular on purpose: the counter runs 0 .. 65535 milliseconds and wraps without
-    /// pausing, so only a step *backwards* of more than half the range may be treated as a reset. A jump that
-    /// happens after ~32.8 s in the air is indistinguishable from the wrap and goes unnoticed, which is the one
-    /// case the previous comparison got wrong in the other direction (it reported a jump at every wrap).
-    /// </summary>
-    internal static bool IsJumpCounterReset(short previous, short current)
-    {
-        var delta = unchecked((ushort)(current - previous));
-
-        return delta >= 0x8000;
     }
 }

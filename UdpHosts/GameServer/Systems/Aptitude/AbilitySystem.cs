@@ -419,6 +419,65 @@ public class AbilitySystem
     }
 
     /// <summary>
+    /// Decides whether an entity may run this proximity command again, honouring the retry interval the
+    /// registration gives it.
+    /// </summary>
+    private bool AllowProximityActivation(IAptitudeTarget source, uint commandId, uint time, uint retryIntervalMs)
+    {
+        if (source == null)
+        {
+            return true;
+        }
+
+        var key = (source.EntityId, commandId);
+
+        if (retryIntervalMs > 0
+            && _proximityActivations.TryGetValue(key, out uint lastActivation)
+            && unchecked(time - lastActivation) < retryIntervalMs)
+        {
+            return false;
+        }
+
+        _proximityActivations[key] = time;
+
+        if (unchecked((int)(time - _proximityActivationsPruneAt)) > 0)
+        {
+            PruneProximityActivations(time);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Forget the activations of entities that are gone, so the bookkeeping of a long running shard does not
+    /// grow without a bound. Runs at most once every thirty seconds of shard time.
+    /// </summary>
+    private void PruneProximityActivations(uint time)
+    {
+        _proximityActivationsPruneAt = time + 30_000;
+
+        if (_proximityActivations.Count <= 1024)
+        {
+            return;
+        }
+
+        List<(ulong EntityId, uint CommandId)> stale = [];
+
+        foreach (var key in _proximityActivations.Keys)
+        {
+            if (!_shard.Entities.ContainsKey(key.EntityId))
+            {
+                stale.Add(key);
+            }
+        }
+
+        foreach (var key in stale)
+        {
+            _proximityActivations.Remove(key);
+        }
+    }
+
+    /// <summary>
     /// Executes the chain of an activated ability and returns whether the whole
     /// chain succeeded (requirements like cooldowns or energy can fail it).
     /// </summary>
@@ -606,65 +665,6 @@ public class AbilitySystem
                     request.Category,
                     entry.ReadyAgainTime - entry.ActivatedTime);
             }
-        }
-    }
-
-    /// <summary>
-    /// Decides whether an entity may run this proximity command again, honouring the retry interval the
-    /// registration gives it.
-    /// </summary>
-    private bool AllowProximityActivation(IAptitudeTarget source, uint commandId, uint time, uint retryIntervalMs)
-    {
-        if (source == null)
-        {
-            return true;
-        }
-
-        var key = (source.EntityId, commandId);
-
-        if (retryIntervalMs > 0
-            && _proximityActivations.TryGetValue(key, out uint lastActivation)
-            && unchecked(time - lastActivation) < retryIntervalMs)
-        {
-            return false;
-        }
-
-        _proximityActivations[key] = time;
-
-        if (unchecked((int)(time - _proximityActivationsPruneAt)) > 0)
-        {
-            PruneProximityActivations(time);
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Forget the activations of entities that are gone, so the bookkeeping of a long running shard does not
-    /// grow without a bound. Runs at most once every thirty seconds of shard time.
-    /// </summary>
-    private void PruneProximityActivations(uint time)
-    {
-        _proximityActivationsPruneAt = time + 30_000;
-
-        if (_proximityActivations.Count <= 1024)
-        {
-            return;
-        }
-
-        List<(ulong EntityId, uint CommandId)> stale = [];
-
-        foreach (var key in _proximityActivations.Keys)
-        {
-            if (!_shard.Entities.ContainsKey(key.EntityId))
-            {
-                stale.Add(key);
-            }
-        }
-
-        foreach (var key in stale)
-        {
-            _proximityActivations.Remove(key);
         }
     }
 }
