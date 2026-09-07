@@ -12,7 +12,7 @@ namespace GameServer.Systems.Aptitude;
 public class AbilitySystem
 {
     private static readonly ILogger _logger = Log.ForContext<AbilitySystem>();
-    private readonly Shard _shard;
+    private readonly IShard _shard;
     private readonly ulong _updateIntervalMs = 20;
     private readonly Dictionary<ulong, VehicleCalldownRequest> _playerVehicleCalldownRequests;
     private readonly Dictionary<ulong, DeployableCalldownRequest> _playerDeployableCalldownRequests;
@@ -29,7 +29,7 @@ public class AbilitySystem
 
     private ulong _lastUpdate;
 
-    public AbilitySystem(Shard shard)
+    public AbilitySystem(IShard shard)
     {
         _shard = shard;
         Factory = new Factory(shard);
@@ -192,6 +192,17 @@ public class AbilitySystem
         var activeEffects = entity.GetActiveEffects();
         foreach (var activeEffect in activeEffects)
         {
+            // Removing an earlier effect can destroy this entity itself: a
+            // RemoveEffect chain may end in DestroyAbilityObjectCommand, which
+            // removes the entity from the shard. The snapshot above still
+            // lists the entity's remaining effects, but they belong to an
+            // entity that no longer exists, so stop processing it instead of
+            // flushing network changes for the removed entity.
+            if (!_shard.Entities.ContainsKey(entity.EntityId))
+            {
+                break;
+            }
+
             if (activeEffect?.Effect.DurationChain != null
                 && currentTime > activeEffect.LastUpdateTime + activeEffect.Effect.UpdateFrequency)
             {

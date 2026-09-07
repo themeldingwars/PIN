@@ -495,8 +495,15 @@ public class EntityManager
 
             foreach (var entity in entities)
             {
+                // The entity list is a snapshot; an entity can be removed
+                // between the snapshot and this point (e.g. by an ability
+                // object destroying itself on a timer thread).
+                if (!_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var currentlyScoped))
+                {
+                    continue;
+                }
+
                 float distanceThreshold = entity.GetScopeRange();
-                var currentlyScoped = _scopedPlayersByEntity[entity.EntityId];
                 var entityPosition = entity.Position;
                 foreach (var player in players)
                 {
@@ -585,7 +592,8 @@ public class EntityManager
 
             _shard.AI?.Unregister(guid);
 
-            if (_shard.Physics.HasEntity(entity))
+            // Physics may be null in minimal shards that never create bodies.
+            if (_shard.Physics != null && _shard.Physics.HasEntity(entity))
             {
                 _shard.Physics.RemoveEntity(entity);
             }
@@ -1216,7 +1224,15 @@ public class EntityManager
             return;
         }
 
-        _scopedPlayersByEntity[entity.EntityId].Add(player);
+        // A queued scope-in can outlive the entity it refers to (e.g. the
+        // entity was removed before the request was dequeued). Nothing to
+        // scope in for a removed entity.
+        if (!_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayersIn))
+        {
+            return;
+        }
+
+        scopedPlayersIn.Add(player);
 
         if (entity is CharacterEntity character)
         {
@@ -1456,7 +1472,14 @@ public class EntityManager
             return;
         }
 
-        _scopedPlayersByEntity[entity.EntityId].Remove(player);
+        // The entity may already have been removed, in which case its scoped
+        // players were notified by OnRemovedEntity and there is nothing to do.
+        if (!_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayersOut))
+        {
+            return;
+        }
+
+        scopedPlayersOut.Remove(player);
 
         if (entity is CharacterEntity character)
         {
@@ -1822,16 +1845,27 @@ public class EntityManager
     {
         // We can only call SerializeChangesToMemory once but we need to send to multiple players.
         bool shouldFlush = view != null && view.GetPackedChangesSize() > 0;
-        if (shouldFlush)
+        if (!shouldFlush)
         {
-            view.SerializeChangesToMemory(out var update);
-            foreach (var client in _scopedPlayersByEntity[entityId])
+            return;
+        }
+
+        // The entity may have been removed from the shard while its changes
+        // were pending (e.g. a status effect's removal chain destroyed the
+        // entity that still has effects left to clear). Nobody is scoped in
+        // to a removed entity, so the flush is a no-op in that case.
+        if (!_scopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
+        {
+            return;
+        }
+
+        view.SerializeChangesToMemory(out var update);
+        foreach (var client in scopedPlayers)
+        {
+            bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
+            if (shouldSend)
             {
-                bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
-                if (shouldSend)
-                {
-                    client.NetChannels[ChannelType.UnreliableGss].SendChanges(view, entityId, update);
-                }
+                client.NetChannels[ChannelType.UnreliableGss].SendChanges(view, entityId, update);
             }
         }
     }
@@ -1869,7 +1903,15 @@ public class EntityManager
 
     private void OnRemovedEntity(IEntity entity)
     {
-        foreach (var client in _scopedPlayersByEntity[entity.EntityId])
+        // The entry may already be gone when a removal races from another
+        // thread, and ScopeOut removes each player from the set, so iterate
+        // over a copy.
+        if (!_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayers))
+        {
+            return;
+        }
+
+        foreach (var client in scopedPlayers.ToList())
         {
             ScopeOut(client, entity);
         }
