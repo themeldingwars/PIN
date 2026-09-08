@@ -36,7 +36,7 @@ public class ForcePushCommand : Command, ICommand
         var visited = new HashSet<ulong>();
         foreach (IAptitudeTarget target in targets)
         {
-            var id = target?.AeroEntityId?.Backing ?? 0;
+            var id = target != null ? target.AeroEntityId.Backing : 0;
             if (id == 0 || !visited.Add(id))
             {
                 continue;
