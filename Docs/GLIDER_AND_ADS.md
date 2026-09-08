@@ -33,11 +33,17 @@ Two parts of that chain are easy to get wrong on a server that only has part of 
   fall back to their last row when no branch matches, which made an unset register and a
   real level indistinguishable). The command now loads the row's `undecl_value` fallback
   (1.0 for the pad) through the row's `regop`, like `SetRegister` does.
-- `ForcePush` used to ignore its row entirely and hard-code a vertical +45. It now pushes
-  straight up with the row's `strength` (30 for the pad row). `strength_regop` would fold the
-  chain's register into the strength, but the direction of that operation is not captured
-  yet, so the register is deliberately not read — the launch effect's own chain resets the
-  register as it goes, and letting it influence the push could zero the impulse out.
+- `ForcePush` used to ignore its row entirely and hard-code a vertical +45; then it sent the
+  row's strength but on a `ForcedMovement` whose `[Time1, Time2]` window was 1 ms long — the
+  window expires before or while the packet is in flight, so the client discarded the impulse
+  and every pad "played the animation but gave no launch". The window is now real: it starts
+  50 ms out (so the push survives latency) and holds 500 ms, the same 500 ms the launch
+  effect's own `restrict_movement` runs for. `strength_regop` (add) folds the chain register
+  into the strength, which is how the pad module rows (+3 per Lofty module, +10 for the
+  boosted variants) reach the push; the register is non-negative there, so the fold can only
+  strengthen the base 30. `RequireHasItem` is implemented for the module checks — it used to
+  be a placeholder that passed for everyone, which would have handed all four modules' bonus
+  to every launch.
 - The launch effect's apply chain sets `restrict_movement` through `CombatFlags` (row 1509150)
   for the 500 ms the launch runs. `CombatFlags` (command type 64) used to be a stub in
   `Factory`, so the flag was never replicated: the client never locked the character's own
@@ -123,7 +129,18 @@ still-running effect set.
 
 The effect's duration chain (`BattleFrameDuration` → `RequireCState living` → the client's
 `tfRequireServerConfirmed`) keeps it alive for as long as the character is living, so nothing
-but scoping out, switching weapon or fire mode, or dying takes the scoped state away.
+but scoping out, switching weapon or fire mode, or dying takes the scoped state away. The
+last step became its own failure mode: per `apt::CommandType` that requirement runs on the
+**client** (`environment: client`), where it exists to guard locally predicted effects — the
+client applies the scope effect the moment RMB is pressed and only keeps its prediction
+alive while a matching server confirmation is visible. The match key is the effect's start
+time, and PIN used to stamp every effect with a fresh server time (`Shard.CurrentTime` at
+apply), which can never equal the client's own timestamp from its `UseScope` message — the
+confirmation never matched, so the client tore down its local copy and snapped back to hip
+fire. The replicated start time now prefers `Context.InitTime` — which for everything the
+client initiated carries *its* clock (ability activation has always flowed that way; the
+scope path now feeds `UseScope.Time` into it the same way) — with server time as the
+fallback for server-initiated applications.
 
 `SetScopeBubble` (which shows up in the same chains, including the glider effects) is a command
 whose table we only have ids for, so it writes the character's `ScopeBubbleInfo` only when a row
@@ -142,8 +159,11 @@ actually carries a layer value and clears it when the effect ends. Recovering th
   damage (`FallDamageSystem` exempts `Movestate.Glider`).
 - ADS: scope in and out repeatedly on a weapon with an underbarrel (rifle). The zoom must go
   away with the animation, and while the player holds the aim the weapon has to *stay* in the
-  aim pose — it must not blend back to hip fire on its own after a moment, which is the failed
-  `RequirementServer` gate taking the scope effect off again. Holding aim also carries the
+  aim pose — it must not blend back to hip fire on its own after a moment, which is the
+  client's `tfRequireServerConfirmed` duration check dropping its predicted scope effect
+  because the server confirmation carries a different timestamp (the zone log's
+  `[Scope] UseScope ... Time=<client> ... ServerTime=<server>` line shows both clocks next to
+  each other). Holding aim also carries the
   effect's own penalties: sprint is disallowed and run speed is halved (`listeffects` shows the
   effect a character carries, `applyeffect <id>` applies it by hand, which separates "the server
   never applied it" from "the effect itself does nothing").
