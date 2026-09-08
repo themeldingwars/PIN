@@ -34,6 +34,15 @@ public class AbilitySystem
     /// </summary>
     private readonly Dictionary<(ulong EntityId, uint CommandId), uint> _proximityActivations = [];
 
+    /// <summary>
+    /// The effects the last accepted activation of a client proximity command applied, per (entity, command).
+    /// While any of them is still on its target the command must not run again: the client keeps sending
+    /// the success message for as long as the player stands on the trigger (a glider pad), and re-running the
+    /// chain re-applies the same effects, spawns another projectile and rewrites the status effect fields of
+    /// the pad and of the player, which is what floods the connection of everyone in range.
+    /// </summary>
+    private readonly Dictionary<(ulong EntityId, uint CommandId), List<AppliedEffectRecord>> _proximityAppliedEffects = [];
+
     private uint _proximityActivationsPruneAt;
 
     private ulong _lastUpdate;
@@ -262,6 +271,8 @@ public class AbilitySystem
             return true;
         }
 
+        context.AppliedEffects?.Add(new AppliedEffectRecord(target, effectState));
+
         bool applyResult = effect.ApplyChain?.Execute(applyContext) ?? true;
         if (!applyResult)
         {
@@ -393,6 +404,15 @@ public class AbilitySystem
             return;
         }
 
+        if (IsProximityEffectStillActive(source, commandId))
+        {
+            // A previous activation is still applied. Nothing would change by running the chain again, so skip
+            // it entirely instead of removing and re-adding the very same effects dozens of times a second.
+            _logger.Verbose("HandleLocalProximityAbilitySuccess: {Source} still carries the effects of proximity command {CommandId}, ignoring", source, commandId);
+
+            return;
+        }
+
         if (!AllowProximityActivation(source, commandId, time, commandDef.RetryInterval))
         {
             // The client re-triggers a proximity ability for as long as the player stays in range, on a retry
@@ -412,9 +432,11 @@ public class AbilitySystem
             source,
             targets.Count);
 
+        List<AppliedEffectRecord> applied = [];
+
         if (commandDef.AbilityId != 0)
         {
-            HandleActivateAbility(shard, source, commandDef.AbilityId, time, targets, execId);
+            HandleActivateAbility(shard, source, commandDef.AbilityId, time, targets, execId, appliedEffects: applied);
         }
 
         if (commandDef.Chain != 0)
@@ -426,9 +448,55 @@ public class AbilitySystem
                 ChainId = commandDef.Chain,
                 Targets = targets,
                 InitTime = time,
-                ExecutionHint = ExecutionHint.Proximity
+                ExecutionHint = ExecutionHint.Proximity,
+                AppliedEffects = applied
             });
         }
+
+        if (source != null)
+        {
+            var key = (source.EntityId, commandId);
+
+            if (applied.Count > 0)
+            {
+                _proximityAppliedEffects[key] = applied;
+            }
+            else
+            {
+                _proximityAppliedEffects.Remove(key);
+            }
+        }
+    }
+
+    /// <summary>
+    /// True while at least one effect applied by the last accepted activation of this proximity command is
+    /// still on its target, i.e. while re-running the command would only re-apply what is already there.
+    /// </summary>
+    private bool IsProximityEffectStillActive(IAptitudeTarget source, uint commandId)
+    {
+        if (source == null)
+        {
+            return false;
+        }
+
+        var key = (source.EntityId, commandId);
+
+        if (!_proximityAppliedEffects.TryGetValue(key, out var applied))
+        {
+            return false;
+        }
+
+        foreach (var record in applied)
+        {
+            if (record.IsStillActive())
+            {
+                return true;
+            }
+        }
+
+        _proximityAppliedEffects.Remove(key);
+
+        return false;
     }
 
     /// <summary>
@@ -487,6 +555,7 @@ public class AbilitySystem
         foreach (var key in stale)
         {
             _proximityActivations.Remove(key);
+            _proximityAppliedEffects.Remove(key);
         }
     }
 
@@ -494,7 +563,7 @@ public class AbilitySystem
     /// Executes the chain of an activated ability and returns whether the whole
     /// chain succeeded (requirements like cooldowns or energy can fail it).
     /// </summary>
-    public bool HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, uint abilityModuleId = 0)
+    public bool HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, uint abilityModuleId = 0, List<AppliedEffectRecord> appliedEffects = null)
     {
         var execId = executionId ?? Guid.NewGuid();
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
@@ -520,6 +589,7 @@ public class AbilitySystem
             Targets = targets ?? new AptitudeTargets(),
             InitTime = activationTime,
             ExecutionHint = ExecutionHint.Ability,
+            AppliedEffects = appliedEffects,
         };
 
         return ExecuteAbilityActivation(context, abilityId, ability.Chain, isRootActivation: true);
