@@ -155,12 +155,10 @@ public class ScopedStateTests
         shard.Abilities = new AbilitySystem(shard, factory);
         factory.Effects[1313] = ScopeEffect(1313);
         factory.Effects[102] = ScopeEffect(102);
-        var character = new CharacterEntity(shard, shard.GetNextGuid())
-        {
-            // Keep the replicated controller fields observable without opening any network channels.
-            Character_CombatController = new AeroMessages.GSS.Character.Controller.CombatController(),
-            Character_LocalEffectsController = new LocalEffectsController(),
-        };
+        var character = FakeCharacterFactory.Create(shard);
+        // Keep the replicated controller fields observable without opening any network channels.
+        character.Character_CombatController = new AeroMessages.GSS.Character.Controller.CombatController();
+        character.Character_LocalEffectsController = new LocalEffectsController();
         shard.EntityMan.Add(character.EntityId, character);
         character.SetWeaponIndex(new WeaponIndexData { Index = 1, Time = unchecked((uint)time) });
 

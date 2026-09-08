@@ -25,6 +25,18 @@ namespace GameServer.Tests;
 public class EffectLifecycleTests
 {
     [Fact]
+    public void RuntimeFixture_InitialCharacterViewsCanBeFlushed()
+    {
+        var (shard, _, character) = CreateRuntime();
+        Assert.True(character.Character_ObserverView.GetPackedChangesSize() > 0);
+        Assert.True(character.Character_EquipmentView.GetPackedChangesSize() > 0);
+
+        // Do not suppress unrelated view updates to make effect tests pass: the first application flushes
+        // all pending character data through the real serializer, even without any scoped-in clients.
+        shard.EntityMan.FlushChanges(character);
+    }
+
+    [Fact]
     public void Application_SeparatesPredictionTimeAndLifetime()
     {
         var (shard, factory, character) = CreateRuntime(23_224);
@@ -265,7 +277,7 @@ public class EffectLifecycleTests
         var shard = new FakeShard { CurrentTimeLong = time };
         var factory = new FakeAptitudeFactory(shard);
         shard.Abilities = new AbilitySystem(shard, factory);
-        var character = new CharacterEntity(shard, shard.GetNextGuid());
+        var character = FakeCharacterFactory.Create(shard);
         shard.EntityMan.Add(character.EntityId, character);
         return (shard, factory, character);
     }
