@@ -22,7 +22,10 @@ public class BaseController : Base
     public void PoseUpdate(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var poseUpdate = packet.Unpack<PoseUpdate>();
-        var turret = client.AssignedShard.Entities[entityId & 0xffffffffffffff00] as TurretEntity;
+        if (!client.AssignedShard.Entities.TryGetValue(entityId & 0xffffffffffffff00, out var entity) || entity is not TurretEntity turret)
+        {
+            return;
+        }
 
         if (turret.ControllingPlayer == player)
         {
@@ -38,7 +41,10 @@ public class BaseController : Base
     public void FireBurst(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var fireBurst = packet.Unpack<FireBurst>();
-        var turret = client.AssignedShard.Entities[entityId & 0xffffffffffffff00] as TurretEntity;
+        if (!client.AssignedShard.Entities.TryGetValue(entityId & 0xffffffffffffff00, out var entity) || entity is not TurretEntity turret)
+        {
+            return;
+        }
 
         turret.SetFireBurst(fireBurst.Time);
     }
@@ -47,7 +53,10 @@ public class BaseController : Base
     public void FireEnd(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var fireEnd = packet.Unpack<FireEnd>();
-        var turret = client.AssignedShard.Entities[entityId & 0xffffffffffffff00] as TurretEntity;
+        if (!client.AssignedShard.Entities.TryGetValue(entityId & 0xffffffffffffff00, out var entity) || entity is not TurretEntity turret)
+        {
+            return;
+        }
 
         turret.SetFireEnd(fireEnd.Time);
     }

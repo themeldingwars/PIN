@@ -1,4 +1,4 @@
-﻿using GameServer.Entities.Character;
+using GameServer.Entities.Character;
 using GameServer.StaticDB.Records.aptfs;
 
 namespace GameServer.Systems.Aptitude.Commands.Requirement;
@@ -21,7 +21,7 @@ public class RequireLevelCommand : Command, ICommand
 
         if (character == null)
         {
-            CharacterRequirement.LogNotApplicable(Logger, nameof(RequireLevelCommand), Params.Id, context);
+            // CharacterRequirement.LogNotApplicable(Logger, nameof(RequireLevelCommand), Params.Id, context);
 
             return true;
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Numerics;
 using Aero.Protocol;
@@ -55,18 +55,12 @@ public class GenericShard : Base
         shard.Entities.TryGetValue(message.Source.Backing & 0xffffffffffffff00, out IEntity sourceEntity);
         var source = (IAptitudeTarget)sourceEntity;
         var targets = message.Targets
-        .Where(entityId =>
+        .Select(entityId =>
         {
-            try
-            {
-                return shard.Entities[entityId.Backing & 0xffffffffffffff00] != null;
-            }
-            catch
-            {
-                return false;
-            }
+            shard.Entities.TryGetValue(entityId.Backing & 0xffffffffffffff00, out var target);
+            return target as IAptitudeTarget;
         })
-        .Select(entityId => (IAptitudeTarget)shard.Entities[entityId.Backing & 0xffffffffffffff00])
+        .Where(target => target != null)
         .ToArray();
 
         abilities.HandleLocalProximityAbilitySuccess(shard, source, message.ClientProximityCommandId, message.Time, new AptitudeTargets(targets));

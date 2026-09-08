@@ -24,7 +24,7 @@ public class RequireMovestateCommand : Command, ICommand
             // No character in this activation: the requirement cannot be answered, so it cannot be violated.
             // Returning early (instead of falling through and negating the empty result) keeps a deployable
             // owned effect from being removed and re-applied every tick.
-            CharacterRequirement.LogNotApplicable(Logger, nameof(RequireMovestateCommand), Params.Id, context);
+            // CharacterRequirement.LogNotApplicable(Logger, nameof(RequireMovestateCommand), Params.Id, context);
 
             return true;
         }

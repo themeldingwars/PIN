@@ -29,7 +29,7 @@ public abstract class BaseEncounter : IEncounter
     public EntityId AeroEntityId { get; protected set; }
 
     public HashSet<INetworkPlayer> Participants { get; }
-    public INetworkPlayer SoloParticipant => Participants.Single();
+    public INetworkPlayer SoloParticipant => Participants.SingleOrDefault();
     public virtual IAeroEncounter View => null;
 
     public virtual void OnUpdate(ulong currentTime)

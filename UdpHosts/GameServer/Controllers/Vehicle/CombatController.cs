@@ -1,4 +1,4 @@
-﻿using Aero.Protocol;
+using Aero.Protocol;
 using AeroMessages.GSS.Vehicle.Command;
 using AeroMessages.GSS.Vehicle.Event;
 using GameServer.Entities.Vehicle;
@@ -22,7 +22,10 @@ public class CombatController : Base
     {
         var activateAbility = packet.Unpack<ActivateAbility>();
 
-        var vehicle = client.AssignedShard.Entities[entityId & 0xffffffffffffff00] as VehicleEntity;
+        if (!client.AssignedShard.Entities.TryGetValue(entityId & 0xffffffffffffff00, out var entity) || entity is not VehicleEntity vehicle)
+        {
+            return;
+        }
 
         var abilityId = vehicle.Abilities[(byte)activateAbility.AbilitySlotIndex];
 

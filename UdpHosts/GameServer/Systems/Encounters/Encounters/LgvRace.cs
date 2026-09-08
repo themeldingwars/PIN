@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using AeroMessages.Common;
 using AeroMessages.GSS.AreaVisualData;
 using AeroMessages.GSS.Character;
@@ -42,7 +42,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
             _terromotoCobra,
             data.Start.Position,
             data.Start.Orientation,
-            SoloParticipant.CharacterEntity,
+            SoloParticipant?.CharacterEntity,
             true);
         vehicle.Encounter = new EncounterComponent()
             {
@@ -103,7 +103,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
             };
         Shard.EncounterMan.AddCheckingOfProximity(_finishLine, this);
 
-        SoloParticipant.CharacterEntity.AddMapMarker(
+        SoloParticipant?.CharacterEntity?.AddMapMarker(
             EntityId,
             new PersonalMapMarkerData()
             {
@@ -214,13 +214,16 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                     TitleTextId = _lgvRace,
                 };
 
-        SoloParticipant.NetChannels[ChannelType.ReliableGss].SendMessage(msg, SoloParticipant.CharacterEntity.EntityId);
+        if (SoloParticipant != null)
+        {
+            SoloParticipant.NetChannels[ChannelType.ReliableGss].SendMessage(msg, SoloParticipant.CharacterEntity.EntityId);
+        }
 
         _ = GRPCService.SendCommandAsync(new Command()
             {
                 SaveLgvRaceFinish = new SaveLgvRaceFinish()
                     {
-                        CharacterGuid = SoloParticipant.CharacterId + 0xFE,
+                        CharacterGuid = SoloParticipant?.CharacterId + 0xFE ?? 0,
                         LeaderboardId = _leaderboardId,
                         TimeMs = time,
                     }
@@ -239,6 +242,6 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
     private void RemoveEntities()
     {
         Shard.EntityMan.Remove(_finishLine);
-        SoloParticipant.CharacterEntity.RemoveEncounterMapMarkers(EntityId);
+        SoloParticipant?.CharacterEntity?.RemoveEncounterMapMarkers(EntityId);
     }
 }

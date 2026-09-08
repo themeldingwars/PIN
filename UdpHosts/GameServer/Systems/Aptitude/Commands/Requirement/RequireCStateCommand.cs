@@ -58,7 +58,7 @@ public class RequireCStateCommand : Command, ICommand
         else
         {
             // Nobody in this activation has a character state to check, so the requirement cannot be violated.
-            CharacterRequirement.LogNotApplicable(Logger, nameof(RequireCStateCommand), Params.Id, context);
+            // CharacterRequirement.LogNotApplicable(Logger, nameof(RequireCStateCommand), Params.Id, context);
             result = true;
         }
 
