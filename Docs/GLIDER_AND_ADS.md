@@ -38,6 +38,12 @@ Two parts of that chain are easy to get wrong on a server that only has part of 
   chain's register into the strength, but the direction of that operation is not captured
   yet, so the register is deliberately not read — the launch effect's own chain resets the
   register as it goes, and letting it influence the push could zero the impulse out.
+- The launch effect's apply chain sets `restrict_movement` through `CombatFlags` (row 1509150)
+  for the 500 ms the launch runs. `CombatFlags` (command type 64) used to be a stub in
+  `Factory`, so the flag was never replicated: the client never locked the character's own
+  ground movement, which let the player's input fight (and cancel) the forced launch impulse.
+  The command now writes the flags its row carries and restores only those bits when the
+  effect ends, the same snapshot-and-restore the other actives use.
 
 The effects involved (from `StaticDB/CustomData`):
 
@@ -54,11 +60,18 @@ The effects involved (from `StaticDB/CustomData`):
   the launch effects, and finishes with four `ImpactRemoveEffect` rows whose definitions carry
   no effect id.
 
+- `RegisterMovementEffect` (command type 304) is now implemented. The same chain runs on the
+  client and on the server, and the definition's `on_client`/`on_server` flags say which
+  machine performs the registration. The pad's rows (1508976/1508977) register the glider
+  flight effect (723, audio and particles) with `on_client=1, on_server=0`, so the server
+  steps over them — that effect is client-side only. The rows with `on_server=1` (the sprint
+  effect 7 for the running state, and a handful of others) bind an effect the ability system
+  then keeps applied while the character is in the bound movement state and takes off again
+  when it leaves (or the carrying effect ends). The bound state index is the client's
+  movestate nibble (`Movestate >> 4`: 1 standing … 7 glider, 8 glider thrusters, …).
+
 ### Known gaps that are not fixed
 
-- `RegisterMovementEffect` (command type 304) is still a placeholder in `Factory`, so a status
-  effect cannot bind "while the character is in movement state X keep effect Y". Deployables and
-  players still get their effects from the ability chains directly.
 - Most rows of `aptgss::SetGliderParametersCommandDef` carry no value at all; those leave the
   character's profile untouched, which is the safest reading of an incomplete table.
 - Grants of the same permission by two different effects are not reference counted: the first
@@ -99,6 +112,14 @@ then received the removal and blended the weapon back to hip fire while the zoom
 `FireMode_1` stayed — the "ADS applies, then the animation plays back to hip fire" report. The
 server is the authority of every chain it executes (it is the zone server *and* the only machine
 simulating the entities), so `RequirementServerCommand` passes on the server now.
+
+The `CombatFlags` row right before the gate was the other half of the same report:
+`CombatFlags` (command type 64) used to be a stub in `Factory` too, so `restrict_sprint` (row
+1605139) — the "no sprint while aiming" flag the client reads off the combat controller — was
+never replicated. The client, allowed to sprint, blended the weapon out of the aim pose back to
+hip fire while the zoom and `FireMode_1` stayed. The command now writes the flags its row
+carries and, on removal, restores only those bits so an effect cannot clear a flag another
+still-running effect set.
 
 The effect's duration chain (`BattleFrameDuration` → `RequireCState living` → the client's
 `tfRequireServerConfirmed`) keeps it alive for as long as the character is living, so nothing
@@ -147,5 +168,10 @@ with the rest of the suite):
   machine flag row the table carries, the scope effect's apply chain (stat penalties, no-sprint,
   client feedback) succeeds as a whole and registers its modifiers, and its duration chain keeps
   the effect alive while the character is living.
+- `CombatFlagsCommandTests` — `CombatFlags` writes the flags its row carries, restores only those
+  bits (not flags another effect set meanwhile) when it ends, and steps over a deployable owner.
+- `RegisterMovementEffectCommandTests` — `RegisterMovementEffect` steps over client-side rows (the
+  pad's glider-effect registrations), registers server-side rows only for a character, and reads
+  the movestate nibble (and the sprint flag) the bound state is matched on.
 - `JumpActionedDetectionTests` — the jump detection on the 16 bit counter is modular, so a long
   fall is not reported as a jump.
