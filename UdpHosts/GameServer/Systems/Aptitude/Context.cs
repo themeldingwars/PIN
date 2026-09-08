@@ -64,6 +64,15 @@ public class Context
     /// </summary>
     public List<AbilityCooldownRequest> PendingCooldowns { get; set; } = [];
 
+    /// <summary>
+    /// When set, every effect the chain applies is recorded here. The proximity handling uses it to know
+    /// whether a previous activation of the same client proximity command is still in effect, so a client
+    /// that keeps re-sending the success message while the player stands on the trigger does not re-run the
+    /// whole chain (re-applying effects, spawning projectiles and flushing status effect fields to everyone
+    /// in range) several times a second.
+    /// </summary>
+    public List<AppliedEffectRecord> AppliedEffects { get; set; }
+
     public static Context CopyContext(Context original)
     {
         return new Context(original.Shard, original.Initiator)
@@ -88,6 +97,7 @@ public class Context
             ExecutionHint = original.ExecutionHint,
             ExecutionId = original.ExecutionId,
             PendingCooldowns = original.PendingCooldowns,
+            AppliedEffects = original.AppliedEffects,
         };
     }
 
