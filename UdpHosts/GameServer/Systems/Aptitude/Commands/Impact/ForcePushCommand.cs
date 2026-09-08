@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Numerics;
 using AeroMessages.GSS.Character.Event;
 using GameServer.Entities.Character;
+using GameServer.Entities.Deployable;
 using GameServer.StaticDB.Records.aptfs;
 
 namespace GameServer.Systems.Aptitude.Commands.Impact;
@@ -24,15 +26,31 @@ public class ForcePushCommand : Command, ICommand
     public bool Execute(Context context)
     {
         float strength = Params.Strength;
-
-        foreach (IAptitudeTarget target in context.Targets)
+        var targets = new List<IAptitudeTarget>(context.Targets);
+        // If the ability applies to the deployable itself (e.g. glider ability), push the deployable's owner.
+        if (context.Self is CharacterEntity || (context.Self as DeployableEntity)?.Owner != null)
         {
-            if (target is CharacterEntity character)
+            targets.Add(context.Self);
+        }
+
+        var visited = new HashSet<ulong>();
+        foreach (IAptitudeTarget target in targets)
+        {
+            var id = target != null ? target.AeroEntityId.Backing : 0;
+            if (id == 0 || !visited.Add(id))
             {
-                if (!character.IsPlayerControlled)
-                {
-                    continue;
-                }
+                continue;
+            }
+            var character = target as CharacterEntity ?? (target as DeployableEntity)?.Owner;
+            if (character == null)
+            {
+                continue;
+            }
+
+            if (!character.IsPlayerControlled)
+            {
+                continue;
+            }
 
                 var velocity = new Vector3(character.Velocity[0], character.Velocity[1], character.Velocity[2]);
                 velocity.Z += strength;
@@ -55,7 +73,6 @@ public class ForcePushCommand : Command, ICommand
                     ShortTime = context.Shard.CurrentShortTime,
                 };
                 player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
-            }
         }
 
         return true;

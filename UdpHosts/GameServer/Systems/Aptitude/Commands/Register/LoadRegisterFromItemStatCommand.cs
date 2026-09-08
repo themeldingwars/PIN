@@ -1,5 +1,6 @@
 using System.Linq;
 using GameServer.Entities.Character;
+using GameServer.Entities.Deployable;
 using GameServer.Enums;
 using GameServer.Extensions;
 using GameServer.StaticDB;
@@ -50,13 +51,18 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
             // Item stats belong to characters. A deployable owned chain (a glider pad reading the glider stat of
             // the player that walked onto it) has no character to read from here, and failing the command the way
             // the requirement commands used to would make the ability apply and lose its effect over and over.
-            if (OnceLog.ShouldLog((nameof(LoadRegisterFromItemStatCommand), "not a character", Params.Id)))
+            // Fall back to the deployable's owner when the target is the deployable itself.
+            character = (target as DeployableEntity)?.Owner;
+            if (character == null)
             {
-                Logger.Debug("[{Command} {CommandId}] target {TargetType} is not a Character, leaving the register alone",
-                    nameof(LoadRegisterFromItemStatCommand), Params.Id, target?.GetType().Name ?? "nothing");
-            }
+                if (OnceLog.ShouldLog((nameof(LoadRegisterFromItemStatCommand), "not a character", Params.Id)))
+                {
+                    Logger.Debug("[{Command} {CommandId}] target {TargetType} is not a Character, leaving the register alone",
+                        nameof(LoadRegisterFromItemStatCommand), Params.Id, target?.GetType().Name ?? "nothing");
+                }
 
-            return true;
+                return true;
+            }
         }
 
         float prevValue = context.Register;

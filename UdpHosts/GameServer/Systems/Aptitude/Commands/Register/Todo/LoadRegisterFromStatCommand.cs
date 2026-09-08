@@ -1,4 +1,5 @@
 using GameServer.Entities.Character;
+using GameServer.Entities.Deployable;
 using GameServer.Enums;
 using GameServer.StaticDB.Records.apt;
 
@@ -23,13 +24,14 @@ public class LoadRegisterFromStatCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
-        if (context.Self is not CharacterEntity character)
+        var character = context.Self as CharacterEntity ?? (context.Self as DeployableEntity)?.Owner;
+        if (character == null)
         {
             Logger.Warning(
                 "{Command} {CommandId} does nothing because Self is not a Character; Self is {SelfType}",
                 nameof(LoadRegisterFromStatCommand),
                 Params.Id,
-                context.Self.GetType().Name);
+                context.Self?.GetType().Name ?? "null");
             return true;
         }
 
