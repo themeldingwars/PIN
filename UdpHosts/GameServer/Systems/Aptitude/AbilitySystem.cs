@@ -43,6 +43,13 @@ public class AbilitySystem
     /// </summary>
     private readonly Dictionary<(ulong EntityId, uint CommandId), List<AppliedEffectRecord>> _proximityAppliedEffects = [];
 
+    /// <summary>
+    /// Movement-state bindings registered by <c>RegisterMovementEffectCommand</c>, per character. The ability
+    /// system re-evaluates them on its tick: while the character is in the bound movement state the status
+    /// effect is applied, and the moment it leaves that state (or the carrying effect ends) it is removed.
+    /// </summary>
+    private readonly Dictionary<ulong, List<MovementEffectRegistration>> _movementEffectRegistrations = [];
+
     private uint _proximityActivationsPruneAt;
 
     private ulong _lastUpdate;
@@ -193,6 +200,27 @@ public class AbilitySystem
                 {
                     _entityAbilityStates.Remove(entityId);
                 }
+
+                stale = null;
+            }
+
+            // A character that left the shard cannot leave its movement-state bindings behind either: the
+            // bindings are keyed by entity id and would otherwise leak (and could apply effects to an entity
+            // id the shard later reuses).
+            foreach (var pair in _movementEffectRegistrations)
+            {
+                if (!_shard.Entities.ContainsKey(pair.Key))
+                {
+                    (stale ??= []).Add(pair.Key);
+                }
+            }
+
+            if (stale != null)
+            {
+                foreach (var entityId in stale)
+                {
+                    _movementEffectRegistrations.Remove(entityId);
+                }
             }
 
             foreach (var entity in _shard.Entities.Values)
@@ -242,6 +270,112 @@ public class AbilitySystem
                 }
             }
         }
+
+        ReevaluateMovementEffects(entity, currentTime);
+    }
+
+    /// <summary>
+    /// Registers a movement-state binding for a character: while the character is in the given movement state
+    /// the status effect is applied, and it is removed when the character leaves that state. Returns the
+    /// registration, which <c>RegisterMovementEffectCommand</c> hands back to
+    /// <see cref="UnregisterMovementEffect" /> when the carrying effect ends.
+    /// </summary>
+    public MovementEffectRegistration RegisterMovementEffect(CharacterEntity character, uint statusfxId, byte movestateIndex, bool requireSprint)
+    {
+        var registration = new MovementEffectRegistration
+        {
+            CharacterEntityId = character.EntityId,
+            StatusfxId = statusfxId,
+            MovestateIndex = movestateIndex,
+            RequireSprint = requireSprint,
+        };
+
+        if (!_movementEffectRegistrations.TryGetValue(character.EntityId, out var registrations))
+        {
+            registrations = [];
+            _movementEffectRegistrations[character.EntityId] = registrations;
+        }
+
+        registrations.Add(registration);
+
+        return registration;
+    }
+
+    /// <summary>
+    /// Removes a movement-state binding and, if the bound effect is still on the character, takes it off again.
+    /// </summary>
+    public void UnregisterMovementEffect(MovementEffectRegistration registration)
+    {
+        if (registration == null)
+        {
+            return;
+        }
+
+        if (_movementEffectRegistrations.TryGetValue(registration.CharacterEntityId, out var registrations))
+        {
+            registrations.Remove(registration);
+
+            if (registrations.Count == 0)
+            {
+                _movementEffectRegistrations.Remove(registration.CharacterEntityId);
+            }
+        }
+    }
+
+    private void ReevaluateMovementEffects(IAptitudeTarget entity, ulong currentTime)
+    {
+        if (entity is not CharacterEntity character)
+        {
+            return;
+        }
+
+        // A remove chain that destroys the entity mid-tick leaves the object behind but out of the shard;
+        // do not apply or remove effects for an entity the shard no longer simulates.
+        if (!_shard.Entities.ContainsKey(character.EntityId))
+        {
+            return;
+        }
+
+        if (!_movementEffectRegistrations.TryGetValue(character.EntityId, out var registrations))
+        {
+            return;
+        }
+
+        var movestateIndex = (byte)((int)character.MovementStateContainer.Movestate >> 4);
+        var sprinting = character.MovementStateContainer.Sprint;
+        var time = unchecked((uint)currentTime);
+
+        // Snapshot: removing an effect below can run a remove chain that unregisters a binding of the same
+        // character, which would mutate the very list being iterated.
+        foreach (var registration in new List<MovementEffectRegistration>(registrations))
+        {
+            var inState = registration.MovestateIndex == movestateIndex
+                && (!registration.RequireSprint || sprinting);
+
+            var applied = HasEffect(character, registration.StatusfxId);
+
+            if (inState && !applied)
+            {
+                DoApplyEffect(registration.StatusfxId, character, new Context(_shard, character) { InitTime = time });
+            }
+            else if (!inState && applied)
+            {
+                DoRemoveEffect(character, registration.StatusfxId);
+            }
+        }
+    }
+
+    private static bool HasEffect(IAptitudeTarget target, uint effectId)
+    {
+        foreach (var activeEffect in target.GetActiveEffects())
+        {
+            if (activeEffect?.Effect.Id == effectId)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public bool DoApplyEffect(uint effectId, IAptitudeTarget target, Context context)

@@ -1295,8 +1295,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetCombatFlags(CombatFlagsData value)
     {
         CombatFlags = value;
-        Character_CombatController.CombatFlagsProp = value;
-        Character_CombatView.CombatFlagsProp = value;
+        Character_CombatController?.CombatFlagsProp = value;
+        Character_CombatView?.CombatFlagsProp = value;
     }
 
     /// <summary>Checks a flag on the last known combat flags, e.g. the fall damage immunity.</summary>

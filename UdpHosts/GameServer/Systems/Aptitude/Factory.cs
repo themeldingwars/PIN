@@ -21,6 +21,7 @@ using GameServer.Systems.Aptitude.Commands.Other;
 using GameServer.Systems.Aptitude.Commands.Register;
 using GameServer.Systems.Aptitude.Commands.Requirement;
 using GameServer.Systems.Aptitude.Commands.Self;
+using GameServer.Systems.Aptitude.Commands.SetFlags;
 using GameServer.Systems.Aptitude.Commands.Target;
 using Serilog;
 
@@ -197,8 +198,8 @@ public class Factory
             //     return new UpdateYieldCommand(SDBInterface.GetUpdateYieldCommandDef(commandId));
             case CommandType.AirborneDuration:
                 return new AirborneDurationCommand(SDBInterface.GetAirborneDurationCommandDef(commandId));
-            // case CommandType.CombatFlags:
-            //     return new CombatFlagsCommand(SDBInterface.GetCombatFlagsCommandDef(commandId));
+            case CommandType.CombatFlags:
+                return new CombatFlagsCommand(SDBInterface.GetCombatFlagsCommandDef(commandId));
             // case CommandType.RequestEffect:
             //     Zero instances in BaseCommandDef
             case CommandType.RequireCState:
@@ -607,8 +608,8 @@ public class Factory
                 return new LogicOrChainCommand(SDBInterface.GetLogicOrChainCommandDef(commandId));
             case CommandType.LogicAndChain:
                 return new LogicAndChainCommand(SDBInterface.GetLogicAndChainCommandDef(commandId));
-            // case CommandType.RegisterMovementEffect:
-            //     return new RegisterMovementEffectCommand(SDBInterface.GetRegisterMovementEffectCommandDef(commandId));
+            case CommandType.RegisterMovementEffect:
+                return new RegisterMovementEffectCommand(SDBInterface.GetRegisterMovementEffectCommandDef(commandId));
             case CommandType.AuthorizeTerminal:
                 return new AuthorizeTerminalCommand(CustomDBInterface.GetAuthorizeTerminalCommandDef(commandId));
             // case CommandType.TemporaryEquipmentStatMapping:
