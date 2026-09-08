@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using AeroMessages.GSS.Character.Command;
 using GameServer.Entities.Character;
@@ -55,9 +56,14 @@ public class AbilitySystem
     private ulong _lastUpdate;
 
     public AbilitySystem(IShard shard)
+        : this(shard, new Factory(shard))
+    {
+    }
+
+    internal AbilitySystem(IShard shard, Factory factory)
     {
         _shard = shard;
-        Factory = new Factory(shard);
+        Factory = factory;
         _playerVehicleCalldownRequests = [];
         _playerDeployableCalldownRequests = [];
         _playerThumperCalldownRequests = [];
@@ -249,24 +255,43 @@ public class AbilitySystem
                 break;
             }
 
-            if (activeEffect?.Effect.DurationChain != null
+            if (activeEffect is { Removed: false } && activeEffect.Effect.DurationChain != null
                 && currentTime > activeEffect.LastUpdateTime + activeEffect.Effect.UpdateFrequency)
             {
-                activeEffect.Context.ExecutionHint = ExecutionHint.DurationEffect;
-                bool durationResult = activeEffect.Effect.DurationChain.Execute(activeEffect.Context);
-                activeEffect.LastUpdateTime = currentTime;
-
-                if (durationResult)
+                var context = activeEffect.Context;
+                var previousApplicationTime = context.EffectApplicationTime;
+                context.EffectApplicationTime = _shard.CurrentTime;
+                try
                 {
-                    if (activeEffect.Effect.UpdateChain != null)
+                    context.ExecutionHint = ExecutionHint.DurationEffect;
+                    bool durationResult = activeEffect.Effect.DurationChain.Execute(context);
+                    activeEffect.LastUpdateTime = currentTime;
+
+                    if (activeEffect.Removed)
                     {
-                        activeEffect.Context.ExecutionHint = ExecutionHint.UpdateEffect;
-                        activeEffect.Effect.UpdateChain.Execute(activeEffect.Context);
+                        continue;
+                    }
+
+                    if (durationResult)
+                    {
+                        if (activeEffect.Effect.UpdateChain != null)
+                        {
+                            context.ExecutionHint = ExecutionHint.UpdateEffect;
+                            activeEffect.Effect.UpdateChain.Execute(context);
+                        }
+                    }
+                    else
+                    {
+                        _logger.Debug(
+                            "[Effect] {EffectId} duration chain {ChainId} ended: Start={StartTime} Now={CurrentTime} Age={Age}ms",
+                            activeEffect.Effect.Id, activeEffect.Effect.DurationChain.Id, context.EffectStartTime,
+                            _shard.CurrentTime, unchecked((int)(_shard.CurrentTime - (context.EffectStartTime ?? activeEffect.Time))));
+                        DoRemoveEffect(activeEffect);
                     }
                 }
-                else
+                finally
                 {
-                    DoRemoveEffect(activeEffect);
+                    context.EffectApplicationTime = previousApplicationTime;
                 }
             }
         }
@@ -387,9 +412,16 @@ public class AbilitySystem
 
         var applyContext = Context.CopyContext(context);
         applyContext.Self = target;
+        applyContext.InitTime = context.EffectApplicationTime ?? context.InitTime;
+        applyContext.EffectApplicationTime = null;
         applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
         var effect = Factory.LoadEffect(effectId);
+        if (effect == null)
+        {
+            _logger.Warning("Cannot apply unknown status effect {EffectId} to {Target}", effectId, target);
+            return false;
+        }
 
         // TODO: Decouple effect storage from fields so that hidden effects can be added without using a network field
         /*
@@ -429,27 +461,37 @@ public class AbilitySystem
 
     public bool DoRemoveEffect(EffectState activeEffect)
     {
-        if (activeEffect == null)
+        if (activeEffect == null || activeEffect.Removed)
         {
             return true;
         }
 
-        activeEffect.Context.ExecutionHint = ExecutionHint.RemoveEffect;
-        activeEffect.Context.Self.ClearEffect(activeEffect);
-        bool removeResult = activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context) ?? true;
-        if (!removeResult)
+        var context = activeEffect.Context;
+        context.ExecutionHint = ExecutionHint.RemoveEffect;
+        context.Self.ClearEffect(activeEffect);
+        if (!activeEffect.Removed)
         {
-            return false;
+            // The slot no longer belongs to this state. A stale snapshot must not undo its replacement.
+            return true;
         }
 
-        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", activeEffect.Context.ExecutionId);
-        foreach (var pair in activeEffect.Context.Actives)
+        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", context.ExecutionId);
+
+        // Unwind the expired effect BEFORE running its removal chain. That chain can grant successor
+        // effects (9495 -> 3417 for the glider): restoring the old profile afterwards overwrites the new
+        // one. Cleanup is unconditional; an optional RequireHasItem at the end of the removal chain must
+        // not leave permissions, combat flags or stat modifiers behind. Reverse order unwinds snapshots.
+        foreach (var pair in context.Actives.Reverse().ToArray())
         {
-            ICommand activeCommand = pair.Key;
-            activeCommand.OnRemove(activeEffect.Context, pair.Value);
+            pair.Key.OnRemove(context, pair.Value);
         }
 
-        return true;
+        context.Actives.Clear();
+
+        var removeContext = Context.CopyContext(context);
+        removeContext.EffectApplicationTime = _shard.CurrentTime;
+        removeContext.ExecutionHint = ExecutionHint.RemoveEffect;
+        return activeEffect.Effect.RemoveChain?.Execute(removeContext) ?? true;
     }
 
     public bool DoRemoveEffect(IAptitudeTarget entity, uint effectId)

@@ -498,6 +498,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void ApplyLoadout(CharacterLoadout loadout)
     {
+        SetScopedState(false);
         Shard.Admin?.ApplyEquipmentOverrides(Player, loadout);
         CurrentLoadout = loadout;
         UpdateEnergyParamsFromBattleframe(loadout.ChassisID);
@@ -888,6 +889,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void SetCharacterState(CharacterStateData.CharacterStatus characterStatus, uint time)
     {
+        if (characterStatus != CharacterStateData.CharacterStatus.Living)
+        {
+            SetScopedState(false, time);
+        }
+
         CharacterState = new CharacterStateData
         {
             State = characterStatus, Time = time
@@ -1034,64 +1040,51 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Character_CombatController?.WeaponIndexProp = value;
     }
     /// <summary>
-    ///     The character started or stopped aiming down the sights of the weapon in its hands: put the status
-    ///     effect of that weapon's scope on it, or take it off again.
-    ///
-    ///     The client predicts the effect the moment the player scopes in, and the scoped view (the zoom and the
-    ///     overlay that goes with it) hangs off it. Status effect fields of a character belong to the server, so
-    ///     the client cannot take the effect off its own character again: as long as the server never applied it,
-    ///     the animation for returning to hip fire played while the zoom stayed applied, which is the "alt fire
-    ///     mode leaves the screen zoomed in" report. Running it through the effect system instead of only keeping
-    ///     a flag also gives the scope the rest of what it carries, and takes all of it back when the character
-    ///     stops aiming: aim restrictions, movement penalties and whatever else the effect chains on top.
-    ///
-    ///     The scope effects (e.g. 102/1313) carry tfRequireServerConfirmed in their duration chain, which the
-    ///     CLIENT executes: it keeps the locally predicted effect alive only while the server's confirmation of
-    ///     it is in view. The confirmation is matched by the effect's start time, so the replicated time must be
-    ///     the one from the client's own UseScope message, not a fresh server timestamp; pass that time in as
-    ///     <paramref name="time"/> when handling the message.
+    /// Updates both halves of ADS: the replicated scoped fire mode and the weapon's scope effect. Clearing
+    /// just the effect on a weapon switch used to leave FireMode_1 scoped, even though the aim pose and its
+    /// modifiers had already been removed. All callers, not only UseScope, must update both together.
     /// </summary>
-    /// <param name="scoped">True when the player aims down the sights, false when hip firing again.</param>
-    /// <param name="time">Timestamp from the client's UseScope message; 0 to use server time.</param>
-    public void SetScopedState(bool scoped, uint time = 0)
+    /// <param name="scoped">True when aiming down sights.</param>
+    /// <param name="time">Client event time, or null for a server-initiated change. Zero is a valid clock value.</param>
+    public void SetScopedState(bool scoped, uint? time = null)
     {
+        uint eventTime = time ?? Shard.CurrentTime;
+        scoped &= IsAlive;
         uint effectId = scoped ? GetActiveWeaponDetails()?.ScopeStatusFx ?? 0u : 0u;
 
-        if (effectId == _scopeStatusFx)
+        SetFireMode(1, new FireModeData { Mode = (byte)(scoped ? 1 : 0), Time = eventTime });
+
+        if (effectId == _scopeStatusFx && (effectId == 0 || ActiveEffects.Any(state => state?.Effect.Id == effectId)))
         {
-            // Still aiming with the same sights, or not aiming and holding no scope effect. UseScope is sent
-            // again while the player holds the trigger, so this has to stay quiet.
+            // A repeated request must not restart the effect (or change its prediction timestamp).
             return;
         }
 
-        if (_scopeStatusFx != 0)
+        uint previousEffectId = _scopeStatusFx;
+        _scopeStatusFx = 0;
+        if (previousEffectId != 0)
         {
-            Shard.Abilities?.DoRemoveEffect(this, _scopeStatusFx);
-            _scopeStatusFx = 0;
+            Shard.Abilities?.DoRemoveEffect(this, previousEffectId);
         }
 
-        if (effectId == 0)
+        if (effectId == 0 || Shard.Abilities == null)
         {
             return;
         }
 
-        if (SDBInterface.GetStatusEffectData(effectId) == null)
-        {
-            Logger.Debug("[Scope] Weapon scope points at unknown effect {EffectId}, not applying it", effectId);
-            return;
-        }
-
-        if (Shard.Abilities == null)
-        {
-            // Nothing to apply the effect with (shards without an ability system, tests).
-            return;
-        }
-
-        if (Shard.Abilities.DoApplyEffect(effectId, this, new Context(Shard, this) { InitTime = time != 0 ? time : Shard.CurrentTime }))
+        // Keep the client's event time in the replicated effect, but not in its server duration clock.
+        if (Shard.Abilities.DoApplyEffect(effectId, this, new Context(Shard, this) { InitTime = eventTime }))
         {
             _scopeStatusFx = effectId;
         }
+        else
+        {
+            SetFireMode(1, new FireModeData { Mode = 0, Time = eventTime });
+            Logger.Warning("[Scope] Could not apply scope effect {EffectId}; cleared scoped fire mode", effectId);
+        }
     }
+
+    internal uint ScopeStatusEffectId => _scopeStatusFx;
 
 
     /// <summary>
@@ -1110,6 +1103,13 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags flag, bool value)
     {
+        if (flag is PermissionFlagsData.CharacterPermissionFlags.glider or PermissionFlagsData.CharacterPermissionFlags.glider_hud
+            && CurrentPermissions[flag] != value)
+        {
+            Logger.Debug("[Glider] Permission {Permission}={Value} Character={CharacterId} Time={Time}",
+                flag, value, EntityId, Shard.CurrentTime);
+        }
+
         CurrentPermissions[flag] = value;
         PermissionFlags = new PermissionFlagsData
         {
@@ -1122,6 +1122,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void SetGliderProfileId(uint profileId)
     {
+        if (profileId != GliderProfileId)
+        {
+            Logger.Debug("[Glider] Profile {PreviousProfile} -> {Profile} Character={CharacterId} Time={Time}",
+                GliderProfileId, profileId, EntityId, Shard.CurrentTime);
+        }
+
         GliderProfileId = profileId;
         Character_CombatController?.GliderProfileIdProp = profileId;
     }
@@ -1174,6 +1180,15 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
         Logger.Debug("Character.ClearStatusEffect Index {Index}, Time {Time}, Id {DebugEffectId}", index, time, debugEffectId);
+
+        // Duration expiry, death or another ability may remove ADS without a UseScope(false) packet. Do not
+        // leave the scoped mode set or cache an effect id that no longer exists (which prevents reapplying it).
+        if (debugEffectId == _scopeStatusFx && _scopeStatusFx != 0)
+        {
+            _scopeStatusFx = 0;
+            SetFireMode(1, new FireModeData { Mode = 0, Time = Shard.CurrentTime });
+            Logger.Debug("[Scope] Scope effect {EffectId} removed externally; cleared scoped fire mode", debugEffectId);
+        }
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);

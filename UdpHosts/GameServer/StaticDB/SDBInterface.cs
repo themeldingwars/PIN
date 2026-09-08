@@ -649,7 +649,7 @@ public class SDBInterface
     public static CommandType GetCommandType(uint id) => _commandType.GetValueOrDefault(id);
     public static AbilityData GetAbilityData(uint id) => _abilityData.GetValueOrDefault(id);
     public static ActiveInitiationCommandDef GetActiveInitiationCommandDef(uint id) => _activeInitiationCommandDef.GetValueOrDefault(id);
-    public static StatusEffectData GetStatusEffectData(uint id) => _statusEffectData.GetValueOrDefault(id);
+    public static StatusEffectData GetStatusEffectData(uint id) => _statusEffectData?.GetValueOrDefault(id);
     public static HashSet<uint> GetStatusEffectTag(uint id) => _statusEffectTag.GetValueOrDefault(id);
     public static ImpactApplyEffectCommandDef GetImpactApplyEffectCommandDef(uint id) => _impactApplyEffectCommandDef.GetValueOrDefault(id);
     public static ImpactToggleEffectCommandDef GetImpactToggleEffectCommandDef(uint id) => _impactToggleEffectCommandDef.GetValueOrDefault(id);

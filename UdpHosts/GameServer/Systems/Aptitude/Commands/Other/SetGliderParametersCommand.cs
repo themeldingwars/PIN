@@ -29,6 +29,13 @@ public class SetGliderParametersCommand : Command, ICommand
 
     public bool Execute(Context context)
     {
+        // An incomplete/invalid row must not own a snapshot either: restoring it later would overwrite a
+        // valid profile granted by another effect, even though this command never changed the profile.
+        if (Params.Value is not > 0)
+        {
+            return true;
+        }
+
         var target = context.Self;
         var character = target as CharacterEntity ?? (target as DeployableEntity)?.Owner;
 

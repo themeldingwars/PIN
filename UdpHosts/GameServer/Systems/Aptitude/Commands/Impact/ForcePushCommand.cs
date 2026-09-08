@@ -56,34 +56,37 @@ public class ForcePushCommand : Command, ICommand
                 continue;
             }
 
-                var velocity = new Vector3(character.Velocity[0], character.Velocity[1], character.Velocity[2]);
-                velocity.Z += strength;
+            var velocity = new Vector3(character.Velocity[0], character.Velocity[1], character.Velocity[2]);
+            velocity.Z += strength;
 
-                // The client holds the forced movement (and its velocity) for the [Time1, Time2] window on the
-                // shared epoch clock (time-synced against Shard.CurrentTime). A window must be real for the
-                // client to apply anything at all: a 1 ms window expires before, or while, the packet is in
-                // flight, which is exactly why effects like the glider pad launch played their animation but
-                // never moved the player. Start 50 ms out so the push survives latency/jitter and keep it for
-                // 500 ms, matching the launch effect's own 500 ms restrict_movement duration.
-                var player = character.Player;
-                var message = new ForcedMovement
+            // The client holds the forced movement (and its velocity) for the [Time1, Time2] window on the
+            // shared epoch clock (time-synced against Shard.CurrentTime). A window must be real for the
+            // client to apply anything at all: a 1 ms window expires before, or while, the packet is in
+            // flight, which is exactly why effects like the glider pad launch played their animation but
+            // never moved the player. Start 50 ms out so the push survives latency/jitter and keep it for
+            // 500 ms, matching the launch effect's own 500 ms restrict_movement duration.
+            uint time = context.Shard.CurrentTime;
+            var player = character.Player;
+            var message = new ForcedMovement
+            {
+                Data = new AeroMessages.GSS.ForcedMovementData
                 {
-                    Data = new AeroMessages.GSS.ForcedMovementData
+                    Type = 5,
+                    HaveUnk2 = 0,
+                    Params5 = new AeroMessages.GSS.ForcedMovementType5Params
                     {
-                        Type = 5,
-                        HaveUnk2 = 0,
-                        Params5 = new AeroMessages.GSS.ForcedMovementType5Params
-                        {
-                            Velocity = velocity,
-                            Time1 = context.Shard.CurrentTime + 50,
-                            Time2 = context.Shard.CurrentTime + 550,
-                            Unk2 = 0
-                        }
-                    },
+                        Velocity = velocity,
+                        Time1 = unchecked(time + 50),
+                        Time2 = unchecked(time + 550),
+                        Unk2 = 0
+                    }
+                },
 
-                    ShortTime = context.Shard.CurrentShortTime,
-                };
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
+                ShortTime = unchecked((ushort)time),
+            };
+            Logger.Debug("[Glider] ForcePush {CommandId} Target={Target} Strength={Strength} Velocity={Velocity} Start={StartTime} End={EndTime}",
+                Params.Id, character.EntityId, strength, velocity, message.Data.Params5.Time1, message.Data.Params5.Time2);
+            player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
         }
 
         return true;

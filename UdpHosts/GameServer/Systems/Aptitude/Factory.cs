@@ -39,9 +39,14 @@ public class Factory
         _logger = shard.Logger.ForContext<AbilitySystem>();
     }
 
-    public Effect LoadEffect(uint effectId)
+    public virtual Effect LoadEffect(uint effectId)
     {
         var statusEffectData = SDBInterface.GetStatusEffectData(effectId);
+        if (statusEffectData == null)
+        {
+            return null;
+        }
+
         var effect = new Effect()
         {
             Data = statusEffectData,
@@ -70,7 +75,7 @@ public class Factory
         return effect;
     }
 
-    public Chain LoadChain(uint chainId)
+    public virtual Chain LoadChain(uint chainId)
     {
         var chain = new Chain
         {

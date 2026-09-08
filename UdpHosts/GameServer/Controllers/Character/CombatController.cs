@@ -82,21 +82,24 @@ public class CombatController : Base
         // fire: the field has to carry the same 0/1 the client's own scoped state uses.
         bool inScope = query.InScope != 0;
 
-        _logger.Debug(
-            "[Scope] UseScope InScope={InScope} Time={ClientTime} FireMode_1={Mode} ServerTime={ServerTime}",
-            query.InScope, query.Time, inScope, player.CharacterEntity.Shard.CurrentTime);
-
-        player.CharacterEntity.SetFireMode(1, new FireModeData
+        var character = player.CharacterEntity;
+        if (unchecked((int)(query.Time - character.FireMode_1.Time)) < 0)
         {
-           Mode = (byte)(inScope ? 1 : 0),
-           Time = query.Time,
-        });
+            _logger.Debug("[Scope] Ignored stale UseScope InScope={InScope} Time={ClientTime} Latest={LatestTime}",
+                query.InScope, query.Time, character.FireMode_1.Time);
+            return;
+        }
 
-        // The scope's own status effect is what the client uses for the zoomed view, and it is the server that
-        // has to take it away again: see CharacterEntity.SetScopedState. The effect carries tfRequireServerConfirmed
-        // in its duration chain, which the client executes against its own prediction, so the server's copy has
-        // to wear the client's timestamp from the message instead of a fresh server one.
-        player.CharacterEntity.SetScopedState(inScope, query.Time);
+        character.SetScopedState(inScope, query.Time);
+
+        var effect = character.GetActiveEffects().FirstOrDefault(state => state?.Effect.Id == character.ScopeStatusEffectId);
+        _logger.Debug(
+            "[Scope] UseScope InScope={InScope} Time={ClientTime} ServerTime={ServerTime} Weapon={WeaponIndex} " +
+            "FireMode_0={FireMode} FireMode_1={ScopedMode} Effect={EffectId} EffectTime={EffectTime} " +
+            "MoveState={MoveState} CombatFlags={CombatFlags}",
+            query.InScope, query.Time, character.Shard.CurrentTime, character.WeaponIndex.Index,
+            character.FireMode_0.Mode, character.FireMode_1.Mode, character.ScopeStatusEffectId, effect?.Time,
+            character.MovementStateContainer.Movestate, character.CombatFlags.Value);
     }
 
     [MessageID(GssCharacterCommand.SelectWeapon)]
@@ -106,7 +109,12 @@ public class CombatController : Base
 
         // Switching weapons (or fire modes) never keeps the sights of the previous one: without this, a scope
         // effect whose "scope out" message got lost would hold the zoom over the whole next weapon.
-        player.CharacterEntity.SetScopedState(false);
+        if (player.CharacterEntity.FireMode_1.Mode != 0)
+        {
+            _logger.Debug("[Scope] Reset by SelectWeapon Index={WeaponIndex} Time={ClientTime}", query.SelectedWeaponIndex, query.Time);
+        }
+
+        player.CharacterEntity.SetScopedState(false, query.Time);
 
         player.CharacterEntity.SetWeaponIndex(new WeaponIndexData
         {
@@ -121,8 +129,12 @@ public class CombatController : Base
     public void SelectFireMode(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var query = packet.Unpack<SelectFireMode>();
+        if (player.CharacterEntity.FireMode_1.Mode != 0)
+        {
+            _logger.Debug("[Scope] Reset by SelectFireMode Mode={FireMode} Time={ClientTime}", query.FireMode, query.Time);
+        }
 
-        player.CharacterEntity.SetScopedState(false);
+        player.CharacterEntity.SetScopedState(false, query.Time);
 
         player.CharacterEntity.SetFireMode(0, new FireModeData
         {

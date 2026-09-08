@@ -24,10 +24,12 @@ public class ImpactApplyEffectCommand : Command, ICommand
         effectContext.TargetStack = new Stack<AptitudeTargets>();
         effectContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
-        if (Params.InheritInitPos == 1)
-        {
-            effectContext.InitPosition = context.InitPosition;
-        }
+        // Copy activation identity/cooldowns, not the optional payload. CopyContext already copied these
+        // values, so merely assigning them when a Pass* flag is set accidentally passed them unconditionally.
+        effectContext.InitPosition = Params.InheritInitPos == 1 ? context.InitPosition : context.Initiator.Position;
+        effectContext.Register = Params.PassRegister == 1 ? context.Register : float.NaN;
+        effectContext.FormerRegister = float.NaN;
+        effectContext.Bonus = Params.PassBonus == 1 ? context.Bonus : 0;
 
         // Ability 40133. Teleportal Beacon Interact Ability ; player targeted. Add the other beacon to target list, then apply status effect to player, passing the target.
         if (Params.PassTargets == 1)
@@ -40,16 +42,6 @@ public class ImpactApplyEffectCommand : Command, ICommand
             {
                 effectContext.Targets = context.Targets;
             }
-        }
-
-        if (Params.PassRegister == 1)
-        {
-            effectContext.Register = context.Register;
-        }
-
-        if (Params.PassBonus == 1)
-        {
-            effectContext.Bonus = context.Bonus;
         }
 
         if (Params.OverrideInitiator == 1)

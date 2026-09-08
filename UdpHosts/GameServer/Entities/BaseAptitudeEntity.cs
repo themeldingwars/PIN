@@ -62,22 +62,22 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
             firstFreeIndex = 31; // Lets not crash
         }
 
+        // Keep lifetime and replication clocks separate. InitTime identifies the event that applied the
+        // effect (including the client's UseScope timestamp); the server starts this effect's duration now.
+        context.EffectStartTime = Shard.CurrentTime;
         var state = new EffectState
         {
             Effect = effect,
             Context = context,
-            // Prefer the initiator's own timestamp for the replicated "effect started" time. Everything the
-            // client triggered itself (ability activation, scope-in via UseScope) carries the client clock
-            // through Context.InitTime, and the client matches server confirmations of its locally predicted
-            // effects against that value (tfRequireServerConfirmed runs on the client for scope effects);
-            // a server-generated time can never match the prediction, so the client would drop the effect.
-            Time = context.InitTime != 0 ? context.InitTime : Shard.CurrentTime,
+            Time = context.InitTime,
+            LastUpdateTime = Shard.CurrentTimeLong,
             Stacks = 1,
             Index = firstFreeIndex
         };
 
         ActiveEffects[firstFreeIndex] = state;
 
+        // Preserve the event timestamp on the wire, including directly predicted ADS applications.
         var time = unchecked((ushort)state.Time);
         var data = new StatusEffectData
         {
@@ -96,6 +96,12 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
     public void ClearEffect(EffectState state)
     {
+        if (state == null || state.Index >= MaxEffectCount || !ReferenceEquals(ActiveEffects[state.Index], state))
+        {
+            return;
+        }
+
+        state.Removed = true;
         ActiveEffects[state.Index] = null;
         var time = unchecked((ushort)state.Context.Shard.CurrentTime);
         ClearStatusEffect(state.Index, time, state.Effect.Id);
