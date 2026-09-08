@@ -15,9 +15,13 @@ public class TimeDurationCommand : Command, ICommand
     public bool Execute(Context context)
     {
         var currentTime = context.Shard.CurrentTime;
-        var baseTime = context.InitTime;
+        var baseTime = context.EffectStartTime ?? context.InitTime;
         var duration = AbilitySystem.RegistryOp(context.Register, Params.DurationMs, (Enums.Operand)Params.DurationRegop);
-        var condition = currentTime - baseTime > duration;
+
+        // The clocks are uint milliseconds. A small client clock lead (e.g. 67 ms in the pad log) is not
+        // 49 days of elapsed time. Signed modular subtraction also handles the uint clock wrapping.
+        var elapsed = unchecked((int)(currentTime - baseTime));
+        var condition = elapsed > duration;
 
         bool result = true;
 

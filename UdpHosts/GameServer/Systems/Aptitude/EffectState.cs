@@ -9,4 +9,8 @@ public class EffectState
     public ulong LastUpdateTime;
     public byte Stacks = 1;
     public bool MaxStacksExceeded;
+
+    // A tick iterates a snapshot. A removal chain can remove another effect in that snapshot and reuse its
+    // slot; never execute or remove the old state a second time.
+    public bool Removed;
 }

@@ -16,6 +16,7 @@ public class Context
         Targets = new AptitudeTargets();
         FormerTargets = new AptitudeTargets();
         InitPosition = initiator.Position;
+        InitTime = shard.CurrentTime;
         ExecutionId = Guid.NewGuid();
     }
 
@@ -50,6 +51,20 @@ public class Context
     public float FormerRegister { get; set; } = float.NaN;
     public int Bonus { get; set; }
     public uint InitTime { get; set; }
+
+    /// <summary>
+    /// Server time at which this effect was applied. Duration checks must not use the root activation's
+    /// (possibly client-predicted) InitTime: effects created by a later remove/update chain have a new lifetime.
+    /// Null for contexts that are not running an effect.
+    /// </summary>
+    public uint? EffectStartTime { get; set; }
+
+    /// <summary>
+    /// Timestamp to give effects emitted by a duration/update/removal event. Keep this separate from InitTime
+    /// so time/reload requirements in the source effect's own chains still refer to its original initiation.
+    /// </summary>
+    public uint? EffectApplicationTime { get; set; }
+
     public Vector3 InitPosition { get; set; }
     public ExecutionHint ExecutionHint { get; set; }
     public Guid ExecutionId { get; set; }
@@ -93,6 +108,8 @@ public class Context
             FormerRegister = original.FormerRegister,
             Bonus = original.Bonus,
             InitTime = original.InitTime,
+            EffectStartTime = original.EffectStartTime,
+            EffectApplicationTime = original.EffectApplicationTime,
             InitPosition = original.InitPosition,
             ExecutionHint = original.ExecutionHint,
             ExecutionId = original.ExecutionId,

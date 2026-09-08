@@ -137,6 +137,25 @@ public class PermissionAndGliderProfileCommandTests
         Assert.Equal(18u, character.GliderProfileId);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData(0u)]
+    public void SetGliderParameters_WithoutAProfileDoesNotRevertLaterChanges(uint? profile)
+    {
+        var shard = new FakeShard();
+        var character = CreateCharacter(shard);
+        character.SetGliderProfileId(7);
+        var command = new SetGliderParametersCommand(new SetGliderParametersCommandDef { Id = 1508824, Value = profile });
+        var context = RunEffect(command, character);
+        Assert.Empty(context.Actives);
+        Assert.Equal(7u, character.GliderProfileId);
+
+        // Another effect grants a real flight profile while the incomplete row is active.
+        character.SetGliderProfileId(18);
+        RemoveEffect(command, context);
+        Assert.Equal(18u, character.GliderProfileId);
+    }
+
     [Fact]
     public void CommandsOnADeployableOwnerDoNotFailTheChain()
     {
