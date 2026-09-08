@@ -63,7 +63,10 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
         float statValue = character.GetItemAttribute(Params.Stat);
         context.Register = AbilitySystem.RegistryOp(prevValue, statValue, (Operand)Params.Regop);
 
-        if (true)
+        // Duration chains re-run this on every effect update tick, so only report the value once per command
+        // unless it actually changed. This is what used to fill the log with the same boomerang duration line
+        // several times a second.
+        if (OnceLog.ShouldLog((nameof(LoadRegisterFromItemStatCommand), "value", Params.Id, context.Register)))
         {
             var statInfo = SDBInterface.GetAttributeDefinition((uint)Params.Stat);
             Logger.Debug("{Command} {CommandId}: ({prevValue}, {statValue} ({statName}), {op}) => {register}", nameof(LoadRegisterFromItemStatCommand), Params.Id, prevValue, statValue, statInfo.Name.Trim(), (Operand)Params.Regop, context.Register);

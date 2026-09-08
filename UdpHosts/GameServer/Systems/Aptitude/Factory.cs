@@ -583,8 +583,14 @@ public class Factory
             //     return new RemoveEffectByTagCommand(CustomDBInterface.GetRemoveEffectByTagCommandDef(commandId));
             // case CommandType.RegisterEffectTagTrigger:
             //     return new RegisterEffectTagTriggerCommand(CustomDBInterface.GetRegisterEffectTagTriggerCommandDef(commandId));
-            // case CommandType.ReplenishableDuration:
-            //     return new ReplenishableDurationCommand(CustomDBInterface.GetReplenishableDurationCommandDef(commandId));
+            case CommandType.ReplenishableDuration:
+            {
+                // The def table for this type carries no decoded fields, so an id that is not listed is still
+                // safe to run with a synthesised def instead of dying on a null reference.
+                var replenishableDef = CustomDBInterface.GetReplenishableDurationCommandDef(commandId)
+                                       ?? new ReplenishableDurationCommandDef { Id = commandId };
+                return new ReplenishableDurationCommand(replenishableDef);
+            }
             // case CommandType.ReplenishEffectDuration:
             //     return new ReplenishEffectDurationCommand(CustomDBInterface.GetReplenishEffectDurationCommandDef(commandId));
             case CommandType.ConsumeSuperCharge:
