@@ -347,7 +347,7 @@ public class AbilitySystem
 
         // Snapshot: removing an effect below can run a remove chain that unregisters a binding of the same
         // character, which would mutate the very list being iterated.
-        foreach (var registration in [.. registrations])
+        foreach (var registration in new List<MovementEffectRegistration>(registrations))
         {
             var inState = registration.MovestateIndex == movestateIndex
                 && (!registration.RequireSprint || sprinting);
