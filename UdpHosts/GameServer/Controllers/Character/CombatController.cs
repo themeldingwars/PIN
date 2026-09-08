@@ -82,6 +82,10 @@ public class CombatController : Base
         // fire: the field has to carry the same 0/1 the client's own scoped state uses.
         bool inScope = query.InScope != 0;
 
+        _logger.Debug(
+            "[Scope] UseScope InScope={InScope} Time={ClientTime} FireMode_1={Mode} ServerTime={ServerTime}",
+            query.InScope, query.Time, inScope, player.CharacterEntity.Shard.CurrentTime);
+
         player.CharacterEntity.SetFireMode(1, new FireModeData
         {
            Mode = (byte)(inScope ? 1 : 0),
@@ -89,8 +93,10 @@ public class CombatController : Base
         });
 
         // The scope's own status effect is what the client uses for the zoomed view, and it is the server that
-        // has to take it away again: see CharacterEntity.SetScopedState.
-        player.CharacterEntity.SetScopedState(inScope);
+        // has to take it away again: see CharacterEntity.SetScopedState. The effect carries tfRequireServerConfirmed
+        // in its duration chain, which the client executes against its own prediction, so the server's copy has
+        // to wear the client's timestamp from the message instead of a fresh server one.
+        player.CharacterEntity.SetScopedState(inScope, query.Time);
     }
 
     [MessageID(GssCharacterCommand.SelectWeapon)]

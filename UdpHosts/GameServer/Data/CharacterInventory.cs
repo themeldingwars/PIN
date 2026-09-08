@@ -106,6 +106,13 @@ public class CharacterInventory
         return refData;
     }
 
+    /// <summary>
+    /// Counts how many inventory entries carry the given item sdb id. Items are not stackable
+    /// (stackable goods live in the resource store instead), so every matching entry counts once;
+    /// this is what aptitude's RequireHasItem quantity refers to.
+    /// </summary>
+    public int CountItemsBySdbId(uint sdbId) => _items.Values.Count(item => item.SdbId == sdbId);
+
     public ulong CreateItem(uint sdbId)
     {
         ulong guid = _shard.GetNextGuid((byte)GuidService.AdditionalTypes.Item);

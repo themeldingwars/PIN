@@ -1044,8 +1044,16 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     ///     mode leaves the screen zoomed in" report. Running it through the effect system instead of only keeping
     ///     a flag also gives the scope the rest of what it carries, and takes all of it back when the character
     ///     stops aiming: aim restrictions, movement penalties and whatever else the effect chains on top.
+    ///
+    ///     The scope effects (e.g. 102/1313) carry tfRequireServerConfirmed in their duration chain, which the
+    ///     CLIENT executes: it keeps the locally predicted effect alive only while the server's confirmation of
+    ///     it is in view. The confirmation is matched by the effect's start time, so the replicated time must be
+    ///     the one from the client's own UseScope message, not a fresh server timestamp; pass that time in as
+    ///     <paramref name="time"/> when handling the message.
     /// </summary>
-    public void SetScopedState(bool scoped)
+    /// <param name="scoped">True when the player aims down the sights, false when hip firing again.</param>
+    /// <param name="time">Timestamp from the client's UseScope message; 0 to use server time.</param>
+    public void SetScopedState(bool scoped, uint time = 0)
     {
         uint effectId = scoped ? GetActiveWeaponDetails()?.ScopeStatusFx ?? 0u : 0u;
 
@@ -1079,7 +1087,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             return;
         }
 
-        if (Shard.Abilities.DoApplyEffect(effectId, this, new Context(Shard, this) { InitTime = Shard.CurrentTime }))
+        if (Shard.Abilities.DoApplyEffect(effectId, this, new Context(Shard, this) { InitTime = time != 0 ? time : Shard.CurrentTime }))
         {
             _scopeStatusFx = effectId;
         }
