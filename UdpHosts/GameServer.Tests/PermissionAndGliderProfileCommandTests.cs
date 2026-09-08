@@ -19,8 +19,7 @@ namespace GameServer.Tests;
 ///     Both write a single value on the character, and both used to have no proper revert: permissions were
 ///     "restored" by writing the negation of whatever the effect granted, which silently switched a permission off
 ///     for every other effect that had granted it first, and the glider profile was never restored at all, so a
-///     player who used a boost pad kept its flight profile for the rest of the session (and, with profile 0 of the
-///     shared launch effect, flew with the parameters of a pad instead of their own glider).
+///     player who used a boost pad kept its flight profile for the rest of the session.
 /// </summary>
 public class PermissionAndGliderProfileCommandTests
 {
@@ -87,11 +86,13 @@ public class PermissionAndGliderProfileCommandTests
         // The glider the player equipped for themselves.
         character.SetGliderProfileId(81423);
 
-        // aptgss::SetGliderParametersDef row of the shared pad launch effect: the pad flies with profile 0.
-        var command = new SetGliderParametersCommand(new SetGliderParametersCommandDef { Id = 1511094, Value = 0 });
+        // aptgss::SetGliderParametersDef row of the shared pad launch effect: the pad flies the character
+        // with profile 18, the same row the game's own glider effect grants (profile 0 does not exist in
+        // the client's dbcharacter::GliderParameters, so it can never be a valid flight model).
+        var command = new SetGliderParametersCommand(new SetGliderParametersCommandDef { Id = 1511094, Value = 18 });
         var context = RunEffect(command, character);
 
-        Assert.Equal(0u, character.GliderProfileId);
+        Assert.Equal(18u, character.GliderProfileId);
 
         RemoveEffect(command, context);
 
@@ -107,6 +108,26 @@ public class PermissionAndGliderProfileCommandTests
         character.SetGliderProfileId(18);
 
         var command = new SetGliderParametersCommand(new SetGliderParametersCommandDef { Id = 1508824 });
+        var context = RunEffect(command, character);
+
+        Assert.Equal(18u, character.GliderProfileId);
+
+        RemoveEffect(command, context);
+
+        Assert.Equal(18u, character.GliderProfileId);
+    }
+
+    [Fact]
+    public void SetGliderParameters_ZeroIsNotAProfileAndLeavesTheCurrentOneAlone()
+    {
+        var shard = new FakeShard();
+        var character = CreateCharacter(shard);
+
+        character.SetGliderProfileId(18);
+
+        // dbcharacter::GliderParameters has no row 0 (the client table's ids run from 4 up), so a row that
+        // carries 0 must not replace the character's flight model with a nonexistent one.
+        var command = new SetGliderParametersCommand(new SetGliderParametersCommandDef { Id = 1511094, Value = 0 });
         var context = RunEffect(command, character);
 
         Assert.Equal(18u, character.GliderProfileId);

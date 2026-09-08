@@ -499,8 +499,8 @@ public class Factory
             // case CommandType.NamedVariableAssign:
             //     has environment `server` but is in SDB
             //     return new NamedVariableAssignCommand(SDBInterface.GetNamedVariableAssignCommandDef(commandId));
-            // case CommandType.LoadRegisterFromNamedVar:
-            //     return new LoadRegisterFromNamedVarCommand(SDBInterface.GetLoadRegisterFromNamedVarCommandDef(commandId));
+            case CommandType.LoadRegisterFromNamedVar:
+                return new LoadRegisterFromNamedVarCommand(SDBInterface.GetLoadRegisterFromNamedVarCommandDef(commandId));
             // case CommandType.FireUiEvent:
             //     return new FireUiEventCommand(SDBInterface.GetFireUiEventCommandDef(commandId));
             // case CommandType.CalculateTrajectory:

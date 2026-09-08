@@ -135,8 +135,8 @@
 	},
 	{
 		"id": 1511094,
-		"comment": "Triggered by Effect 3417  | Assuming this is the basic one",
-		"value": 0
+		"comment": "Triggered by Effect 3417  | Pad flight profile: 18 is the same dbcharacter::GliderParameters row effect 9495 grants for normal gliding; profile 0 does not exist in the client table (ids run 4-35), so 0 was never a valid flight model to hand the client.",
+		"value": 18
 	},
 	{
 		"id": 1540951,
