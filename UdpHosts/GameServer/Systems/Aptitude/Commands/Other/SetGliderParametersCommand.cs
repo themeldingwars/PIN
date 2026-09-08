@@ -1,4 +1,5 @@
 using GameServer.Entities.Character;
+using GameServer.Entities.Deployable;
 using GameServer.StaticDB.Records.customdata;
 
 namespace GameServer.Systems.Aptitude.Commands.Other;
@@ -29,8 +30,9 @@ public class SetGliderParametersCommand : Command, ICommand
     public bool Execute(Context context)
     {
         var target = context.Self;
+        var character = target as CharacterEntity ?? (target as DeployableEntity)?.Owner;
 
-        if (target is CharacterEntity)
+        if (character != null)
         {
             context.Actives.Add(this, new SetGliderParametersActiveContext());
         }
@@ -53,7 +55,8 @@ public class SetGliderParametersCommand : Command, ICommand
             return;
         }
 
-        if (context.Self is not CharacterEntity character)
+        var character = context.Self as CharacterEntity ?? (context.Self as DeployableEntity)?.Owner;
+        if (character == null)
         {
             return;
         }
@@ -78,7 +81,8 @@ public class SetGliderParametersCommand : Command, ICommand
             return;
         }
 
-        if (context.Self is CharacterEntity character)
+        var character = context.Self as CharacterEntity ?? (context.Self as DeployableEntity)?.Owner;
+        if (character != null)
         {
             character.SetGliderProfileId(active.PreviousProfileId);
         }

@@ -1,4 +1,5 @@
 using GameServer.Entities.Character;
+using GameServer.Entities.Deployable;
 using GameServer.Enums;
 using GameServer.StaticDB.Records.aptfs;
 
@@ -21,13 +22,14 @@ public class StatModifierCommand : Command, ICommand
             Logger.Warning("{Command} {CommandId} has unhandled param Permanent", nameof(StatModifierCommand), Params.Id);
         }
 
-        if (context.Self is CharacterEntity)
+        var character = context.Self as CharacterEntity ?? (context.Self as DeployableEntity)?.Owner;
+        if (character != null)
         {
             context.Actives.Add(this, new StatModifierCommandActiveContext() { Register = context.Register });
         }
         else
         {
-            Logger.Warning("{Command} {CommandId} does nothing because self is not a Character. Self is {sourceType}. If this is happening, we should investigate why.", nameof(StatModifierCommand), Params.Id, context.Self.GetType().Name);
+            Logger.Warning("{Command} {CommandId} does nothing because self is not a Character. Self is {sourceType}. If this is happening, we should investigate why.", nameof(StatModifierCommand), Params.Id, context.Self?.GetType().Name ?? "null");
         }
 
         return true;
@@ -36,7 +38,8 @@ public class StatModifierCommand : Command, ICommand
     public void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
         var modifierContext = (StatModifierCommandActiveContext)activeCommandContext;
-        if (context.Self is CharacterEntity character)
+        var character = context.Self as CharacterEntity ?? (context.Self as DeployableEntity)?.Owner;
+        if (character != null)
         {
             float value = AbilitySystem.RegistryOp(modifierContext.Register, Params.Value, (Operand)Params.ValueRegop);
 
@@ -52,7 +55,8 @@ public class StatModifierCommand : Command, ICommand
 
     public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
-        if (context.Self is CharacterEntity character)
+        var character = context.Self as CharacterEntity ?? (context.Self as DeployableEntity)?.Owner;
+        if (character != null)
         {
             character.RemoveStatModifier(Params.Id, (StatModifierIdentifier)Params.Stat);
         }
