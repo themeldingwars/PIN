@@ -133,7 +133,7 @@ PlayIntroMovie = false
 ### Features
 
 - Loading into any zone (WebHostManager)
-- Basic character movement, including jetpacks and gliders
+- Basic character movement, including jetpacks and gliders(in work now, trying to get fixed)
 - Switch between battleframes with preconfigured loadouts
 - Customize character appearance in NewYou (RIN.WebAPI)
 - Call down vehicles and some deployables
@@ -143,7 +143,7 @@ PlayIntroMovie = false
 
 ### Limitations
 
-- NPC AI is a single state machine: no pathfinding, no animations, no projectiles and the per monster SDB behaviour trees are ignored
+- NPC AI is a in works: basic agro pathfinding, animations, no projectiles and the per monster SDB behaviour trees are ignored
 - Most of the UI doesn't work properly
 - Most abilities are not fully working
 - Vehicles only have physics if a player is driving it (client-side)
