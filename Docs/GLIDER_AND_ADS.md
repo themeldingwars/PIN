@@ -16,15 +16,38 @@ the server side of them.
 
 So a player who is standing on a boost panel needs two things from the server, and both are
 applied as **status effects** rather than as movement code: the permission to glide, and the
-flight profile to glide with. Nothing in the server "launches" the player; the launch is the
-client's own prediction of the pad, reported back as a jump pose update.
+flight profile to glide with. Nothing in the server "launches" the player across a *static*
+panel (that launch is the client's own prediction of the panel, reported back as a jump pose
+update). A *deployable* pad, though, runs its launch ability server-side, and its launch
+effect chain ends in a `ForcePush` (effect 8097, row 1509142) that tells the client to push
+the character straight up with the row's strength; the push also has to be strong enough to
+carry the character out of the pad's trigger radius, or the client keeps re-triggering the
+pad and re-playing the launch effects while the character stands there.
+
+Two parts of that chain are easy to get wrong on a server that only has part of the data:
+
+- The launch ability's chain loads a register value from a named variable (`WingFX`, row
+  1001663, `LoadRegisterFromNamedVar`). The server has no named-variable store, and the
+  command used to be a no-op that left the register unset, so the register comparisons the
+  launch effects use to select their effect level never saw the value the data expects (they
+  fall back to their last row when no branch matches, which made an unset register and a
+  real level indistinguishable). The command now loads the row's `undecl_value` fallback
+  (1.0 for the pad) through the row's `regop`, like `SetRegister` does.
+- `ForcePush` used to ignore its row entirely and hard-code a vertical +45. It now pushes
+  straight up with the row's `strength` (30 for the pad row). `strength_regop` would fold the
+  chain's register into the strength, but the direction of that operation is not captured
+  yet, so the register is deliberately not read — the launch effect's own chain resets the
+  register as it goes, and letting it influence the push could zero the impulse out.
 
 The effects involved (from `StaticDB/CustomData`):
 
 - **Effect 3418** — `ModifyPermission` 1508827 (`glider_hud: true`) and 1508828 (`glider: true`).
-- **Effect 3417** — `SetGliderParameters` 1511094, whose row carries `value: 0`: the pad flies
-  the character with profile 0 instead of their own glider. The command now hands the previous
-  profile back when the effect ends.
+- **Effect 3417** — `SetGliderParameters` 1511094, whose row carries `value: 18` — the same
+  `dbcharacter::GliderParameters` profile (18) the normal glider effect grants. The client table has
+  no profile 0 (its ids run from 4 up), so a pad effect that handed the client profile 0 handed it a
+  flight model that does not exist: wings could deploy but nothing could fly. The command now hands
+  the previous profile back when the effect ends, and rows that carry no value (or 0) leave the
+  profile alone.
 - **Ability 35181** "Glider System - Shared Glider Pad Launch Ability" (plus 36403, 37285,
   38514 for the other pad flavours) is what the client triggers through
   `LocalProximityAbilitySuccess`; its chain acquires everyone in a radius of the pad, applies

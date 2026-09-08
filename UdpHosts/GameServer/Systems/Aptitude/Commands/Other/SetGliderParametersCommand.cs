@@ -61,7 +61,11 @@ public class SetGliderParametersCommand : Command, ICommand
         active.PreviousProfileId = character.GliderProfileId;
         active.HasPrevious = true;
 
-        if (Params.Value != null)
+        // A value of 0 is not a row of dbcharacter::GliderParameters (the ids in the client table run from
+        // 4 up), so it cannot be a flight model to hand the client. Writing it would replace a valid model
+        // with nothing; leave the profile alone instead. The glider pad's row carries the same profile (18)
+        // the game's normal glider effect grants, see StaticDB/CustomData/aptgss_agsSetGliderParametersDef.json.
+        if (Params.Value is > 0)
         {
             character.SetGliderProfileId((uint)Params.Value);
         }
