@@ -62,6 +62,25 @@ scoping out reverted the animation (the `FireMode_1` field) while the zoom staye
 now applies the effect while the character is scoped in and removes it on scope out, and a
 weapon or fire-mode switch always clears it.
 
+Applying it exposed the second half of the bug, in the effect's own apply chain. The scope
+effects (1313/1314/15347, and 102 without this row) are
+`StatModifier` (run speed ×0.5, jump height ×0.6, jet thrust ×0.5) → `CombatFlags`
+(`restrict_sprint`) → client animation/audio commands, and between the client commands sits a
+`RequirementServer` row with `Local=1` and everything else 0. That command names the machines
+whose local simulation may keep executing a chain — the flags are for the clients, which run
+the same chains against their own copy of the database to decide whether the feedback tail
+after the gate (the scope-in sound, the aim pose) is theirs to play. The server used to answer
+every row without `Server=1` with a failure, which aborted the apply chain and cleared the
+effect again in the same breath it had been replicated with: the client started the scoped view,
+then received the removal and blended the weapon back to hip fire while the zoom and
+`FireMode_1` stayed — the "ADS applies, then the animation plays back to hip fire" report. The
+server is the authority of every chain it executes (it is the zone server *and* the only machine
+simulating the entities), so `RequirementServerCommand` passes on the server now.
+
+The effect's duration chain (`BattleFrameDuration` → `RequireCState living` → the client's
+`tfRequireServerConfirmed`) keeps it alive for as long as the character is living, so nothing
+but scoping out, switching weapon or fire mode, or dying takes the scoped state away.
+
 `SetScopeBubble` (which shows up in the same chains, including the glider effects) is a command
 whose table we only have ids for, so it writes the character's `ScopeBubbleInfo` only when a row
 actually carries a layer value and clears it when the effect ends. Recovering the columns of
@@ -78,9 +97,12 @@ actually carries a layer value and clears it when the effect ends. Recovering th
   character carries), and by falling from height: a glide that engages must not do fall
   damage (`FallDamageSystem` exempts `Movestate.Glider`).
 - ADS: scope in and out repeatedly on a weapon with an underbarrel (rifle). The zoom must go
-  away with the animation. If it does not, the difference is in the effect the scope's `Statusfx`
-  id points at: `applyeffect <id>` applies it by hand and `listeffects` shows what a character
-  carries, which separates "the server never applied it" from "the effect itself does nothing".
+  away with the animation, and while the player holds the aim the weapon has to *stay* in the
+  aim pose — it must not blend back to hip fire on its own after a moment, which is the failed
+  `RequirementServer` gate taking the scope effect off again. Holding aim also carries the
+  effect's own penalties: sprint is disallowed and run speed is halved (`listeffects` shows the
+  effect a character carries, `applyeffect <id>` applies it by hand, which separates "the server
+  never applied it" from "the effect itself does nothing").
 
 ## Covered by the test suite
 
@@ -98,5 +120,9 @@ with the rest of the suite):
 - `PermissionAndGliderProfileCommandTests` — glider permissions and the glider profile are handed
   back when the effect that granted them ends, and one effect cannot switch off what another
   granted.
+- `RequirementServerCommandTests` — the `RequirementServer` gate passes on the server for every
+  machine flag row the table carries, the scope effect's apply chain (stat penalties, no-sprint,
+  client feedback) succeeds as a whole and registers its modifiers, and its duration chain keeps
+  the effect alive while the character is living.
 - `JumpActionedDetectionTests` — the jump detection on the 16 bit counter is modular, so a long
   fall is not reported as a jump.
