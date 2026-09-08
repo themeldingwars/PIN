@@ -66,7 +66,12 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
         {
             Effect = effect,
             Context = context,
-            Time = Shard.CurrentTime,
+            // Prefer the initiator's own timestamp for the replicated "effect started" time. Everything the
+            // client triggered itself (ability activation, scope-in via UseScope) carries the client clock
+            // through Context.InitTime, and the client matches server confirmations of its locally predicted
+            // effects against that value (tfRequireServerConfirmed runs on the client for scope effects);
+            // a server-generated time can never match the prediction, so the client would drop the effect.
+            Time = context.InitTime != 0 ? context.InitTime : Shard.CurrentTime,
             Stacks = 1,
             Index = firstFreeIndex
         };

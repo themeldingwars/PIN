@@ -702,8 +702,8 @@ public class Factory
             //     return new RemoteAbilityCallCommand(CustomDBInterface.GetRemoteAbilityCallCommandDef(commandId));
             // case CommandType.RequireInCombat:
             //     return new RequireInCombatCommand(SDBInterface.GetRequireInCombatCommandDef(commandId));
-            // case CommandType.RequireHasItem:
-            //     return new RequireHasItemCommand(SDBInterface.GetRequireHasItemCommandDef(commandId));
+            case CommandType.RequireHasItem:
+                return new RequireHasItemCommand(SDBInterface.GetRequireHasItemCommandDef(commandId));
             // case CommandType.MountVehicle:
             //     return new MountVehicleCommand(CustomDBInterface.GetMountVehicleCommandDef(commandId));
             case CommandType.RequireIsNPC:
