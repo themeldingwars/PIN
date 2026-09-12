@@ -2,8 +2,14 @@ name: CI
 
 on: [push, pull_request, workflow_dispatch]
 
+defaults:
+  run:
+    shell: bash
+
 env:
-  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
   build:
@@ -24,16 +30,20 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
+          persist-credentials: false
+          fetch-depth: 0
           submodules: recursive
       - name: Setup .NET ${{ matrix.dotnet.version }} SDK
         id: setup-dotnet
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ matrix.dotnet.version }}
       - name: Enforce SDK Version
-        run: dotnet new globaljson --sdk-version ${{ steps.setup-dotnet.outputs.dotnet-version }} --force
+        env:
+          DOTNET_VERSION: ${{ steps.setup-dotnet.outputs.dotnet-version }}
+        run: dotnet new globaljson --sdk-version "$DOTNET_VERSION" --force
       - name: Verify SDK Installation
         run: dotnet --info
         continue-on-error: true
@@ -50,7 +60,7 @@ jobs:
           cp ./CHANGELOG.md ./Publish
       - name: Upload Artifact
         if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 9'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: PIN-${{ github.sha }}
           path: Publish
