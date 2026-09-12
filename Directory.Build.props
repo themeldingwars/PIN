@@ -15,6 +15,14 @@
         <Copyright>Copyright © 2019-2026 by The Melding Wars</Copyright>
         <Product>Pirate Intelligence Network</Product>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(MSBuildProjectName)' != 'AeroMessages' And
+                              '$(MSBuildProjectName)' != 'BepuPhysics' And
+                              '$(MSBuildProjectName)' != 'BepuUtilities'">
+        <Authors>The Melding Wars</Authors>
+        <NeutralLanguage>en-US</NeutralLanguage>
+        <RepositoryUrl>https://github.com/themeldingwars/PIN</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
     <ItemGroup Condition="'$(MSBuildProjectName)' != 'AeroMessages' And
                           '$(MSBuildProjectName)' != 'BepuPhysics' And
                           '$(MSBuildProjectName)' != 'BepuUtilities'">
