@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": ["nuget"],
+  "dependencyDashboard": false,
+  "packageRules": [
+    {
+      "description": "Default cooldown for all NuGet packages",
+      "matchDatasources": ["nuget"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "No cooldown for TMW's own packages",
+      "matchDatasources": ["nuget"],
+      "matchPackageNames": [
+        "Aero.Gen",
+        "FauCap",
+        "FauCapParser",
+        "FauFau",
+        "ImTool",
+        "TMW.Bitter"
+      ],
+      "minimumReleaseAge": "0 days"
+    }
+  ]
+}
