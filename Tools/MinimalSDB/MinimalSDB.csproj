@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FauFau" Version="1.5.4" />
-    <PackageReference Include="TMW.Bitter" Version="1.1.2" />
+    <PackageReference Include="TMW.Bitter" Version="1.1.4" />
   </ItemGroup>
 
   <ItemGroup>
