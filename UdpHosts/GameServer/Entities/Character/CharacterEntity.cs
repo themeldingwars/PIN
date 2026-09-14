@@ -1607,7 +1607,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         var battleframe = SDBInterface.GetBattleframe(chassisId);
-        if (battleframe == null || battleframe.GibsetId == 0)
+        if (battleframe == null)
         {
             return false;
         }
