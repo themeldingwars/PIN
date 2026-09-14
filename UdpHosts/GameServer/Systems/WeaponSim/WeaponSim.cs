@@ -348,11 +348,6 @@ public class WeaponSim
         }
     }
 
-    private IEnumerable<INetworkPlayer> GetWeaponSimPlayers()
-    {
-        return _shard.Clients.Values.Where((client) => client.CanReceiveGSS);
-    }
-
     private IEnumerable<IEntity> GetWeaponSimPlayersEntities()
     {
         return _shard.Entities.Values.Where((entity) => entity is CharacterEntity character && character.IsPlayerControlled);
