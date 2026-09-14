@@ -89,18 +89,13 @@ public class MovementRelay
                 Aim = character.AimDirection,
             }
         };
-        foreach (var remoteClient in _shard.Clients.Values)
-        {
-            if (remoteClient.Status.Equals(IPlayer.PlayerStatus.Playing))
-            {
-                if (sendJumpActioned)
-                {
-                    remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(new JumpActioned { ShortTime = input.ShortTime }, character.EntityId);
-                }
 
-                remoteClient.NetChannels[ChannelType.UnreliableGss].SendMessage(currentPose, character.EntityId);
-            }
+        if (sendJumpActioned)
+        {
+            _shard.EntityMan.SendToScoped(character, new JumpActioned { ShortTime = input.ShortTime });
         }
+
+        _shard.EntityMan.SendToScoped(character, currentPose);
     }
 
     public void VehicleMovementInput(INetworkClient client, IEntity entity, AeroMessages.GSS.Vehicle.Command.MovementInput input)
