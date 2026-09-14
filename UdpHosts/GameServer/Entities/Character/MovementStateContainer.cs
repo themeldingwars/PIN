@@ -44,7 +44,7 @@ internal class MovementStateContainer
         }
         else
         {
-            MovementStateValue ^= (ushort)flag;
+            MovementStateValue &= (ushort)~flag;
         }
     }
 }
