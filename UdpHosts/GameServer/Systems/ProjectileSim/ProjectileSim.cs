@@ -66,6 +66,8 @@ public class ProjectileSim
             ImpactRadius = impactRadius,
             MaxRadius = maxRadius,
             Damage = damage,
+            DamageType = ammo.Damagetype,
+            DamageResponse = ammo.DamageResponse,
             IsDrunk = isDrunk,
             IsAbilityProjectile = isAbilityProjectile
         };
@@ -155,7 +157,7 @@ public class ProjectileSim
                     var source = GetSourceEntity(projectile);
                     if (source != null)
                     {
-                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.ImpactRadius, projectile.Damage, projectile.IsAbilityProjectile);
+                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.ImpactRadius, projectile.Damage, projectile.DamageType, projectile.IsAbilityProjectile);
                     }
                 }
             }

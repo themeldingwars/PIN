@@ -201,7 +201,7 @@ public partial class PhysicsEngine
         return hitResult;
     }
 
-    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, float impactRadius, float damage, bool isAbilityProjectile = false)
+    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, float impactRadius, float damage, byte damageType, bool isAbilityProjectile = false)
     {
         DebugProjectileHitCallbacks?.SendDebugProjectileImpact(source, trace, hit.HitPosition, hit.Normal);
 
@@ -213,10 +213,10 @@ public partial class PhysicsEngine
 
         if (hit.HitEntityId != 0)
         {
-            bool emittedDirectHit = TryEmitDirectHit(source, trace, hit.Collidable, hit.ChildIndex, hit.HitPosition, hit.HitEntityId, damageAmount, isAbilityProjectile);
+            bool emittedDirectHit = TryEmitDirectHit(source, trace, hit.Collidable, hit.ChildIndex, hit.HitPosition, hit.HitEntityId, damageAmount, damageType, isAbilityProjectile);
             if (!emittedDirectHit)
             {
-                EmitGenericProjectileHit(hit.HitEntityId, damageAmount, source.EntityId, isAbilityProjectile, isSplash: false);
+                EmitGenericProjectileHit(hit.HitEntityId, damageAmount, damageType, source.EntityId, isAbilityProjectile, isSplash: false);
             }
         }
 
@@ -230,7 +230,7 @@ public partial class PhysicsEngine
                     continue;
                 }
 
-                EmitGenericProjectileHit(targetId, damageAmount, source.EntityId, isAbilityProjectile, isSplash: true);
+                EmitGenericProjectileHit(targetId, damageAmount, damageType, source.EntityId, isAbilityProjectile, isSplash: true);
             }
         }
     }
@@ -487,7 +487,7 @@ public partial class PhysicsEngine
         });
     }
 
-    private bool TryEmitDirectHit(CharacterEntity source, uint trace, CollidableReference collidable, int childIndex, Vector3 hitPosition, ulong hitEntityId, int damageAmount, bool isAbilityProjectile)
+    private bool TryEmitDirectHit(CharacterEntity source, uint trace, CollidableReference collidable, int childIndex, Vector3 hitPosition, ulong hitEntityId, int damageAmount, byte damageType, bool isAbilityProjectile)
     {
         AssertSimulationThread();
 
@@ -517,18 +517,18 @@ public partial class PhysicsEngine
         var damageMod = poseShapeData.DamageMod;
 
         _logger.Debug("ProjectileSim Impact on {ShapeName} (headshot={Headshot}, crit={Crit}, damageMod={DamageMod})", poseShapeData.Name, headshot, crit, damageMod);
-        _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, damageAmount, source.EntityId, headshot, crit, damageMod, isAbilityProjectile));
+        _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, damageAmount, source.EntityId, headshot, crit, damageType, damageMod, isAbilityProjectile));
         return true;
     }
 
-    private void EmitGenericProjectileHit(ulong targetId, int damageAmount, ulong sourceId, bool isAbilityProjectile, bool isSplash)
+    private void EmitGenericProjectileHit(ulong targetId, int damageAmount, byte damageType, ulong sourceId, bool isAbilityProjectile, bool isSplash)
     {
         if (damageAmount <= 0)
         {
             return;
         }
 
-        _eventBus.Enqueue(new ProjectileHitEvent("body", targetId, damageAmount, sourceId, false, false, -1f, isAbilityProjectile, isSplash));
+        _eventBus.Enqueue(new ProjectileHitEvent("body", targetId, damageAmount, sourceId, false, false, damageType, -1f, isAbilityProjectile, isSplash));
     }
 
     partial void DebugInitialize(bool isDebugPipeClient, uint zoneId);
