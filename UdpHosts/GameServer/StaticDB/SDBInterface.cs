@@ -571,6 +571,8 @@ public class SDBInterface
     public static DamageType GetDamageType(byte id) => _damageType.GetValueOrDefault(id);
     public static DamageResponse GetDamageResponse(byte id) => _damageResponse.GetValueOrDefault(id);
     public static DamageResponseDamageType GetDamageResponseDamageType(uint id) => _damageResponseDamageType.GetValueOrDefault(id);
+    public static float? GetDamageResponseDamageType(byte damageResponse, byte damageType) => _damageResponseDamageType?.Values.FirstOrDefault(row =>
+            row.Damageresponse == damageResponse && row.Damagetype == damageType)?.Multiplier;
     public static TinyObject GetTinyObject(uint id) => _tinyObject.GetValueOrDefault(id);
     public static Faction GetFaction(uint id) => _faction.GetValueOrDefault(id);
     public static List<Faction> GetFactions() => [.. _faction.Select(pair => pair.Value)];

@@ -12,6 +12,7 @@ public interface IEntity
     Vector3 Position { get; set; }
     Quaternion Orientation { get; set; }
     HostilityInfoData HostilityInfo { get; set; }
+    byte DamageResponse { get; }
 
     bool IsInteractable();
     bool CanBeInteractedBy(IEntity other);

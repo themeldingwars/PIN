@@ -134,7 +134,7 @@ public class EntityManager
     public DeployableEntity SpawnDeployable(uint typeId, Vector3 position, Quaternion orientation, CharacterEntity owner = null, bool useOwnerFaction = false, byte overrideFactionId = 0)
     {
         var deployableInfo = SDBInterface.GetDeployable(typeId);
-        var deployableEntity = new DeployableEntity(_shard, _shard.GetNextGuid(), typeId, 0, owner);
+        var deployableEntity = new DeployableEntity(_shard, _shard.GetNextGuid(), typeId, 0, deployableInfo.Damageresponse, owner);
         var aimDirection = new Vector3(deployableInfo.AimDirection.x, deployableInfo.AimDirection.y, deployableInfo.AimDirection.z);
         deployableEntity.SetPosition(position);
         deployableEntity.SetOrientation(orientation);

@@ -12,12 +12,13 @@ namespace GameServer.Entities.Deployable;
 public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
 {
     // TODO: Add Deployable Hardpoint support
-    public DeployableEntity(IShard shard, ulong eid, uint type, uint abilitySrcId, CharacterEntity owner = null)
+    public DeployableEntity(IShard shard, ulong eid, uint type, uint abilitySrcId, byte damageResponse = 0, CharacterEntity owner = null)
         : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Deployable };
         Type = type;
         AbilitySrcId = abilitySrcId;
+        DamageResponse = damageResponse;
         InitFields();
         InitViews();
     }

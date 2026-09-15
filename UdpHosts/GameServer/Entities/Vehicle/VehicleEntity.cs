@@ -216,6 +216,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         DeathAbility = vehicleInfo.DeathAbility;
         CurrentHealth = (uint)vehicleInfo.MaxHitPoints;
         MaxHealth = (uint)vehicleInfo.MaxHitPoints;
+        DamageResponse = (byte)vehicleInfo.DamageResponse;
 
         sbyte emptySeatIdx = 0;
 

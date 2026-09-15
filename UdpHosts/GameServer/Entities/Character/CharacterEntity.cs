@@ -341,6 +341,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         ApplyLoadout(loadout);
 
+        if (monsterInfo.DamageResponseId != 0)
+        {
+            DamageResponse = monsterInfo.DamageResponseId;
+        }
+
         // Temp hack to equip weapon
         if (monsterInfo.Weapon1Id != 0)
         {
@@ -672,6 +677,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 HitboxCollisionId = battleframeVisualRecord.HitboxCollisionId,
                 Scale = battleframeRecord.MinRandScale,
             };
+
+            DamageResponse = battleframeRecord.DamageResponse;
         }
     }
 

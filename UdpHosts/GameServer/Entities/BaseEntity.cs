@@ -23,6 +23,8 @@ public class BaseEntity : IEntity
     public Quaternion Orientation { get; set; } = Quaternion.Identity;
     public HostilityInfoData HostilityInfo { get; set; }
 
+    public byte DamageResponse { get; protected set; }
+
     public CollisionComponent Collision { get; set; }
     public InteractionComponent Interaction { get; set; }
     public ScopingComponent Scoping { get; set; }
