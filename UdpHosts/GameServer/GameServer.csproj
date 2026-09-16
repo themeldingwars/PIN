@@ -19,7 +19,7 @@
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.Map" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="9.1.0" />
-    <PackageReference Include="System.IO.Hashing" Version="10.0.11" />
+    <PackageReference Include="System.IO.Hashing" Version="10.0.12" />
     <PackageReference Include="FauFau" Version="1.5.4" />
     <PackageReference Include="TMW.Bitter" Version="1.1.5" />
   </ItemGroup>
