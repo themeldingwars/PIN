@@ -16,4 +16,9 @@ public class MatrixServerSettings
     ///     UDP port the game server should be listening on
     /// </summary>
     public ushort Port { get; set; } = 25000;
+
+    /// <summary>
+    ///     UDP port of the game server that clients get handed over to
+    /// </summary>
+    public ushort GameServerPort { get; set; } = 25001;
 }

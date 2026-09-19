@@ -1,1 +1,1 @@
-start /D WebHostManager\bin\Debug\net8.0 WebHostManager\bin\Debug\net8.0\WebHostManager.exe
+start /D WebHosts\WebHostManager\bin\Debug\net9.0 WebHosts\WebHostManager\bin\Debug\net9.0\WebHostManager.exe

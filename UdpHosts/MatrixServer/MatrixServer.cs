@@ -9,10 +9,13 @@ namespace MatrixServer;
 
 internal class MatrixServer : PacketServer
 {
+    private readonly ushort _gameServerPort;
+
     public MatrixServer(MatrixServerSettings matrixServerSettings,
                         ILogger logger)
         : base(matrixServerSettings.Port, logger)
     {
+        _gameServerPort = matrixServerSettings.GameServerPort;
     }
 
     protected override void HandlePacket(Packet packet, CancellationToken ct)
@@ -59,7 +62,7 @@ internal class MatrixServer : PacketServer
                     Logger.Information("SocketID [{SocketID}] GSS Protocol {GssVersion} ({StreamingProtocolVersion})", kiss.ReceivedSocketID, gssVersion, kiss.StreamingProtocolVersion);
                 }
 
-                _ = SendAsync(Serializer.WriteStruct(new MatrixPacketHugg(1, 25001)), packet.RemoteEndpoint);
+                _ = SendAsync(Serializer.WriteStruct(new MatrixPacketHugg(1, _gameServerPort)), packet.RemoteEndpoint);
                 break;
             case "ABRT":
                 var abrt = Deserializer.ReadStruct<MatrixPacketAbrt>(mem);

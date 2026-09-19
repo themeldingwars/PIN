@@ -17,7 +17,7 @@ https://user-images.githubusercontent.com/920861/134824107-03e9f99c-b420-47c7-b7
 5. Make a backup copy of the original `FirefallClient.exe` in `Firefall\system\bin`
 6. Replace the `FirefallClient.exe` with the patched `FirefallClient.exe` from the PIN release
 7. Make sure the [.NET 9 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) is installed
-8. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
+8. Create a self-signed development certificate by running `dotnet dev-certs https`. Note that this needs the .NET SDK, not only the runtime. `--trust` isn't needed, the client doesn't check the certificate
 9. Start all three applications:
    - GameServer
    - MatrixServer
@@ -66,7 +66,7 @@ PlayIntroMovie = false
 2. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
 3. Build the solution
 4. Edit the `GameServer.dll.config` produced by the build in `UdpHosts\GameServer\bin\Release\net9.0` to ensure that `StaticDBPath`, `AssetDBPath`, `MapsPath` are correct.
-5. Trust self-signed development certificates by running `dotnet dev-certs https --trust`
+5. Create a self-signed development certificate by running `dotnet dev-certs https`. Add `--trust` if you want the browser to stop warning about the web hosts, the client doesn't care either way
 6. Start multiple targets at once
    - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, GameServer and MatrixServer
    - Rider: Create a `Compound` target that starts WebHostManager, GameServer and MatrixServer

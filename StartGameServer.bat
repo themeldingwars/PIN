@@ -1,1 +1,1 @@
-start /D UdpHosts\GameServer\bin\Debug\net8.0 UdpHosts\GameServer\bin\Debug\net8.0\GameServer.exe
+start /D UdpHosts\GameServer\bin\Debug\net9.0 UdpHosts\GameServer\bin\Debug\net9.0\GameServer.exe
