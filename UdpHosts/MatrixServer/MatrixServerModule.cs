@@ -50,7 +50,8 @@ public class MatrixServerModule : Module
         builder.Register(ctx =>
                          {
                              var loggerConfig = new LoggerConfiguration()
-                                                .WriteTo.Console(theme: SerilogTheme.Custom);
+                                                .WriteTo.Console(theme: SerilogTheme.Custom)
+                                                .WriteToOpenTelemetryIfEnabled();
 
                              var settings = ctx.Resolve<MatrixServerSettings>();
 

@@ -68,7 +68,8 @@ public class GameServerModule : Module
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Is(initialLevel)
                 .Enrich.FromLogContext()
-                .Enrich.With<LogSystemEnricher>();
+                .Enrich.With<LogSystemEnricher>()
+                .WriteToOpenTelemetryIfEnabled();
 
             if (settings.LogOutputs.HasFlag(GameServerSettings.LogOutput.Console))
             {
