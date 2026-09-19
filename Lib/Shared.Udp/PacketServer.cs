@@ -33,10 +33,17 @@ public abstract class PacketServer : IPacketSender
 
     public bool IsRunning { get; private set; }
 
+    protected string HealthUrl { get; init; }
+
+    protected virtual bool IsReady => IsRunning;
+
     public void Run()
     {
         Source = new CancellationTokenSource();
         var ct = Source.Token;
+
+        using var health = string.IsNullOrEmpty(HealthUrl) ? null : new HealthEndpoint(HealthUrl, () => IsReady, Logger);
+        health?.Start(ct);
 
         IncomingPackets = new BufferBlock<Packet?>();
         OutgoingPackets = new BufferBlock<Packet?>();

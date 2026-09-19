@@ -35,6 +35,7 @@ internal class GameServer : PacketServer
         _serverId = GenerateServerId();
 
         _settings = serverSettings;
+        HealthUrl = serverSettings.HealthUrl;
 
         Logger.Information("Serving client {Environment}/{Branch} version {ClientVersion}: GSS protocol {GssVersion}, Matrix protocol {MatrixVersion}", serverSettings.ClientEnvironment, serverSettings.ClientBranch, serverSettings.ClientVersion, serverSettings.GssProtocolVersion, serverSettings.MatrixProtocolVersion);
 
@@ -47,6 +48,8 @@ internal class GameServer : PacketServer
         Logger.ForContext(typeof(GRPCService)).Information("Initializing GRPC");
         GRPCService.Init(serverSettings.GrpcChannelAddress);
     }
+
+    protected override bool IsReady => _isReady;
 
     protected override void Startup(CancellationToken ct)
     {

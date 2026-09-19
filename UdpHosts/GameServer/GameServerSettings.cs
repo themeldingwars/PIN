@@ -43,6 +43,11 @@ public class GameServerSettings
     public ushort Port { get; set; } = 25001;
 
     /// <summary>
+    ///    Optional URL for an HTTP health endpoint that reports whether the server accepts connections, e.g. "http://localhost:25081/"
+    /// </summary>
+    public string HealthUrl { get; set; } = string.Empty;
+
+    /// <summary>
     ///    Firefall client version this server instance serves. Used to resolve the network protocol.
     /// </summary>
     public string ClientVersion { get; set; } = "1962";

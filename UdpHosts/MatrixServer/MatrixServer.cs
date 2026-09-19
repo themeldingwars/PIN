@@ -16,6 +16,7 @@ internal class MatrixServer : PacketServer
         : base(matrixServerSettings.Port, logger)
     {
         _gameServerPort = matrixServerSettings.GameServerPort;
+        HealthUrl = matrixServerSettings.HealthUrl;
     }
 
     protected override void HandlePacket(Packet packet, CancellationToken ct)
