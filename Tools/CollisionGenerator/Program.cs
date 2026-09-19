@@ -52,11 +52,16 @@ public class Options
 
     [Option('j', "jobs", Required = false, Default = 0, HelpText = "Number of parallel jobs (default: CPU count - 2)")]
     public int Jobs { get; set; }
+
+    [Option('s', "skip-if-current", Required = false, HelpText = "Do nothing if the cache was already generated with the same options and source files")]
+    public bool SkipIfCurrent { get; set; }
 }
 
 internal static class Program
 {
     private static readonly ILogger Logger = Log.ForContext(typeof(Program));
+
+    private static int _failures;
 
     private static int Main(string[] args)
     {
@@ -164,6 +169,16 @@ internal static class Program
             return 1;
         }
 
+        var manifest = CacheManifest.FromOptions(opts);
+        if (opts.SkipIfCurrent && CacheManifest.Load(opts.CachePath) == manifest)
+        {
+            Logger.Information("Cache in {CachePath} is current, nothing to do", opts.CachePath);
+            return 0;
+        }
+
+        // Leave no manifest behind, when the cache is incomplete or failed
+        File.Delete(Path.Combine(opts.CachePath, "manifest.json"));
+
         // Phase 1: Chunk phase (if --all-chunks or --all-zones)
         if (opts.AllChunks || opts.AllZones)
         {
@@ -232,7 +247,15 @@ internal static class Program
         Logger.Information("  Chunk phase: {Elapsed}", chunkTime);
         Logger.Information("  Zone phase:  {Elapsed}", zoneTime);
         Logger.Information("  Asset phase: {Elapsed}", assetTime);
-        Logger.Information("  Total:       {Elapsed}", stopwatch.Elapsed);
+        Logger.Information("  Total:       {Elapsed}", chunkTime + zoneTime + assetTime);
+
+        if (_failures > 0)
+        {
+            Logger.Error("{Failures} item(s) failed, the cache is incomplete", _failures);
+            return 1;
+        }
+
+        manifest.Save(opts.CachePath);
         Logger.Information("Done.");
         return 0;
     }
@@ -243,28 +266,29 @@ internal static class Program
 Usage: CollisionGenerator [options]
 
 Required:
-  --cache-path, -c    Output directory for cache files (REQUIRED)
+  --cache-path, -c       Output directory for cache files (REQUIRED)
 
 Chunk mode (requires --maps-path):
-  --maps-path, -m     Path to .zone and .gtchunk files
-  --chunk-name        Process a single .gtchunk file by name (without extension)
-  --all-chunks        Process ALL .gtchunk files in maps/chunks/
+  --maps-path, -m        Path to .zone and .gtchunk files
+  --chunk-name           Process a single .gtchunk file by name (without extension)
+  --all-chunks           Process ALL .gtchunk files in maps/chunks/
   Note: --chunk-name and --all-chunks are mutually exclusive
 
 Zone mode (requires --maps-path):
-  --maps-path, -m     Path to .zone and .gtchunk files
-  --zone-id, -z       Load a single zone by ID
-  --all-zones         Process all chunks for all zones (alias for --all-chunks)
+  --maps-path, -m        Path to .zone and .gtchunk files
+  --zone-id, -z          Load a single zone by ID
+  --all-zones            Process all chunks for all zones (alias for --all-chunks)
   Note: --zone-id and --all-zones are mutually exclusive
 
 Asset mode (requires --asset-db-path):
-  --asset-db-path, -a Path to system/assetdb
-  --asset-id          Process a single asset by ID
-  --all-assets        Process ALL .hkx files in assetdb
+  --asset-db-path, -a    Path to system/assetdb
+  --asset-id             Process a single asset by ID
+  --all-assets           Process ALL .hkx files in assetdb
   Note: --asset-id and --all-assets are mutually exclusive
 
 Other:
-  --jobs, -j          Number of parallel jobs (default: CPU count - 2)
+  --jobs, -j             Number of parallel jobs (default: CPU count - 2)
+  --skip-if-current, -s  Do nothing if the cache was already generated with the same options and source files
 
 Examples:
   # Process a single chunk
@@ -345,6 +369,7 @@ Examples:
         }
         catch (Exception e)
         {
+            Interlocked.Increment(ref _failures);
             Logger.Error("Failed to process chunk {Label}: {Error}", label, e.Message);
         }
         finally
@@ -362,6 +387,7 @@ Examples:
         var zoneFilePath = Path.Combine(mapsPath, $"{zoneId}.zone");
         if (!File.Exists(zoneFilePath))
         {
+            Interlocked.Increment(ref _failures);
             Logger.Error("Zone file not found: {Path}", zoneFilePath);
             return;
         }
@@ -371,6 +397,7 @@ Examples:
             var zone = ZoneFileReader.Read(zoneFilePath);
             if (zone.Root is not ZoneRootLayer rootLayer)
             {
+                Interlocked.Increment(ref _failures);
                 Logger.Error("Invalid zone root layer for zone {ZoneId}", zoneId);
                 return;
             }
@@ -383,6 +410,7 @@ Examples:
         }
         catch (Exception e)
         {
+            Interlocked.Increment(ref _failures);
             Logger.Error("Failed to load zone {ZoneId}: {Error}", zoneId, e.Message);
         }
     }
@@ -402,6 +430,7 @@ Examples:
         }
         catch (Exception e)
         {
+            Interlocked.Increment(ref _failures);
             Logger.Error("Failed to load asset {AssetId}: {Error}", assetId, e.Message);
         }
         finally
@@ -433,6 +462,7 @@ Examples:
         }
         catch (Exception e)
         {
+            Interlocked.Increment(ref _failures);
             Logger.Error("Parallel processing failed: {Error}", e.Message);
             cts.Cancel();
         }
