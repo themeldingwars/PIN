@@ -9,7 +9,7 @@
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.Map" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="9.1.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.34.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.36.2" />
     <PackageReference Include="Grpc.Net.Client" Version="2.76.0" />
     <PackageReference Include="Grpc.Tools" Version="2.76.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
