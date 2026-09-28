@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Configuration;
 using System.Linq;
 using Aero.Protocol;
 using Autofac;
 using GameServer.Logging;
 using GameServer.StaticDB;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Events;
 using Shared.Common;
@@ -31,120 +31,18 @@ public class GameServerModule : Module
 
     private static void RegisterInstances(ContainerBuilder builder)
     {
+        builder.Register(_ => new ConfigurationBuilder()
+                              .SetBasePath(AppContext.BaseDirectory)
+                              .AddJsonFile("appsettings.json", optional: false)
+                              .AddJsonFile("appsettings.Local.json", optional: true)
+                              .AddEnvironmentVariables()
+                              .Build())
+        .As<IConfiguration>().SingleInstance();
+
         builder.Register(ctx =>
         {
             var settings = new GameServerSettings();
-
-            if (ConfigurationManager.AppSettings["Port"] != null)
-            {
-                settings.Port = ushort.Parse(ConfigurationManager.AppSettings["Port"]);
-            }
-
-            if (ConfigurationManager.AppSettings["ClientVersion"] != null)
-            {
-                settings.ClientVersion = ConfigurationManager.AppSettings["ClientVersion"];
-            }
-
-            if (ConfigurationManager.AppSettings["ClientEnvironment"] != null)
-            {
-                settings.ClientEnvironment = ConfigurationManager.AppSettings["ClientEnvironment"];
-            }
-
-            if (ConfigurationManager.AppSettings["ClientBranch"] != null)
-            {
-                settings.ClientBranch = ConfigurationManager.AppSettings["ClientBranch"];
-            }
-
-            if (ConfigurationManager.AppSettings["serilog:minimum-level"] != null)
-            {
-                if (Enum.TryParse(ConfigurationManager.AppSettings["serilog:minimum-level"], out LogEventLevel result))
-                {
-                    settings.LogLevel = result;
-                }
-            }
-
-            var logOutputs = ConfigurationManager.AppSettings["serilog:write-to"];
-            if (logOutputs != null)
-            {
-                if (Enum.TryParse(logOutputs, true, out GameServerSettings.LogOutput outputs))
-                {
-                    settings.LogOutputs = outputs;
-                }
-            }
-
-            if (ConfigurationManager.AppSettings["GrpcChannelAddress"] != null)
-            {
-                settings.GrpcChannelAddress = ConfigurationManager.AppSettings["GrpcChannelAddress"];
-            }
-
-            if (ConfigurationManager.AppSettings["StaticDBPath"] != null)
-            {
-                settings.StaticDBPath = ConfigurationManager.AppSettings["StaticDBPath"];
-            }
-
-            if (ConfigurationManager.AppSettings["ZoneId"] != null)
-            {
-                settings.ZoneId = uint.Parse(ConfigurationManager.AppSettings["ZoneId"]);
-            }
-
-            if (ConfigurationManager.AppSettings["MapsPath"] != null)
-            {
-                settings.MapsPath = ConfigurationManager.AppSettings["MapsPath"];
-
-                if (ConfigurationManager.AppSettings["LoadMapsCollision"] != null)
-                {
-                    if (bool.TryParse(ConfigurationManager.AppSettings["LoadMapsCollision"], out bool value))
-                    {
-                        settings.LoadMapsCollision = value;
-                    }
-                    else
-                    {
-                        Log.Error($"Cannot parse LoadMapsCollision setting value");
-                    }
-                }
-            }
-
-            if (ConfigurationManager.AppSettings["LoadZoneEntities"] != null)
-            {
-                if (bool.TryParse(ConfigurationManager.AppSettings["LoadZoneEntities"], out bool value))
-                {
-                    settings.LoadZoneEntities = value;
-                }
-                else
-                {
-                    Log.Error($"Cannot parse LoadZoneEntities setting value");
-                }
-            }
-
-            if (ConfigurationManager.AppSettings["AssetDBPath"] != null)
-            {
-                settings.AssetDBPath = ConfigurationManager.AppSettings["AssetDBPath"];
-            }
-
-            if (ConfigurationManager.AppSettings["CachePath"] != null)
-            {
-                settings.CachePath = ConfigurationManager.AppSettings["CachePath"];
-            }
-
-            if (ConfigurationManager.AppSettings["ForceReloadZone"] != null)
-            {
-                if (bool.TryParse(ConfigurationManager.AppSettings["ForceReloadZone"], out bool forceReload))
-                {
-                    settings.ForceReloadZone = forceReload;
-                }
-            }
-
-            if (ConfigurationManager.AppSettings["BatchOutgoingPackets"] != null)
-            {
-                if (bool.TryParse(ConfigurationManager.AppSettings["BatchOutgoingPackets"], out bool batchOutgoingPackets))
-                {
-                    settings.BatchOutgoingPackets = batchOutgoingPackets;
-                }
-                else
-                {
-                    Log.Error($"Cannot parse BatchOutgoingPackets setting value");
-                }
-            }
+            ctx.Resolve<IConfiguration>().GetSection("GameServer").Bind(settings);
 
             ResolveProtocolVersions(settings);
 
@@ -157,46 +55,30 @@ public class GameServerModule : Module
             var settings = ctx.Resolve<GameServerSettings>();
             var initialLevel = settings.LogLevel ?? LogEventLevel.Debug;
             settings.LevelSwitch.MinimumLevel = initialLevel;
-            var appSettings = ConfigurationManager.AppSettings;
 
             var loggerConfig = new LoggerConfiguration()
-                .ReadFrom.AppSettings()
+                .MinimumLevel.Is(initialLevel)
                 .Enrich.FromLogContext()
                 .Enrich.With<LogSystemEnricher>();
 
             if (settings.LogOutputs.HasFlag(GameServerSettings.LogOutput.Console))
             {
-                var minLevelConsole = initialLevel;
-                if (Enum.TryParse(appSettings["serilog:write-to:Console.restrictedToMinimumLevel"], out LogEventLevel result))
-                {
-                    minLevelConsole = result;
-                }
-
-                loggerConfig = loggerConfig.WriteTo.Console(theme: SerilogTheme.Custom, restrictedToMinimumLevel: minLevelConsole);
+                loggerConfig = loggerConfig.WriteTo.Console(theme: SerilogTheme.Custom, restrictedToMinimumLevel: settings.Logging.Console ?? initialLevel);
             }
 
             if (settings.LogOutputs.HasFlag(GameServerSettings.LogOutput.Seq))
             {
-                var minLevelSeq = initialLevel;
-                if (Enum.TryParse(appSettings["serilog:write-to:Seq.restrictedToMinimumLevel"],
-                                  out LogEventLevel result))
-                {
-                    minLevelSeq = result;
-                }
-
-                var seqUrl = appSettings["serilog:write-to:Seq.serverUrl"] ?? "http://localhost:5341";
                 loggerConfig = loggerConfig
                     .Enrich.With(new EntityIdEnricher())
-                    .WriteTo.Seq(seqUrl, controlLevelSwitch: settings.LevelSwitch, restrictedToMinimumLevel: minLevelSeq);
+                    .WriteTo.Seq(
+                        settings.Logging.SeqServerUrl,
+                        controlLevelSwitch: settings.LevelSwitch,
+                        restrictedToMinimumLevel: settings.Logging.Seq ?? initialLevel);
             }
 
             if (settings.LogOutputs.HasFlag(GameServerSettings.LogOutput.File))
             {
-                var minLevelFile = initialLevel;
-                if (Enum.TryParse(appSettings["serilog:write-to:File.restrictedToMinimumLevel"], out LogEventLevel result))
-                {
-                    minLevelFile = result;
-                }
+                var minLevelFile = settings.Logging.File ?? initialLevel;
 
                 string LogTemplate(bool withSystem)
                     => $"[{{Timestamp:HH:mm:ss.fff}}] [{{Level:u3}}] {(withSystem ? "[{System}] " : string.Empty)}{{Message:lj}}{{NewLine}}{{Exception}}";
@@ -217,22 +99,8 @@ public class GameServerModule : Module
                             restrictedToMinimumLevel: minLevelFile));
             }
 
-            const string SystemLevelPrefix = "serilog:system-level:";
-
-            foreach (string key in appSettings.AllKeys)
+            foreach (var (systemName, systemLevel) in settings.Logging.SystemLevels)
             {
-                if (key == null || !key.StartsWith(SystemLevelPrefix, StringComparison.InvariantCulture))
-                {
-                    continue;
-                }
-
-                var systemName = key[SystemLevelPrefix.Length..];
-                var levelStr   = appSettings[key];
-                if (!Enum.TryParse<LogEventLevel>(levelStr, out var systemLevel))
-                {
-                    continue;
-                }
-
                 loggerConfig = loggerConfig.Filter.ByExcluding(logEvent =>
                 {
                     if (!logEvent.Properties.TryGetValue("System", out var val) ||

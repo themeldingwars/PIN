@@ -20,6 +20,7 @@
 ### Changed
 
 - Update build pipeline to support .NET 8 & 9 and the latest macOS version
+- Switch configuration from `App.config` to `appsettings.json`
 - Update most dependencies
 
 ### Fixed

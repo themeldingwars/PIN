@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Aero.Protocol;
 using Serilog.Core;
 using Serilog.Events;
@@ -30,6 +31,11 @@ public class GameServerSettings
     public LogOutput LogOutputs { get; set; } = LogOutput.Console;
 
     public LoggingLevelSwitch LevelSwitch { get; set; } = new();
+
+    /// <summary>
+    ///     Per sink log levels, the Seq address and the per system minimum levels
+    /// </summary>
+    public LogSettings Logging { get; set; } = new();
 
     /// <summary>
     ///    UDP port the game server should be listening on
@@ -110,4 +116,35 @@ public class GameServerSettings
     ///    Batch multiple outgoing game messages into a single packet (up to the MTU budget).
     /// </summary>
     public bool BatchOutgoingPackets { get; set; } = true;
+
+    /// <summary>
+    ///     Log settings that only apply to a single sink
+    /// </summary>
+    public class LogSettings
+    {
+        /// <summary>
+        ///     Minimum level for the console sink, falls back to <see cref="GameServerSettings.LogLevel" />
+        /// </summary>
+        public LogEventLevel? Console { get; set; }
+
+        /// <summary>
+        ///     Minimum level for the rolling file sinks, falls back to <see cref="GameServerSettings.LogLevel" />
+        /// </summary>
+        public LogEventLevel? File { get; set; }
+
+        /// <summary>
+        ///     Minimum level for the Seq sink, falls back to <see cref="GameServerSettings.LogLevel" />
+        /// </summary>
+        public LogEventLevel? Seq { get; set; }
+
+        /// <summary>
+        ///     Address of the Seq server to write to
+        /// </summary>
+        public string SeqServerUrl { get; set; } = "http://localhost:5341";
+
+        /// <summary>
+        ///     Minimum level per log system. Events of that system below the level are dropped for every sink.
+        /// </summary>
+        public Dictionary<string, LogEventLevel> SystemLevels { get; set; } = new();
+    }
 }
