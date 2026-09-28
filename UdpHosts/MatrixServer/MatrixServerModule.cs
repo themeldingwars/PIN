@@ -1,4 +1,6 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using Shared.Common;
 
@@ -15,16 +17,30 @@ public class MatrixServerModule : Module
 
     private static void RegisterTypes(ContainerBuilder builder)
     {
-        builder.RegisterType<MatrixServerSettings>().SingleInstance();
         builder.RegisterType<MatrixServer>();
     }
 
     private static void RegisterInstances(ContainerBuilder builder)
     {
+        builder.Register(_ => new ConfigurationBuilder()
+                              .SetBasePath(AppContext.BaseDirectory)
+                              .AddJsonFile("appsettings.json", optional: false)
+                              .AddJsonFile("appsettings.Local.json", optional: true)
+                              .AddEnvironmentVariables()
+                              .Build())
+               .As<IConfiguration>().SingleInstance();
+
+        builder.Register(ctx =>
+                         {
+                             var settings = new MatrixServerSettings();
+                             ctx.Resolve<IConfiguration>().GetSection("MatrixServer").Bind(settings);
+
+                             return settings;
+                         }).As<MatrixServerSettings>().SingleInstance();
+
         builder.Register(ctx =>
                          {
                              var loggerConfig = new LoggerConfiguration()
-                                                .ReadFrom.AppSettings()
                                                 .WriteTo.Console(theme: SerilogTheme.Custom);
 
                              var settings = ctx.Resolve<MatrixServerSettings>();
