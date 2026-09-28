@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Serilog;
@@ -8,10 +9,17 @@ namespace MatrixServer;
 
 public class MatrixServerModule : Module
 {
+    private readonly IReadOnlyDictionary<string, string> _commandLineOverrides;
+
+    public MatrixServerModule(IReadOnlyDictionary<string, string> commandLineOverrides)
+    {
+        _commandLineOverrides = commandLineOverrides;
+    }
+
     protected override void Load(ContainerBuilder builder)
     {
         RegisterTypes(builder);
-        RegisterInstances(builder);
+        RegisterInstances(builder, _commandLineOverrides);
         base.Load(builder);
     }
 
@@ -20,13 +28,14 @@ public class MatrixServerModule : Module
         builder.RegisterType<MatrixServer>();
     }
 
-    private static void RegisterInstances(ContainerBuilder builder)
+    private static void RegisterInstances(ContainerBuilder builder, IReadOnlyDictionary<string, string> commandLineOverrides)
     {
         builder.Register(_ => new ConfigurationBuilder()
                               .SetBasePath(AppContext.BaseDirectory)
                               .AddJsonFile("appsettings.json", optional: false)
                               .AddJsonFile("appsettings.Local.json", optional: true)
                               .AddEnvironmentVariables()
+                              .AddInMemoryCollection(commandLineOverrides)
                               .Build())
                .As<IConfiguration>().SingleInstance();
 

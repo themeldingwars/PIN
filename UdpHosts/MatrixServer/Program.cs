@@ -10,15 +10,9 @@ internal static class Program
 {
     private static void Main(string[] arguments)
     {
-        using var container = CreateContainer();
-
-        var settings = container.Resolve<MatrixServerSettings>();
-
         var options = ParseCliOptions(arguments);
-        if (options is not null)
-        {
-            ApplyCliOptions(options, settings);
-        }
+
+        using var container = CreateContainer(CommandLineOverrides(options));
 
         var server = container.Resolve<MatrixServer>();
         server.Run();
@@ -27,15 +21,16 @@ internal static class Program
     /// <summary>
     ///     Create Autofac container for dependency injection
     /// </summary>
-    private static IContainer CreateContainer()
+    /// <param name="commandLineOverrides">Settings from the CLI that override the config file and the environment</param>
+    private static IContainer CreateContainer(IReadOnlyDictionary<string, string> commandLineOverrides)
     {
         var containerBuilder = new ContainerBuilder();
-        containerBuilder.RegisterModule<MatrixServerModule>();
+        containerBuilder.RegisterModule(new MatrixServerModule(commandLineOverrides));
         return containerBuilder.Build();
     }
 
     /// <summary>
-    ///     Parse the options passed via the command line and overwrite settings from the config
+    ///     Parse the options passed via the command line
     /// </summary>
     /// <param name="arguments">CLI Arguments</param>
     private static CliOptions ParseCliOptions(IEnumerable<string> arguments)
@@ -50,16 +45,21 @@ internal static class Program
     }
 
     /// <summary>
-    ///     Handle the parsed options, essentially overwriting already present settings loaded from appsettings.json
+    ///     Turn the parsed options into configuration values. They are the last provider in the chain,
+    ///     so they win over appsettings.json and the environment. Options that weren't given stay out,
+    ///     otherwise their defaults would overwrite the configured values.
     /// </summary>
-    /// <param name="options">CLI Options</param>
-    /// <param name="settings">Game Server Settings</param>
-    private static void ApplyCliOptions(CliOptions options, MatrixServerSettings settings)
+    /// <param name="options">CLI Options, null when the arguments could not be parsed</param>
+    private static IReadOnlyDictionary<string, string> CommandLineOverrides(CliOptions options)
     {
-        if (options.LogLevel != null)
+        var overrides = new Dictionary<string, string>();
+
+        if (options?.LogLevel != null)
         {
-            settings.LogLevel = options.LogLevel;
+            overrides["MatrixServer:LogLevel"] = options.LogLevel.ToString();
         }
+
+        return overrides;
     }
 
     /// <summary>
