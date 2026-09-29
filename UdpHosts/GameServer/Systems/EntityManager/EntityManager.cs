@@ -554,10 +554,7 @@ public class EntityManager
                 _shard.CharacterLifecycle.OnCharacterRemoved(characterEntity);
             }
 
-            if (_shard.Physics.HasEntity(entity))
-            {
-                _shard.Physics.RemoveEntity(entity);
-            }
+            _shard.Physics.RemoveEntity(entity);
 
             OnRemovedEntity(entity);
             _shard.Entities.Remove(guid);

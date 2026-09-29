@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -37,8 +39,10 @@ public partial class PhysicsEngine
     private readonly Dictionary<ulong, BodyHandle> _entityIdToBody = [];
     private readonly Dictionary<ulong, AssetCompoundKey> _entityIdToAssetKey = [];
     private readonly PhysicsEngineSettings _settings;
+    private readonly ConcurrentQueue<PhysicsCommand> _pendingPhysicsCommands = new();
 
     private readonly TypedIndex _fallbackShape;
+    private int _simThreadId;
     private int _debugEntityIndex = -1;
     private double _debugTimeAccumulator;
 
@@ -72,6 +76,15 @@ public partial class PhysicsEngine
         }
     }
 
+    private enum PhysicsOp
+    {
+        CreateCharacter,
+        CreateBase,
+        UpdateCharacter,
+        UpdateBase,
+        Remove,
+    }
+
     public long? ZoneFileTimestamp { get; private set; }
 
     public Simulation Simulation { get; protected set; }
@@ -83,6 +96,8 @@ public partial class PhysicsEngine
 
     public void LoadZone(uint zoneId)
     {
+        AssertSimulationThread();
+
         var ts = _zoneLoader.LoadZone(zoneId, _settings.ForceReload);
         if (ts.HasValue)
         {
@@ -92,11 +107,16 @@ public partial class PhysicsEngine
 
     public StaticDescription[] LoadRigidBody(string assetId)
     {
+        AssertSimulationThread();
+
         return _rigidBodyLoader.Load(assetId);
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
+        _simThreadId = Environment.CurrentManagedThreadId;
+        DrainPending();
+
         TimeAccumulator += deltaTime;
         while (!ct.IsCancellationRequested && TimeAccumulator >= TargetTimestepDuration)
         {
@@ -116,146 +136,35 @@ public partial class PhysicsEngine
         }
     }
 
-    public BodyHandle CreateKineticEntity(CharacterEntity entity)
+    public void CreateKineticEntity(CharacterEntity entity)
     {
-        _logger.Debug("CreateKineticEntity Character {entityId}", entity.EntityId);
-        var pose = new RigidPose { Position = entity.Position, Orientation = Quaternion.Inverse(entity.Orientation) };
-        AssetCompoundKey key = GetCharacterPoseAsset(entity);
-        var shape = GetAssetShape(key);
-        var body = Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, shape, -1));
-        _bodyToEntityId[body] = entity.EntityId;
-        _entityIdToBody[entity.EntityId] = body;
-        _entityIdToAssetKey[entity.EntityId] = key;
-
-        _ = DebugPipe?.SendAsync(new PipeMessage
-        {
-            CreateKineticEntity = new CreateKineticEntity
-            {
-                EntityId = entity.EntityId,
-                Pose = pose.ToProto(),
-                Shape = new PipeCollisionShape
-                {
-                    AssetId = key.AssetId,
-                    Offset = key.Offset.ToProto(),
-                    Scale = key.Scale,
-                },
-            }
-        });
-
-        return body;
+        _pendingPhysicsCommands.Enqueue(new PhysicsCommand(PhysicsOp.CreateCharacter, entity));
     }
 
-    public BodyHandle CreateKineticEntity(BaseEntity entity)
+    public void CreateKineticEntity(BaseEntity entity)
     {
-        _logger.Debug("CreateKineticEntity Base {entityId}", entity.EntityId);
-        var assetId = entity.Collision.HitboxCollisionId;
-        var offset = Vector3.Zero;
-        var scale = entity.Collision.Scale;
-        var pose = new RigidPose { Position = entity.Position, Orientation = Quaternion.Inverse(entity.Orientation) };
-        var key = new AssetCompoundKey(assetId, offset, scale);
-        var shape = GetAssetShape(key);
-        var body = Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, shape, -1));
-        _bodyToEntityId[body] = entity.EntityId;
-        _entityIdToBody[entity.EntityId] = body;
-        _entityIdToAssetKey[entity.EntityId] = key;
-
-        _ = DebugPipe?.SendAsync(new PipeMessage
-        {
-            CreateKineticEntity = new CreateKineticEntity
-            {
-                EntityId = entity.EntityId,
-                Pose = pose.ToProto(),
-                Shape = new PipeCollisionShape
-                {
-                    AssetId = assetId,
-                    Offset = offset.ToProto(),
-                    Scale = scale,
-                }
-            }
-        });
-
-        return body;
+        _pendingPhysicsCommands.Enqueue(new PhysicsCommand(PhysicsOp.CreateBase, entity));
     }
 
     public void UpdateEntity(CharacterEntity entity)
     {
-        if (!_entityIdToBody.ContainsKey(entity.EntityId))
-        {
-            return;
-        }
-
-        var bodyHandle = _entityIdToBody[entity.EntityId];
-        var body = Simulation.Bodies[bodyHandle];
-        var currentPose = body.Pose;
-        var currentShape = body.Collidable.Shape;
-        AssetCompoundKey key = GetCharacterPoseAsset(entity);
-        var shape = GetAssetShape(key);
-
-        var orientation = Quaternion.Inverse(entity.Orientation);
-        if (currentPose.Position != entity.Position || currentPose.Orientation != orientation || currentShape != shape)
-        {
-            _entityIdToAssetKey[entity.EntityId] = key;
-            body.Awake = true;
-            body.SetShape(shape);
-
-            ref var pose = ref body.Pose;
-            pose.Position = entity.Position;
-            pose.Orientation = orientation;
-        }
+        _pendingPhysicsCommands.Enqueue(new PhysicsCommand(PhysicsOp.UpdateCharacter, entity));
     }
 
     public void UpdateEntity(BaseEntity entity)
     {
-        if (!_entityIdToBody.ContainsKey(entity.EntityId))
-        {
-            return;
-        }
-
-        var bodyHandle = _entityIdToBody[entity.EntityId];
-        var body = Simulation.Bodies[bodyHandle];
-        var currentPose = body.Pose;
-
-        var orientation = Quaternion.Inverse(entity.Orientation);
-        if (currentPose.Position != entity.Position || currentPose.Orientation != orientation)
-        {
-            body.Awake = true;
-
-            ref var pose = ref body.Pose;
-            pose.Position = entity.Position;
-            pose.Orientation = orientation;
-        }
-    }
-
-    public bool HasEntity(IEntity entity)
-    {
-        return _entityIdToBody.ContainsKey(entity.EntityId);
+        _pendingPhysicsCommands.Enqueue(new PhysicsCommand(PhysicsOp.UpdateBase, entity));
     }
 
     public void RemoveEntity(IEntity entity)
     {
-        if (!_entityIdToBody.ContainsKey(entity.EntityId))
-        {
-            _logger.Warning("RemoveEntity was called for {entity} but there is no body!", entity.ToString());
-            return;
-        }
-
-        var bodyHandle = _entityIdToBody[entity.EntityId];
-        _entityIdToAssetKey.Remove(entity.EntityId);
-        _entityIdToBody.Remove(entity.EntityId);
-        _bodyToEntityId.Remove(bodyHandle);
-        Simulation.Bodies.Remove(bodyHandle);
-
-        _ = DebugPipe?.SendAsync(new PipeMessage
-        {
-            RemoveEntity = new RemoveEntity
-            {
-                EntityId = entity.EntityId,
-            }
-        });
+        _pendingPhysicsCommands.Enqueue(new PhysicsCommand(PhysicsOp.Remove, entity));
     }
 
     public SegmentRaycastHit SegmentRayCast(Vector3 from, Vector3 to, ulong ignoreEntityId)
     {
+        AssertSimulationThread();
+
         var hitResult = default(SegmentRaycastHit);
         var direction = Vector3.Normalize(to - from);
         var distance = Vector3.Distance(from, to);
@@ -328,6 +237,8 @@ public partial class PhysicsEngine
 
     public List<ulong> QueryEntityIdsInSphere(Vector3 center, float radius, ulong ignoreEntityId)
     {
+        AssertSimulationThread();
+
         var results = new List<ulong>();
         if (radius <= 0f)
         {
@@ -353,6 +264,8 @@ public partial class PhysicsEngine
 
     public bool TryGetActivePoseShapeData(CollidableReference collidable, int childIndex, out ActivePoseShapeData shapeData)
     {
+        AssertSimulationThread();
+
         shapeData = default;
 
         var body = Simulation.Bodies[collidable.BodyHandle];
@@ -372,6 +285,8 @@ public partial class PhysicsEngine
 
     public (bool, Vector3, ulong) TargetRayCast(Vector3 origin, Vector3 direction, CharacterEntity source, float maxRange = 500f)
     {
+        AssertSimulationThread();
+
         bool outHit = false;
         Vector3 outPos = Vector3.Zero;
         ulong outEnt = 0;
@@ -398,8 +313,179 @@ public partial class PhysicsEngine
         return delta.LengthSquared() <= radius * radius;
     }
 
+    private void DrainPending()
+    {
+        while (_pendingPhysicsCommands.TryDequeue(out var command))
+        {
+            switch (command.Op)
+            {
+                case PhysicsOp.CreateCharacter:
+                    ApplyCreate((CharacterEntity)command.Entity);
+                    break;
+                case PhysicsOp.CreateBase:
+                    ApplyCreate((BaseEntity)command.Entity);
+                    break;
+                case PhysicsOp.UpdateCharacter:
+                    ApplyUpdate((CharacterEntity)command.Entity);
+                    break;
+                case PhysicsOp.UpdateBase:
+                    ApplyUpdate((BaseEntity)command.Entity);
+                    break;
+                case PhysicsOp.Remove:
+                    ApplyRemove(command.Entity);
+                    break;
+            }
+        }
+    }
+
+    [Conditional("DEBUG")]
+    private void AssertSimulationThread([CallerMemberName] string caller = "")
+    {
+        if (_simThreadId != 0 && Environment.CurrentManagedThreadId != _simThreadId)
+        {
+            Debug.Fail($"{caller} touched the simulation from thread {Environment.CurrentManagedThreadId}, it belongs to the shard thread {_simThreadId}.");
+        }
+    }
+
+    private void ApplyCreate(CharacterEntity entity)
+    {
+        AssertSimulationThread();
+        _logger.Debug("CreateKineticEntity Character {entityId}", entity.EntityId);
+        var pose = new RigidPose { Position = entity.Position, Orientation = Quaternion.Inverse(entity.Orientation) };
+        AssetCompoundKey key = GetCharacterPoseAsset(entity);
+        var shape = GetAssetShape(key);
+        var body = Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, shape, -1));
+        _bodyToEntityId[body] = entity.EntityId;
+        _entityIdToBody[entity.EntityId] = body;
+        _entityIdToAssetKey[entity.EntityId] = key;
+
+        _ = DebugPipe?.SendAsync(new PipeMessage
+        {
+            CreateKineticEntity = new CreateKineticEntity
+            {
+                EntityId = entity.EntityId,
+                Pose = pose.ToProto(),
+                Shape = new PipeCollisionShape
+                {
+                    AssetId = key.AssetId,
+                    Offset = key.Offset.ToProto(),
+                    Scale = key.Scale,
+                },
+            }
+        });
+    }
+
+    private void ApplyCreate(BaseEntity entity)
+    {
+        AssertSimulationThread();
+        _logger.Debug("CreateKineticEntity Base {entityId}", entity.EntityId);
+        var assetId = entity.Collision.HitboxCollisionId;
+        var offset = Vector3.Zero;
+        var scale = entity.Collision.Scale;
+        var pose = new RigidPose { Position = entity.Position, Orientation = Quaternion.Inverse(entity.Orientation) };
+        var key = new AssetCompoundKey(assetId, offset, scale);
+        var shape = GetAssetShape(key);
+        var body = Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, shape, -1));
+        _bodyToEntityId[body] = entity.EntityId;
+        _entityIdToBody[entity.EntityId] = body;
+        _entityIdToAssetKey[entity.EntityId] = key;
+
+        _ = DebugPipe?.SendAsync(new PipeMessage
+        {
+            CreateKineticEntity = new CreateKineticEntity
+            {
+                EntityId = entity.EntityId,
+                Pose = pose.ToProto(),
+                Shape = new PipeCollisionShape
+                {
+                    AssetId = assetId,
+                    Offset = offset.ToProto(),
+                    Scale = scale,
+                }
+            }
+        });
+    }
+
+    private void ApplyUpdate(CharacterEntity entity)
+    {
+        AssertSimulationThread();
+
+        if (!_entityIdToBody.TryGetValue(entity.EntityId, out var bodyHandle))
+        {
+            return;
+        }
+
+        var body = Simulation.Bodies[bodyHandle];
+        var currentPose = body.Pose;
+        var currentShape = body.Collidable.Shape;
+        AssetCompoundKey key = GetCharacterPoseAsset(entity);
+        var shape = GetAssetShape(key);
+
+        var orientation = Quaternion.Inverse(entity.Orientation);
+        if (currentPose.Position != entity.Position || currentPose.Orientation != orientation || currentShape != shape)
+        {
+            _entityIdToAssetKey[entity.EntityId] = key;
+            body.Awake = true;
+            body.SetShape(shape);
+
+            ref var pose = ref body.Pose;
+            pose.Position = entity.Position;
+            pose.Orientation = orientation;
+        }
+    }
+
+    private void ApplyUpdate(BaseEntity entity)
+    {
+        AssertSimulationThread();
+
+        if (!_entityIdToBody.TryGetValue(entity.EntityId, out var bodyHandle))
+        {
+            return;
+        }
+
+        var body = Simulation.Bodies[bodyHandle];
+        var currentPose = body.Pose;
+
+        var orientation = Quaternion.Inverse(entity.Orientation);
+        if (currentPose.Position != entity.Position || currentPose.Orientation != orientation)
+        {
+            body.Awake = true;
+
+            ref var pose = ref body.Pose;
+            pose.Position = entity.Position;
+            pose.Orientation = orientation;
+        }
+    }
+
+    private void ApplyRemove(IEntity entity)
+    {
+        AssertSimulationThread();
+
+        if (!_entityIdToBody.TryGetValue(entity.EntityId, out var bodyHandle))
+        {
+            // Every entity removal is queued, including the many that never had a body.
+            _logger.Verbose("RemoveEntity for {entity} found no body", entity.ToString());
+            return;
+        }
+
+        _entityIdToAssetKey.Remove(entity.EntityId);
+        _entityIdToBody.Remove(entity.EntityId);
+        _bodyToEntityId.Remove(bodyHandle);
+        Simulation.Bodies.Remove(bodyHandle);
+
+        _ = DebugPipe?.SendAsync(new PipeMessage
+        {
+            RemoveEntity = new RemoveEntity
+            {
+                EntityId = entity.EntityId,
+            }
+        });
+    }
+
     private bool TryEmitDirectHit(CharacterEntity source, uint trace, CollidableReference collidable, int childIndex, Vector3 hitPosition, ulong hitEntityId, int damageAmount, bool isAbilityProjectile)
     {
+        AssertSimulationThread();
+
         if (collidable.Mobility != CollidableMobility.Kinematic)
         {
             return false;
@@ -450,6 +536,8 @@ public partial class PhysicsEngine
         Simulation.Bodies.Add(bulletDescription);
         return bulletDescription;
     }
+
+    private readonly record struct PhysicsCommand(PhysicsOp Op, IEntity Entity);
 
     private struct RayHitHandler : IRayHitHandler
     {
