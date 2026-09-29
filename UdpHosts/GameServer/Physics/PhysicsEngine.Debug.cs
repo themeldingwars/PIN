@@ -113,7 +113,7 @@ public partial class PhysicsEngine
 
         var bodyHandle = _entityIdToBody[entityId];
         var body = Simulation.Bodies[bodyHandle];
-        ref var currentPose = ref body.Pose;
+        var currentPose = body.Pose;
         var currentShape = body.Collidable.Shape;
 
         var currentKey = _entityIdToAssetKey[entityId];
@@ -124,8 +124,10 @@ public partial class PhysicsEngine
             var shape = GetAssetShape(pipeKey);
             body.Awake = true;
             body.SetShape(shape);
-            currentPose.Position = pose.Position;
-            currentPose.Orientation = pose.Orientation;
+
+            ref var newPose = ref body.Pose;
+            newPose.Position = pose.Position;
+            newPose.Orientation = pose.Orientation;
         }
     }
 
