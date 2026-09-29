@@ -23059,7 +23059,7 @@
 	},
 	{
 		"id": 1282,
-		"zone_id": 1030,
+		"zone_id": 448,
 		"ref": "2017-04-29_161756_SynaOlmai_replay72.18374686480089027363",
 		"type": 108,
 		"orientation": {
@@ -23077,7 +23077,7 @@
 	},
 	{
 		"id": 1283,
-		"zone_id": 1030,
+		"zone_id": 448,
 		"ref": "2017-04-29_161756_SynaOlmai_replay72.18374686480098983459",
 		"type": 108,
 		"orientation": {
@@ -23095,7 +23095,7 @@
 	},
 	{
 		"id": 1284,
-		"zone_id": 1030,
+		"zone_id": 448,
 		"ref": "2017-04-29_161756_SynaOlmai_replay72.18374686480000889379",
 		"type": 108,
 		"orientation": {
@@ -25147,7 +25147,7 @@
 	},
 	{
 		"id": 1398,
-		"zone_id": 1030,
+		"zone_id": 448,
 		"ref": "2017-04-29_161756_SynaOlmai_replay72.18374686480167246883",
 		"type": 636,
 		"orientation": {
@@ -25165,7 +25165,7 @@
 	},
 	{
 		"id": 1399,
-		"zone_id": 1030,
+		"zone_id": 448,
 		"ref": "2017-04-29_161756_SynaOlmai_replay72.18374686480167795491",
 		"type": 636,
 		"orientation": {
@@ -25183,7 +25183,7 @@
 	},
 	{
 		"id": 1400,
-		"zone_id": 1030,
+		"zone_id": 448,
 		"ref": "2017-04-29_161756_SynaOlmai_replay72.18374686480168856867",
 		"type": 636,
 		"orientation": {
