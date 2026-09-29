@@ -169,6 +169,8 @@ internal static class Program
             return 1;
         }
 
+        Logger.Information("Checking the cache in {CachePath}", opts.CachePath);
+
         var manifest = CacheManifest.FromOptions(opts);
         if (opts.SkipIfCurrent && CacheManifest.Load(opts.CachePath) == manifest)
         {
@@ -177,7 +179,7 @@ internal static class Program
         }
 
         // Leave no manifest behind, when the cache is incomplete or failed
-        File.Delete(Path.Combine(opts.CachePath, "manifest.json"));
+        CacheManifest.Delete(opts.CachePath);
 
         // Phase 1: Chunk phase (if --all-chunks or --all-zones)
         if (opts.AllChunks || opts.AllZones)

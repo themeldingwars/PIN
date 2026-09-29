@@ -2,7 +2,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 
 namespace CollisionGenerator;
@@ -19,8 +18,8 @@ public sealed record CacheManifest(
 {   
     private const string _fileName = "manifest.json";
     private const int _currentFormatVersion = 1;
-    
-    private readonly JsonSerializerOptions _serializerOptions = new() { WriteIndented = true };
+
+    private static readonly JsonSerializerOptions _serializerOptions = new() { WriteIndented = true };
 
     public static CacheManifest FromOptions(Options opts)
     {
@@ -53,6 +52,11 @@ public sealed record CacheManifest(
         }
     }
 
+    public static void Delete(string cachePath)
+    {
+        File.Delete(Path.Combine(cachePath, _fileName));
+    }
+
     public void Save(string cachePath)
     {
         File.WriteAllText(Path.Combine(cachePath, _fileName), JsonSerializer.Serialize(this, _serializerOptions));
@@ -66,9 +70,16 @@ public sealed record CacheManifest(
         }
 
         // Cheap fingerprint of a directory tree: file count, total size and newest write time.
-        var files = new DirectoryInfo(directory).EnumerateFiles("*", SearchOption.AllDirectories).ToList();
-        var totalSize = files.Sum(f => f.Length);
-        var newest = files.Count == 0 ? 0 : files.Max(f => f.LastWriteTimeUtc.Ticks);
-        return FormattableString.Invariant($"{files.Count}:{totalSize}:{newest}");
+        var count = 0;
+        var totalSize = 0L;
+        var newest = 0L;
+        foreach (var file in new DirectoryInfo(directory).EnumerateFiles("*", SearchOption.AllDirectories))
+        {
+            count++;
+            totalSize += file.Length;
+            newest = Math.Max(newest, file.LastWriteTimeUtc.Ticks);
+        }
+
+        return FormattableString.Invariant($"{count}:{totalSize}:{newest}");
     }
 }
