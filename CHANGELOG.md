@@ -23,6 +23,10 @@
 - Switch configuration from `App.config` to `appsettings.json`
 - Update most dependencies
 
+### Removed
+
+- Remove the WebHosts and `WebHostManager`, RIN.WebAPI serves the web API now
+
 ### Fixed
 
 - Make the server handling code more robust

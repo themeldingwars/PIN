@@ -5,8 +5,6 @@
 
 # Custom files
 .idea/
-Webhosts/WebHost.WebAsset/Assets/*
-!Webhosts/WebHost.WebAsset/Assets/.gitkeep
 UdpHosts/GameServer/appsettings.Local.json
 UdpHosts/MatrixServer/appsettings.Local.json
 Tools/**/config.json

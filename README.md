@@ -10,33 +10,30 @@ https://user-images.githubusercontent.com/920861/134824107-03e9f99c-b420-47c7-b7
 
 **Note:** If you want to play around with the configuration, see the Development section below
 
+PIN only runs the Matrix and game server (i.e. the UDP protocol).
+Everything the client does over HTTP, from the login to the character list and the zone settings, is served by [RIN.WebAPI](https://github.com/themeldingwars/RIN.WebAPI).
+You *need* both PIN and RIN.WebAPI!
+
+The easiest way to get the whole stack running is [Calldown](https://github.com/themeldingwars/Calldown), which starts the database, RIN, PIN and the client with a single `aspire run`. If you'd rather set it up by hand:
+
 1. Install Firefall via Steam (paste `steam://install/227700` into address bar of web browser)
-2. Edit the `firefall.ini` located in `steamapps\common\Firefall`
-3. Add content from below
-4. Download the [latest PIN release](https://github.com/themeldingwars/PIN/releases/latest)
-5. Make a backup copy of the original `FirefallClient.exe` in `Firefall\system\bin`
-6. Replace the `FirefallClient.exe` with the patched `FirefallClient.exe` from the PIN release
-7. Make sure the [.NET 9 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) is installed
-8. Create a self-signed development certificate by running `dotnet dev-certs https`. Note that this needs the .NET SDK, not only the runtime. `--trust` isn't needed, the client doesn't check the certificate
-9. Start all three applications:
-   - GameServer
-   - MatrixServer
-   - WebHostManager
+2. Set up and start RIN.WebAPI and RIN.InternalAPI as described in the [RIN.WebAPI README](https://github.com/themeldingwars/RIN.WebAPI#readme)
+3. Edit the `firefall.ini` located in `steamapps\common\Firefall`
+4. Add content from below
+5. Download the [latest PIN release](https://github.com/themeldingwars/PIN/releases/latest)
+6. Make a backup copy of the original `FirefallClient.exe` in `Firefall\system\bin`
+7. Replace the `FirefallClient.exe` with the patched `FirefallClient.exe` from the PIN release
+8. Make sure the [.NET 9 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) is installed
+9. Start the GameServer and the MatrixServer, e.g. with `Start.cmd`
 10. Start Firefall
-11. Login to the server:
-    - If Steam auto login has been enabled, you will directly be navigated to the character selection screen
-    - Otherwise, leave the login fields blank or enter anything you want and click "Login"
+11. Login with your RIN account
 12. Load into the game by pressing the "Enter World" button
 
 ### firefall.ini
 
 ```ini
 [Config]
-OperatorHost = "localhost:4400"
-
-[FilePaths]
-AssetStreamPath = "http://localhost:4401/AssetStream/%ENVMNEMONIC%-%BUILDNUM%/"
-VTRemotePath = "http://localhost:4401/vtex/%ENVMNEMONIC%-%BUILDNUM%/static.vtex"
+OperatorHost = "https://localhost:5001"
 
 [UI]
 PlayIntroMovie = false
@@ -44,7 +41,7 @@ PlayIntroMovie = false
 
 ### Features
 
-- Loading into any zone (WebHostManager)
+- Loading into any zone
 - Basic character movement, including jetpacks and gliders
 - Switch between battleframes with preconfigured loadouts
 - Customize character appearance in NewYou (RIN.WebAPI)
@@ -65,33 +62,26 @@ PlayIntroMovie = false
 1. Install the [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 2. Recursive clone the repository `git clone --recurse-submodules https://github.com/themeldingwars/PIN.git`
 3. Build the solution
-4. Edit the `GameServer.dll.config` produced by the build in `UdpHosts\GameServer\bin\Release\net9.0` to ensure that `StaticDBPath`, `AssetDBPath`, `MapsPath` are correct.
-5. Create a self-signed development certificate by running `dotnet dev-certs https`. Add `--trust` if you want the browser to stop warning about the web hosts, the client doesn't care either way
+4. Check that `StaticDBPath`, `AssetDBPath` and `MapsPath` in `UdpHosts\GameServer\appsettings.json` point to your Firefall install. To keep your paths out of git, put the overrides into an `appsettings.Local.json` next to it instead
+5. Set up and start RIN.WebAPI and RIN.InternalAPI, see the [RIN.WebAPI README](https://github.com/themeldingwars/RIN.WebAPI#readme)
 6. Start multiple targets at once
-   - Visual Studio: Create a `Multiple Startup Projects` target that start WebHostManager, GameServer and MatrixServer
-   - Rider: Create a `Compound` target that starts WebHostManager, GameServer and MatrixServer
+   - Visual Studio: Create a `Multiple Startup Projects` target that start GameServer and MatrixServer
+   - Rider: Create a `Compound` target that starts GameServer and MatrixServer
 7. Edit the `firefall.ini` located in `steamapps\common\Firefall`
 8. Add content from above
 9. Start Firefall
 
-### Web Hosts
+Calldown works for development as well, it builds and runs PIN and RIN.WebAPI from the checkouts next to it.
 
-CatchAll (4499 / 44399) is used for now, until the specific APIs are implemented.
+### Web API
 
-| Host       | HTTP | HTTPS | Catch All |
-|------------|------|-------|-----------|
-| Operator   | 4400 | 44300 | ❌        |
-| WebAsset   | 4401 | 44301 | ✔️        |
-| ClientApi  | 4402 | 44302 | ❌        |
-| InGame     | 4403 | 44303 | ❌        |
-| WebAccount | 4404 | 44304 | ✔️        |
-| Frontend   | 4405 | 44305 | ✔️        |
-| Store      | 4406 | 44306 | ✔️        |
-| Chat       | 4407 | 44307 | ❌        |
-| Replay     | 4408 | 44308 | ✔️        |
-| Web        | 4409 | 44309 | ✔️        |
-| Market     | 4410 | 44310 | ✔️        |
-| RedHanded  | 4411 | 44311 | ✔️        |
+The web tier lives in [RIN.WebAPI](https://github.com/themeldingwars/RIN.WebAPI), PIN doesn't serve any HTTP endpoints for the client.
+The GameServer fetches the character data from RIN.InternalAPI over gRPC (`GrpcChannelAddress`, `http://localhost:5201` by default). If it can't be reached, the GameServer falls back to hardcoded character data.
+
+| Host             | Port              |
+|------------------|-------------------|
+| RIN.WebAPI       | 5000 / 5001 (TCP) |
+| RIN.InternalAPI  | 5201 (TCP)        |
 
 ### UDP Servers
 
