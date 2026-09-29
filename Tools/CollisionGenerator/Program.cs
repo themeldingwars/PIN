@@ -53,8 +53,8 @@ public class Options
     [Option('j', "jobs", Required = false, Default = 0, HelpText = "Number of parallel jobs (default: CPU count - 2)")]
     public int Jobs { get; set; }
 
-    [Option('s', "skip-if-current", Required = false, HelpText = "Do nothing if the cache was already generated with the same options and source files")]
-    public bool SkipIfCurrent { get; set; }
+    [Option('f', "force", Required = false, HelpText = "Regenerate the cache even if it was already generated with the same options and source files")]
+    public bool Force { get; set; }
 }
 
 internal static class Program
@@ -172,7 +172,7 @@ internal static class Program
         Logger.Information("Checking the cache in {CachePath}", opts.CachePath);
 
         var manifest = CacheManifest.FromOptions(opts);
-        if (opts.SkipIfCurrent && CacheManifest.Load(opts.CachePath) == manifest)
+        if (!opts.Force && CacheManifest.Load(opts.CachePath) == manifest)
         {
             Logger.Information("Cache in {CachePath} is current, nothing to do", opts.CachePath);
             return 0;
@@ -290,7 +290,7 @@ Asset mode (requires --asset-db-path):
 
 Other:
   --jobs, -j             Number of parallel jobs (default: CPU count - 2)
-  --skip-if-current, -s  Do nothing if the cache was already generated with the same options and source files
+  --force, -f            Regenerate the cache even if it was already generated with the same options and source files
 
 Examples:
   # Process a single chunk
