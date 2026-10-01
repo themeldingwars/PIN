@@ -14,10 +14,16 @@ public class TimeDurationCommand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
-        var currentTime = context.Shard.CurrentTime;
-        var baseTime = context.InitTime;
+        // The client fails this command as well when the context isn't initiated
+        if (context.InitTime is not { } initTime)
+        {
+            result.SetFail();
+            return;
+        }
+
+        var elapsed = context.CurrentTime > initTime ? context.CurrentTime - initTime : 0;
         var duration = AbilitySystem.RegistryOp(context.Register, Params.DurationMs, (Enums.Operand)Params.DurationRegop);
-        var condition = currentTime - baseTime > duration;
+        var condition = elapsed > duration;
 
         bool cmdResult = true;
 

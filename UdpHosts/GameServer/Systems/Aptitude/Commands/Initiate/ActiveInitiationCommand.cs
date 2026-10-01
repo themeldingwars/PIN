@@ -1,16 +1,12 @@
-using System;
-using AeroMessages.GSS.Character;
-using AeroMessages.GSS.Character.Event;
-using GameServer.Entities.Character;
 using GameServer.StaticDB.Records.apt;
 
 namespace GameServer.Systems.Aptitude.Commands.Initiate;
 
-public class ActiveInitiationCommmand : Command, ICommand
+public class ActiveInitiationCommand : Command, ICommand
 {
     private ActiveInitiationCommandDef Params;
 
-    public ActiveInitiationCommmand(ActiveInitiationCommandDef par)
+    public ActiveInitiationCommand(ActiveInitiationCommandDef par)
     : base(par)
     {
         Params = par;
@@ -18,30 +14,9 @@ public class ActiveInitiationCommmand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
-        if (context.Self is CharacterEntity character)
-        {
-            if (character.IsPlayerControlled)
-            {
-                var player = character.Player;
-                var message = new AbilityActivated
-                {
-                    ActivatedAbilityId = context.AbilityId,
-                    ActivatedTime = context.InitTime,
-                    AbilityCooldownsData = new AbilityCooldownsData
-                    {
-                        ActiveCooldowns_Group1 = Array.Empty<ActiveCooldown>(),
-                        ActiveCooldowns_Group2 = Array.Empty<ActiveCooldown>(),
-                        Unk = 0,
-                        GlobalCooldown_Activated_Time = context.InitTime,
-                        GlobalCooldown_ReadyAgain_Time = context.InitTime + 300,
-                    }
-                };
-                Logger.Information("ActivateAbility {ActivatedAbilityId} at {ActivatedTime}", message.ActivatedAbilityId, message.ActivatedTime);
-                player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
-            }
-        }
-
+        // The client waits for the activation input before it initiates, for us that input is the activation packet,
+        // which already arrived when the chain runs. The AbilityActivated message is sent by the controller that received it.
+        context.InitTime ??= context.CurrentTime;
         result.SetPass();
-        return;
     }
 }

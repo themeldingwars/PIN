@@ -119,6 +119,7 @@ public class AbilitySystem
         var applyContext = Context.CopyContext(context);
         applyContext.Self = target;
         applyContext.InitTime = context.CurrentTime;
+        applyContext.CurrentTime = context.CurrentTime;
         applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
         var effect = Factory.LoadEffect(effectId);
@@ -251,6 +252,7 @@ public class AbilitySystem
                 ChainId = commandDef.Chain,
                 Targets = targets,
                 InitTime = time,
+                CurrentTime = time,
                 ExecutionHint = ExecutionHint.Proximity
             },
             ref localProxResult);
@@ -277,7 +279,7 @@ public class AbilitySystem
             ChainId = chainId,
             AbilityId = abilityId,
             Targets = targets,
-            InitTime = activationTime,
+            CurrentTime = activationTime,
             ExecutionHint = ExecutionHint.Ability
         },
         ref abilityResult);

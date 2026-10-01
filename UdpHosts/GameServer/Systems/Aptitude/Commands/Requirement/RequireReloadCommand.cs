@@ -24,7 +24,7 @@ public class RequireReloadCommand : Command, ICommand
         {
             if (Params.Inittime == 1)
             {
-                cmdResult = character.Character_CombatView.WeaponReloadedProp > context.InitTime;
+                cmdResult = context.InitTime is { } initTime && character.Character_CombatView.WeaponReloadedProp > initTime;
             }
         }
         else

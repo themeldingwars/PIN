@@ -23,6 +23,13 @@ public class FireProjectileCommand : Command, ICommand
             return;
         }
 
+        if (context.InitTime is not { } activationTime)
+        {
+            Logger.Warning("{Command} {CommandId} fails because the context isn't initiated", nameof(FireProjectileCommand), Params.Id);
+            result.SetFail();
+            return;
+        }
+
         // TODO: Special handling of the register here
         float damage = AbilitySystem.RegistryOp(context.Register, Params.Damage, (Operand)Params.DamageRegop);
         float range = AbilitySystem.RegistryOp(context.Register, Params.Range, (Operand)Params.RangeRegop);
@@ -38,7 +45,7 @@ public class FireProjectileCommand : Command, ICommand
             AimAtTarget = Params.AimAtTarget != 0,
             UseHomingTarget = Params.UseHomingTarget != 0,
             UseWeaponDamage = Params.UseWeaponDamage != 0,
-            ActivationTime = context.InitTime,
+            ActivationTime = activationTime,
             ExecutionId = context.ExecutionId,
             QueueTime = context.Shard.CurrentTime
         });

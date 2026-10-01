@@ -62,13 +62,19 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
             firstFreeIndex = 31; // Lets not crash
         }
 
+        if (context.InitTime == null)
+        {
+            Logger.Warning("AddEffect {EffectId} with a context that isn't initiated, initiating it now", effect.Id);
+            context.InitTime = context.CurrentTime;
+        }
+
         var state = new EffectState
         {
             Effect = effect,
             Context = context,
 
-            // The client matches the effects it predicted by their start time, which is the activation time it sent
-            Time = context.InitTime != 0 ? context.InitTime : Shard.CurrentTime,
+            // The client matches the effects it predicted by their init time
+            Time = context.InitTime.Value,
             Stacks = 1,
             Index = firstFreeIndex
         };

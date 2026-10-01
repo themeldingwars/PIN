@@ -14,5 +14,8 @@ public class PassiveInitiationCommand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
+        // TODO: Handle Params.InitiationInterval
+        context.InitTime ??= context.CurrentTime;
+        result.SetPass();
     }
 }

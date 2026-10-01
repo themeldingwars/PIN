@@ -17,7 +17,7 @@ public class ImpactApplyEffectCommand : Command, ICommand
         Context effectContext = new Context(context.Shard, context.Initiator)
         {
             ExecutionId = context.ExecutionId,
-            InitTime = context.CurrentTime,
+            CurrentTime = context.CurrentTime,
             ExecutionHint = ExecutionHint.ApplyEffect
         };
 

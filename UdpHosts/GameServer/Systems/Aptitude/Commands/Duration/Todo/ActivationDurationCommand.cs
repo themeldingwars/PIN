@@ -36,9 +36,8 @@ public class ActivationDurationCommand : Command, ICommand
                 var hack = interactionEntity as BaseEntity;
                 var durationMs = hack.Interaction.DurationMs;
                 var currentMs = context.Shard.CurrentTime;
-                var initMs = context.InitTime;
 
-                if (currentMs < initMs + durationMs)
+                if (context.InitTime is { } initMs && currentMs < initMs + durationMs)
                 {
                     result.SetPass();
                 }

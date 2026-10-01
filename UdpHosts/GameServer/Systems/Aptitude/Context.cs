@@ -7,8 +7,6 @@ namespace GameServer.Systems.Aptitude;
 
 public class Context
 {
-    private uint? _currentTime;
-
     public Context(IShard shard, IAptitudeTarget initiator)
     {
         Shard = shard;
@@ -18,6 +16,7 @@ public class Context
         Targets = new AptitudeTargets();
         FormerTargets = new AptitudeTargets();
         InitPosition = initiator.Position;
+        CurrentTime = shard.CurrentTime;
         ExecutionId = Guid.NewGuid();
     }
 
@@ -34,17 +33,17 @@ public class Context
     public float Register { get; set; }
     public float FormerRegister { get; set; }
     public int Bonus { get; set; }
-    public uint InitTime { get; set; }
 
     /// <summary>
-    /// The time the running chain executes at, which is where effects applied by it start.
-    /// The init time unless the chain runs later, like the duration, update and remove chains of an effect.
+    /// The time the context got initiated at, which durations are measured from.
+    /// Not set until an initiation command ran or the context got applied as an effect.
     /// </summary>
-    public uint CurrentTime
-    {
-        get => _currentTime ?? InitTime;
-        set => _currentTime = value;
-    }
+    public uint? InitTime { get; set; }
+
+    /// <summary>
+    /// The time the running chain executes at, e.g. the activation time sent by the client or the tick an effect gets updated in.
+    /// </summary>
+    public uint CurrentTime { get; set; }
 
     public Vector3 InitPosition { get; set; }
     public ExecutionHint ExecutionHint { get; set; }
@@ -72,6 +71,7 @@ public class Context
             Register = original.Register,
             Bonus = original.Bonus,
             InitTime = original.InitTime,
+            CurrentTime = original.CurrentTime,
             InitPosition = original.InitPosition,
             ExecutionHint = original.ExecutionHint,
             ExecutionId = original.ExecutionId,

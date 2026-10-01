@@ -7,6 +7,7 @@ using GameServer.Systems.Aptitude.Commands.Deployable;
 using GameServer.Systems.Aptitude.Commands.Duration;
 using GameServer.Systems.Aptitude.Commands.Encounter;
 using GameServer.Systems.Aptitude.Commands.Impact;
+using GameServer.Systems.Aptitude.Commands.Initiate;
 using GameServer.Systems.Aptitude.Commands.Interaction;
 using GameServer.Systems.Aptitude.Commands.Logic;
 using GameServer.Systems.Aptitude.Commands.Modifier;
@@ -106,8 +107,8 @@ public class Factory
         // or have zero instances in SDB (for environment `both`) or BaseCommandDef (for environment `server`)
         switch ((CommandType)commandTypeRec.Id)
         {
-            // case CommandType.ActiveInitiation:
-            //     return new ActiveInitiationCommand();
+            case CommandType.ActiveInitiation:
+                return new ActiveInitiationCommand(SDBInterface.GetActiveInitiationCommandDef(commandId));
             case CommandType.ImpactApplyEffect:
                 return new ImpactApplyEffectCommand(SDBInterface.GetImpactApplyEffectCommandDef(commandId));
             case CommandType.InstantActivation:
@@ -140,8 +141,8 @@ public class Factory
                 return new StatModifierCommand(SDBInterface.GetStatModifierCommandDef(commandId));
             case CommandType.TimeDuration:
                 return new TimeDurationCommand(SDBInterface.GetTimeDurationCommandDef(commandId));
-            // case CommandType.PassiveInitiation:
-            //     return new PassiveInitiationCommand(SDBInterface.GetPassiveInitiationCommandDef(commandId));
+            case CommandType.PassiveInitiation:
+                return new PassiveInitiationCommand(SDBInterface.GetPassiveInitiationCommandDef(commandId));
             case CommandType.StagedActivation:
                 return new StagedActivationCommand(SDBInterface.GetStagedActivationCommandDef(commandId));
             // case CommandType.ActivationDuration:
