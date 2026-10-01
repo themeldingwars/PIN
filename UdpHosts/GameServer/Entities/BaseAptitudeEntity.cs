@@ -66,7 +66,9 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
         {
             Effect = effect,
             Context = context,
-            Time = Shard.CurrentTime,
+
+            // The client matches the effects it predicted by their start time, which is the activation time it sent
+            Time = context.InitTime != 0 ? context.InitTime : Shard.CurrentTime,
             Stacks = 1,
             Index = firstFreeIndex
         };
