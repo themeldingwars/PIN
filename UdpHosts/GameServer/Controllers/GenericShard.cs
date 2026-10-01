@@ -85,6 +85,7 @@ public class GenericShard : Base
     [MessageID(GssMessage.RequestLeaveZone)]
     public void RequestLeaveZone(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
+        Log.Information("RequestLeaveZone from {CharacterId:X} in zone {ZoneId}", player.CharacterId, player.CurrentZone.ID);
     }
 
     [MessageID(GssMessage.RequestLogout)]

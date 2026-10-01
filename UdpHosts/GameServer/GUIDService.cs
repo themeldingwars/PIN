@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace GameServer;
 
 public static class GuidService
@@ -16,11 +18,16 @@ public static class GuidService
 
     public static ulong GetNext(uint time, byte type = 0)
     {
-        return new Core.Data.EntityGuid(_mainServerId, time, _mainCounter++, type).Full;
+        return new Core.Data.EntityGuid(_mainServerId, time, NextCounter(), type).Full;
     }
 
     public static ulong GetNext(IShard shard, byte type = 0)
     {
-        return new Core.Data.EntityGuid(_mainServerId, shard.CurrentTime, _mainCounter++, type).Full;
+        return new Core.Data.EntityGuid(_mainServerId, shard.CurrentTime, NextCounter(), type).Full;
+    }
+
+    private static uint NextCounter()
+    {
+        return Interlocked.Increment(ref _mainCounter) - 1;
     }
 }

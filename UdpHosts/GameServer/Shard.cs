@@ -33,11 +33,11 @@ public class Shard : IShard
     private long _startTime;
     private double _lastNetTick;
 
-    public Shard(double gameTickRate, ulong instanceId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
+    public Shard(double gameTickRate, ulong instanceId, uint zoneId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
     {
         InstanceId = instanceId;
         Settings = settings;
-        ZoneId = settings.ZoneId;
+        ZoneId = zoneId;
         Sender = sender;
         Logger = logger;
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
@@ -48,7 +48,7 @@ public class Shard : IShard
         var debugCallbacks = new DebugProjectileHitCallbacks(this);
         Physics = new PhysicsEngine(new()
         {
-            ZoneId = Settings.ZoneId,
+            ZoneId = zoneId,
             MapsPath = Settings.MapsPath,
             AssetDBPath = Settings.AssetDBPath,
             LoadMapsCollision = Settings.LoadMapsCollision,
@@ -98,7 +98,7 @@ public class Shard : IShard
     public PlayerRespawnService PlayerRespawn { get; }
     public NpcDeathService NpcDeath { get; }
     public ulong InstanceId { get; }
-    public uint ZoneId { get; private set; }
+    public uint ZoneId { get; }
     public ulong CurrentTimeLong { get; private set; }
     public uint CurrentTime => unchecked((uint)CurrentTimeLong);
     public ushort CurrentShortTime => unchecked((ushort)CurrentTime);
@@ -165,6 +165,21 @@ public class Shard : IShard
         }
 
         player.Init(this);
+
+        Clients.Add(player.SocketId, player);
+
+        return true;
+    }
+
+    public bool TransferIn(INetworkPlayer player)
+    {
+        if (Clients.ContainsKey(player.SocketId))
+        {
+            return true;
+        }
+
+        // Unlike MigrateIn this keeps the client's channels, so it's safe for a connection that's already talking to us
+        player.AssignShard(this);
 
         Clients.Add(player.SocketId, player);
 

@@ -313,6 +313,11 @@ public partial class PhysicsEngine
         return delta.LengthSquared() <= radius * radius;
     }
 
+    private static Quaternion ToBodyOrientation(Quaternion orientation)
+    {
+        return Quaternion.Normalize(Quaternion.Inverse(orientation));
+    }
+
     private void DrainPending()
     {
         while (_pendingPhysicsCommands.TryDequeue(out var command))
@@ -351,7 +356,7 @@ public partial class PhysicsEngine
     {
         AssertSimulationThread();
         _logger.Debug("CreateKineticEntity Character {entityId}", entity.EntityId);
-        var pose = new RigidPose { Position = entity.Position, Orientation = Quaternion.Inverse(entity.Orientation) };
+        var pose = new RigidPose { Position = entity.Position, Orientation = ToBodyOrientation(entity.Orientation) };
         AssetCompoundKey key = GetCharacterPoseAsset(entity);
         var shape = GetAssetShape(key);
         var body = Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, shape, -1));
@@ -382,7 +387,7 @@ public partial class PhysicsEngine
         var assetId = entity.Collision.HitboxCollisionId;
         var offset = Vector3.Zero;
         var scale = entity.Collision.Scale;
-        var pose = new RigidPose { Position = entity.Position, Orientation = Quaternion.Inverse(entity.Orientation) };
+        var pose = new RigidPose { Position = entity.Position, Orientation = ToBodyOrientation(entity.Orientation) };
         var key = new AssetCompoundKey(assetId, offset, scale);
         var shape = GetAssetShape(key);
         var body = Simulation.Bodies.Add(BodyDescription.CreateKinematic(pose, shape, -1));
@@ -421,7 +426,7 @@ public partial class PhysicsEngine
         AssetCompoundKey key = GetCharacterPoseAsset(entity);
         var shape = GetAssetShape(key);
 
-        var orientation = Quaternion.Inverse(entity.Orientation);
+        var orientation = ToBodyOrientation(entity.Orientation);
         if (currentPose.Position != entity.Position || currentPose.Orientation != orientation || currentShape != shape)
         {
             _entityIdToAssetKey[entity.EntityId] = key;
@@ -446,7 +451,7 @@ public partial class PhysicsEngine
         var body = Simulation.Bodies[bodyHandle];
         var currentPose = body.Pose;
 
-        var orientation = Quaternion.Inverse(entity.Orientation);
+        var orientation = ToBodyOrientation(entity.Orientation);
         if (currentPose.Position != entity.Position || currentPose.Orientation != orientation)
         {
             body.Awake = true;

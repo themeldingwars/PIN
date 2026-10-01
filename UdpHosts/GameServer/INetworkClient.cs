@@ -28,6 +28,7 @@ public interface INetworkClient
     ConcurrentQueue<Memory<byte>> SequencedMessages { get; }
 
     void Init(IPlayer player, IShard shard, IPacketSender sender);
+    void AssignShard(IShard shard);
     void HandlePacket(ReadOnlyMemory<byte> data, Packet packet);
     void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct);
     void Send(Memory<byte> packet);

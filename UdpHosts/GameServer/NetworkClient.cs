@@ -71,6 +71,11 @@ public class NetworkClient : INetworkClient
         NetChannels[ChannelType.UnreliableGss].PacketAvailable += GSS_PacketAvailable;
     }
 
+    public void AssignShard(IShard shard)
+    {
+        AssignedShard = shard;
+    }
+
     public void HandlePacket(ReadOnlyMemory<byte> data, Packet packet)
     {
         if (NetClientStatus == ClientStatus.Connecting)

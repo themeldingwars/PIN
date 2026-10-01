@@ -58,4 +58,5 @@ public interface IShard : IPacketSender
     void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct);
     bool MigrateOut(INetworkPlayer player);
     bool MigrateIn(INetworkPlayer player);
+    bool TransferIn(INetworkPlayer player);
 }

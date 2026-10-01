@@ -59,6 +59,11 @@ public static class DataUtils
         return _zones.TryGetValue(id, out var zone) ? zone : _zones[448];
     }
 
+    public static bool TryGetZone(uint id, out Zone zone)
+    {
+        return _zones.TryGetValue(id, out zone);
+    }
+
     public static string FormatArmyTag(string armyTag)
     {
         return string.IsNullOrEmpty(armyTag) ? string.Empty : "[" + armyTag + "]";

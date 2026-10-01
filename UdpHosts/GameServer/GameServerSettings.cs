@@ -98,9 +98,14 @@ public class GameServerSettings
     public string CachePath { get; set; } = string.Empty;
 
     /// <summary>
-    ///    ZoneId to load
+    ///    Zone for characters without a known last zone. Its shard is created at startup.
     /// </summary>
     public uint ZoneId { get; set; } = 448;
+
+    /// <summary>
+    ///    Comma separated zone ids whose shards are created at startup, e.g. "1030,162". Other zones get a shard on first use.
+    /// </summary>
+    public string PreloadZones { get; set; } = string.Empty;
 
     /// <summary>
     ///    Enable loading zone collision data

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Threading;
@@ -19,9 +20,12 @@ namespace GameServer;
 
 public class NetworkPlayer : NetworkClient, INetworkPlayer
 {
-    public NetworkPlayer(IPEndPoint endPoint, uint socketId, ILogger logger)
+    private readonly IShardManager _shards;
+
+    public NetworkPlayer(IPEndPoint endPoint, uint socketId, IShardManager shards, ILogger logger)
         : base(endPoint, socketId, logger)
     {
+        _shards = shards;
         CharacterEntity = null;
         Status = IPlayer.PlayerStatus.Connecting;
         ConnectedAt = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -55,17 +59,13 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         CharacterId = guid;
 
         // Don't crash if they are already logged in
-        AssignedShard.Entities.TryGetValue(CharacterId, out var existing);
-        if (existing != null)
+        if (_shards.Shards.Any(shard => shard.Entities.ContainsKey(CharacterId)))
         {
             Logger.Warning("Closing login because entity with this id is already zoned in");
             var resp = new AeroMessages.Control.CloseConnection { Unk = [0, 0, 0, 0] };
             NetChannels[ChannelType.Control].SendMessage(resp);
             return;
         }
-
-        // Begin setting up player character
-        CharacterEntity = new CharacterEntity(AssignedShard, guid);
 
         // Try to get remote character data
         CharacterAndBattleframeVisuals remoteData = null;
@@ -77,6 +77,18 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         {
             Logger.ForContext(typeof(GRPCService)).Warning("Could not get character over GRPC, will use fallback");
         }
+
+        // Move to the shard of the zone the character belongs in, before anything gets created on the current one
+        var zone = PickZone(characterId, remoteData);
+        var shard = _shards.GetOrCreateShard(zone.ID);
+        if (shard != AssignedShard)
+        {
+            AssignedShard.MigrateOut(this);
+            shard.TransferIn(this);
+        }
+
+        // Begin setting up player character
+        CharacterEntity = new CharacterEntity(AssignedShard, guid);
 
         // Load inventory so we get loadouts
         Inventory = new CharacterInventory(AssignedShard, this, CharacterEntity);
@@ -116,26 +128,37 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         var wel = new WelcomeToTheMatrix { PlayerID = PlayerId, Unk1 = [], Unk2 = [] };
         NetChannels[ChannelType.Matrix].SendMessage(wel);
 
-        Zone zone;
-        uint zoneId;
         uint outpostId;
 
         if (remoteData != null)
         {
-            zoneId = AssignedShard.ZoneId;
-            zone = DataUtils.GetZone(zoneId);
-            outpostId = remoteData.CharacterInfo.LastZoneId == zoneId ? FindClosestAvailableOutpost(zone, remoteData.CharacterInfo.LastOutpostId) : 0;
+            outpostId = remoteData.CharacterInfo.LastZoneId == zone.ID ? FindClosestAvailableOutpost(zone, remoteData.CharacterInfo.LastOutpostId) : 0;
         }
         else
         {
-            zoneId = (uint)(characterId & 0x000000000000ffff);
-            zone = DataUtils.GetZone(zoneId);
             outpostId = zone.DefaultOutpostId;
         }
 
-        Logger.Information("Zone {zoneId} Outpost {outpostId}", zoneId, outpostId);
+        Logger.Information("Zone {zoneId} Outpost {outpostId}", zone.ID, outpostId);
 
         EnterZone(zone, outpostId);
+    }
+
+    /// <summary>
+    ///     The character's last zone from RIN, or for fallback characters the zone encoded in the low bits of the id.
+    ///     Unknown zones fall back to the default shard's zone.
+    /// </summary>
+    private Zone PickZone(ulong characterId, CharacterAndBattleframeVisuals remoteData)
+    {
+        var zoneId = remoteData != null ? remoteData.CharacterInfo.LastZoneId : (uint)(characterId & 0x000000000000ffff);
+
+        if (DataUtils.TryGetZone(zoneId, out var zone))
+        {
+            return zone;
+        }
+
+        Logger.Information("Zone {ZoneId} isn't known, using the default zone", zoneId);
+        return DataUtils.GetZone(_shards.DefaultShard.ZoneId);
     }
 
     public void EnterZoneAck()
