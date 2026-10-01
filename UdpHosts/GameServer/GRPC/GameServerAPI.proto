@@ -147,6 +147,15 @@ message SaveLgvRaceFinish {
    uint32 LeaderboardId = 2;
    uint64 TimeMs = 3;
 }
+message TransferCharacterReq {
+   uint64 CharacterId = 1;
+   uint32 ZoneId = 2;
+   uint32 OutpostId = 3;
+   uint32 TimePlayed = 4;
+}
+message TransferCharacterResp {
+   bool Success = 1;
+}
 message WebColor {
    uint32 color = 1;
 }
@@ -174,4 +183,5 @@ service GameServerAPI {
    rpc GetCharacterAndBattleframeVisuals (CharacterID) returns (CharacterAndBattleframeVisuals);
    rpc Ping (PingReq) returns (PingResp);
    rpc Stream (stream Command) returns (stream Event);
+   rpc TransferCharacter (TransferCharacterReq) returns (TransferCharacterResp);
 }

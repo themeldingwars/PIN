@@ -43,6 +43,19 @@ public static class GRPCService
         await SendCommandAsync(new Command() { SaveGameSessionData = data });
     }
 
+    /// <summary>
+    ///     Saves the zone a character is moving to and returns once RIN has written it, unlike the session save over the stream
+    /// </summary>
+    public static async Task<bool> TransferCharacterAsync(ulong characterId, uint zoneId, uint outpostId, uint timePlayed)
+    {
+        var resp = await _client.TransferCharacterAsync(new TransferCharacterReq
+        {
+            CharacterId = characterId, ZoneId = zoneId, OutpostId = outpostId, TimePlayed = timePlayed
+        });
+
+        return resp.Success;
+    }
+
     public static async Task SendCommandAsync(Command command)
     {
         await _stream.RequestStream.WriteAsync(command);

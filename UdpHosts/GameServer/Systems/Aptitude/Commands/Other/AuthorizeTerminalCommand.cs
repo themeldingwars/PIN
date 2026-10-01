@@ -1,3 +1,4 @@
+using System;
 using AeroMessages.GSS.Character.Controller;
 using GameServer.Entities.Character;
 using GameServer.StaticDB.Records.customdata;
@@ -41,7 +42,7 @@ public class AuthorizeTerminalCommand : Command, ICommand
             character.SetAuthorizedTerminal(new AuthorizedTerminalData
             {
                 TerminalType = (byte)Params.TerminalType,
-                TerminalId = (byte)Params.TerminalId,
+                TerminalId = (uint)Math.Max(0, Params.TerminalId),
                 TerminalEntityId = terminal.AeroEntityId.Backing
             });
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
-using System.Threading.Tasks;
 using Aero.Protocol;
 using AeroMessages.GSS;
 using AeroMessages.GSS.Character;
@@ -13,12 +12,10 @@ using GameServer.Entities.Character;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Extensions;
-using GameServer.GRPC;
 using GameServer.Packets;
 using GameServer.StaticDB;
 using GameServer.StaticDB.Records.customdata;
 using GameServer.Systems.Encounters;
-using GameServer.Test;
 using Serilog;
 using static AeroMessages.GSS.Character.Command.NonDevDebugCommand;
 using LoadoutVisualType = AeroMessages.GSS.Character.LoadoutConfig_Visual.LoadoutVisualType;
@@ -41,33 +38,11 @@ public class BaseController : Base
         var request = packet.Unpack<RequestTransfer>();
         _logger.Information("RequestTransfer from {CharacterId:X}: ZoneId {ZoneId}, Unk2 {Unk2}, current zone {CurrentZone}", player.CharacterId, request.ZoneId, request.Unk2, player.CurrentZone.ID);
 
-        if (!DataUtils.TryGetZone(request.ZoneId, out var zone) || zone.ID == player.CurrentZone.ID)
+        // The client ignores the outcome of its request, so a refusal has to be told through chat
+        if (!ZoneTransfer.TryStart((INetworkPlayer)client, request.ZoneId, out var refusal))
         {
-            client.SendDebugChat($"Can't transfer to zone {request.ZoneId}");
-            return;
+            client.SendDebugChat(refusal);
         }
-
-        _ = TransferAsync(client, player, zone);
-    }
-
-    private async Task TransferAsync(INetworkClient client, IPlayer player, Zone zone)
-    {
-        try
-        {
-            // Save the new zone, so the next ticket returns the new zone to transfer in
-            var timePlayed = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() - player.ConnectedAt;
-            await GRPCService.SaveCharacterSessionDataAsync(player.CharacterId + 0xFE, zone.ID, 0, timePlayed);
-        }
-        catch (Exception e)
-        {
-            _logger.Error(e, "Couldn't save the transfer of {CharacterId:X} to zone {ZoneId}", player.CharacterId, zone.ID);
-            client.SendDebugChat($"Transfer to {zone.Name} failed");
-            return;
-        }
-
-        _logger.Information("Transferring {CharacterId:X} to zone {ZoneId}", player.CharacterId, zone.ID);
-        var close = new AeroMessages.Control.CloseConnection { Unk = [0, 0, 0, 0] };
-        client.NetChannels[ChannelType.Control].SendMessage(close);
     }
 
     [MessageID(GssCharacterCommand.MatchQueue)]
