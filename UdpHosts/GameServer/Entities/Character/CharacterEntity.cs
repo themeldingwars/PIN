@@ -318,8 +318,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Colors =
                 [
                     monsterInfo.SkinColor,
-                    monsterInfo.LipColor,
                     monsterInfo.EyeColor,
+                    monsterInfo.LipColor,
                     monsterInfo.HairColor,
                     monsterInfo.FacialHairColor
                 ],
@@ -433,8 +433,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Colors =
                 [
                     visuals.SkinColor,
-                    visuals.LipColor,
                     visuals.EyeColor,
+                    visuals.LipColor,
                     visuals.HairColor,
                     visuals.FacialHairColor
                 ],
