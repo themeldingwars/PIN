@@ -84,6 +84,11 @@ public class RequireMovestateCommand : Command, ICommand
             cmdResult = !cmdResult;
         }
 
+        if (!cmdResult && target is CharacterEntity failed)
+        {
+            Logger.Debug("{Command} {CommandId} fails with movestate {Movestate}", nameof(RequireMovestateCommand), Params.Id, failed.MovementStateContainer.Movestate);
+        }
+
         if (cmdResult)
         {
             result.SetPass();

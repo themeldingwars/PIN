@@ -41,7 +41,12 @@ public class MovementRelay
         character.IsAirborne = poseData.GroundTimePositiveAirTimeNegative < 0;
 
         var movementStateValue = posRotState.MovementState;
+        var previousMovestate = character.MovementStateContainer.Movestate;
         character.MovementStateContainer.MovementStateValue = (ushort)movementStateValue;
+        if (character.MovementStateContainer.Movestate != previousMovestate)
+        {
+            _shard.Logger.Debug("Movestate of {Character} changes from {Previous} to {Movestate}", character, previousMovestate, character.MovementStateContainer.Movestate);
+        }
 
         // Update with physics
         _shard.Physics.UpdateEntity(character);
