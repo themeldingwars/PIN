@@ -87,6 +87,7 @@ public class AbilitySystem
                 && currentTime > activeEffect.LastUpdateTime + activeEffect.Effect.UpdateFrequency)
             {
                 activeEffect.Context.ExecutionHint = ExecutionHint.DurationEffect;
+                activeEffect.Context.CurrentTime = _shard.CurrentTime;
                 var durationResult = new CommandResult { Success = true };
                 activeEffect.Effect.DurationChain.Execute(activeEffect.Context, ref durationResult);
                 activeEffect.LastUpdateTime = currentTime;
@@ -117,6 +118,7 @@ public class AbilitySystem
 
         var applyContext = Context.CopyContext(context);
         applyContext.Self = target;
+        applyContext.InitTime = context.CurrentTime;
         applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
         var effect = Factory.LoadEffect(effectId);
@@ -149,6 +151,7 @@ public class AbilitySystem
     public void DoRemoveEffect(EffectState activeEffect)
     {
         activeEffect.Context.ExecutionHint = ExecutionHint.RemoveEffect;
+        activeEffect.Context.CurrentTime = _shard.CurrentTime;
         activeEffect.Context.Self.ClearEffect(activeEffect);
         var removeResult = new CommandResult { Success = true };
         activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context, ref removeResult);

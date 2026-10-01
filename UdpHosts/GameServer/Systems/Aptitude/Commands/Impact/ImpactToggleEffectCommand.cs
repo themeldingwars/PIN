@@ -17,7 +17,7 @@ public class ImpactToggleEffectCommand : Command, ICommand
         Context effectContext = new Context(context.Shard, context.Initiator)
         {
             ExecutionId = context.ExecutionId,
-            InitTime = context.InitTime,
+            InitTime = context.CurrentTime,
         };
 
         if (Params.PassRegister == 1)

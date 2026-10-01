@@ -7,6 +7,8 @@ namespace GameServer.Systems.Aptitude;
 
 public class Context
 {
+    private uint? _currentTime;
+
     public Context(IShard shard, IAptitudeTarget initiator)
     {
         Shard = shard;
@@ -33,6 +35,17 @@ public class Context
     public float FormerRegister { get; set; }
     public int Bonus { get; set; }
     public uint InitTime { get; set; }
+
+    /// <summary>
+    /// The time the running chain executes at, which is where effects applied by it start.
+    /// The init time unless the chain runs later, like the duration, update and remove chains of an effect.
+    /// </summary>
+    public uint CurrentTime
+    {
+        get => _currentTime ?? InitTime;
+        set => _currentTime = value;
+    }
+
     public Vector3 InitPosition { get; set; }
     public ExecutionHint ExecutionHint { get; set; }
     public Guid ExecutionId { get; set; }
