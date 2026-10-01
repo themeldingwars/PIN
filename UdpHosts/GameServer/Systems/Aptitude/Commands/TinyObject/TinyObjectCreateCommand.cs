@@ -34,7 +34,7 @@ public class TinyObjectCreateCommand : Command, ICommand
         if (context.Self is CharacterEntity characterEntity)
         {
             var target = context.Self;
-            var position = target.Position;
+            var position = context.InitPosition;
             var orientation = Quaternion.Identity;
 
             var tinyObjectEntity = context.Shard.EntityMan.SpawnTinyObject(Params.Type, position, characterEntity);
