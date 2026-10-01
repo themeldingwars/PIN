@@ -144,23 +144,6 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         EnterZone(zone, outpostId);
     }
 
-    /// <summary>
-    ///     The character's last zone from RIN, or for fallback characters the zone encoded in the low bits of the id.
-    ///     Unknown zones fall back to the default shard's zone.
-    /// </summary>
-    private Zone PickZone(ulong characterId, CharacterAndBattleframeVisuals remoteData)
-    {
-        var zoneId = remoteData != null ? remoteData.CharacterInfo.LastZoneId : (uint)(characterId & 0x000000000000ffff);
-
-        if (DataUtils.TryGetZone(zoneId, out var zone))
-        {
-            return zone;
-        }
-
-        Logger.Information("Zone {ZoneId} isn't known, using the default zone", zoneId);
-        return DataUtils.GetZone(_shards.DefaultShard.ZoneId);
-    }
-
     public void EnterZoneAck()
     {
         AssignedShard.EntityMan.Add(CharacterEntity.EntityId, CharacterEntity);
@@ -378,5 +361,22 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         NetChannels[ChannelType.Matrix].SendMessage(msg);
 
         Status = IPlayer.PlayerStatus.Loading;
+    }
+
+    /// <summary>
+    ///     The character's last zone from RIN, or for fallback characters the zone encoded in the low bits of the id.
+    ///     Unknown zones fall back to the default shard's zone.
+    /// </summary>
+    private Zone PickZone(ulong characterId, CharacterAndBattleframeVisuals remoteData)
+    {
+        var zoneId = remoteData != null ? remoteData.CharacterInfo.LastZoneId : (uint)(characterId & 0x000000000000ffff);
+
+        if (DataUtils.TryGetZone(zoneId, out var zone))
+        {
+            return zone;
+        }
+
+        Logger.Information("Zone {ZoneId} isn't known, using the default zone", zoneId);
+        return DataUtils.GetZone(_shards.DefaultShard.ZoneId);
     }
 }

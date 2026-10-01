@@ -28,12 +28,12 @@ public interface ICommand
         return;
     }
 
-    [Obsolete("To be replaced with more gamelike behavior")]
+    // [Obsolete("To be replaced with more gamelike behavior")]
     public virtual void OnApply(Context context, ICommandActiveContext activeCommandContext)
     {
     }
 
-    [Obsolete("To be replaced with more gamelike behavior")]
+    // [Obsolete("To be replaced with more gamelike behavior")]
     public virtual void OnRemove(Context context, ICommandActiveContext activeCommandContext)
     {
     }

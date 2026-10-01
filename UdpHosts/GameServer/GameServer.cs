@@ -58,6 +58,8 @@ internal class GameServer : PacketServer, IShardManager
 
     public IEnumerable<IShard> Shards => _shardsByZone.Values;
 
+    protected override bool IsReady => _isReady;
+
     public IShard GetOrCreateShard(uint zoneId)
     {
         if (_shardsByZone.TryGetValue(zoneId, out var shard))
@@ -83,8 +85,6 @@ internal class GameServer : PacketServer, IShardManager
             return shard;
         }
     }
-
-    protected override bool IsReady => _isReady;
 
     protected override void Startup(CancellationToken ct)
     {
