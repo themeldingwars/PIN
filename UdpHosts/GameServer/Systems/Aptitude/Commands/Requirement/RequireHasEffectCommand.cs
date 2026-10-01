@@ -17,76 +17,24 @@ public class RequireHasEffectCommand : Command, ICommand
         // Logger.Debug("EffectID: {EffectId}", Params.EffectId);
         bool cmdResult = false;
 
-        // TODO: Handle Params.SameInitiator
         // NOTE: Investigate target handling
         if (context.Targets.Count > 0)
         {
-            uint matchCounter = 0;
+            cmdResult = true;
             foreach (IAptitudeTarget target in context.Targets)
             {
-                bool targetResult = false;
-                foreach (EffectState active in target.GetActiveEffects())
-                {
-                    if (active == null)
-                    {
-                        continue;
-                    }
-
-                    if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
-                    {
-                        targetResult = true;
-
-                        if (Params.SameInitiator == 1 && context.Initiator != active.Context.Initiator)
-                        {
-                            targetResult = false;
-                        }
-
-                        break;
-                    }
-                }
-
-                if (!targetResult)
+                if (!HasEffect(target, context))
                 {
                     cmdResult = false;
                     break;
                 }
-                else
-                {
-                    matchCounter++;
-                }
-            }
-
-            if (matchCounter == context.Targets.Count)
-            {
-                cmdResult = true;
             }
         }
-
-        /*
         else
         {
-            var target = context.Self;
-            foreach (EffectState active in target.GetActiveEffects())
-            {
-                if (active == null)
-                {
-                    continue;
-                }
-
-                if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
-                {
-                    result = true;
-
-                    if (Params.SameInitiator == 1 && context.Initiator != active.Context.Initiator)
-                    {
-                        result = false;
-                    }
-
-                    break;
-                }
-            }
+            // Effect chains (e.g. a duration chain) usually run without targets, the client checks self in that case
+            cmdResult = HasEffect(context.Self, context);
         }
-        */
 
         if (Params.Negate == 1)
         {
@@ -108,5 +56,23 @@ public class RequireHasEffectCommand : Command, ICommand
     public override void Reset(Context context)
     {
         return;
+    }
+
+    private bool HasEffect(IAptitudeTarget target, Context context)
+    {
+        foreach (EffectState active in target.GetActiveEffects())
+        {
+            if (active == null)
+            {
+                continue;
+            }
+
+            if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
+            {
+                return Params.SameInitiator != 1 || context.Initiator == active.Context.Initiator;
+            }
+        }
+
+        return false;
     }
 }
