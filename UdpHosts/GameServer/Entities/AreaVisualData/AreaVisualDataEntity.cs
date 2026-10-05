@@ -39,7 +39,7 @@ public sealed class AreaVisualDataEntity : BaseEntity
     public ScopeBubbleInfoData ScopeBubble { get; set; } = new ScopeBubbleInfoData()
     {
         Layer = 0,
-        Unk2 = 1
+        VisibilityMask = 1
     };
 
     public ObserverView AreaVisualData_ObserverView { get; set; }

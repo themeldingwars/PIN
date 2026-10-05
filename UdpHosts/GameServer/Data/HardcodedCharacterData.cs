@@ -876,7 +876,7 @@ public static class HardcodedCharacterData
         var loadoutId = sourceData.LoadoutId == 0 ? GeneratedLoadoutCounter++ : sourceData.LoadoutId;
         var loadout = new Loadout()
         {
-            FrameLoadoutId = loadoutId,
+            PveLoadoutId = loadoutId,
             ChassisID = sourceData.ChassisId,
             LoadoutName = $"Loadout {loadoutId}",
             LoadoutType = "battleframe"

@@ -35,7 +35,7 @@ public sealed class MeldingEntity : BaseEntity
         ActiveData = new ActiveDataStruct()
         {
             TimestampMicro = 0,
-            Unk2 = 0,
+            DurationMicro = 0,
             Unk3 = 0,
             FromPoints = [],
             FromTangents = [],
@@ -45,7 +45,7 @@ public sealed class MeldingEntity : BaseEntity
         ScopeBubbleInfo = new ScopeBubbleInfoData()
         {
             Layer = 0,
-            Unk2 = 1
+            VisibilityMask = 1
         };
     }
 

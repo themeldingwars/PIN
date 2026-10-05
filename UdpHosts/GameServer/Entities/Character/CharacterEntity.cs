@@ -351,14 +351,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         {
             SetWeaponIndex(new WeaponIndexData()
             {
-                Index = 1, Unk1 = 1, Unk2 = 0, Time = Shard.CurrentTime
+                Index = 1, PreviousIndex = 1, Unk2 = 0, Time = Shard.CurrentTime
             });
         }
         else if (monsterInfo.Weapon2Id != 0)
         {
             SetWeaponIndex(new WeaponIndexData()
             {
-                Index = 2, Unk1 = 1, Unk2 = 0, Time = Shard.CurrentTime
+                Index = 2, PreviousIndex = 1, Unk2 = 0, Time = Shard.CurrentTime
             });
         }
     }
@@ -1861,7 +1861,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         SetMaxShields(0, true);
         SetMaxHealth(19192, true);
         GibVisualsInfo = new GibVisuals { Id = 0, Time = Shard.CurrentTime };
-        ProcessDelay = new ProcessDelayData { Unk1 = 30721, Unk2 = 236 };
+        ProcessDelay = new ProcessDelayData { ChangeTime = 30721, DelayMs = 236 };
         Emote = new EmoteData { Id = 0, Time = 0 };
         DockedParams = new DockedParamsData { Unk1 = new EntityId { Backing = 0 }, Unk2 = Vector3.Zero, Unk3 = 0 };
         AssetOverrides = new AssetOverridesField { Ids = [] };
@@ -1892,7 +1892,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         };
 
         EnergyParams = new EnergyParamsData { Max = 1000.0f, Delay = 500, Recharge = 156.0f, Time = Shard.CurrentTime };
-        ScopeBubble = new ScopeBubbleInfoData { Layer = 0, Unk2 = 0 };
+        ScopeBubble = new ScopeBubbleInfoData { Layer = 0, VisibilityMask = 0 };
         SpawnPose = new CharacterSpawnPose
         {
             Time = Shard.CurrentTime,
@@ -1912,7 +1912,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         EffectsFlags = 0;
         FireMode_0 = new FireModeData { Mode = 0, Time = Shard.CurrentTime };
         FireMode_1 = new FireModeData { Mode = 0, Time = Shard.CurrentTime };
-        WeaponIndex = new WeaponIndexData { Index = 0, Unk1 = 1, Unk2 = 0, Time = Shard.CurrentTime };
+        WeaponIndex = new WeaponIndexData { Index = 0, PreviousIndex = 1, Unk2 = 0, Time = Shard.CurrentTime };
 
         PermissionFlags = new PermissionFlagsData
         {

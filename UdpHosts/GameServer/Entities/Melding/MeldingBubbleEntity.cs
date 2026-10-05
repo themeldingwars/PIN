@@ -63,7 +63,7 @@ public sealed class MeldingBubbleEntity : BaseEntity
         ScopeBubbleInfo = new ScopeBubbleInfoData()
         {
             Layer = 0,
-            Unk2 = 1
+            VisibilityMask = 1
         };
     }
 

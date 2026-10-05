@@ -410,7 +410,7 @@ public class EntityManager
             SpawnMelding(melding.PerimiterSetName, new ActiveDataStruct()
             {
                 TimestampMicro = melding.Unk1,
-                Unk2 = melding.Unk2,
+                DurationMicro = melding.Unk2,
                 Unk3 = melding.Unk3,
                 FromPoints = melding.ControlPoints,
                 FromTangents = melding.Offsets,

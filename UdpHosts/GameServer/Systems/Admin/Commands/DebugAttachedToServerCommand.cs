@@ -36,12 +36,12 @@ public class DebugAttachedToServerCommand : ServerCommand
             Id1 = prevData.Id1,
             Id2 = prevData.Id2,
             Role = prevData.Role,
-            Unk2 = value1,
+            Posture = value1,
             Unk3 = value2,
         },
         character.AttachedToEntity,
         character.Collision.AttachmentPoseId,
         character.Collision.AttachmentPoseOffset);
-        SourceFeedback($"Setting Unk2 = {value1}, Unk3 = {value2} (Role {prevData.Role})", context);
+        SourceFeedback($"Setting Posture = {value1}, Unk3 = {value2} (Role {prevData.Role})", context);
     }
 }

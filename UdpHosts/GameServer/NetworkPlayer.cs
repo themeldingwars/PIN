@@ -62,7 +62,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         if (_shards.Shards.Any(shard => shard.Entities.ContainsKey(CharacterId)))
         {
             Logger.Warning("Closing login because entity with this id is already zoned in");
-            var resp = new AeroMessages.Control.CloseConnection { Unk = [0, 0, 0, 0] };
+            var resp = new AeroMessages.Control.CloseConnection { ShutdownCode = 0 };
             NetChannels[ChannelType.Control].SendMessage(resp);
             return;
         }
@@ -169,15 +169,15 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             Data = new ForcedMovementData
             {
                 Type = 1,
-                Unk1 = 0,
-                HaveUnk2 = 0,
+                CommandId = 0,
+                HaveRelativeTo = 0,
                 Params1 = new ForcedMovementType1Params { Position = spawnPoint.Position, Direction = CharacterEntity.AimDirection, Velocity = Vector3.Zero, Time = AssignedShard.CurrentTime + 1 }
             },
             ShortTime = AssignedShard.CurrentShortTime
         };
         NetChannels[ChannelType.ReliableGss].SendMessage(forcedMove, CharacterEntity.EntityId);
 
-        var respawnMsg = new Respawned { ShortTime = AssignedShard.CurrentShortTime, Unk1 = 0, Unk2 = 0 };
+        var respawnMsg = new Respawned { ShortTime = AssignedShard.CurrentShortTime, ClearProjectiles = 0, Unk2 = 0 };
         NetChannels[ChannelType.ReliableGss].SendMessage(respawnMsg, CharacterEntity.EntityId);
 
         var baseController = CharacterEntity.Character_BaseController;
@@ -188,7 +188,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         CharacterEntity.SetSpawnPose();
         baseController.RespawnTimesProp = new RespawnTimesData(); 
         baseController.RespawnTimesProp = null; // Make the field dirty so we send clear because we probably should send clear. At some point investigaste if this is neccessary.
-        baseController.TimedDailyRewardProp = new TimedDailyRewardData { State = TimedDailyRewardData.TimedDailyRewardState.ROLLED, MaxRolls = 1, CountdownToTime = AssignedShard.CurrentTime };
+        baseController.TimedDailyRewardProp = new TimedDailyRewardData { State = TokenMachineState.Rolled, MaxRolls = 1, CountdownToTime = AssignedShard.CurrentTime };
         NetChannels[ChannelType.ReliableGss].SendChanges(baseController, CharacterEntity.EntityId);
 
         // Update 2
@@ -348,11 +348,11 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             ZoneTimeSyncInfo = new ZoneTimeSyncData { FictionDateTimeOffsetMicros = 0, DayLengthFactor = 12.0F, DayPhaseOffset = 0.896445870399F },
             GameClockInfo = new GameClockInfoData
             {
-                MicroUnix_1 = 1478970208392232,
-                MicroUnix_2 = 1478774752697322,
+                EarliestUnixMicros = 1478970208392232,
+                SimulationSeedUnixMicros = 1478774752697322,
                 Timescale = 1.0,
-                Unk3 = 0,
-                Unk4 = 0,
+                PausedAtMicros = 0,
+                ClockOffsetMicros = 0,
                 Paused = 0
             },
             SpectatorModeFlag = 0

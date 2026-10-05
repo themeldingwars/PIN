@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -262,10 +263,10 @@ public class NetworkClient : INetworkClient
             case MatrixMessage.KeyframeRequest:
                 var query = packet.Unpack<KeyframeRequest>();
                 Logger.Verbose("KeyframeRequest with {EntityRequests} entity requests and {RefRequests} ref requests. Total scoped for player: {ScopedEntitiesForPlayer}",
-                    query.EntityRequests?.Length ?? 0,
+                    (query.EntityRequestsPart1?.Length ?? 0) + (query.EntityRequestsPart2?.Length ?? 0) + (query.EntityRequestsPart3?.Length ?? 0),
                     query.RefRequests?.Length ?? 0,
                     AssignedShard.EntityMan.GetNumberOfScopedEntities(Player));
-                foreach (var request in query.EntityRequests)
+                foreach (var request in (query.EntityRequestsPart1 ?? []).Concat(query.EntityRequestsPart2 ?? []).Concat(query.EntityRequestsPart3 ?? []))
                 {
                     byte typecode = (byte)(request.Entity & 0x00000000000000FFul);
                     var entityId = request.Entity & 0xffffffffffffff00;
@@ -280,7 +281,7 @@ public class NetworkClient : INetworkClient
                     GameShapedBytes = 0,
                     PacketUploss = 0,
                     PacketDownloss = 0,
-                    Unk5 = 0,
+                    MaxRecvSegmentBytes = 0,
                     IsEverlastingGobsocket = 0,
                     HaveUnk7 = 0,
                     Unk8 = []

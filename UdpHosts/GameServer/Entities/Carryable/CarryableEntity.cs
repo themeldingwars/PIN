@@ -32,7 +32,7 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
     public ScopeBubbleInfoData ScopeBubble { get; set; } = new ScopeBubbleInfoData()
     {
         Layer = 0,
-        Unk2 = 1
+        VisibilityMask = 1
     };
 
     public ushort StatusEffectsChangeTime_0 { get; set; }

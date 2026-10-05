@@ -35,8 +35,8 @@ public class TeleportServerCommand : ServerCommand
                 Data = new ForcedMovementData
                 {
                     Type = 1,
-                    Unk1 = 0,
-                    HaveUnk2 = 0,
+                    CommandId = 0,
+                    HaveRelativeTo = 0,
                     Params1 = new ForcedMovementType1Params { Position = destination, Direction = character.AimDirection, Velocity = Vector3.Zero, Time = character.Shard.CurrentTime + 1 }
                 },
                 ShortTime = character.Shard.CurrentShortTime

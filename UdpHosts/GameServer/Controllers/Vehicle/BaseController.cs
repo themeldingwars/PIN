@@ -56,6 +56,6 @@ public class BaseController : Base
         }
 
         var vehicle = entity as Entities.Vehicle.VehicleEntity;
-        vehicle.SetEffectsFlags(query.UnkByte2_HeadlightEnabled);
+        vehicle.SetEffectsFlags(query.Headlights);
     }
 }

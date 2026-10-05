@@ -90,7 +90,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
             Position = data.Finish.Position,
             Rotation = data.Finish.Orientation,
             Unk9 = 1,
-            Unk10 = 1,
+            StartTime = 1,
             Scale = 0.7f,
             HaveUnk4 = 0,
             HaveUnk12 = 0,
@@ -205,10 +205,10 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                             [
                                 new StatInfo()
                                 {
-                                    NameId = _finalTime, Type = StatInfo.StatType.Time, Value = time / 1000f, Unk3 = string.Empty,
+                                    NameId = _finalTime, Type = StatInfo.StatType.Time, Value = time / 1000f, StringValue = string.Empty,
                                 }
                             ],
-                    Unk1 = 0,
+                    EventId = 0,
                     IndexId = 1,
                     DisplayQuality = 0,
                     ScreenType = 0,

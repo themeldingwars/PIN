@@ -54,18 +54,18 @@ public class CombatController : Base
             var abilityProjectileFired = new AbilityProjectileFired
             {
                 ShortTime = (ushort)fireWeaponProjectile.Time,
-                MaybeHalfs = default,
+                OriginOffset = default,
                 Aim = fireWeaponProjectile.AimDirection,
                 AmmoType = (ushort)pending.AmmoType,
                 Range = pending.Range,
-                Unk1 = 0,
-                Unk2 = pending.BurstCount,
-                Unk3 = 0,
-                Unk4 = 0,
+                Damage = 0,
+                BurstCount = pending.BurstCount,
+                Spread = 0,
+                SpreadSeed = 0,
                 Unk5 = 0,
                 Hardpoint = pending.Hardpoint,
-                UnkFlag = 0,
-                UnkFlaggedEntity = 0,
+                HaveHomingTarget = 0,
+                HomingTarget = default,
             };
 
             client.NetChannels[ChannelType.ReliableGss].SendMessage(abilityProjectileFired, character.EntityId);
@@ -118,7 +118,7 @@ public class CombatController : Base
         player.CharacterEntity.SetWeaponIndex(new WeaponIndexData
         {
             Index = query.SelectedWeaponIndex,
-            Unk1 = query.Unk3,
+            PreviousIndex = query.PreviousWeaponIndex,
             Unk2 = 0,
             Time = query.Time,
         });

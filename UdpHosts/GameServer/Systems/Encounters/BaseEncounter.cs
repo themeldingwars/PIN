@@ -53,7 +53,7 @@ public abstract class BaseEncounter : IEncounter
 
     protected void PlayDialog(uint id)
     {
-        var msg = new PlayDialogScriptMessage() { DialogId = id, Unk1 = [0] };
+        var msg = new PlayDialogScriptMessage() { DialogId = id, Speakers = [0] };
 
         foreach (var p in Participants)
         {

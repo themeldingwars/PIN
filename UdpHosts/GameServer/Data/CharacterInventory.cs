@@ -118,12 +118,12 @@ public class CharacterInventory
             DynamicFlags = 0,
             TimestampEpoch = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             Modules = [],
-            Unk1 = 0,
-            Unk3 = 0,
+            ChangeType = 0,
+            DurabilityPool = 0,
             Unk4 = 0,
             Unk5 = 0,
-            Unk6 = [],
-            Unk7 = 0,
+            Attributes = [],
+            Quality = 0,
         };
 
         _items.Add(guid, item);
@@ -141,7 +141,7 @@ public class CharacterInventory
                 SdbId = sdbId,
                 SubInventory = GetInventoryTypeByItemTypeId(sdbId),
                 TextKey = string.Empty,
-                Unk2 = 0,
+                TimestampEpoch = 0,
             };
 
             _resources.Add(sdbId, resource);
@@ -189,7 +189,7 @@ public class CharacterInventory
 
     public void AddLoadout(Loadout loadout)
     {
-        _loadouts.Add(loadout.FrameLoadoutId, loadout);
+        _loadouts.Add(loadout.PveLoadoutId, loadout);
     }
 
     public void SendFullInventory()
@@ -220,9 +220,9 @@ public class CharacterInventory
             ItemsPart3 = [],
             Resources = [.. _resources.Values],
             Loadouts = [.. _loadouts.Values],
-            Unk = 1,
-            SecondItems = [],
-            SecondResources = []
+            UpdateMailInventory = 1,
+            MailItems = [],
+            MailResources = []
         };
 
         if (_items.Count >= 255)
@@ -275,9 +275,9 @@ public class CharacterInventory
             ItemsPart3 = [],
             Resources = [],
             Loadouts = [],
-            Unk = 1,
-            SecondItems = [],
-            SecondResources = []
+            UpdateMailInventory = 1,
+            MailItems = [],
+            MailResources = []
         };
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
@@ -305,9 +305,9 @@ public class CharacterInventory
                 resource
             ],
             Loadouts = [],
-            Unk = 1,
-            SecondItems = [],
-            SecondResources = []
+            UpdateMailInventory = 1,
+            MailItems = [],
+            MailResources = []
         };
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
@@ -347,9 +347,9 @@ public class CharacterInventory
             ItemsPart3 = [],
             Resources = [],
             Loadouts = [.. _loadouts.Values],
-            Unk = 1,
-            SecondItems = [],
-            SecondResources = []
+            UpdateMailInventory = 1,
+            MailItems = [],
+            MailResources = []
         };
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);

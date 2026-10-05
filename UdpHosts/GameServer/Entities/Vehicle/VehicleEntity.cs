@@ -97,16 +97,16 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public List<TurretEntity> Turrets { get; set; } = [];
     public Dictionary<byte, DeployableIdsData> DeployableData { get; set; } = new Dictionary<byte, DeployableIdsData>()
     {
-        { 0, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 1, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 2, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 3, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 4, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 5, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 6, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 7, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 8, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
-        { 9, new DeployableIdsData { Target = new EntityId { Backing = 0 }, Unk1 = 0, Unk2 = 0 } },
+        { 0, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 1, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 2, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 3, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 4, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 5, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 6, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 7, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 8, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
+        { 9, new DeployableIdsData { Target = new EntityId { Backing = 0 }, ComponentId = 0, HardpointIndex = 0 } },
     };
     public Dictionary<byte, uint> Abilities { get; set; } = new Dictionary<byte, uint>()
     {
@@ -517,7 +517,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             Id1 = AeroEntityId,
             Id2 = AeroEntityId,
             Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
-            Unk2 = seatConfig.Posture,
+            Posture = seatConfig.Posture,
             Unk3 = 1, // mostly 1 in replays
         },
         this,
@@ -581,7 +581,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
             Id1 = AeroEntityId,
             Id2 = AeroEntityId,
             Role = (AttachedToData.AttachmentRoleType)seatConfig.Role,
-            Unk2 = seatConfig.Posture,
+            Posture = seatConfig.Posture,
             Unk3 = 1, // mostly 1 in replays
         },
         this,
@@ -623,8 +623,8 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     private void InitFields()
     {
         HostilityInfo = new HostilityInfoData { Flags = 0 | HostilityInfoData.HostilityFlags.Faction, FactionId = 1 };
-        ProcessDelay = new ProcessDelayData { Unk1 = 30721, Unk2 = 236 };
-        ScopeBubble = new ScopeBubbleInfoData { Layer = 0, Unk2 = 0 };
+        ProcessDelay = new ProcessDelayData { ChangeTime = 30721, DelayMs = 236 };
+        ScopeBubble = new ScopeBubbleInfoData { Layer = 0, VisibilityMask = 0 };
     }
 
     private void InitControllers()

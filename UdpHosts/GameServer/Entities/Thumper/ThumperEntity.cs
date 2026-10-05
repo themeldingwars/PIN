@@ -51,7 +51,7 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
     public ScopeBubbleInfoData ScopeBubble { get; set; } = new ScopeBubbleInfoData()
     {
         Layer = 0,
-        Unk2 = 1
+        VisibilityMask = 1
     };
     public float Scale { get; set; }
 

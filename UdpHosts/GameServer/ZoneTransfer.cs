@@ -89,7 +89,7 @@ public static class ZoneTransfer
             }
 
             _logger.Information("Transferring {CharacterId:X} to zone {ZoneId}", player.CharacterId, zone.ID);
-            var close = new AeroMessages.Control.CloseConnection { Unk = [0, 0, 0, 0] };
+            var close = new AeroMessages.Control.CloseConnection { ShutdownCode = 0 };
             player.NetChannels[ChannelType.Control].SendMessage(close);
         }
         catch (Exception e)

@@ -239,7 +239,7 @@ public class EncounterManager
                   {
                       EncounterId = encounter.AeroEntityId,
                       ShadowFieldValues = serializedData.ToArray(),
-                      BlobData = [],
+                      SinCardChanges = [],
                   };
 
         foreach (var player in encounter.Participants)

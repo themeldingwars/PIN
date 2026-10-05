@@ -64,7 +64,7 @@ public class HitFeedback
                     DamageData = damageData,
                     DamageFlags = damageFlags,
                     ShortTime = shortTime,
-                    Unk2 = unk2,
+                    ViewKickScale = unk2,
                 });
         }
     }
