@@ -528,7 +528,7 @@ public class EntityManager
 
     public void Add(IEntity entity)
     {
-        var guid = new Core.Data.EntityGuid(_serverId, _shard.CurrentTime, _counter++, (byte)AeroMessages.Common.Controller.Character);
+        var guid = new FauFau.Util.EntityGuid(_serverId, _shard.CurrentTime, _counter++, (byte)AeroMessages.Common.Controller.Character);
         _ = _scopedPlayersByEntity.TryAdd(guid.Full, []);
         _shard.Entities.Add(guid.Full, entity);
         OnAddedEntity(entity);
@@ -539,7 +539,7 @@ public class EntityManager
         Remove(entity.EntityId);
     }
 
-    public void Remove(Core.Data.EntityGuid guid)
+    public void Remove(FauFau.Util.EntityGuid guid)
     {
         Remove(guid.Full);
     }

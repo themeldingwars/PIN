@@ -18,12 +18,12 @@ public static class GuidService
 
     public static ulong GetNext(uint time, byte type = 0)
     {
-        return new Core.Data.EntityGuid(_mainServerId, time, NextCounter(), type).Full;
+        return new FauFau.Util.EntityGuid(_mainServerId, time, NextCounter(), type).Full;
     }
 
     public static ulong GetNext(IShard shard, byte type = 0)
     {
-        return new Core.Data.EntityGuid(_mainServerId, shard.CurrentTime, NextCounter(), type).Full;
+        return new FauFau.Util.EntityGuid(_mainServerId, shard.CurrentTime, NextCounter(), type).Full;
     }
 
     private static uint NextCounter()
