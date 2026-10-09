@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Concurrent;
+using FauFau.Formats;
 
 namespace Shared.Collision.Utilities;
 
@@ -7,7 +8,7 @@ public static class AssetPathResolver
 {
     public static string ComputeFolderName(string assetId)
     {
-        return (int.Parse(assetId) / 1000 * 1000).ToString("D8");
+        return AssetDb.GetFolderName(uint.Parse(assetId));
     }
 
     public static string[] ScanAvailableFolders(string assetRoot)

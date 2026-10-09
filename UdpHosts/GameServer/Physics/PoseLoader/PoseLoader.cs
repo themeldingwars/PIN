@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Serilog;
+using Shared.Collision.Utilities;
 
 namespace GameServer.Physics.PoseLoader;
 
