@@ -2,6 +2,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Generates chunks in parallel and allocates a lot, server GC almost halves the time -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
