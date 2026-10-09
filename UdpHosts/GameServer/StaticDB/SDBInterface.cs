@@ -271,7 +271,7 @@ public class SDBInterface
     private static Dictionary<uint, SpawnPointComponentDef> _spawnPointComponentDef;
     private static Dictionary<uint, HullSegmentDef> _hullSegmentDef;
 
-    public static void Init(StaticDB instance)
+    public static void Init(StaticDBView instance)
     {
         var loader = new StaticDBLoader(instance);
 

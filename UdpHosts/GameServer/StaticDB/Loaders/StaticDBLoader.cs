@@ -15,7 +15,6 @@ using Records.dbzonemetadata;
 using Records.vcs;
 using Serilog;
 using Shared.Common;
-using static FauFau.Formats.StaticDB;
 
 public class StaticDBLoader : ISDBLoader
 {
@@ -40,9 +39,9 @@ public class StaticDBLoader : ISDBLoader
         { "ShowWaypoint", "showWaypoint" }, // dbencounterdata::MapMarkerInfo
         { "ZoneType", "zoneType" }, // dbzonemetadata::ZoneRecord
     };
-    private static StaticDB _sdb;
+    private static StaticDBView _sdb;
 
-    public StaticDBLoader(StaticDB instance)
+    public StaticDBLoader(StaticDBView instance)
     {
         _sdb = instance;
     }
@@ -1491,7 +1490,7 @@ public class StaticDBLoader : ISDBLoader
     {
         HashSet<string> warningsSet = [];
 
-        Table table = _sdb.GetTableByName(tableName);
+        StaticDBView.Table table = _sdb.GetTableByName(tableName);
         var list = new List<T>();
         var properties = typeof(T).GetProperties()
             .Select(propInfo =>
@@ -1512,7 +1511,7 @@ public class StaticDBLoader : ISDBLoader
                         return new { PropInfo = propInfo, ConvertedName = convertedName, Index = index, };
                     }).ToList();
 
-        foreach (Row row in table.Rows)
+        foreach (StaticDBView.Row row in table)
         {
             T entry = new T();
             foreach (var prop in properties)
@@ -1521,7 +1520,7 @@ public class StaticDBLoader : ISDBLoader
                 {
                     if (prop.Index != -1)
                     {
-                        prop.PropInfo.SetValue(entry, row[prop.Index], null);
+                        prop.PropInfo.SetValue(entry, row.GetValue(prop.Index), null);
                     }
                     else
                     {

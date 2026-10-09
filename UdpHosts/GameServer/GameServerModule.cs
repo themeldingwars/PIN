@@ -9,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Events;
 using Shared.Common;
-using SDB = FauFau.Formats.StaticDB;
 
 namespace GameServer;
 
@@ -33,7 +32,6 @@ public class GameServerModule : Module
     private static void RegisterTypes(ContainerBuilder builder)
     {
         builder.RegisterType<GameServerSettings>().SingleInstance();
-        builder.RegisterType<SDB>().SingleInstance();
         builder.RegisterType<GameServer>();
     }
 
@@ -129,18 +127,6 @@ public class GameServerModule : Module
             return logger;
         })
         .As<ILogger>().SingleInstance();
-
-        builder.Register(ctx =>
-        {
-            var settings = ctx.Resolve<GameServerSettings>();
-
-            Log.ForContext<SDBInterface>().Information("Opening SDB from {StaticDBPath}", settings.StaticDBPath);
-            var sdb = new SDB();
-            sdb.Read(settings.StaticDBPath);
-
-            return sdb;
-        })
-        .As<SDB>().SingleInstance();
     }
 
     /// <summary>

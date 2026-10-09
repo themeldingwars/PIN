@@ -4,13 +4,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using FauFau.Formats;
 using GameServer.Controllers;
 using GameServer.GRPC;
 using GameServer.StaticDB;
 using GameServer.Test;
 using Serilog;
 using Shared.Udp;
-using SDB = FauFau.Formats.StaticDB;
 
 namespace GameServer;
 
@@ -30,8 +30,7 @@ internal class GameServer : PacketServer, IShardManager
     private bool _isReady;
 
     public GameServer(GameServerSettings serverSettings,
-                      ILogger logger,
-                      SDB sdb)
+                      ILogger logger)
         : base(serverSettings.Port, logger)
     {
         _clientMap = new ConcurrentDictionary<uint, INetworkPlayer>();
@@ -44,8 +43,12 @@ internal class GameServer : PacketServer, IShardManager
 
         Logger.Information("Serving client {Environment}/{Branch} version {ClientVersion}: GSS protocol {GssVersion}, Matrix protocol {MatrixVersion}", serverSettings.ClientEnvironment, serverSettings.ClientBranch, serverSettings.ClientVersion, serverSettings.GssProtocolVersion, serverSettings.MatrixProtocolVersion);
 
-        Logger.ForContext<SDBInterface>().Information("Reading from SDB");
-        SDBInterface.Init(sdb);
+        // The tables are copied into records, so the SDB is only needed while they load
+        Logger.ForContext<SDBInterface>().Information("Reading from SDB {StaticDBPath}", serverSettings.StaticDBPath);
+        using (var sdb = StaticDBView.Open(serverSettings.StaticDBPath))
+        {
+            SDBInterface.Init(sdb);
+        }
 
         Logger.ForContext<SDBInterface>().Information("Reading custom data");
         CustomDBInterface.Init();
