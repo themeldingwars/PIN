@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using AeroMessages.GSS.Character;
 using Data;
+using FauFau.Util;
 using Records.dbcharacter;
 using Records.dbitems;
 using Records.vcs;
@@ -145,13 +146,13 @@ public class SDBUtils
             // Calc colors
             var paletteColors = new uint[7]
             {
-                FColor.CombineLightDark(data.Color1Highlight, data.Color1Shadow),
-                FColor.CombineLightDark(data.Color2Highlight, data.Color2Shadow),
-                FColor.CombineLightDark(data.Color3Highlight, data.Color3Shadow),
-                FColor.CombineLightDark(data.Color4Highlight, data.Color4Shadow),
-                FColor.CombineLightDark(data.Color5Highlight, data.Color5Shadow),
-                FColor.CombineLightDark(data.Color6Highlight, data.Color6Shadow),
-                FColor.CombineLightDark(data.Color7Highlight, data.Color7Shadow),
+                WarpaintColor.Pack(data.Color1Highlight, data.Color1Shadow),
+                WarpaintColor.Pack(data.Color2Highlight, data.Color2Shadow),
+                WarpaintColor.Pack(data.Color3Highlight, data.Color3Shadow),
+                WarpaintColor.Pack(data.Color4Highlight, data.Color4Shadow),
+                WarpaintColor.Pack(data.Color5Highlight, data.Color5Shadow),
+                WarpaintColor.Pack(data.Color6Highlight, data.Color6Shadow),
+                WarpaintColor.Pack(data.Color7Highlight, data.Color7Shadow),
             };
 
             // Fullbody
@@ -751,23 +752,4 @@ public class ChassisWarpaintResult
     public uint[] Gradients;
     public uint[] Colors;
     public VisualsPaletteBlock[] Palettes;
-}
-
-// Yoink it from RIN
-public class FColor
-{
-    public static uint   CombineLightDark(uint light, uint dark) => ARGB8888ToRGB565(dark) | (uint)(ARGB8888ToRGB565(light) << 16);
-    public static uint   ExtractLight(uint     combined) => RGB565ToARGB8888((ushort)(combined >> 16));
-    public static uint   ExtractDark(uint      combined) => RGB565ToARGB8888((ushort)combined);
-    public static ushort ARGB8888ToRGB565(uint argb)     => (ushort)(((((byte)(argb >> 16) >> 3) & 0x1f) << 11) | ((((byte)(argb >> 8) >> 2) & 0x3f) << 5) | (((byte)argb >> 3) & 0x1f));
-
-    public static uint RGB565ToARGB8888(ushort rgb)
-    {
-        int r = ((rgb >> 11) * 255) + 16;
-        int g = (((rgb & 0x07E0) >> 5) * 255) + 32;
-        int b = ((rgb & 0x001F) * 255) + 16;
-#pragma warning disable CS0675 // Bitwise-or operator used on a sign-extended operand
-        return (uint)(0xFF000000 | (byte)(((r / 32) + r) / 32) << 16 | (byte)(((g / 64) + g) / 64) << 8 | (byte)(((b / 32) + b) / 32));
-#pragma warning restore CS0675 // Bitwise-or operator used on a sign-extended operand
-    }
 }
