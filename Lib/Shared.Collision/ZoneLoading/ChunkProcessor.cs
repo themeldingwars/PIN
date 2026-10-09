@@ -1,16 +1,18 @@
 using BepuPhysics;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using FauFau.Formats;
+using FauFau.Formats.GtChunk;
 using Serilog;
 using Shared.Collision.Cache;
-using Shared.Collision.Chunk;
-using Shared.Collision.Layers.Collision;
 using Shared.Collision.Tagfile;
 
 namespace Shared.Collision.ZoneLoading;
 
 public static class ChunkProcessor
 {
+    private const uint _collisionLod = 3;
+
     private static readonly ILogger _logger = Log.ForContext(typeof(ChunkProcessor));
 
     public static StaticDescription[] ProcessChunk(
@@ -29,13 +31,14 @@ public static class ChunkProcessor
             return cached;
         }
 
-        var chunk = ChunkFileReader.Read(chunkPath);
+        var chunk = new GtChunkV8();
+        chunk.Load(chunkPath);
 
-        var lod3Layers = FindAllLod3CollisionLayers(chunk);
+        var collisionMeshes = FindAllLod3CollisionMeshes(chunk, chunkName);
 
-        if (lod3Layers.Length == 0)
+        if (collisionMeshes.Length == 0)
         {
-            _logger.Warning("Chunk {Name} has no LOD3 collision layers, what?", chunk.Name);
+            _logger.Warning("Chunk {Name} has no LOD3 collision layers, what?", chunkName);
             return [];
         }
 
@@ -43,17 +46,17 @@ public static class ChunkProcessor
 
         List<StaticDescription> allStatics = [];
 
-        foreach (var collisionLayer in lod3Layers)
+        foreach (var mesh in collisionMeshes)
         {
-            var hkxBytes = collisionLayer.Enwf.HavokBinaryTagfile;
+            var hkxBytes = mesh.HavokData;
 
             if (hkxBytes.Length == 0)
             {
                 continue;
             }
 
-            var vertBlocks = EnwfToBepuConverter.ConvertVertBlocks(collisionLayer.Enwf.VertBlocks);
-            var indiceBlocks = EnwfToBepuConverter.ConvertIndiceBlocks(collisionLayer.Enwf.IndiceBlocks);
+            var vertBlocks = EnwfToBepuConverter.ConvertVertBlocks(mesh.Verts);
+            var indiceBlocks = EnwfToBepuConverter.ConvertIndiceBlocks(mesh.IndiceBlocks);
             var statics = loader.ProcessTagfileBytes(hkxBytes, vertBlocks, indiceBlocks);
 
             if (statics.Length > 0)
@@ -69,33 +72,34 @@ public static class ChunkProcessor
         return result;
     }
 
-    private static ChunkStaticGeometryCollisionLayer[] FindAllLod3CollisionLayers(ChunkFile chunk)
+    private static GtChunk_MeshData[] FindAllLod3CollisionMeshes(GtChunkV8 chunk, string chunkName)
     {
-        List<ChunkStaticGeometryCollisionLayer> result = [];
+        List<GtChunk_MeshData> result = [];
 
-        foreach (var lod in chunk.Lod)
+        for (int lod = 0; lod < chunk.Root.LodNodes.Length; lod++)
         {
-            if (lod.Level != 3)
+            if (chunk.Root.LodNodes[lod].LodIdx != _collisionLod)
             {
                 continue;
             }
 
-            foreach (var layer in lod.SharedLayers)
-            {
-                if (layer is ChunkStaticGeometryCollisionLayer collision)
-                {
-                    result.Add(collision);
-                }
-            }
+            var layers = chunk.GetLodLayers(lod)
+                .Concat(chunk.LodDataMap[lod].DatBlockIds.SelectMany(subChunk => chunk.GetSubChunkLayers(subChunk)));
 
-            foreach (var subChunk in lod.SubChunks)
+            foreach (var layer in layers)
             {
-                foreach (var layer in subChunk.Layers)
+                if (layer.Id != WorldLayerIds.StaticGeometryCollision)
                 {
-                    if (layer is ChunkStaticGeometryCollisionLayer collision)
-                    {
-                        result.Add(collision);
-                    }
+                    continue;
+                }
+
+                try
+                {
+                    result.Add(GtChunk_MeshData.Read(layer.Data));
+                }
+                catch (Exception e)
+                {
+                    _logger.Warning("Chunk {Name} has a collision layer that can't be read: {Error}", chunkName, e.Message);
                 }
             }
         }

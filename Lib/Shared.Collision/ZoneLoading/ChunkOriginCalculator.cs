@@ -1,5 +1,5 @@
 using System.Numerics;
-using Shared.Collision.Layers;
+using FauFau.Formats;
 
 namespace Shared.Collision.ZoneLoading;
 
@@ -9,30 +9,26 @@ public static class ChunkOriginCalculator
     private const uint _coralForestZoneId = 448;
     private const uint _sertaoZoneId = 1030;
 
-    public static ZoneChunkRef[] ExtractChunks(ZoneRootLayer zoneRoot, uint zoneId)
+    public static ZoneChunkRef[] ExtractChunks(Zone zone, uint zoneId)
     {
         var chunkRefs = new List<ZoneChunkRef>();
 
-        foreach (var child in zoneRoot.Children)
+        foreach (var chunkInfo in zone.Root.FindAll(WorldLayerIds.ChunkInfo))
         {
-            if (child is not ZoneChunkInfoLayer chunkInfo)
-            {
-                continue;
-            }
-
-            var rangeLayer = chunkInfo.Children.OfType<ZoneChunkRangeLayer>().FirstOrDefault();
+            var rangeLayer = chunkInfo.Find(WorldLayerIds.ChunkRange);
             if (rangeLayer == null)
             {
                 continue;
             }
 
-            var refs = chunkInfo.Children.OfType<ZoneChunkRefLayer>().ToList();
-            var refs2 = chunkInfo.Children.OfType<ZoneChunkRef2Layer>().ToList();
+            var range = ZoneChunkRange.Read(rangeLayer.Data);
+            var refs = chunkInfo.FindAll(WorldLayerIds.ChunkRef).Select(l => FauFau.Formats.ZoneChunkRef.Read(l.Data));
+            var refs2 = chunkInfo.FindAll(WorldLayerIds.ChunkRef2).Select(l => FauFau.Formats.ZoneChunkRef.Read(l.Data));
 
-            long minCoordX = rangeLayer.MinX;
-            long maxCoordX = rangeLayer.MaxX;
-            long minCoordY = rangeLayer.MinY;
-            long maxCoordY = rangeLayer.MaxY;
+            long minCoordX = range.MinX;
+            long maxCoordX = range.MaxX;
+            long minCoordY = range.MinY;
+            long maxCoordY = range.MaxY;
 
             double centerIndexX = (maxCoordX - minCoordX) / 2.0;
             double centerIndexY = (maxCoordY - minCoordY) / 2.0;
@@ -48,17 +44,11 @@ public static class ChunkOriginCalculator
                 centerIndexY = 3;
             }
 
-            foreach (var refLayer in refs)
+            // The first range decides the cube face and the origins of every reference
+            foreach (var reference in refs.Concat(refs2))
             {
-                var origin = CalculateOrigin(maxCoordX, maxCoordY, centerIndexX, centerIndexY, refLayer.X, refLayer.Y);
-                string chunkName = $"{rangeLayer.CubeFaceId}_{refLayer.X:D4}_{refLayer.Y:D4}";
-                chunkRefs.Add(new ZoneChunkRef { Name = chunkName, Origin = origin });
-            }
-
-            foreach (var ref2Layer in refs2)
-            {
-                var origin = CalculateOrigin(maxCoordX, maxCoordY, centerIndexX, centerIndexY, ref2Layer.X, ref2Layer.Y);
-                string chunkName = $"{rangeLayer.CubeFaceId}_{ref2Layer.X:D4}_{ref2Layer.Y:D4}";
+                var origin = CalculateOrigin(maxCoordX, maxCoordY, centerIndexX, centerIndexY, reference.X, reference.Y);
+                string chunkName = $"{range.CubeFace}_{reference.X:D4}_{reference.Y:D4}";
                 chunkRefs.Add(new ZoneChunkRef { Name = chunkName, Origin = origin });
             }
         }

@@ -13,10 +13,9 @@ using BepuPhysics.Collidables;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using CommandLine;
+using FauFau.Formats;
 using Serilog;
 using Shared.Collision;
-using Shared.Collision.Layers;
-using Shared.Collision.Zone;
 using Shared.Collision.ZoneLoading;
 
 namespace CollisionGenerator;
@@ -396,15 +395,16 @@ Examples:
 
         try
         {
-            var zone = ZoneFileReader.Read(zoneFilePath);
-            if (zone.Root is not ZoneRootLayer rootLayer)
+            var zone = new Zone();
+            zone.Read(zoneFilePath);
+            if (zone.Magic != "ZONE" || zone.Root?.Id != WorldLayerIds.ZoneRoot)
             {
                 Interlocked.Increment(ref _failures);
                 Logger.Error("Invalid zone root layer for zone {ZoneId}", zoneId);
                 return;
             }
 
-            var chunkRefs = ChunkOriginCalculator.ExtractChunks(rootLayer, zoneId);
+            var chunkRefs = ChunkOriginCalculator.ExtractChunks(zone, zoneId);
             Logger.Information("Zone {ZoneId}: found {Count} chunks to process", zoneId, chunkRefs.Length);
 
             var chunkNames = chunkRefs.Select(ref_ => ref_.Name).ToArray();

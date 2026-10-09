@@ -2,9 +2,8 @@ using System.Diagnostics;
 using BepuPhysics;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using FauFau.Formats;
 using Serilog;
-using Shared.Collision.Layers;
-using Shared.Collision.Zone;
 
 namespace Shared.Collision.ZoneLoading;
 
@@ -39,15 +38,16 @@ public class ZoneLoader
             return null;
         }
 
-        var zone = ZoneFileReader.Read(zoneFilePath);
+        var zone = new Zone();
+        zone.Read(zoneFilePath);
 
-        if (zone.Root is not ZoneRootLayer rootLayer)
+        if (zone.Magic != "ZONE" || zone.Root?.Id != WorldLayerIds.ZoneRoot)
         {
             _logger.Error("Invalid zone root layer for zone {ZoneId}", zoneId);
             return null;
         }
 
-        var chunkRefs = ChunkOriginCalculator.ExtractChunks(rootLayer, zoneId);
+        var chunkRefs = ChunkOriginCalculator.ExtractChunks(zone, zoneId);
 
         _logger.Information($"Zone {{ZoneId}} ({{ZoneName}}): References {{Count}} {(chunkRefs.Length == 1 ? "chunk" : "chunks")}", zoneId, zone.Name, chunkRefs.Length);
 
@@ -74,6 +74,6 @@ public class ZoneLoader
         stopwatch.Stop();
         _logger.Information("Zone {ZoneId}: Loaded successfully in {Duration}. Total statics: {Count}", zoneId, stopwatch.Elapsed, _simulation.Statics.Count);
 
-        return zone.Timestamp;
+        return new DateTimeOffset(zone.TimeStamp).ToUnixTimeMilliseconds();
     }
 }
