@@ -2,7 +2,6 @@ using BepuPhysics;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using FauFau.Formats;
-using FauFau.Formats.GtChunk;
 using Serilog;
 using Shared.Collision.Cache;
 using Shared.Collision.Tagfile;
@@ -55,7 +54,7 @@ public static class ChunkProcessor
                 continue;
             }
 
-            var vertBlocks = EnwfToBepuConverter.ConvertVertBlocks(mesh.Verts);
+            var vertBlocks = EnwfToBepuConverter.ConvertVertBlocks(mesh.VertBlocks);
             var indiceBlocks = EnwfToBepuConverter.ConvertIndiceBlocks(mesh.IndiceBlocks);
             var statics = loader.ProcessTagfileBytes(hkxBytes, vertBlocks, indiceBlocks);
 
@@ -72,13 +71,13 @@ public static class ChunkProcessor
         return result;
     }
 
-    private static GtChunk_MeshData[] FindAllLod3CollisionMeshes(GtChunkV8 chunk, string chunkName)
+    private static EnwfLayer[] FindAllLod3CollisionMeshes(GtChunkV8 chunk, string chunkName)
     {
-        List<GtChunk_MeshData> result = [];
+        List<EnwfLayer> result = [];
 
-        for (int lod = 0; lod < chunk.Root.LodNodes.Length; lod++)
+        for (int lod = 0; lod < chunk.Root.LodLayers.Length; lod++)
         {
-            if (chunk.Root.LodNodes[lod].LodIdx != _collisionLod)
+            if (chunk.Root.LodLayers[lod].LodIdx != _collisionLod)
             {
                 continue;
             }
@@ -93,13 +92,14 @@ public static class ChunkProcessor
                     continue;
                 }
 
-                try
+                // FauFau keeps a layer that doesn't parse as raw data
+                if (layer is EnwfLayer enwf)
                 {
-                    result.Add(GtChunk_MeshData.Read(layer.Data));
+                    result.Add(enwf);
                 }
-                catch (Exception e)
+                else
                 {
-                    _logger.Warning("Chunk {Name} has a collision layer that can't be read: {Error}", chunkName, e.Message);
+                    _logger.Warning("Chunk {Name} has a collision layer that can't be read", chunkName);
                 }
             }
         }

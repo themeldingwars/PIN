@@ -1,5 +1,5 @@
 using System.Numerics;
-using FauFau.Formats.GtChunk;
+using FauFau.Formats;
 using Shared.Collision.Tagfile.Models;
 
 namespace Shared.Collision.Tagfile;
@@ -17,18 +17,16 @@ public static class EnwfToBepuConverter
         return result;
     }
 
-    public static IndiceBlockContent[] ConvertIndiceBlocks(GtChunk_MeshData.IndiceBlock[] indiceBlocks)
+    public static IndiceBlockContent[] ConvertIndiceBlocks(EnwfLayer.IndiceBlock[] indiceBlocks)
     {
         var result = new IndiceBlockContent[indiceBlocks.Length];
         for (int i = 0; i < indiceBlocks.Length; i++)
         {
             var block = indiceBlocks[i];
-            var indices = new uint[block.NumIndices][];
+            var indices = new uint[block.TriangleCount][];
             for (int j = 0; j < indices.Length; j++)
             {
-                indices[j] = block.ShortIndices != null
-                    ? [block.ShortIndices[j * 3], block.ShortIndices[(j * 3) + 1], block.ShortIndices[(j * 3) + 2]]
-                    : [block.ByteIndices[j * 3], block.ByteIndices[(j * 3) + 1], block.ByteIndices[(j * 3) + 2]];
+                indices[j] = [block.Indices[j * 3], block.Indices[(j * 3) + 1], block.Indices[(j * 3) + 2]];
             }
 
             result[i] = new IndiceBlockContent { Indices = indices };

@@ -13,17 +13,16 @@ public static class ChunkOriginCalculator
     {
         var chunkRefs = new List<ZoneChunkRef>();
 
-        foreach (var chunkInfo in zone.Root.FindAll(WorldLayerIds.ChunkInfo))
+        foreach (var chunkInfo in zone.Root.FindAll(WorldLayerIds.ChunkInfo).OfType<GtContainerLayer>())
         {
-            var rangeLayer = chunkInfo.Find(WorldLayerIds.ChunkRange);
-            if (rangeLayer == null)
+            var range = chunkInfo.Find<ZoneChunkRangeLayer>();
+            if (range == null)
             {
                 continue;
             }
 
-            var range = ZoneChunkRange.Read(rangeLayer.Data);
-            var refs = chunkInfo.FindAll(WorldLayerIds.ChunkRef).Select(l => FauFau.Formats.ZoneChunkRef.Read(l.Data));
-            var refs2 = chunkInfo.FindAll(WorldLayerIds.ChunkRef2).Select(l => FauFau.Formats.ZoneChunkRef.Read(l.Data));
+            var refs = chunkInfo.FindAll<ZoneChunkRefLayer>().Where(l => l.Id == WorldLayerIds.ChunkRef);
+            var refs2 = chunkInfo.FindAll<ZoneChunkRefLayer>().Where(l => l.Id == WorldLayerIds.ChunkRef2);
 
             long minCoordX = range.MinX;
             long maxCoordX = range.MaxX;
