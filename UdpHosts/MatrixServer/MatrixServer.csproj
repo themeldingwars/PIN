@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
-    <PackageReference Include="Aero.Gen" Version="1.6.0" />
+    <PackageReference Include="Aero.Gen" Version="1.7.2" />
   </ItemGroup>
 
   <ItemGroup>
