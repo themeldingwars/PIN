@@ -119,7 +119,7 @@ public class CombatController : Base
         {
             Index = query.SelectedWeaponIndex,
             PreviousIndex = query.PreviousWeaponIndex,
-            Unk2 = 0,
+            PlaySwapAnimation = 0,
             Time = query.Time,
         });
     }
@@ -180,9 +180,9 @@ public class CombatController : Base
                     {
                         ActiveCooldowns_Group1 = Array.Empty<ActiveCooldown>(),
                         ActiveCooldowns_Group2 = Array.Empty<ActiveCooldown>(),
-                        Unk = 0,
                         GlobalCooldown_Activated_Time = activationTime,
                         GlobalCooldown_ReadyAgain_Time = activationTime + 300,
+                        GlobalCooldown_Flags = 0,
                     }
                 };
                 _logger.ForContext<AbilitySystem>()
@@ -295,9 +295,9 @@ public class CombatController : Base
                     {
                         ActiveCooldowns_Group1 = Array.Empty<ActiveCooldown>(),
                         ActiveCooldowns_Group2 = Array.Empty<ActiveCooldown>(),
-                        Unk = 0,
                         GlobalCooldown_Activated_Time = activationTime,
                         GlobalCooldown_ReadyAgain_Time = activationTime + 300,
+                        GlobalCooldown_Flags = 0,
                     }
                 };
                 _logger.ForContext<AbilitySystem>()

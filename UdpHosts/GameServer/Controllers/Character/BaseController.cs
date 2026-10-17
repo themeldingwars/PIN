@@ -36,7 +36,7 @@ public class BaseController : Base
     public void RequestTransfer(INetworkClient client, IPlayer player, ulong entityId, GamePacket packet)
     {
         var request = packet.Unpack<RequestTransfer>();
-        _logger.Information("RequestTransfer from {CharacterId:X}: ZoneId {ZoneId}, Unk2 {Unk2}, current zone {CurrentZone}", player.CharacterId, request.ZoneId, request.Unk2, player.CurrentZone.ID);
+        _logger.Information("RequestTransfer from {CharacterId:X}: ZoneId {ZoneId}, IncludeSquad {IncludeSquad}, current zone {CurrentZone}", player.CharacterId, request.ZoneId, request.IncludeSquad, player.CurrentZone.ID);
 
         // The client ignores the outcome of its request, so a refusal has to be told through chat
         if (!ZoneTransfer.TryStart((INetworkPlayer)client, request.ZoneId, out var refusal))
@@ -402,7 +402,7 @@ public class BaseController : Base
 
         character.ClearAttachedTo();
 
-        var response = new ExitingAttachment() { Direction = new Vector3(-0.5f, -0.5f, -0.47f) };
+        var response = new ExitingAttachment() { ExitPosition = new Vector3(-0.5f, -0.5f, -0.47f) };
 
         client.NetChannels[ChannelType.ReliableGss].SendMessage(response, character.EntityId);
 

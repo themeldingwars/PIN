@@ -212,43 +212,13 @@ public class CharacterInventory
         var update = new InventoryUpdate()
         {
             ClearExistingData = 1,
-            ItemsPart1Length = 0,
-            ItemsPart1 = [],
-            ItemsPart2Length = 0,
-            ItemsPart2 = [],
-            ItemsPart3Length = 0,
-            ItemsPart3 = [],
+            Items = [.. _items.Values],
             Resources = [.. _resources.Values],
             Loadouts = [.. _loadouts.Values],
             UpdateMailInventory = 1,
             MailItems = [],
             MailResources = []
         };
-
-        if (_items.Count >= 255)
-        {
-            var tmp = _items.Values.ToArray();
-            update.ItemsPart1Length = 255;
-            update.ItemsPart1Full = tmp[..255];
-            if (_items.Count >= 510)
-            {
-                update.ItemsPart2Length = 255;
-                update.ItemsPart2Full = tmp[255..510];
-
-                update.ItemsPart3Length = (byte)tmp[510..^0].Length;
-                update.ItemsPart3 = tmp[510..^0];
-            }
-            else
-            {
-                update.ItemsPart2Length = (byte)tmp[255..^0].Length;
-                update.ItemsPart2 = tmp[255..^0];
-            }
-        }
-        else
-        {
-            update.ItemsPart1Length = (byte)_items.Count;
-            update.ItemsPart1 = [.. _items.Values];
-        }
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);
     }
@@ -264,15 +234,7 @@ public class CharacterInventory
         var update = new InventoryUpdate()
         {
             ClearExistingData = 0,
-            ItemsPart1Length = 1,
-            ItemsPart1 =
-            [
-                item
-            ],
-            ItemsPart2Length = 0,
-            ItemsPart2 = [],
-            ItemsPart3Length = 0,
-            ItemsPart3 = [],
+            Items = [item],
             Resources = [],
             Loadouts = [],
             UpdateMailInventory = 1,
@@ -294,12 +256,7 @@ public class CharacterInventory
         var update = new InventoryUpdate()
         {
             ClearExistingData = 0,
-            ItemsPart1Length = 0,
-            ItemsPart1 = [],
-            ItemsPart2Length = 0,
-            ItemsPart2 = [],
-            ItemsPart3Length = 0,
-            ItemsPart3 = [],
+            Items = [],
             Resources =
             [
                 resource
@@ -339,12 +296,7 @@ public class CharacterInventory
         var update = new InventoryUpdate()
         {
             ClearExistingData = 0,
-            ItemsPart1Length = (byte)itemChanges.Length,
-            ItemsPart1 = itemChanges,
-            ItemsPart2Length = 0,
-            ItemsPart2 = [],
-            ItemsPart3Length = 0,
-            ItemsPart3 = [],
+            Items = itemChanges,
             Resources = [],
             Loadouts = [.. _loadouts.Values],
             UpdateMailInventory = 1,

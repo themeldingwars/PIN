@@ -351,14 +351,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         {
             SetWeaponIndex(new WeaponIndexData()
             {
-                Index = 1, PreviousIndex = 1, Unk2 = 0, Time = Shard.CurrentTime
+                Index = 1, PreviousIndex = 1, PlaySwapAnimation = 0, Time = Shard.CurrentTime
             });
         }
         else if (monsterInfo.Weapon2Id != 0)
         {
             SetWeaponIndex(new WeaponIndexData()
             {
-                Index = 2, PreviousIndex = 1, Unk2 = 0, Time = Shard.CurrentTime
+                Index = 2, PreviousIndex = 1, PlaySwapAnimation = 0, Time = Shard.CurrentTime
             });
         }
     }
@@ -992,8 +992,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             AimDirection = AimDirection,
             Velocity = Velocity,
             MovementState = 0x1000,
-            Unk1 = 0,
-            Unk2 = 0,
+            MovementType = 0,
+            WaterLevelAndDesc = 0,
             JetpackEnergy = 0x639c,
             AirGroundTimer = 0,
             JumpTimer = 0,
@@ -1901,8 +1901,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             AimDirection = AimDirection,
             Velocity = Velocity,
             MovementState = 0x1000,
-            Unk1 = 0,
-            Unk2 = 0,
+            MovementType = 0,
+            WaterLevelAndDesc = 0,
             JetpackEnergy = 0x639c,
             AirGroundTimer = 0,
             JumpTimer = 0,
@@ -1912,7 +1912,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         EffectsFlags = 0;
         FireMode_0 = new FireModeData { Mode = 0, Time = Shard.CurrentTime };
         FireMode_1 = new FireModeData { Mode = 0, Time = Shard.CurrentTime };
-        WeaponIndex = new WeaponIndexData { Index = 0, PreviousIndex = 1, Unk2 = 0, Time = Shard.CurrentTime };
+        WeaponIndex = new WeaponIndexData { Index = 0, PreviousIndex = 1, PlaySwapAnimation = 0, Time = Shard.CurrentTime };
 
         PermissionFlags = new PermissionFlagsData
         {

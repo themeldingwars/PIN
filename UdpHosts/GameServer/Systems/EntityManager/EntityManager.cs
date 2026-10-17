@@ -1248,8 +1248,8 @@ public class EntityManager
                             new ()
                             {
                                 ChassisID = character.CurrentLoadout.ChassisID,
-                                XpValue1 = 0,
-                                XpValue2 = 0,
+                                CurrentXp = 0,
+                                LifetimeXp = 0,
                                 CurrentLevel = HardcodedCharacterData.Level,
                                 Unk = 0,
                             },

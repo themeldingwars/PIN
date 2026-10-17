@@ -93,7 +93,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
             StartTime = 1,
             Scale = 0.7f,
             HaveUnk4 = 0,
-            HaveUnk12 = 0,
+            HaveScopeBubbleInfo = 0,
         });
 
         _finishLine.Encounter = new EncounterComponent()
