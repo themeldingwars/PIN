@@ -16,7 +16,7 @@ namespace GameServer;
 
 internal class GameServer : PacketServer, IShardManager
 {
-    private static readonly TimeSpan _gameTickRate = TimeSpan.FromSeconds(1.0 / 60.0);
+    private static readonly TimeSpan _gameTickRate = TimeSpan.FromMilliseconds(5);
     private const int _socketIdSize = 4;
     private static readonly TimeSpan _closedClientGrace = TimeSpan.FromSeconds(10);
 
@@ -97,6 +97,12 @@ internal class GameServer : PacketServer, IShardManager
         LoginService.Init(this);
 
         _shardCancellation = ct;
+
+        if (!TimerResolution.Raise())
+        {
+            Logger.Warning("Could not raise the timer resolution, shards may only tick every 15.6 ms (the Windows default) instead of every {TickMs} ms", _gameTickRate.TotalMilliseconds);
+        }
+
         GetOrCreateShard(_settings.ZoneId);
 
         foreach (var zoneId in ParsePreloadZones(_settings.PreloadZones))

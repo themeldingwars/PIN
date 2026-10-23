@@ -103,6 +103,7 @@ public class NetworkClient : INetworkClient
         }
 
         NetLastActive = DateTime.UtcNow;
+        AssignedShard?.Wake();
     }
 
     public virtual void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct)

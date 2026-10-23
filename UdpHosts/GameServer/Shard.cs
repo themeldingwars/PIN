@@ -36,12 +36,16 @@ namespace GameServer;
 
 public class Shard : IShard
 {
+    private readonly AutoResetEvent _wake = new(false);
+    private readonly TimeSpan _gameTickRate;
+
     private long _startTime;
     private TimeSpan _lastNetTick;
     private Thread _debugRendererThread;
 
     public Shard(TimeSpan gameTickRate, ulong instanceId, uint zoneId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
     {
+        _gameTickRate = gameTickRate;
         InstanceId = instanceId;
         Settings = settings;
         ZoneId = zoneId;
@@ -276,6 +280,11 @@ public class Shard : IShard
         return GuidService.GetNext(this, type);
     }
 
+    public void Wake()
+    {
+        _wake.Set();
+    }
+
     private void SpawnDebugRenderer(CancellationToken ct)
     {
         var bodyFrames = Physics.DebugBodyFrames;
@@ -342,25 +351,53 @@ public class Shard : IShard
         _lastNetTick = TimeSpan.Zero;
 
         var stopwatch = Stopwatch.StartNew();
-        var lastTime = TimeSpan.Zero;
+        var lastTick = TimeSpan.Zero;
+        var nextTick = TimeSpan.Zero;
+        var waitHandles = new[] { _wake, ct.WaitHandle };
 
         while (!ct.IsCancellationRequested)
         {
-            var currentUnixTimestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var currentTime = TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds);
+            // Packets get handled and acked right away, the live servers answered within a few ms
+            NetworkTick(stopwatch.Elapsed, ct);
 
-            NetworkTick((currentTime - _lastNetTick).TotalMilliseconds, currentUnixTimestamp, ct);
-            _lastNetTick = currentTime;
-
-            if (!Tick((currentTime - lastTime).TotalMilliseconds, currentUnixTimestamp, ct))
+            var now = stopwatch.Elapsed;
+            if (now >= nextTick)
             {
-                break;
+                var currentUnixTimestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (!Tick((now - lastTick).TotalMilliseconds, currentUnixTimestamp, ct))
+                {
+                    break;
+                }
+
+                lastTick = now;
+
+                nextTick += _gameTickRate;
+
+                // No catch-up burst after a late tick
+                if (nextTick < now)
+                {
+                    nextTick = now;
+                }
+
+                // Send what the tick produced now, not after the wait
+                NetworkTick(stopwatch.Elapsed, ct);
             }
 
-            lastTime = currentTime;
-            _ = Thread.Yield();
+            var wait = nextTick - stopwatch.Elapsed;
+            if (wait > TimeSpan.Zero)
+            {
+                // Rounded up, a wait below 1 ms would return at once and spin
+                WaitHandle.WaitAny(waitHandles, (int)Math.Ceiling(wait.TotalMilliseconds));
+            }
         }
 
         stopwatch.Stop();
+    }
+
+    private void NetworkTick(TimeSpan now, CancellationToken ct)
+    {
+        var currentUnixTimestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        NetworkTick((now - _lastNetTick).TotalMilliseconds, currentUnixTimestamp, ct);
+        _lastNetTick = now;
     }
 }
