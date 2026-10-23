@@ -1,0 +1,631 @@
+﻿using System;
+using System.Linq;
+using System.Numerics;
+using Aero.Protocol;
+using AeroMessages.GSS;
+using AeroMessages.GSS.Character;
+using AeroMessages.GSS.Character.Command;
+using AeroMessages.GSS.Character.Event;
+using GameServer.Data;
+using GameServer.Entities;
+using GameServer.Entities.Turret;
+using GameServer.Entities.Vehicle;
+using GameServer.Extensions;
+using GameServer.Protocol;
+using GameServer.StaticDB;
+using GameServer.StaticDB.Records.customdata;
+using GameServer.Systems.Encounters;
+using Serilog;
+using static AeroMessages.GSS.Character.Command.NonDevDebugCommand;
+using LoadoutVisualType = AeroMessages.GSS.Character.LoadoutConfig_Visual.LoadoutVisualType;
+
+namespace GameServer.Handlers.Gss.Character;
+
+[Typecode(GssCharacterView.BaseController)]
+public static class Character_BaseController
+{
+    private static readonly ILogger _logger = Log.ForContext(typeof(Character_BaseController));
+
+    [MessageID(GssCharacterCommand.RequestTransfer)]
+    public static void RequestTransfer(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<RequestTransfer>();
+        _logger.Information("RequestTransfer from {CharacterId:X}: ZoneId {ZoneId}, IncludeSquad {IncludeSquad}, current zone {CurrentZone}", player.CharacterId, request.ZoneId, request.IncludeSquad, player.CurrentZone.ID);
+
+        // The client ignores the outcome of its request, so a refusal has to be told through chat
+        if (!ZoneTransfer.TryStart((INetworkPlayer)client, request.ZoneId, out var refusal))
+        {
+            client.SendDebugChat(refusal);
+        }
+    }
+
+    [MessageID(GssCharacterCommand.MatchQueue)]
+    public static void MatchQueue(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<MatchQueue>();
+        var queues = string.Join(", ", request.Queues.Select(q => $"{q.QueueId}/{q.DifficultyId}"));
+
+        _logger.Information("MatchQueue from {CharacterId:X}: Queues [{Queues}], RequestId {RequestId}, SkipMatchmaking {SkipMatchmaking}", player.CharacterId, queues, request.RequestId, request.SkipMatchmaking);
+    }
+
+    [MessageID(GssCharacterCommand.FetchQueueInfo)]
+    public static void FetchQueueInfo(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var fetchQueueInfoResponse = new FetchQueueInfoResponse
+        {
+            Succes = 0,
+            Queues =
+            [
+                new FetchQueueData
+                {
+                    QueueId = 2121,
+                    Qualifies = 1,
+                    ChallengeEnabled = 0,
+                    Gametype = "campaign",
+                    DisplayKeyName = "MATCH_MAP_PROVING_GROUND",
+                    DisplayKeyDesc = "MATCH_MAP_PROVING_GROUND_DESC",
+                    ZoneId = 1155,
+                    MissionId = 497,
+                    Certs =
+                    [
+                        new QueueCertsData
+                        {
+                            CertId = 3589,
+                            Passed = 1
+                        }
+                    ],
+                    Difficulties =
+                    [
+                        new QueueDifficultiesData
+                        {
+                            DifficultyId = 6922,
+                            UiString = "INSTANCE_DIFFICULTY_NORMAL",
+                            MinLevel = 20,
+                            DisplayLevel = 20,
+                            MaxSuggestedLevel = 40,
+                            DifficultyKey = "NORMAL_MODE",
+                            MinPlayers = 1,
+                            MaxPlayers = 5
+                        },
+                        new QueueDifficultiesData
+                        {
+                            DifficultyId = 7022,
+                            UiString = "INSTANCE_DIFFICULTY_CHALLENGE",
+                            MinLevel = 20,
+                            DisplayLevel = 20,
+                            MaxSuggestedLevel = 40,
+                            DifficultyKey = "CHALLENGE_MODE",
+                            MinPlayers = 1,
+                            MaxPlayers = 5
+                        },
+                        new QueueDifficultiesData
+                        {
+                            DifficultyId = 9122,
+                            UiString = "INSTANCE_DIFFICULTY_HARD",
+                            MinLevel = 45,
+                            DisplayLevel = 45,
+                            MaxSuggestedLevel = 45,
+                            DifficultyKey = "HARD_MODE",
+                            MinPlayers = 1,
+                            MaxPlayers = 5
+                        }
+                    ],
+                    RewardsWinnerItems = [],
+                    RewardsWinnerLoots =
+                    [
+                        new QueueRewardsLootData { LootTableId = 10133, DifficultyKey = "CHALLENGE_MODE" },
+                        new QueueRewardsLootData { LootTableId = 10134, DifficultyKey = "HARD_MODE" },
+                        new QueueRewardsLootData { LootTableId = 10132, DifficultyKey = "NORMAL_MODE" }
+                    ],
+                    RewardsLooserItems = [],
+                    RewardsLooserLoots = []
+                }
+            ]
+        };
+    }
+
+    [MessageID(GssCharacterCommand.PlayerReady)]
+    public static void PlayerReady(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        player.Ready();
+    }
+
+    [MessageID(GssCharacterCommand.MovementInput)]
+    public static void MovementInput(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        // ToDo: This currently only handles PosRotState inputs, logic needs to be added for the other MovementDataTypes
+        if (packet.BytesRemaining < 64)
+        {
+            return;
+        }
+
+        var movementInput = packet.Unpack<MovementInput>();
+
+        if (!player.CharacterEntity.Alive)
+        {
+            return; // can't move if you're dead (or at least shouldn't o.o")
+        }
+
+        shard.Movement.CharacterMovementInput(client, player.CharacterEntity, movementInput);
+    }
+
+    [MessageID(GssCharacterCommand.SetMovementSimulation)]
+    public static void SetMovementSimulation(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        // Dear client, thanks for informing us about how often you will update us.
+        // We will continue to rely on your support, whilst doing nothing ourselves.
+        // Best regards, TMW
+        // var setMovementSimulation = packet.Unpack<SetMovementSimulation>();
+    }
+
+    [MessageID(GssCharacterCommand.BagInventorySettings)]
+    public static void BagInventorySettings(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var bagInventoryUpdate = new BagInventoryUpdate
+        {
+            Json = "{\"version\":2,\"bag_types\":[{\"definitions\":[{\"name\":\"\",\"length\":25,\"accept_types\":[]},{\"name\":\"\",\"length\":25,\"accept_types\":[]},{\"name\":\"\",\"length\":25,\"accept_types\":[]},{\"name\":\"\",\"length\":25,\"accept_types\":[]},{\"name\":\"\",\"length\":25,\"accept_types\":[]},{\"name\":\"\",\"length\":25,\"accept_types\":[]},{\"name\":\"\",\"length\":25,\"accept_types\":[]},{\"name\":\"\",\"length\":25,\"accept_types\":[]},{\"name\":\"\",\"length\":25,\"accept_types\":[]}],\"slots\":[{\"item_guid\":744967187901210112,\"item_sdb_id\":130370,\"quantity\":1},{\"item_guid\":1536551767489147648,\"item_sdb_id\":81490,\"quantity\":1},{\"item_guid\":2186143391660867840,\"item_sdb_id\":113687,\"quantity\":1},{\"item_guid\":2186270670333924352,\"item_sdb_id\":127743,\"quantity\":1},{\"item_guid\":2186143391660874496,\"item_sdb_id\":113718,\"quantity\":1},{\"item_guid\":745117697983358720,\"item_sdb_id\":131698,\"quantity\":1},{\"item_guid\":817027468102777856,\"item_sdb_id\":114074,\"quantity\":1},{\"item_guid\":817158353140239360,\"item_sdb_id\":139488,\"quantity\":1},{\"item_guid\":2186143391660858880,\"item_sdb_id\":136722,\"quantity\":1},{\"item_guid\":2186143391660875264,\"item_sdb_id\":113853,\"quantity\":1},{\"item_guid\":817158353140193280,\"item_sdb_id\":130002,\"quantity\":1},{\"item_guid\":2186143391660863744,\"item_sdb_id\":113552,\"quantity\":1},{\"item_guid\":1536551767489147136,\"item_sdb_id\":81490,\"quantity\":1},{\"item_guid\":817027462130273792,\"item_sdb_id\":114044,\"quantity\":1},{\"item_guid\":2186143391660864000,\"item_sdb_id\":114226,\"quantity\":1},{\"item_guid\":744965437836734720,\"item_sdb_id\":127097,\"quantity\":1},{\"item_guid\":2186265083587334656,\"item_sdb_id\":132178,\"quantity\":1},{\"item_guid\":2186143391660867072,\"item_sdb_id\":114316,\"quantity\":1},{\"item_guid\":2186143391660862976,\"item_sdb_id\":126539,\"quantity\":1},{\"item_guid\":817027462130281472,\"item_sdb_id\":129458,\"quantity\":1},{\"item_guid\":2258317732239097344,\"item_sdb_id\":128688,\"quantity\":1},{\"item_guid\":2186143391660865536,\"item_sdb_id\":128730,\"quantity\":1},{\"item_guid\":2258317732239093248,\"item_sdb_id\":136036,\"quantity\":1},{\"item_guid\":2186143391660870144,\"item_sdb_id\":126413,\"quantity\":1},{\"item_guid\":817027468102772992,\"item_sdb_id\":129020,\"quantity\":1},{\"item_guid\":2186143391660877568,\"item_sdb_id\":114074,\"quantity\":1},{\"item_guid\":744968734894291968,\"item_sdb_id\":140705,\"quantity\":1},{\"item_guid\":2186143391660873728,\"item_sdb_id\":126539,\"quantity\":1},{\"item_guid\":2186143391660862208,\"item_sdb_id\":129020,\"quantity\":1},{\"item_guid\":2258317732238628096,\"item_sdb_id\":143309,\"quantity\":1},{\"item_guid\":2186143391660869632,\"item_sdb_id\":136722,\"quantity\":1},{\"item_guid\":1536551767489147392,\"item_sdb_id\":81490,\"quantity\":1},{\"item_guid\":2186143391660878080,\"item_sdb_id\":113520,\"quantity\":1},{\"item_guid\":2258317732239018240,\"item_sdb_id\":131898,\"quantity\":1},{\"item_guid\":2186143391660872960,\"item_sdb_id\":129020,\"quantity\":1},{\"item_guid\":2186143391660861440,\"item_sdb_id\":129458,\"quantity\":1},{\"item_guid\":2186143391660864512,\"item_sdb_id\":113931,\"quantity\":1},{\"item_guid\":745116577399056896,\"item_sdb_id\":134794,\"quantity\":1},{\"item_guid\":2186143391660873472,\"item_sdb_id\":127270,\"quantity\":1},{\"item_guid\":2186143391660868864,\"item_sdb_id\":125725,\"quantity\":1},{\"item_guid\":2186143391660876288,\"item_sdb_id\":128604,\"quantity\":1},{\"item_guid\":745117697983348224,\"item_sdb_id\":132458,\"quantity\":1},{\"item_guid\":745116577399164928,\"item_sdb_id\":114008,\"quantity\":1},{\"item_guid\":817027462130251776,\"item_sdb_id\":128604,\"quantity\":1},{\"item_guid\":2186122473089611264,\"item_sdb_id\":143670,\"quantity\":1},{\"item_guid\":2186143391660868096,\"item_sdb_id\":113858,\"quantity\":1},{\"item_guid\":817027462130284288,\"item_sdb_id\":129020,\"quantity\":1},{\"item_guid\":2186265083587840256,\"item_sdb_id\":134832,\"quantity\":1},{\"item_guid\":745117697982909696,\"item_sdb_id\":135912,\"quantity\":1},{\"item_guid\":817027462130266624,\"item_sdb_id\":129458,\"quantity\":1},{\"item_guid\":2186143391660871424,\"item_sdb_id\":114160,\"quantity\":1},{\"item_guid\":2186143391660878848,\"item_sdb_id\":113838,\"quantity\":1},{\"item_guid\":744965437836734976,\"item_sdb_id\":127953,\"quantity\":1},{\"item_guid\":2186143391660867328,\"item_sdb_id\":114142,\"quantity\":1},{\"item_guid\":2186143391660874752,\"item_sdb_id\":114112,\"quantity\":1},{\"item_guid\":2329134320037442304,\"item_sdb_id\":77367,\"quantity\":1},{\"item_guid\":817027462130287360,\"item_sdb_id\":126539,\"quantity\":1},{\"item_guid\":2186265083587808256,\"item_sdb_id\":132068,\"quantity\":1},{\"item_guid\":2186143391660863232,\"item_sdb_id\":114044,\"quantity\":1},{\"item_guid\":744995722722969856,\"item_sdb_id\":141906,\"quantity\":1},{\"item_guid\":817044963318509568,\"item_sdb_id\":127223,\"quantity\":1},{\"item_guid\":2186143391660873216,\"item_sdb_id\":136576,\"quantity\":1},{\"item_guid\":817027462130271744,\"item_sdb_id\":127270,\"quantity\":1},{\"item_guid\":2186143391660870656,\"item_sdb_id\":114316,\"quantity\":1},{\"item_guid\":817027462130296320,\"item_sdb_id\":127874,\"quantity\":1},{\"item_guid\":817027468102731264,\"item_sdb_id\":127144,\"quantity\":1},{\"item_guid\":817027462130261760,\"item_sdb_id\":114094,\"quantity\":1},{\"item_guid\":744965437836734208,\"item_sdb_id\":125636,\"quantity\":1},{\"item_guid\":2186143391660866560,\"item_sdb_id\":126539,\"quantity\":1},{\"item_guid\":817027462130292224,\"item_sdb_id\":143437,\"quantity\":1},{\"item_guid\":2186143391660862464,\"item_sdb_id\":136576,\"quantity\":1},{\"item_guid\":817027468102746112,\"item_sdb_id\":128000,\"quantity\":1},{\"item_guid\":817034666132829184,\"item_sdb_id\":124671,\"quantity\":1},{\"item_guid\":817027468102775296,\"item_sdb_id\":127144,\"quantity\":1},{\"item_guid\":745116577399087616,\"item_sdb_id\":128689,\"quantity\":1},{\"item_guid\":2186143391660869888,\"item_sdb_id\":127144,\"quantity\":1},{\"item_guid\":2186143391660858368,\"item_sdb_id\":128604,\"quantity\":1},{\"item_guid\":744967187901213440,\"item_sdb_id\":130370,\"quantity\":1},{\"item_guid\":2186143391660868608,\"item_sdb_id\":129312,\"quantity\":1},{\"item_guid\":817027468102749440,\"item_sdb_id\":125683,\"quantity\":1},{\"item_guid\":2186270670332959744,\"item_sdb_id\":127013,\"quantity\":1},{\"item_guid\":2186143391660861696,\"item_sdb_id\":125683,\"quantity\":1},{\"item_guid\":817027462130298880,\"item_sdb_id\":125725,\"quantity\":1},{\"item_guid\":2186143391660857600,\"item_sdb_id\":127874,\"quantity\":1},{\"item_guid\":817027462130283264,\"item_sdb_id\":128730,\"quantity\":1},{\"item_guid\":2186143391660876544,\"item_sdb_id\":129020,\"quantity\":1},{\"item_guid\":817158353140205568,\"item_sdb_id\":135953,\"quantity\":1},{\"item_guid\":2186143391660865024,\"item_sdb_id\":129458,\"quantity\":1},{\"item_guid\":2186143391660872448,\"item_sdb_id\":125683,\"quantity\":1},{\"item_guid\":744961658868883968,\"item_sdb_id\":143123,\"quantity\":1},{\"item_guid\":2186143391660868352,\"item_sdb_id\":127874,\"quantity\":1},{\"item_guid\":744967187901204480,\"item_sdb_id\":143123,\"quantity\":1},{\"item_guid\":2186143391660866048,\"item_sdb_id\":136576,\"quantity\":1},{\"item_guid\":2186143391660875776,\"item_sdb_id\":129312,\"quantity\":1},{\"item_guid\":2186143391660871680,\"item_sdb_id\":113873,\"quantity\":1},{\"item_guid\":2186143391660859392,\"item_sdb_id\":126413,\"quantity\":1},{\"item_guid\":744965437836735232,\"item_sdb_id\":128557,\"quantity\":1},{\"item_guid\":817027468102774272,\"item_sdb_id\":136722,\"quantity\":1},{\"item_guid\":2186143391660875008,\"item_sdb_id\":113514,\"quantity\":1},{\"item_guid\":2186143391660870912,\"item_sdb_id\":114166,\"quantity\":1},{\"item_guid\":817158353140259072,\"item_sdb_id\":129272,\"quantity\":1},{\"item_guid\":2186265083587844608,\"item_sdb_id\":132110,\"quantity\":1},{\"item_guid\":744965437836734464,\"item_sdb_id\":126534,\"quantity\":1},{\"item_guid\":2186143391660878336,\"item_sdb_id\":113712,\"quantity\":1},{\"item_guid\":2186143391660866816,\"item_sdb_id\":113996,\"quantity\":1},{\"item_guid\":2258317732239108352,\"item_sdb_id\":132622,\"quantity\":1},{\"item_guid\":2186270670333924096,\"item_sdb_id\":132418,\"quantity\":1},{\"item_guid\":817158353140298752,\"item_sdb_id\":131939,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":142185,\"quantity\":1},{\"item_guid\":817027462130249728,\"item_sdb_id\":129312,\"quantity\":1},{\"item_guid\":1536551767489147904,\"item_sdb_id\":81490,\"quantity\":1},{\"item_guid\":2186143391660861952,\"item_sdb_id\":128730,\"quantity\":1},{\"item_guid\":817027462130253056,\"item_sdb_id\":129020,\"quantity\":1},{\"item_guid\":2186143391660869376,\"item_sdb_id\":129020,\"quantity\":1},{\"item_guid\":817027468102729984,\"item_sdb_id\":136722,\"quantity\":1},{\"item_guid\":2186143391660876800,\"item_sdb_id\":136722,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":0,\"quantity\":0},{\"item_guid\":817042546191304448,\"item_sdb_id\":129604,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":86696,\"quantity\":12},{\"item_guid\":0,\"item_sdb_id\":77014,\"quantity\":10},{\"item_guid\":0,\"item_sdb_id\":82597,\"quantity\":15},{\"item_guid\":0,\"item_sdb_id\":86709,\"quantity\":903},{\"item_guid\":0,\"item_sdb_id\":117036,\"quantity\":5},{\"item_guid\":0,\"item_sdb_id\":95086,\"quantity\":2},{\"item_guid\":0,\"item_sdb_id\":86669,\"quantity\":1487},{\"item_guid\":0,\"item_sdb_id\":75425,\"quantity\":470},{\"item_guid\":0,\"item_sdb_id\":77682,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":77015,\"quantity\":8},{\"item_guid\":0,\"item_sdb_id\":80274,\"quantity\":2},{\"item_guid\":0,\"item_sdb_id\":123386,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":85679,\"quantity\":7},{\"item_guid\":0,\"item_sdb_id\":82595,\"quantity\":108},{\"item_guid\":0,\"item_sdb_id\":82596,\"quantity\":128},{\"item_guid\":0,\"item_sdb_id\":82598,\"quantity\":174},{\"item_guid\":0,\"item_sdb_id\":77428,\"quantity\":335},{\"item_guid\":0,\"item_sdb_id\":77429,\"quantity\":330},{\"item_guid\":0,\"item_sdb_id\":82604,\"quantity\":20},{\"item_guid\":0,\"item_sdb_id\":77430,\"quantity\":3},{\"item_guid\":0,\"item_sdb_id\":123400,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":78032,\"quantity\":2},{\"item_guid\":0,\"item_sdb_id\":77643,\"quantity\":16},{\"item_guid\":0,\"item_sdb_id\":82624,\"quantity\":45},{\"item_guid\":0,\"item_sdb_id\":86672,\"quantity\":239},{\"item_guid\":0,\"item_sdb_id\":123217,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":86401,\"quantity\":10},{\"item_guid\":0,\"item_sdb_id\":56,\"quantity\":11},{\"item_guid\":0,\"item_sdb_id\":86667,\"quantity\":4978},{\"item_guid\":0,\"item_sdb_id\":95085,\"quantity\":17},{\"item_guid\":0,\"item_sdb_id\":86621,\"quantity\":11814},{\"item_guid\":0,\"item_sdb_id\":77607,\"quantity\":2},{\"item_guid\":0,\"item_sdb_id\":30298,\"quantity\":1272},{\"item_guid\":0,\"item_sdb_id\":77860,\"quantity\":2},{\"item_guid\":0,\"item_sdb_id\":124626,\"quantity\":26},{\"item_guid\":0,\"item_sdb_id\":139960,\"quantity\":6},{\"item_guid\":0,\"item_sdb_id\":139961,\"quantity\":12},{\"item_guid\":0,\"item_sdb_id\":54003,\"quantity\":4220},{\"item_guid\":0,\"item_sdb_id\":86679,\"quantity\":1344},{\"item_guid\":0,\"item_sdb_id\":77343,\"quantity\":14},{\"item_guid\":0,\"item_sdb_id\":81487,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":86668,\"quantity\":1560},{\"item_guid\":0,\"item_sdb_id\":86673,\"quantity\":608},{\"item_guid\":0,\"item_sdb_id\":86681,\"quantity\":13},{\"item_guid\":0,\"item_sdb_id\":86682,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":86683,\"quantity\":702},{\"item_guid\":0,\"item_sdb_id\":32755,\"quantity\":21},{\"item_guid\":0,\"item_sdb_id\":56835,\"quantity\":76},{\"item_guid\":0,\"item_sdb_id\":77344,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":77345,\"quantity\":6},{\"item_guid\":0,\"item_sdb_id\":76947,\"quantity\":10},{\"item_guid\":0,\"item_sdb_id\":86699,\"quantity\":5},{\"item_guid\":0,\"item_sdb_id\":77346,\"quantity\":14},{\"item_guid\":0,\"item_sdb_id\":86703,\"quantity\":10750},{\"item_guid\":0,\"item_sdb_id\":86711,\"quantity\":429},{\"item_guid\":0,\"item_sdb_id\":86713,\"quantity\":2140},{\"item_guid\":0,\"item_sdb_id\":116563,\"quantity\":36},{\"item_guid\":0,\"item_sdb_id\":77403,\"quantity\":7},{\"item_guid\":0,\"item_sdb_id\":124334,\"quantity\":11},{\"item_guid\":0,\"item_sdb_id\":140057,\"quantity\":110},{\"item_guid\":0,\"item_sdb_id\":95083,\"quantity\":9},{\"item_guid\":0,\"item_sdb_id\":95084,\"quantity\":33},{\"item_guid\":0,\"item_sdb_id\":85535,\"quantity\":21},{\"item_guid\":0,\"item_sdb_id\":76978,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":95087,\"quantity\":7},{\"item_guid\":0,\"item_sdb_id\":76979,\"quantity\":1},{\"item_guid\":0,\"item_sdb_id\":95088,\"quantity\":35},{\"item_guid\":0,\"item_sdb_id\":95089,\"quantity\":9},{\"item_guid\":0,\"item_sdb_id\":76984,\"quantity\":56},{\"item_guid\":0,\"item_sdb_id\":95093,\"quantity\":6},{\"item_guid\":0,\"item_sdb_id\":76985,\"quantity\":60},{\"item_guid\":0,\"item_sdb_id\":95094,\"quantity\":5},{\"item_guid\":0,\"item_sdb_id\":77404,\"quantity\":6},{\"item_guid\":0,\"item_sdb_id\":123353,\"quantity\":2},{\"item_guid\":0,\"item_sdb_id\":76986,\"quantity\":30},{\"item_guid\":0,\"item_sdb_id\":95095,\"quantity\":3},{\"item_guid\":0,\"item_sdb_id\":95096,\"quantity\":5},{\"item_guid\":0,\"item_sdb_id\":95097,\"quantity\":26},{\"item_guid\":0,\"item_sdb_id\":95098,\"quantity\":22},{\"item_guid\":0,\"item_sdb_id\":95099,\"quantity\":20},{\"item_guid\":0,\"item_sdb_id\":120974,\"quantity\":14},{\"item_guid\":0,\"item_sdb_id\":142268,\"quantity\":16},{\"item_guid\":0,\"item_sdb_id\":0,\"quantity\":0},{\"item_guid\":0,\"item_sdb_id\":124565,\"quantity\":11},{\"item_guid\":0,\"item_sdb_id\":82577,\"quantity\":547},{\"item_guid\":0,\"item_sdb_id\":77205,\"quantity\":316},{\"item_guid\":0,\"item_sdb_id\":77606,\"quantity\":3},{\"item_guid\":0,\"item_sdb_id\":0,\"quantity\":0},{\"item_guid\":0,\"item_sdb_id\":120622,\"quantity\":1}]},{\"definitions\":[],\"slots\":[]}]}"
+        };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(bagInventoryUpdate, player.CharacterEntity.EntityId);
+    }
+
+    [MessageID(GssCharacterCommand.SetSteamUserId)]
+    public static void SetSteamUserId(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var setSteamIdPacket = packet.Unpack<SetSteamUserId>();
+        player.SteamUserId = setSteamIdPacket.SteamUserId;
+        _logger.Debug("Entity {EntityId:x8} Steam user id (Aero): {SteamUserId}", entityId, player.SteamUserId);
+
+        // var conventional = packet.Read<SetSteamIdRequest>();
+        // _logger.Verbose("Packet Data: {0}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
+        // _logger.Verbose("Entity {0:x8} Steam user id (conventional): {1}", entityId, conventional.SteamId);
+    }
+
+    [MessageID(GssCharacterCommand.VehicleCalldownRequest)]
+    public static void VehicleCalldownRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var vehicleCalldownRequest = packet.Unpack<VehicleCalldownRequest>();
+        if (vehicleCalldownRequest == null)
+        {
+            return;
+        }
+
+        var character = player.CharacterEntity;
+        var abilities = shard.Abilities;
+        abilities.HandleVehicleCalldownRequest(character.EntityId, vehicleCalldownRequest);
+    }
+
+    [MessageID(GssCharacterCommand.DeployableCalldownRequest)]
+    public static void DeployableCalldownRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var deployableCalldownRequest = packet.Unpack<DeployableCalldownRequest>();
+        if (deployableCalldownRequest == null)
+        {
+            return;
+        }
+
+        var character = player.CharacterEntity;
+        var abilities = shard.Abilities;
+        abilities.HandleDeployableCalldownRequest(character.EntityId, deployableCalldownRequest);
+    }
+
+    [MessageID(GssCharacterCommand.CollectLoot)]
+    public static void CollectLoot(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var collectLoot = packet.Unpack<CollectLoot>();
+        if (collectLoot == null)
+        {
+            return;
+        }
+
+        // EntityId.Backing carries the controller id in its low byte, the entity id is the upper 56 bits.
+        shard.Loot.CollectLoot(client, player, collectLoot.LootObjectView, collectLoot.LootObjectIndex, collectLoot.ItemSdbId);
+    }
+
+    [MessageID(GssCharacterCommand.ResourceNodeBeaconCalldownRequest)]
+    public static void ResourceNodeBeaconCalldownRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var thumperCalldownRequest = packet.Unpack<ResourceNodeBeaconCalldownRequest>();
+        if (thumperCalldownRequest == null)
+        {
+            return;
+        }
+
+        var character = player.CharacterEntity;
+        var abilities = shard.Abilities;
+        abilities.HandleResourceNodeBeaconCalldownRequest(character.EntityId, thumperCalldownRequest);
+    }
+
+    [MessageID(GssCharacterCommand.SetEffectsFlag)]
+    public static void SetEffectsFlag(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var query = packet.Unpack<SetEffectsFlag>();
+        player.CharacterEntity.SetEffectsFlags(query.Flashlight);
+    }
+
+    [MessageID(GssCharacterCommand.PerformEmote)]
+    public static void PerformEmote(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var query = packet.Unpack<PerformEmote>();
+        player.CharacterEntity.SetEmote(new EmoteData { Id = query.EmoteId, Time = query.Time });
+    }
+
+    [MessageID(GssCharacterCommand.ClientQueryInteractionStatus)]
+    public static void ClientQueryInteractionStatus(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var inquiringEntity = player.CharacterEntity;
+        var query = packet.Unpack<ClientQueryInteractionStatus>();
+        ulong requestedEntityId = query.Entity.Id << 8;
+        var found = shard.Entities.TryGetValue(requestedEntityId, out var entity);
+        if (found)
+        {
+            // Console.WriteLine($"ClientQueryInteractionStatus IsInteractable: {entity.IsInteractable()} CanBeInteractedBy {entity.CanBeInteractedBy(inquiringEntity)}");
+            if (entity.IsInteractable() && entity.CanBeInteractedBy(inquiringEntity))
+            {
+                var response = new AddOrUpdateInteractives()
+                {
+                    Entities = [query.Entity.Backing],
+                    InteractionTypes = [entity.GetInteractionType()],
+                    InteractionDurationsMs = [entity.GetInteractionDuration()],
+                };
+                client.NetChannels[ChannelType.ReliableGss].SendMessage(response, player.CharacterEntity.EntityId);
+            }
+            else
+            {
+                var response = new RemoveInteractives
+                {
+                    Entities = [query.Entity]
+                };
+                client.NetChannels[ChannelType.ReliableGss].SendMessage(response, player.CharacterEntity.EntityId);
+            }
+        }
+        else
+        {
+            _logger.Debug("ClientQueryInteractionStatus entity {EntityId:x8} not found!", requestedEntityId);
+        }
+    }
+
+    [MessageID(GssCharacterCommand.ResourceLocationInfosRequest)]
+    public static void ResourceLocationInfosRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var resourceLocationInfosResponse = new ResourceLocationInfosResponse
+        {
+            Data = [],
+            IsFinal = 0x01
+        };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(resourceLocationInfosResponse, player.CharacterEntity.EntityId);
+    }
+
+    [MessageID(GssCharacterCommand.FriendsListRequest)]
+    public static void FriendsListRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var friendsListResponse = new FriendsListResponse
+        {
+            Friends =
+            [
+                new FriendsListData
+                {
+                    CharacterGuid = 9162788533740412926,
+                    Name = "TestUser1",
+                    Note = string.Empty,
+                    StatusType = FriendStatusType.Friend,
+                    LastSeenAt = 1427570048,
+                    IsOnline = 1
+                },
+                new FriendsListData
+                {
+                    CharacterGuid = 9153042507174448638,
+                    Name = "TestUser2",
+                    Note = string.Empty,
+                    StatusType = FriendStatusType.Friend,
+                    LastSeenAt = 1471686583,
+                    IsOnline = 1
+                }
+            ],
+            Page = 0
+        };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(friendsListResponse, player.CharacterEntity.EntityId);
+    }
+
+    [MessageID(GssCharacterCommand.MapOpened)]
+    public static void MapOpened(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var mapOpened = new GeographicalReportResponse
+        {
+            ScanId = 0,
+            Position = new Vector3 { X = 0, Y = 0, Z = 0 },
+            Valid = 0x00,
+            Composition = []
+        };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(mapOpened, player.CharacterEntity.EntityId);
+    }
+
+    [MessageID(GssCharacterCommand.RequestTeleport)]
+    public static void RequestTeleport(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var character = player.CharacterEntity;
+        var query = packet.Unpack<RequestTeleport>();
+
+        // TODO: Raycast for z
+        var spawnPoint = new SpawnPoint { Position = new Vector3(query.PosX, query.PosY, 500) };
+
+        // Workaround by looking for Z coordinate in Outposts since that's the primary way players send this message
+        var zoneId = player.CurrentZone.ID;
+        foreach (var outpost in CustomDBInterface.GetZoneOutposts(zoneId).Values)
+        {
+            if (Math.Round(outpost.Position.X) == Math.Round(query.PosX) && Math.Round(outpost.Position.Y) == Math.Round(query.PosY))
+            {
+                spawnPoint = shard.Outposts[zoneId][outpost.Id].RandomSpawnPoint;
+                break;
+            }
+        }
+
+        // Instantly transport character to target location
+        character.PositionAtSpawnPoint(spawnPoint);
+        var forcedMove = new ForcedMovement
+        {
+            Data = new ForcedMovementData
+            {
+                Type = 1,
+                CommandId = 0,
+                HaveRelativeTo = 0,
+                Params1 = new ForcedMovementType1Params { Position = spawnPoint.Position, Direction = character.AimDirection, Velocity = Vector3.Zero, Time = character.Shard.CurrentTime + 1 }
+            },
+            ShortTime = character.Shard.CurrentShortTime
+        };
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(forcedMove, character.EntityId);
+    }
+
+    [MessageID(GssCharacterCommand.ExitAttachmentRequest)]
+    public static void ExitAttachmentRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        if (player.CharacterEntity.AttachedToEntity == null)
+        {
+            return;
+        }
+
+        var character = player.CharacterEntity;
+        var entity = character.AttachedToEntity;
+
+        if (entity is VehicleEntity vehicle)
+        {
+            vehicle.RemoveOccupant(character);
+        }
+        else if (entity is TurretEntity turret)
+        {
+            if (turret.Parent is VehicleEntity parentVehicle)
+            {
+                parentVehicle.RemoveOccupant(character);
+            }
+            else
+            {
+                turret.SetControllingPlayer(null);
+            }
+        }
+
+        character.ClearAttachedTo();
+
+        var response = new ExitingAttachment() { ExitPosition = new Vector3(-0.5f, -0.5f, -0.47f) };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(response, character.EntityId);
+
+        if (entity is BaseEntity { Encounter.Instance: IExitAttachmentHandler handler } baseEntity
+            && baseEntity.Encounter.Handles(EncounterComponent.Event.ExitAttachment))
+        {
+            handler.OnExitAttachment(baseEntity, (INetworkPlayer)player);
+        }
+    }
+
+    [MessageID(GssCharacterCommand.SeatChangeRequest)]
+    public static void SeatChangeRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        if (player.CharacterEntity.AttachedToEntity == null)
+        {
+            return;
+        }
+
+        var query = packet.Unpack<SeatChangeRequest>();
+
+        var character = player.CharacterEntity;
+
+        if (character.AttachedToEntity is VehicleEntity vehicle)
+        {
+            vehicle.ChangeOccupantSeat(character, query.RequestedSeatIndex);
+        }
+        else if (character.AttachedToEntity is TurretEntity { Parent: VehicleEntity parentVehicle })
+        {
+            parentVehicle.ChangeOccupantSeat(character, query.RequestedSeatIndex);
+        }
+    }
+
+    [MessageID(GssCharacterCommand.SelectLoadout)]
+    public static void SelectLoadout(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var query = packet.Unpack<SelectLoadout>();
+        var loadoutRefData = player.Inventory.GetLoadoutReferenceData(query.LoadoutId);
+        if (loadoutRefData != null)
+        {
+            var loadout = new CharacterLoadout(loadoutRefData);
+            var previousChassisId = player.CharacterEntity.CurrentLoadout?.ChassisID ?? 0u;
+
+            var loadoutChanged = query.LoadoutId != player.CharacterEntity.SelectedLoadout;
+
+            _logger.Information(
+                "{Player} switches battleframe in loadout {LoadoutId}: chassis {PreviousChassisId} -> {ChassisId}",
+                player,
+                query.LoadoutId,
+                previousChassisId,
+                loadout.ChassisID);
+
+            player.CharacterEntity.LogSpeedSnapshot($"before switching to loadout {query.LoadoutId}");
+
+            player.Battleframes.ApplyFrameProgression(player.CharacterEntity, loadout.ChassisID);
+            player.CharacterEntity.ApplyLoadout(loadout);
+
+            if (loadoutChanged)
+            {
+                player.CharacterEntity.ResetCombatState($"switched to loadout {query.LoadoutId}");
+            }
+
+            player.CharacterEntity.LogSpeedSnapshot($"after switching to loadout {query.LoadoutId}");
+
+            if (player.Battleframes.CurrentFrameIsPersisted)
+            {
+                player.Inventory.PersistCurrentBattleframe(loadout.ChassisID);
+            }
+        }
+    }
+
+    [MessageID(GssCharacterCommand.PerformTextChat)]
+    public static void PerformTextChat(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var query = packet.Unpack<PerformTextChat>();
+        var character = player.CharacterEntity;
+        shard.Chat.CharacterPerformTextChat(client, character, query);
+    }
+
+    [MessageID(GssCharacterCommand.SlotGearRequest)]
+    public static void SlotGearRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<SlotGearRequest>();
+
+        player.CharacterEntity.EquipItemByGUID(request.LoadoutId, (LoadoutSlotType)request.SlotIdx, request.ItemGUID);
+
+        var response = new SlotGearResponse()
+                       {
+                           ItemGUID = request.ItemGUID,
+                           SlotIdx = request.SlotIdx,
+                           LoadoutId = request.LoadoutId,
+                           Unk1 = request.ConfigId,
+                           Result = 1,
+                       };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(response, entityId);
+    }
+
+    [MessageID(GssCharacterCommand.SlotVisualRequest)]
+    public static void SlotVisualRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<SlotVisualRequest>();
+
+        player.CharacterEntity.EquipVisualBySdbId(request.LoadoutId, (LoadoutVisualType)request.VisualType, (LoadoutSlotType)request.SlotTypeId, request.ItemSdbId);
+
+        var response = new SlotVisualResponse()
+                       {
+                           ConfigId = 1,
+                           SlotIdx = request.SlotTypeId,
+                           LoadoutId = request.LoadoutId,
+                           Result = 1,
+                       };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(response, entityId);
+    }
+
+    [MessageID(GssCharacterCommand.SlotVisualMultiRequest)]
+    public static void SlotVisualMultiRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<SlotVisualMultiRequest>();
+
+        foreach (var visual in request.Visuals)
+        {
+            _logger.Debug("LoadoutConfig_Visual Type={Type} SdbId={Id} Data1={Data1} Data2={Data2} Transform={Transform}", visual.VisualType, visual.ItemSdbId, visual.Data1, visual.Data2, visual.Transform);
+        }
+
+        // TODO: Implement purchasing
+        if (!TryMakePurchases(player, request.Purchases))
+        {
+            var refusal = new SlotVisualMultiResponse()
+                          {
+                              LoadoutId = request.LoadoutId,
+                              ConfigId = request.ConfigId,
+                              Visuals = request.Visuals,
+                              Result = 0,
+                          };
+
+            client.NetChannels[ChannelType.ReliableGss].SendMessage(refusal, entityId);
+            return;
+        }
+
+        var changed = player.CharacterEntity.SetLoadoutVisuals(request.LoadoutId, request.ConfigId, request.Visuals, out var visuals);
+
+        _logger.Debug(
+            "SlotVisualMultiRequest from {CharacterId:X}: Loadout {LoadoutId}, Config {ConfigId}, {Requested} requested, {Applied} applied, changed {Changed}",
+            player.CharacterId,
+            request.LoadoutId,
+            request.ConfigId,
+            request.Visuals.Length,
+            visuals.Length,
+            changed);
+
+        var response = new SlotVisualMultiResponse()
+                       {
+                           LoadoutId = request.LoadoutId,
+                           ConfigId = request.ConfigId,
+                           Visuals = visuals,
+                           Result = 1,
+                       };
+
+        client.NetChannels[ChannelType.ReliableGss].SendMessage(response, entityId);
+    }
+
+    [MessageID(GssCharacterCommand.NonDevDebugCommand)]
+    public static void NonDevDebugCommand(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<NonDevDebugCommand>();
+        switch (request.Type)
+        {
+            case NonDevDebugCommandType.DEBUGWEAPON:
+                player.Preferences.DebugWeapon = request.Value;
+                break;
+            case NonDevDebugCommandType.DEBUGEVENT:
+                player.Preferences.DebugEvent = request.Value;
+                break;
+            case NonDevDebugCommandType.DEBUGLAG:
+                player.Preferences.DebugLag = request.Value;
+                break;
+            default:
+                break;
+        }
+    }
+
+    [MessageID(GssCharacterCommand.UiQueryResponse)]
+    public static void UiQueryResponse(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var response = packet.Unpack<UiQueryResponse>();
+
+        if (response.SelectedOptionId == 0)
+        {
+            return;
+        }
+
+        shard.EncounterMan.HandleUiQueryResponse(response, (INetworkPlayer)player);
+    }
+
+    // TODO: Implement purchases
+    private static bool TryMakePurchases(IPlayer player, VisualPurchaseData[] purchases)
+    {
+        if (purchases == null || purchases.Length == 0)
+        {
+            return true;
+        }
+
+        foreach (var purchase in purchases)
+        {
+            _logger.Information(
+                "Visual purchase from {CharacterId:X}: Item {SdbId}, unlock context {UnlockContext}, price {PriceId}, {Amount} x {CurrencyType} (remote id {CurrencyRemoteId}), unk {Unk7} - logged only, PIN has no store",
+                player.CharacterId,
+                purchase.SdbId,
+                purchase.UnlockContext,
+                purchase.PriceId,
+                purchase.Amount,
+                purchase.CurrencyType,
+                purchase.CurrencyRemoteId,
+                purchase.Unk7);
+        }
+
+        return true;
+    }
+}

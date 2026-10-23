@@ -19,4 +19,5 @@ public readonly record struct CharacterRevivedEvent(
     IEntity Reviver);
 
 public readonly record struct CharacterDiedEvent(
-    CharacterEntity Target);
+    CharacterEntity Target,
+    IEntity Source);

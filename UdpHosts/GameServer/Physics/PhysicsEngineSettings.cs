@@ -11,6 +11,12 @@ public struct PhysicsEngineSettings
     public bool EnableDebugPipe = false;
     public bool IsDebugPipeClient = false;
 
+    public bool EnablePhysicsDebugRenderer = false;
+    public int PhysicsDebugRendererFrameRate = 60;
+    public bool PhysicsDebugRendererShowConstraints = true;
+    public bool PhysicsDebugRendererShowContacts = false;
+    public bool PhysicsDebugRendererShowBoundingBoxes = true;
+
     public PhysicsEngineSettings()
     {
     }

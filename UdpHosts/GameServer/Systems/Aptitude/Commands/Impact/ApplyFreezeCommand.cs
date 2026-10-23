@@ -1,5 +1,6 @@
 using AeroMessages.GSS.Character.Event;
 using GameServer.Entities.Character;
+using GameServer.Protocol;
 using GameServer.StaticDB.Records.aptfs;
 
 namespace GameServer.Systems.Aptitude.Commands.Impact;

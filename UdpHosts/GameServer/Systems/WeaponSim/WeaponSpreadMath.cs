@@ -76,7 +76,7 @@ public static class WeaponSpreadMath
         };
     }
 
-    public static void UpdateMovementState(WeaponSpreadProfile profile, WeaponModeState state, ushort movementStateValue, uint time)
+    public static void UpdateMovementState(WeaponProfile profile, WeaponModeState state, ushort movementStateValue, uint time)
     {
         float agilityCurrent = AgilitySpreadCheck(profile, state, time);
 
@@ -98,7 +98,7 @@ public static class WeaponSpreadMath
         }
     }
 
-    public static float AgilitySpreadCheck(WeaponSpreadProfile profile, WeaponModeState state, uint time)
+    public static float AgilitySpreadCheck(WeaponProfile profile, WeaponModeState state, uint time)
     {
         uint returnMs = ScaleMs(profile.MsAgilityReturn, profile.ModeFraction);
         uint delayMs = ScaleMs(profile.MsAgilityReturnDelay, profile.ModeFraction);
@@ -137,7 +137,7 @@ public static class WeaponSpreadMath
         return (frac * target) + ((1f - frac) * current);
     }
 
-    public static float SpreadInterpUpdate(WeaponSpreadProfile profile, WeaponModeState state, uint time)
+    public static float SpreadInterpUpdate(WeaponProfile profile, WeaponModeState state, uint time)
     {
         uint returnMs = ScaleMs(profile.MsSpreadReturn, profile.ModeFraction);
         uint delayMs = ScaleMs(profile.MsSpreadReturnDelay, profile.ModeFraction);
@@ -145,7 +145,7 @@ public static class WeaponSpreadMath
         return SpreadReturnCheck(profile, state, time, returnMs, delayMs);
     }
 
-    public static void RecoilInterpUpdate(WeaponSpreadProfile profile, WeaponModeState state, uint time, bool snapshot)
+    public static void RecoilInterpUpdate(WeaponProfile profile, WeaponModeState state, uint time, bool snapshot)
     {
         uint timeSince = time >= state.LastRecoilUpdate ? time - state.LastRecoilUpdate : 0;
 
@@ -196,7 +196,7 @@ public static class WeaponSpreadMath
         }
     }
 
-    public static float GetCurrentSpreadPct(WeaponSpreadProfile profile, WeaponModeState state, uint time)
+    public static float GetCurrentSpreadPct(WeaponProfile profile, WeaponModeState state, uint time)
     {
         float movementPct = SpreadInterpUpdate(profile, state, time);
         float agilityFactor = AgilitySpreadCheck(profile, state, time);
@@ -227,7 +227,7 @@ public static class WeaponSpreadMath
         return mult * clamped;
     }
 
-    public static void ApplyBurstSpreadUpdate(WeaponSpreadProfile profile, WeaponModeState state, uint firedRounds, uint totalBurstRounds)
+    public static void ApplyBurstSpreadUpdate(WeaponProfile profile, WeaponModeState state, uint firedRounds, uint totalBurstRounds)
     {
         float bulletFraction = totalBurstRounds == 0 ? 1f : firedRounds / (float)totalBurstRounds;
 
@@ -287,9 +287,9 @@ public static class WeaponSpreadMath
     // The `newState` is the (possibly stale) state of the mode being activated; `otherState` the state of the
     // mode being left (may be fresh/zero when the weapon just changed).
     public static void SeedModeStateOnSwitch(
-        WeaponSpreadProfile newProfile,
+        WeaponProfile newProfile,
         WeaponModeState newState,
-        WeaponSpreadProfile otherProfile,
+        WeaponProfile otherProfile,
         WeaponModeState otherState,
         bool newHasScope,
         bool newLinked,
@@ -343,7 +343,7 @@ public static class WeaponSpreadMath
         return target;
     }
 
-    private static float SpreadReturnCheck(WeaponSpreadProfile profile, WeaponModeState state, uint time, uint returnMs, uint delayMs)
+    private static float SpreadReturnCheck(WeaponProfile profile, WeaponModeState state, uint time, uint returnMs, uint delayMs)
     {
         float stateValue = state.SpreadMovementState switch
         {

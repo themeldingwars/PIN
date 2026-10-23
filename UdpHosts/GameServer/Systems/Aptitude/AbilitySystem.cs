@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading;
 using AeroMessages.GSS.Character.Command;
+using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.StaticDB;
 using Serilog;
@@ -122,6 +124,11 @@ public class AbilitySystem
         applyContext.CurrentTime = context.CurrentTime;
         applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
+        if (applyContext.ScaleMultiplier == 0f)
+        {
+            applyContext.ScaleMultiplier = 1.0f;
+        }
+
         var effect = Factory.LoadEffect(effectId);
 
         // TODO: Decouple effect storage from fields so that hidden effects can be added without using a network field
@@ -135,8 +142,15 @@ public class AbilitySystem
 
         if (effectState.MaxStacksExceeded)
         {
+            _logger.Debug(
+                "Effect {EffectId} on {Target} is already at its {MaxStacks} stacks, so nothing of this application runs and the modifier already on the target is left alone",
+                effectId,
+                target,
+                effect.MaxStackCount);
             return;
         }
+
+        var wasAlreadyActive = !ReferenceEquals(effectState.Context, applyContext);
 
         var applyResult = new CommandResult { Success = true };
         effect.ApplyChain?.Execute(applyContext, ref applyResult);
@@ -146,6 +160,25 @@ public class AbilitySystem
         {
             ICommand activeCommand = pair.Key;
             activeCommand.OnApply(applyContext, pair.Value);
+        }
+
+        if (wasAlreadyActive)
+        {
+            _logger.Debug(
+                "Effect {EffectId} on {Target} was already active and is now {Stacks} stacks; the {StatCount} stat modifiers of this application are not tracked: {Stats}",
+                effectId,
+                target,
+                effectState.Stacks,
+                applyContext.StatChangelist.Count,
+                string.Join(", ", applyContext.StatChangelist.Keys));
+        }
+        else if (applyContext.StatChangelist.Count > 0 && effect.DurationChain == null)
+        {
+            _logger.Debug(
+                "Effect {EffectId} on {Target} holds stat modifiers {Stats} and has no duration chain, so nothing expires it",
+                effectId,
+                target,
+                string.Join(", ", applyContext.StatChangelist.Keys));
         }
     }
 
@@ -179,6 +212,28 @@ public class AbilitySystem
                 }
             }
         }
+    }
+
+    public void RemoveAllActiveEffects(IAptitudeTarget target)
+    {
+        if (target is CharacterEntity { InteractionTarget: not null, InteractionExecutionId: not null } character)
+        {
+            HandleDeactivateAbility(character, character.InteractionExecutionId.Value);
+        }
+
+        var removed = 0;
+
+        // GetActiveEffects hands out a copy of the slots, so effects can be removed while walking the list.
+        foreach (var effectState in target.GetActiveEffects())
+        {
+            if (effectState != null)
+            {
+                DoRemoveEffect(effectState);
+                removed++;
+            }
+        }
+
+        _logger.Debug("RemoveAllActiveEffects: removed {RemovedCount} active effects from {Target}", removed, target);
     }
 
     public VehicleCalldownRequest TryConsumeVehicleCalldownRequest(ulong entityId)
@@ -259,11 +314,18 @@ public class AbilitySystem
         }
     }
 
-    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null)
+    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, Vector3? initPosition = null)
     {
         var execId = executionId ?? Guid.NewGuid();
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
-        var chainId = SDBInterface.GetAbilityData(abilityId).Chain;
+        var abilityData = SDBInterface.GetAbilityData(abilityId);
+        if (abilityData == null)
+        {
+            _logger.Warning("HandleActivateAbility: Ability {AbilityId} has no AbilityData, skipping", abilityId);
+            return;
+        }
+
+        var chainId = abilityData.Chain;
         if (chainId == 0)
         {
             return;
@@ -271,9 +333,7 @@ public class AbilitySystem
 
         _logger.Information("HandleActivateAbility: Ability {AbilityId} starting Chain {ChainId}", abilityId, chainId);
 
-        var chain = Factory.LoadChain(chainId);
-        var abilityResult = new CommandResult { Success = true };
-        chain.Execute(new Context(shard, initiator)
+        var context = new Context(shard, initiator)
         {
             ExecutionId = execId,
             ChainId = chainId,
@@ -281,8 +341,15 @@ public class AbilitySystem
             Targets = targets,
             CurrentTime = activationTime,
             ExecutionHint = ExecutionHint.Ability
-        },
-        ref abilityResult);
+        };
+        if (initPosition.HasValue)
+        {
+            context.InitPosition = initPosition.Value;
+        }
+
+        var chain = Factory.LoadChain(chainId);
+        var abilityResult = new CommandResult { Success = true };
+        chain.Execute(context, ref abilityResult);
     }
 
     public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId)
@@ -295,9 +362,26 @@ public class AbilitySystem
         throw new NotImplementedException();
     }
 
-    public void HandleDeactivateAbility()
+    public void HandleDeactivateAbility(IAptitudeTarget target, Guid executionId)
     {
-        throw new NotImplementedException();
+        // Tear down a held interaction when its activation input is released. Tap / buff abilities are left
+        // alone: the effects they applied keep their own duration and must not be stripped on key release.
+        if (target is CharacterEntity { InteractionTarget: not null } character && character.InteractionExecutionId == executionId)
+        {
+            _logger.Information("HandleDeactivateAbility: ending interaction execution {ExecutionId} for {Target}", executionId, target);
+
+            // Effects applied during the interaction chain share its ExecutionId (ImpactApplyEffectCommand /
+            // Context.CopyContext preserve it), so removing them by id cleanly tears down the interaction.
+            foreach (var effectState in target.GetActiveEffects())
+            {
+                if (effectState?.Context != null && effectState.Context.ExecutionId == executionId)
+                {
+                    DoRemoveEffect(effectState);
+                }
+            }
+
+            character.SetInteractionTarget(null);
+        }
     }
 
     public void HandleActivateConsumable()

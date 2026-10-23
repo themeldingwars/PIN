@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,6 @@ using Aero.Protocol;
 using AeroMessages.GSS.Character;
 using AeroMessages.GSS.Character.Event;
 using AeroMessages.GSS.Melding.View;
-using GameServer.Data;
 using GameServer.Entities;
 using GameServer.Entities.AreaVisualData;
 using GameServer.Entities.Carryable;
@@ -28,7 +28,6 @@ using GameServer.StaticDB.Records.aptfs;
 using GameServer.StaticDB.Records.customdata;
 using GameServer.Systems.Aptitude;
 using Serilog;
-using Timer = System.Threading.Timer;
 
 namespace GameServer.Systems.EntityManager;
 
@@ -69,18 +68,26 @@ public class EntityManager
         return _scopedPlayersByEntity.TryGetValue(entityId, out var players) && players.Contains(player);
     }
 
-    public CharacterEntity SpawnCharacter(uint typeId, Vector3 position, CharacterEntity owner = null, bool canBleedout = false)
+    public CharacterEntity SpawnCharacter(uint typeId, Vector3 position, CharacterEntity owner = null, bool canBleedout = false, byte level = CharacterEntity.DefaultLevel, bool hidden = false)
     {
         var characterEntity = new CharacterEntity(_shard, _shard.GetNextGuid(), owner);
-        characterEntity.LoadMonster(typeId);
+
+        characterEntity.SetHidden(hidden);
+        characterEntity.LoadMonster(typeId, level);
         characterEntity.CanBleedout = canBleedout;
         characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, _shard.CurrentTime);
         characterEntity.SetPosition(position);
         characterEntity.SetSpawnPose();
-        _shard.Physics.CreateKineticEntity(characterEntity);
-        _shard.Physics.UpdateEntity(characterEntity);
+
+        if (!hidden)
+        {
+            _shard.Physics.CreateDynamicEntity(characterEntity);
+            _shard.Physics.RegisterNpcEntity(characterEntity.EntityId);
+        }
+
         _shard.CharacterLifecycle.OnCharacterCreated(characterEntity);
         Add(characterEntity.EntityId, characterEntity);
+        characterEntity.ActivateDefaultAbilities();
         return characterEntity;
     }
 
@@ -342,6 +349,7 @@ public class EntityManager
             _shard.Abilities.DoApplyEffect(tinyObjectEntity.SpawnEffectId, tinyObjectEntity, new Context(_shard, tinyObjectEntity)
             {
                 InitTime = _shard.CurrentTime,
+                Initiator = container,
             });
         }
 
@@ -373,8 +381,51 @@ public class EntityManager
             // Battleframe Station
             SpawnDeployable(395, new Vector3(0, 0, 0f), Quaternion.Identity);
 
-            bool vehicleTest = true;
+            // Battleframe Garage
+            SpawnDeployable(44, new Vector3(5, 0, 0f), Quaternion.Identity);
+
+            bool vehicleTest = false;
             bool factionTest = false;
+            bool followTest = false;
+            bool patrolTest = true;
+            bool wanderTest = true;
+
+            // Follow-mode demo: a follower NPC trails a leader NPC within a leash radius. Move the leader with the
+            // admin `move` command and watch the follower chase, hold, and re-engage as the leader moves.
+            if (followTest)
+            {
+                var leader = SpawnCharacter(290, new Vector3(2f, 15f, 0f));
+                var follower = SpawnCharacter(290, new Vector3(6f, 15f, 0f));
+                _shard.AI.Follow(follower, leader.EntityId, 10f);
+            }
+
+            // Patrol-mode demo: a 1741 NPC walks a hexagonal route (6 waypoints, ~10-unit spacing) in zone 12.
+            // Interrupt it with the admin `follow`/`move` commands and it resumes patrol (rejoining the nearest
+            // waypoint) once those are cleared.
+            if (patrolTest)
+            {
+                const float hexRadius = 10f;
+                var hexCenter = new Vector3(0f, 25f, 0f);
+                var route = new Vector3[6];
+                for (var i = 0; i < 6; i++)
+                {
+                    var angle = (MathF.PI / 3f) * i; // 60-degree steps around the center
+                    route[i] = hexCenter + new Vector3(MathF.Cos(angle) * hexRadius, MathF.Sin(angle) * hexRadius, 0f);
+                }
+
+                var patroller = SpawnCharacter(1741, hexCenter);
+                _shard.AI.Patrol(patroller, route);
+            }
+
+            // Wander-mode demo: a 2612 NPC roams within a radius of its spawn point, picking a new navmesh spot after
+            // each pause. Placed opposite the patrol hexagon (which sits at +Y), on the -Y side of the origin.
+            if (wanderTest)
+            {
+                var wanderCenter = new Vector3(0f, -25f, 0f);
+                var wanderer = SpawnCharacter(2612, wanderCenter);
+                _shard.AI.Wander(wanderer, wanderCenter, 12f);
+            }
+
             if (vehicleTest)
             {
                 var owner = SpawnCharacter(2312, new Vector3(1.5f, 3f, 0f));
@@ -549,9 +600,18 @@ public class EntityManager
         _shard.Entities.TryGetValue(guid, out IEntity entity);
         if (entity != null)
         {
+            if (entity is DeployableEntity deployable)
+            {
+                DetachNpcGunner(deployable);
+            }
+
             if (entity is CharacterEntity characterEntity)
             {
                 _shard.CharacterLifecycle.OnCharacterRemoved(characterEntity);
+                if (characterEntity.IsNpc)
+                {
+                    _shard.Physics.UnregisterNpcEntity(characterEntity.EntityId);
+                }
             }
 
             _shard.Physics.RemoveEntity(entity);
@@ -561,6 +621,22 @@ public class EntityManager
             _ = _scopedPlayersByEntity.TryRemove(guid, out _);
             _ = _lifetimeByEntity.TryRemove(guid, out _);
         }
+    }
+
+    /// <summary>
+    ///     Despawns the hidden NPC gunner bound to a deployable's turret (status effect 1368). The gunner only exists
+    ///     to drive that turret, so it must not outlive it as an invisible orphan.
+    /// </summary>
+    /// <param name="deployable">The deployable whose turret's hidden NPC gunner is despawned.</param>
+    public void DetachNpcGunner(DeployableEntity deployable)
+    {
+        if (deployable?.Turret?.NpcGunner is not { } gunner)
+        {
+            return;
+        }
+
+        _shard.Abilities.DoRemoveEffect(gunner, TurretEntity.TurretControlEffectId);
+        Remove(gunner.EntityId);
     }
 
     public void KeyframeRequest(INetworkClient client, IPlayer player, ulong entityId, byte typecode, uint clientChecksum)
@@ -585,6 +661,11 @@ public class EntityManager
                 {
                     _logger.Warning("Unhandled KeyframeRequest for {TypeCode} (ns-{Ns} view-{ViewOrdinal})", typecode, ns, ordinal);
                     break;
+                }
+
+                if (isCharacterController && IsCharacterView((GssCharacterView)ordinal))
+                {
+                    player.OwnCharacterViewsRequested = true;
                 }
 
                 switch ((GssCharacterView)ordinal)
@@ -1204,7 +1285,9 @@ public class EntityManager
 
         if (entity is CharacterEntity character)
         {
-            if (character.IsPlayerControlled && character.Player == player)
+            bool isOwnCharacter = character.IsPlayerControlled && character.Player == player;
+
+            if (isOwnCharacter)
             {
                 var baseController = character.Character_BaseController;
                 var combatController = character.Character_CombatController;
@@ -1220,21 +1303,24 @@ public class EntityManager
 
                 if (haveBaseController && haveCombatController && haveMissionController && haveEffectsController)
                 {
+                    var chassisId = character.CurrentLoadout.ChassisID;
+                    var progression = player.Battleframes.Get(chassisId);
+
                     player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(baseController, entity.EntityId, player.PlayerId);
                     player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(combatController, entity.EntityId, player.PlayerId);
                     player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(effectsController, entity.EntityId, player.PlayerId);
                     player.NetChannels[ChannelType.ReliableGss].SendControllerKeyframe(missionController, entity.EntityId, player.PlayerId);
                     player.NetChannels[ChannelType.ReliableGss].SendMessage(new EliteLevels_InitAllFrames()
                     {
-                        CurrentFrame_Id = character.CurrentLoadout.ChassisID,
+                        CurrentFrame_Id = chassisId,
                         Frames = [
                             new ()
                             {
-                                ChassisId_1 = character.CurrentLoadout.ChassisID,
-                                ChassisId_2 = character.CurrentLoadout.ChassisID,
-                                EliteRank = 0,
-                                EliteXP = 0,
-                                ElitePoints = 0,
+                                ChassisId_1 = chassisId,
+                                ChassisId_2 = chassisId,
+                                EliteRank = character.EliteLevel,
+                                EliteXP = (uint)(progression?.CurrentEliteXp ?? 0),
+                                ElitePoints = progression?.ElitePoints ?? 0,
                                 AvailableUpgrades = [],
                                 PreviousUpgrades = []
                             },
@@ -1242,45 +1328,41 @@ public class EntityManager
                     },
                     entity.EntityId);
                     player.NetChannels[ChannelType.ReliableGss].SendMessage(new CharacterLoaded(), entity.EntityId);
-                    player.NetChannels[ChannelType.ReliableGss].SendMessage(new ProgressionXPRefresh()
-                    {
-                        Frames = [
-                            new ()
-                            {
-                                ChassisID = character.CurrentLoadout.ChassisID,
-                                CurrentXp = 0,
-                                LifetimeXp = 0,
-                                CurrentLevel = HardcodedCharacterData.Level,
-                                Unk = 0,
-                            },
-                        ]
-                    });
+                    _shard.Progression.SendXpRefresh(player, chassisId);
+
+                    player.Inventory.SendFullInventory();
+                    player.Inventory.EnablePartialUpdates = true;
+                    player.Unlocks.SendFullUnlocks();
                 }
             }
 
-            var observer = character.Character_ObserverView;
-            var equipment = character.Character_EquipmentView;
-            var combat = character.Character_CombatView;
-            var movement = character.Character_MovementView;
-            var tinyobject = character.Character_TinyObjectView;
-
-            bool haveObserver = observer != null;
-            bool haveEquipment = equipment != null;
-            bool haveCombat = combat != null;
-            bool haveMovement = movement != null;
-            bool haveTinyObject = tinyobject != null;
-
-            if (haveObserver && haveEquipment && haveCombat && haveMovement)
+            // The client requests its own views when ready
+            if (!isOwnCharacter)
             {
-                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
-                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(equipment, entity.EntityId);
-                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(combat, entity.EntityId);
-                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(movement, entity.EntityId);
-            }
+                var observer = character.Character_ObserverView;
+                var equipment = character.Character_EquipmentView;
+                var combat = character.Character_CombatView;
+                var movement = character.Character_MovementView;
+                var tinyobject = character.Character_TinyObjectView;
 
-            if (haveTinyObject)
-            {
-                player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(tinyobject, entity.EntityId);
+                bool haveObserver = observer != null;
+                bool haveEquipment = equipment != null;
+                bool haveCombat = combat != null;
+                bool haveMovement = movement != null;
+                bool haveTinyObject = tinyobject != null;
+
+                if (haveObserver && haveEquipment && haveCombat && haveMovement)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(observer, entity.EntityId);
+                    player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(equipment, entity.EntityId);
+                    player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(combat, entity.EntityId);
+                    player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(movement, entity.EntityId);
+                }
+
+                if (haveTinyObject)
+                {
+                    player.NetChannels[ChannelType.ReliableGss].SendViewKeyframe(tinyobject, entity.EntityId);
+                }
             }
         }
         else if (entity is MeldingEntity melding)
@@ -1741,11 +1823,16 @@ public class EntityManager
                 FlushViewChangesToPlayer(character.Character_SpectatorController, character.EntityId, character.Player);
             }
 
+            // Skip the owner if they have not yet received the views.
+            INetworkPlayer ownViewsHoldout = character.IsPlayerControlled && character.Player != null && !character.Player.OwnCharacterViewsRequested
+                                                ? character.Player
+                                                : null;
+
             // We don't flush Character_MovementView as those changes are basically handled entirely by CurrentPoseUpdate
-            FlushViewChangesToScoped(character.Character_ObserverView, character.EntityId);
-            FlushViewChangesToScoped(character.Character_EquipmentView, character.EntityId);
-            FlushViewChangesToScoped(character.Character_CombatView, character.EntityId);
-            FlushViewChangesToScoped(character.Character_TinyObjectView, character.EntityId);
+            FlushViewChangesToScoped(character.Character_ObserverView, character.EntityId, ownViewsHoldout);
+            FlushViewChangesToScoped(character.Character_EquipmentView, character.EntityId, ownViewsHoldout);
+            FlushViewChangesToScoped(character.Character_CombatView, character.EntityId, ownViewsHoldout);
+            FlushViewChangesToScoped(character.Character_TinyObjectView, character.EntityId, ownViewsHoldout);
         }
         else if (entity is MeldingEntity melding)
         {
@@ -1811,24 +1898,40 @@ public class EntityManager
         }
     }
 
-    public void FlushViewChangesToScoped<TPacket>(TPacket view, ulong entityId)
+    public void FlushViewChangesToScoped<TPacket>(TPacket view, ulong entityId, INetworkPlayer except = null)
     where TPacket : class, IAeroViewInterface
     {
         // We can only call SerializeChangesToMemory once but we need to send to multiple players.
         bool shouldFlush = view != null && view.GetPackedChangesSize() > 0;
-        if (shouldFlush)
+        if (!shouldFlush)
         {
-            view.SerializeChangesToMemory(out var update);
-            if (_scopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
+            return;
+        }
+
+        view.SerializeChangesToMemory(out var update);
+
+        if (!_scopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
+        {
+            return;
+        }
+
+        if (!WireIds.TryGetGssWireIds(typeof(TPacket), _shard.Settings.GssProtocolVersion, out var typecode, out _))
+        {
+            _logger.Error("Could not resolve GSS wire id for {Type} in protocol version {Version}", typeof(TPacket).FullName, _shard.Settings.GssProtocolVersion);
+            return;
+        }
+
+        foreach (var client in scopedPlayers)
+        {
+            if (client == except)
             {
-                foreach (var client in scopedPlayers)
-                {
-                    bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
-                    if (shouldSend)
-                    {
-                        client.NetChannels[ChannelType.UnreliableGss].SendChanges(view, entityId, update);
-                    }
-                }
+                continue;
+            }
+
+            bool shouldSend = client.Status.Equals(IPlayer.PlayerStatus.Playing) || client.Status.Equals(IPlayer.PlayerStatus.Loading);
+            if (shouldSend)
+            {
+                client.NetChannels[ChannelType.UnreliableGss].SendGssChanges(entityId, typecode, update.Span);
             }
         }
     }
@@ -1836,15 +1939,94 @@ public class EntityManager
     public void SendToScoped<TNormal>(IEntity entity, TNormal message)
     where TNormal : class, IAero
     {
-        var entityId = entity.EntityId;
-        if (_scopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
+        if (!_scopedPlayersByEntity.TryGetValue(entity.EntityId, out _))
         {
-            foreach (var client in scopedPlayers)
+            return;
+        }
+
+        if (!TryResolveGssMessageIds<TNormal>(out var typecode, out var messageId))
+        {
+            return;
+        }
+
+        // Serialize once; every recipient only pays for its own sequence number and headers
+        message.SerializeToMemory(out var messageData);
+        SendToScoped(entity, messageId, typecode, messageData.Span);
+    }
+
+    /// <summary>
+    ///     Sends an already serialized Normal Aero message to every player that currently has
+    ///     <paramref name="entity" /> scoped in, on the UnreliableGss channel.
+    /// </summary>
+    /// <param name="entity">The entity whose currently scoped-in players receive the message.</param>
+    /// <param name="messageId">GSS message id of the serialized message.</param>
+    /// <param name="typecode">GSS typecode the message rides on.</param>
+    /// <param name="messageData">Serialized message body.</param>
+    public void SendToScoped(IEntity entity, byte messageId, byte typecode, ReadOnlySpan<byte> messageData)
+    {
+        var entityId = entity.EntityId;
+        if (!_scopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
+        {
+            return;
+        }
+
+        foreach (var client in scopedPlayers)
+        {
+            if (client.CanReceiveGSS)
             {
-                if (client.CanReceiveGSS)
-                {
-                    client.NetChannels[ChannelType.UnreliableGss].SendMessage(message, entityId);
-                }
+                client.NetChannels[ChannelType.UnreliableGss].SendGssMessage(entityId, messageId, typecode, messageData);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Sends a Normal Aero message to every player that currently has <paramref name="entity" /> scoped in, on the
+    ///     ReliableGss channel. Mirrors <see cref="SendToScoped{TNormal}(IEntity, TNormal)" /> but uses the reliable channel that the
+    ///     server→client fire messages (e.g. WeaponProjectileFired) are sent on. Used for server-initiated (NPC) fire,
+    ///     which has no owning client to echo the message back to.
+    /// </summary>
+    /// <typeparam name="TNormal">The Normal Aero message type to send.</typeparam>
+    /// <param name="entity">The entity whose currently scoped-in players receive the message.</param>
+    /// <param name="message">The message to send.</param>
+    public void SendToScopedReliable<TNormal>(IEntity entity, TNormal message)
+        where TNormal : class, IAero
+    {
+        if (!_scopedPlayersByEntity.TryGetValue(entity.EntityId, out _))
+        {
+            return;
+        }
+
+        if (!TryResolveGssMessageIds<TNormal>(out var typecode, out var messageId))
+        {
+            return;
+        }
+
+        // Serialize once; every recipient only pays for its own sequence number and headers
+        message.SerializeToMemory(out var messageData);
+        SendToScopedReliable(entity, messageId, typecode, messageData.Span);
+    }
+
+    /// <summary>
+    ///     Sends an already serialized Normal Aero message to every player that currently has
+    ///     <paramref name="entity" /> scoped in, on the ReliableGss channel.
+    /// </summary>
+    /// <param name="entity">The entity whose currently scoped-in players receive the message.</param>
+    /// <param name="messageId">GSS message id of the serialized message.</param>
+    /// <param name="typecode">GSS typecode the message rides on.</param>
+    /// <param name="messageData">Serialized message body.</param>
+    public void SendToScopedReliable(IEntity entity, byte messageId, byte typecode, ReadOnlySpan<byte> messageData)
+    {
+        var entityId = entity.EntityId;
+        if (!_scopedPlayersByEntity.TryGetValue(entityId, out var scopedPlayers))
+        {
+            return;
+        }
+
+        foreach (var client in scopedPlayers)
+        {
+            if (client.CanReceiveGSS)
+            {
+                client.NetChannels[ChannelType.ReliableGss].SendGssMessage(entityId, messageId, typecode, messageData);
             }
         }
     }
@@ -1852,9 +2034,13 @@ public class EntityManager
     public void OnPlayerJoin(INetworkPlayer player)
     {
         var entities = _shard.Entities.Values;
-
         foreach (var entity in entities)
         {
+            if (_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayers) && scopedPlayers.Contains(player))
+            {
+                continue;
+            }
+
             bool shouldBeScoped = ShouldBeScoped(player, entity);
             if (shouldBeScoped)
             {
@@ -1865,11 +2051,27 @@ public class EntityManager
 
     public void OnPlayerLeft(INetworkPlayer player)
     {
+        UnscopePlayer(player);
+    }
+
+    /// <summary>
+    ///     Forgets which entities a player was scoped in on, without telling the client anything.
+    /// </summary>
+    /// <param name="player">The player whose scope state to drop.</param>
+    public void UnscopePlayer(INetworkPlayer player)
+    {
         foreach (var scopedPlayers in _scopedPlayersByEntity.Values)
         {
             scopedPlayers.Remove(player);
         }
     }
+
+    private static bool IsCharacterView(GssCharacterView view) =>
+        view is GssCharacterView.ObserverView
+            or GssCharacterView.EquipmentView
+            or GssCharacterView.CombatView
+            or GssCharacterView.MovementView
+            or GssCharacterView.TinyObjectView;
 
     private bool ShouldBeScoped(INetworkPlayer player, IEntity entity)
     {
@@ -1881,6 +2083,13 @@ public class EntityManager
 
         float distanceThreshold = entity.GetScopeRange();
         var entityPosition = entity.Position;
+
+        if (entity is CharacterEntity { IsHidden: true })
+        {
+            // Server-only NPC (turret gunner). The original server references it only through the owning turret's
+            // GunnerId and never sends a Character view for it.
+            return false;
+        }
 
         if (entity == player.CharacterEntity)
         {
@@ -1902,6 +2111,27 @@ public class EntityManager
             float distance = Vector3.Distance(entityPosition, playerPosition);
             return distance <= distanceThreshold;
         }
+    }
+
+    /// <summary>
+    ///     Resolve the GSS typecode and message id a Normal Aero message type is sent with
+    /// </summary>
+    /// <typeparam name="TNormal">The Normal Aero message type to resolve</typeparam>
+    /// <param name="typecode">GSS typecode the message rides on</param>
+    /// <param name="messageId">GSS message id of the message</param>
+    /// <returns>true if the wire ids could be resolved, false otherwise</returns>
+    private bool TryResolveGssMessageIds<TNormal>(out byte typecode, out byte messageId)
+        where TNormal : class, IAero
+    {
+        if (!WireIds.TryGetGssWireIds(typeof(TNormal), _shard.Settings.GssProtocolVersion, out typecode, out messageId) || messageId == 0)
+        {
+            _logger.Error("Could not resolve GSS wire ids for {Type} in protocol version {Version}", typeof(TNormal).FullName, _shard.Settings.GssProtocolVersion);
+            typecode = 0;
+            messageId = 0;
+            return false;
+        }
+
+        return true;
     }
 
     private void OnAddedEntity(IEntity entity)
@@ -1928,7 +2158,7 @@ public class EntityManager
 
     private void RunDelayed(ulong delayMs, System.Action action)
     {
-        var dueTime = (ulong)System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + delayMs;
+        var dueTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + delayMs;
         _incomingDelayedActions.Enqueue((dueTime, action));
     }
 

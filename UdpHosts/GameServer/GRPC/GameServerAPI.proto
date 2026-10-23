@@ -67,6 +67,36 @@ message BasicCharacterInfo {
    uint32 LastOutpostId = 11;
    uint32 TimePlayed = 12;
 }
+message BattleframeAvailableUpgradeEntry {
+   uint32 UpgradeIndex = 1;
+   uint32 UpgradeId = 2;
+   uint32 Category = 3;
+   float StatValue = 4;
+   optional uint32 Count = 5;
+   optional uint32 ItemSdbId = 6;
+   uint32 LocalizationId = 7;
+}
+message BattleframeProgressionEntry {
+   uint64 BattleframeSdbId = 1;
+   uint64 BattleframeGuid = 2;
+   uint32 Level = 3;
+   uint64 CurrentXp = 4;
+   uint64 LifetimeXp = 5;
+   uint32 EliteLevel = 6;
+   uint64 CurrentEliteXp = 7;
+   uint64 LifetimeEliteXp = 8;
+   uint32 ElitePoints = 9;
+   repeated BattleframeUpgradeEntry PreviousUpgrades = 10;
+   repeated BattleframeAvailableUpgradeEntry AvailableUpgrades = 11;
+   uint32 Bandwidth = 12;
+}
+message BattleframeProgressionResponse {
+   repeated BattleframeProgressionEntry Progression = 1;
+}
+message BattleframeUpgradeEntry {
+   uint32 UpgradeId = 1;
+   uint32 Count = 2;
+}
 message CharacterAndBattleframeVisuals {
    BasicCharacterInfo CharacterInfo = 1;
    CharacterVisuals CharacterVisuals = 2;
@@ -74,6 +104,57 @@ message CharacterAndBattleframeVisuals {
 }
 message CharacterID {
    int64 ID = 1;
+}
+message CharacterInventoryResponse {
+   repeated CharacterItem Items = 1;
+   repeated CharacterResource Resources = 2;
+   repeated CharacterLoadout Loadouts = 3;
+   repeated CharacterLoadoutSlotEntry Slots = 4;
+   repeated CharacterLoadoutPerkEntry LoadoutPerks = 5;
+   repeated CharacterLoadoutVisualsEntry Visuals = 6;
+}
+message CharacterItem {
+   uint64 Guid = 1;
+   uint32 SdbId = 2;
+   uint32 SubInventory = 3;
+   uint32 DynamicFlags = 4;
+   uint32 Durability = 5;
+   repeated ItemModule Modules = 6;
+}
+message CharacterLoadout {
+   int32 LoadoutId = 1;
+   int32 ChassisId = 2;
+   string LoadoutName = 3;
+   string LoadoutType = 4;
+}
+message CharacterLoadoutPerkEntry {
+   int32 LoadoutId = 1;
+   uint32 PerkItemSdbId = 2;
+   uint32 Level = 3;
+}
+message CharacterLoadoutSlotEntry {
+   int32 LoadoutId = 1;
+   uint32 ConfigId = 2;
+   uint32 SlotIndex = 3;
+   int64 ItemGuid = 4;
+}
+message CharacterLoadoutVisualsEntry {
+   int32 LoadoutId = 1;
+   uint32 ConfigId = 2;
+   repeated LoadoutVisual Visuals = 3;
+}
+message CharacterResource {
+   uint32 SdbId = 1;
+   uint32 Quantity = 2;
+   uint32 SubInventory = 3;
+}
+message CharacterUnlockEntry {
+   string UnlockType = 1;
+   uint32 UnlockId = 2;
+   uint32 FrameId = 3;
+}
+message CharacterUnlocksResponse {
+   repeated CharacterUnlockEntry Unlocks = 1;
 }
 message CharacterVisuals {
    int32 id = 1;
@@ -98,11 +179,63 @@ message CharacterVisualsUpdated {
    uint64 CharacterGuid = 1;
    CharacterAndBattleframeVisuals CharacterAndBattleframeVisuals = 2;
 }
+message ClearBattleframeUpgrades {
+   uint64 CharacterGuid = 1;
+   uint32 BattleframeSdbId = 2;
+}
 message Command {
    oneof subtype {
       SaveGameSessionData SaveGameSessionData = 1;
       SaveLgvRaceFinish SaveLgvRaceFinish = 2;
+      SaveCharacterUnlock SaveCharacterUnlock = 3;
+      SaveInventoryItem SaveInventoryItem = 4;
+      SaveInventoryResource SaveInventoryResource = 5;
+      SeedCharacterInventory SeedCharacterInventory = 6;
+      DeleteInventoryItem DeleteInventoryItem = 7;
+      SaveLoadoutSlot SaveLoadoutSlot = 8;
+      SaveCharacterLoadout SaveCharacterLoadout = 9;
+      SaveCurrentBattleframe SaveCurrentBattleframe = 10;
+      SaveItemModule SaveItemModule = 11;
+      DeleteItemModule DeleteItemModule = 12;
+      DeleteLoadoutSlot DeleteLoadoutSlot = 13;
+      DeleteCharacterUnlock DeleteCharacterUnlock = 14;
+      SaveBattleframeXp SaveBattleframeXp = 15;
+      SaveBattleframeEliteXp SaveBattleframeEliteXp = 16;
+      SaveBattleframeUpgrade SaveBattleframeUpgrade = 17;
+      ClearBattleframeUpgrades ClearBattleframeUpgrades = 18;
+      SaveBattleframeAvailableUpgrades SaveBattleframeAvailableUpgrades = 19;
+      SeedCharacterFromTemplate SeedCharacterFromTemplate = 20;
+      SaveLoadoutPerk SaveLoadoutPerk = 21;
+      DeleteLoadoutPerk DeleteLoadoutPerk = 22;
+      SaveBattleframeBandwidth SaveBattleframeBandwidth = 23;
+      SaveLoadoutVisuals SaveLoadoutVisuals = 24;
    }
+}
+message DeleteCharacterUnlock {
+   uint64 CharacterGuid = 1;
+   string UnlockType = 2;
+   uint32 UnlockId = 3;
+   uint32 FrameId = 4;
+}
+message DeleteInventoryItem {
+   uint64 CharacterGuid = 1;
+   int64 ItemGuid = 2;
+}
+message DeleteItemModule {
+   uint64 CharacterGuid = 1;
+   int64 ItemGuid = 2;
+   uint32 SlotIndex = 3;
+}
+message DeleteLoadoutPerk {
+   uint64 CharacterGuid = 1;
+   int32 LoadoutId = 2;
+   uint32 PerkItemSdbId = 3;
+}
+message DeleteLoadoutSlot {
+   uint64 CharacterGuid = 1;
+   int32 LoadoutId = 2;
+   uint32 ConfigId = 3;
+   uint32 SlotIndex = 4;
 }
 message Event {
    oneof subtype {
@@ -119,7 +252,67 @@ message Event {
       ArmyRanksUpdated ArmyRanksUpdated = 11;
       ArmyTagUpdated ArmyTagUpdated = 12;
       CharacterVisualsUpdated CharacterVisualsUpdated = 13;
+      InventoryUpdated InventoryUpdated = 14;
+      UnlocksUpdated UnlocksUpdated = 15;
    }
+}
+message InventoryItemData {
+   int64 ItemGuid = 1;
+   uint32 SdbId = 2;
+   uint32 SubInventory = 3;
+   uint32 DynamicFlags = 4;
+   uint32 Durability = 5;
+   repeated ItemModule Modules = 6;
+}
+message InventoryLoadoutData {
+   int32 LoadoutId = 1;
+   uint32 ChassisId = 2;
+   string LoadoutName = 3;
+   string LoadoutType = 4;
+}
+message InventoryLoadoutSlotData {
+   int32 LoadoutId = 1;
+   uint32 ConfigId = 2;
+   uint32 SlotIndex = 3;
+   int64 ItemGuid = 4;
+}
+message InventoryLoadoutVisualData {
+   int32 LoadoutId = 1;
+   uint32 ConfigId = 2;
+   repeated LoadoutVisual Visuals = 3;
+}
+message InventoryResourceData {
+   uint32 SdbId = 1;
+   uint32 Quantity = 2;
+   uint32 SubInventory = 3;
+}
+message InventoryUpdated {
+   uint64 CharacterGuid = 1;
+}
+message ItemModule {
+   uint32 SlotIndex = 1;
+   uint32 ModuleSdbId = 2;
+}
+message LoginAuthorizationRequest {
+   bytes Ticket = 1;
+   uint64 CharacterGuid = 2;
+}
+message LoginAuthorizationResponse {
+   bool Authorized = 1;
+   string Reason = 2;
+   int64 AccountId = 3;
+   bool IsDev = 4;
+   int32 CharacterLimit = 5;
+   uint64 CharacterGuid = 6;
+   string CharacterName = 7;
+   bool CharacterIsDev = 8;
+}
+message LoadoutVisual {
+   uint32 VisualType = 1;
+   uint32 ItemSdbId = 2;
+   uint32 Data1 = 3;
+   uint32 Data2 = 4;
+   repeated float Transform = 5 [packed = false];
 }
 message PingReq {
    .google.protobuf.Timestamp SentTime = 1;
@@ -136,16 +329,116 @@ message PlayerBattleframeVisuals {
    repeated int32 warpaint_patterns = 5 [packed = false];
    repeated int32 visual_overrides = 6 [packed = false];
 }
+message SaveBattleframeAvailableUpgrades {
+   uint64 CharacterGuid = 1;
+   uint32 BattleframeSdbId = 2;
+   repeated BattleframeAvailableUpgradeEntry Upgrades = 3;
+}
+message SaveBattleframeBandwidth {
+   uint64 CharacterGuid = 1;
+   uint32 BattleframeSdbId = 2;
+   uint32 Bandwidth = 3;
+}
+message SaveBattleframeEliteXp {
+   uint64 CharacterGuid = 1;
+   uint32 BattleframeSdbId = 2;
+   uint32 EliteLevel = 3;
+   uint64 CurrentEliteXp = 4;
+   uint64 LifetimeEliteXp = 5;
+   uint32 ElitePoints = 6;
+}
+message SaveBattleframeUpgrade {
+   uint64 CharacterGuid = 1;
+   uint32 BattleframeSdbId = 2;
+   uint32 UpgradeId = 3;
+   uint32 Count = 4;
+}
+message SaveBattleframeXp {
+   uint64 CharacterGuid = 1;
+   uint32 BattleframeSdbId = 2;
+   uint32 Level = 3;
+   uint64 CurrentXp = 4;
+   uint64 LifetimeXp = 5;
+}
+message SaveCharacterLoadout {
+   uint64 CharacterGuid = 1;
+   int32 LoadoutId = 2;
+   int32 ChassisId = 3;
+   PlayerBattleframeVisuals Visuals = 4;
+   repeated CharacterLoadoutSlotEntry SlottedItems = 5;
+}
+message SaveCharacterUnlock {
+   uint64 CharacterGuid = 1;
+   string UnlockType = 2;
+   uint32 UnlockId = 3;
+   uint32 FrameId = 4;
+}
+message SaveCurrentBattleframe {
+   uint64 CharacterGuid = 1;
+   int32 ChassisId = 2;
+}
 message SaveGameSessionData {
    uint64 CharacterId = 1;
    uint32 ZoneId = 2;
    uint32 OutpostId = 3;
    uint32 TimePlayed = 4;
 }
+message SaveInventoryItem {
+   uint64 CharacterGuid = 1;
+   int64 ItemGuid = 2;
+   uint32 SdbId = 3;
+   uint32 SubInventory = 4;
+   uint32 DynamicFlags = 5;
+   uint32 Durability = 6;
+   repeated ItemModule Modules = 7;
+}
+message SaveInventoryResource {
+   uint64 CharacterGuid = 1;
+   uint32 SdbId = 2;
+   uint32 Quantity = 3;
+   uint32 SubInventory = 4;
+}
+message SaveItemModule {
+   uint64 CharacterGuid = 1;
+   int64 ItemGuid = 2;
+   uint32 SlotIndex = 3;
+   uint32 ModuleSdbId = 4;
+}
 message SaveLgvRaceFinish {
    uint64 CharacterGuid = 1;
    uint32 LeaderboardId = 2;
    uint64 TimeMs = 3;
+}
+message SaveLoadoutPerk {
+   uint64 CharacterGuid = 1;
+   int32 LoadoutId = 2;
+   uint32 PerkItemSdbId = 3;
+   uint32 Level = 4;
+}
+message SaveLoadoutSlot {
+   uint64 CharacterGuid = 1;
+   int32 LoadoutId = 2;
+   uint32 ConfigId = 3;
+   uint32 SlotIndex = 4;
+   int64 ItemGuid = 5;
+}
+message SaveLoadoutVisuals {
+   uint64 CharacterGuid = 1;
+   int32 LoadoutId = 2;
+   uint32 ConfigId = 3;
+   repeated LoadoutVisual Visuals = 4;
+}
+message SeedCharacterFromTemplate {
+   uint64 CharacterGuid = 1;
+   uint32 TemplateId = 2;
+}
+message SeedCharacterInventory {
+   uint64 CharacterGuid = 1;
+   repeated InventoryItemData Items = 2;
+   repeated InventoryResourceData Resources = 3;
+   repeated InventoryLoadoutData Loadouts = 4;
+   repeated InventoryLoadoutSlotData Slots = 5;
+   repeated InventoryLoadoutVisualData Visuals = 6;
 }
 message TransferCharacterReq {
    uint64 CharacterId = 1;
@@ -155,6 +448,9 @@ message TransferCharacterReq {
 }
 message TransferCharacterResp {
    bool Success = 1;
+}
+message UnlocksUpdated {
+   uint64 CharacterGuid = 1;
 }
 message WebColor {
    uint32 color = 1;
@@ -180,7 +476,11 @@ message WebIdValueColorId {
    WebColorId color = 2;
 }
 service GameServerAPI {
+   rpc AuthorizeLogin (LoginAuthorizationRequest) returns (LoginAuthorizationResponse);
+   rpc GetBattleframeProgression (CharacterID) returns (BattleframeProgressionResponse);
    rpc GetCharacterAndBattleframeVisuals (CharacterID) returns (CharacterAndBattleframeVisuals);
+   rpc GetCharacterInventory (CharacterID) returns (CharacterInventoryResponse);
+   rpc GetCharacterUnlocks (CharacterID) returns (CharacterUnlocksResponse);
    rpc Ping (PingReq) returns (PingResp);
    rpc Stream (stream Command) returns (stream Event);
    rpc TransferCharacter (TransferCharacterReq) returns (TransferCharacterResp);

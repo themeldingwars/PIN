@@ -33,17 +33,17 @@ public enum CharacterRace : byte
     Celestial = 5,
 
     /// <summary>
-    /// TODO
+    /// Standard monster characters
     /// </summary>
     Monster = 6,
 
     /// <summary>
-    /// TODO
+    /// Friendly monster characters (non-hostile NPCs)
     /// </summary>
     Friendly = 7,
 
     /// <summary>
-    /// TODO
+    /// Melding-affected monster characters
     /// </summary>
     Melding = 8,
 

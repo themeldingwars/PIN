@@ -158,6 +158,7 @@ public class CustomDBInterface
     private static Dictionary<uint, Dictionary<uint, Outpost>> _outpost;
     private static Dictionary<uint, Dictionary<uint, MeldingRepulsorDef>> _meldingRepulsor;
     private static Dictionary<uint, Dictionary<uint, LgvRaceDef>> _lgvRace;
+    private static List<XpLevelScale> _xpLevelScales;
 
     public static void Init()
     {
@@ -314,6 +315,7 @@ public class CustomDBInterface
         _outpost = loader.LoadOutpost();
         _meldingRepulsor = loader.LoadMeldingRepulsor();
         _lgvRace = loader.LoadLgvRace();
+        _xpLevelScales = loader.LoadXpLevelScales();
     }
 
     // aptgss
@@ -467,4 +469,5 @@ public class CustomDBInterface
     public static Dictionary<uint, Outpost> GetZoneOutposts(uint zoneId) => _outpost.GetValueOrDefault(zoneId) ?? [];
     public static Dictionary<uint, MeldingRepulsorDef> GetZoneMeldingRepulsors(uint zoneId) => _meldingRepulsor.GetValueOrDefault(zoneId) ?? [];
     public static Dictionary<uint, LgvRaceDef> GetZoneLgvRaces(uint zoneId) => _lgvRace.GetValueOrDefault(zoneId) ?? [];
+    public static List<XpLevelScale> GetXpLevelScales() => _xpLevelScales ?? [];
 }

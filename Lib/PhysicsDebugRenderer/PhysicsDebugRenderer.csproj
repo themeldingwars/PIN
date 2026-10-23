@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>PhysicsDebugRenderer</RootNamespace>
+    <!-- Vendored Bepu demo renderer (DemoRenderer.GL) + window/loop host. Intentionally
+         excluded from the repo-wide StyleCop/analyzer rule set in Directory.Build.props/targets. -->
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTK.NETCore" Version="1.1.2749.6433" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BepuPhysics2\BepuPhysics\BepuPhysics.csproj" />
+    <ProjectReference Include="..\BepuPhysics2\BepuUtilities\BepuUtilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DemoRenderer.contentarchive" />
+  </ItemGroup>
+</Project>

@@ -8,6 +8,7 @@ using AeroMessages.GSS.Generic.Event.EncounterView;
 using GameServer.Entities;
 using GameServer.Entities.AreaVisualData;
 using GameServer.GRPC;
+using GameServer.Protocol;
 using GameServer.StaticDB.Records.customdata.Encounters;
 using GrpcGameServerAPIClient;
 using Command = GrpcGameServerAPIClient.Command;

@@ -1,177 +1,115 @@
-using System.Collections.Generic;
+using System.Linq;
 using GameServer.StaticDB;
-using GameServer.StaticDB.Records.dbcharacter;
 using Serilog;
 
 namespace GameServer.Systems.Combat;
 
+/// <summary>
+///     The faction half of hostility.
+///     dbcharacter::Faction.default_stance is the posture a faction takes towards anything, and
+///     dbcharacter::FactionRelations rows override individual pairs.
+/// </summary>
 public class FactionHostility
 {
-    private readonly Dictionary<(uint, uint), bool> _factionFriendlyDict;
-    private readonly Dictionary<(uint, uint), bool> _factionHostileDict;
-    private readonly ILogger _logger;
+    private static readonly ILogger _logger = Log.ForContext<FactionHostility>();
+
+    // Stance matrix indexed by [sourceFactionId, targetFactionId]. Faction ids are 1 based, row/column 0 is left unused.
+    private HostilityStance[,] _stanceMatrix;
+    private uint _numFactions;
 
     public FactionHostility()
     {
-        _logger = Log.ForContext<FactionHostility>();
-        _factionFriendlyDict = [];
-        _factionHostileDict = [];
         LoadFromSDB();
+    }
+
+    /// <summary>
+    ///     Maps an SDB stance column (Faction.default_stance, FactionRelations.hostility_stance or
+    ///     FactionReputations.hostility_stance) onto the three way hostility the game resolves to. Those columns are
+    ///     a reputation style scale - 3 honored, 2 allied, 1 friendly, 0 neutral, -1 hostile, -2 hated - so anything
+    ///     positive is friendly and anything negative is hostile.
+    /// </summary>
+    /// <param name="stance">The raw SDB stance column value (reputation-style scale).</param>
+    /// <returns>The three-way hostility the value maps to.</returns>
+    public static HostilityStance StanceFromSdb(sbyte stance)
+    {
+        if (stance > 0)
+        {
+            return HostilityStance.Friendly;
+        }
+
+        return stance < 0 ? HostilityStance.Hostile : HostilityStance.Neutral;
     }
 
     public void LoadFromSDB()
     {
         var factions = SDBInterface.GetFactions();
-        var relations = SDBInterface.GetFactionRelations();
+        _numFactions = factions.Count == 0 ? 0 : factions.Max(faction => faction.Id);
+        _stanceMatrix = new HostilityStance[_numFactions + 1, _numFactions + 1];
 
-        foreach (var relation in relations)
+        // Every faction starts with their default stance towards everything.
+        foreach (var faction in factions)
         {
-            if (relation.FactionA == 0)
+            for (uint target = 1; target <= _numFactions; target++)
             {
-                foreach (var primaryFaction in factions)
-                {
-                    if (relation.FactionB == 0)
-                    {
-                        foreach (var secondaryFaction in factions)
-                        {
-                            ProcessFactionRelation(primaryFaction, secondaryFaction, relation);
-                        }
-                    }
-                    else
-                    {
-                        var secondaryFaction = factions[(int)relation.FactionB - 1];
-                        ProcessFactionRelation(primaryFaction, secondaryFaction, relation);
-                    }
-                }
-            }
-            else
-            {
-                var primaryFaction = factions[(int)relation.FactionA - 1];
-                if (relation.FactionB == 0)
-                {
-                    foreach (var secondaryFaction in factions)
-                    {
-                        ProcessFactionRelation(primaryFaction, secondaryFaction, relation);
-                    }
-                }
-                else
-                {
-                    var secondaryFaction = factions[(int)relation.FactionB - 1];
-                    ProcessFactionRelation(primaryFaction, secondaryFaction, relation);
-                }
+                _stanceMatrix[faction.Id, target] = StanceFromSdb(faction.DefaultStance);
             }
         }
 
-        Log.Debug($"FactionHostility initalized");
+        foreach (var relation in SDBInterface.GetFactionRelations())
+        {
+            // Faction 0 in the relations table means "no faction". Entities without a faction never reach the
+            // matrix (GetFactionStance answers them directly), and the client skips these rows the same way.
+            if (relation.FactionA == 0 || relation.FactionB == 0)
+            {
+                continue;
+            }
+
+            if (relation.FactionA > _numFactions || relation.FactionB > _numFactions)
+            {
+                _logger.Warning(
+                    "FactionRelations {FactionA} - {FactionB} references an unknown faction (max {NumFactions})",
+                    relation.FactionA,
+                    relation.FactionB,
+                    _numFactions);
+                continue;
+            }
+
+            var stance = StanceFromSdb(relation.HostilityStance);
+            _stanceMatrix[relation.FactionA, relation.FactionB] = stance;
+
+            if (relation.HostilityBidirectional != 0)
+            {
+                _stanceMatrix[relation.FactionB, relation.FactionA] = stance;
+            }
+        }
+
+        _logger.Debug("FactionHostility initialized with {NumFactions} factions", _numFactions);
     }
 
-    public bool IsFriendlyFaction(uint sourceFactionId, uint targetFactionId)
-    {
-        var key = (sourceFactionId, targetFactionId);
-        var found = _factionFriendlyDict.TryGetValue(key, out bool result);
-        if (found)
-        {
-            Log.Debug($"FactionHostility {sourceFactionId} is {(result ? string.Empty : "NOT")} Friendly with {targetFactionId}");
-            return result;
-        }
-        else
-        {
-            Log.Warning($"IsFriendlyFaction Failed to get relation {sourceFactionId} - {targetFactionId}");
-            return false;
-        }
-    }
-
-    public bool IsHostileFaction(uint sourceFactionId, uint targetFactionId)
-    {
-        var key = (sourceFactionId, targetFactionId);
-        var found = _factionHostileDict.TryGetValue(key, out bool result);
-        if (found)
-        {
-            Log.Debug($"FactionHostility {sourceFactionId} is {(result ? string.Empty : "NOT")} Hostile with {targetFactionId}");
-            return result;
-        }
-        else
-        {
-            Log.Warning($"IsHostileFaction Failed to get relation {sourceFactionId} - {targetFactionId}");
-            return false;
-        }
-    }
-
+    /// <summary>
+    ///     Stance a faction takes towards another one. Mirrors fsHostility::GetFactionStance, which answers
+    ///     Friendly for a missing faction or for a faction compared against itself instead of making every caller
+    ///     special case it.
+    /// </summary>
+    /// <param name="sourceFactionId">The faction taking the stance.</param>
+    /// <param name="targetFactionId">The faction the stance is towards.</param>
+    /// <returns>The stance the source faction takes towards the target.</returns>
     public HostilityStance GetFactionStance(uint sourceFactionId, uint targetFactionId)
     {
-        bool isFriendly = IsFriendlyFaction(sourceFactionId, targetFactionId);
-        if (isFriendly)
+        if (sourceFactionId == 0 || targetFactionId == 0 || sourceFactionId == targetFactionId)
         {
             return HostilityStance.Friendly;
         }
 
-        bool isHostile = IsHostileFaction(sourceFactionId, targetFactionId);
-        if (isHostile)
+        if (sourceFactionId > _numFactions || targetFactionId > _numFactions)
         {
-            return HostilityStance.Hostile;
+            _logger.Warning(
+                "FactionHostility has no stance for unknown faction pair {SourceFaction} - {TargetFaction}",
+                sourceFactionId,
+                targetFactionId);
+            return HostilityStance.Neutral;
         }
 
-        return HostilityStance.Neutral;
-    }
-
-    /*
-    public static void ComputePersonalFactionStance(uint factionId)
-    {
-        var factions = SDBInterface.GetFactions();
-        var totalBytes = (((uint)factions.Count >> 6) + 1) << 3; // 8
-        var byteIndex = 0;
-        var bitIndex = 0;
-        var friendly = new byte[totalBytes];
-        var hostile = new byte[totalBytes];
-        foreach (var faction in factions)
-        {
-
-        }
-    }
-    */
-
-    private void ProcessFactionRelation(Faction primaryFaction, Faction secondaryFaction, FactionRelations relation)
-    {
-        var key = (primaryFaction.Id, secondaryFaction.Id);
-        bool friendly = false;
-        bool hostile = false;
-
-        if (relation.HostilityStance >= 1)
-        {
-            friendly = true;
-        }
-        else if (primaryFaction.DefaultStance <= -1)
-        {
-            hostile = true;
-        }
-
-        ProcessFactionRelationSet(key, friendly, hostile);
-
-        if (relation.HostilityBidirectional == 1)
-        {
-            var bikey = (secondaryFaction.Id, primaryFaction.Id);
-            ProcessFactionRelationSet(bikey, friendly, hostile);
-        }
-    }
-
-    private void ProcessFactionRelationSet((uint, uint) key, bool friendly, bool hostile)
-    {
-        if (_factionFriendlyDict.ContainsKey(key))
-        {
-            _factionFriendlyDict[key] = friendly;
-        }
-        else
-        {
-            _factionFriendlyDict.Add(key, friendly);
-        }
-
-        if (_factionHostileDict.ContainsKey(key))
-        {
-            _factionHostileDict[key] = hostile;
-        }
-        else
-        {
-            _factionHostileDict.Add(key, hostile);
-        }
+        return _stanceMatrix[sourceFactionId, targetFactionId];
     }
 }

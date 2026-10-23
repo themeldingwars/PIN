@@ -1,5 +1,5 @@
 ﻿using Aero.Gen;
-using GameServer.Packets;
+using GameServer.Protocol;
 
 namespace GameServer.Extensions;
 

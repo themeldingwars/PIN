@@ -38,7 +38,7 @@ The GSS protocol has four different channels:
 - Reliable GSS - Message delivery is ensured with resend functionality
 - Unreliable GSS - Message delivery is not guaranteed
 
-The `NetworkClient` (`NetworkPlayer` as concrete implementation) subscribes via delegate onto the different channels and during the `Shard` network tick, the channel processing triggers these delegates.
+The `NetworkClient` (`NetworkPlayer` as concrete implementation) owns one `Channel` per protocol channel and subscribes to each channel's `PacketAvailable` delegate; during the `Shard` network tick, the channel processing triggers these delegates. It keeps handling Control messages itself, since those are the connection's own protocol, and forwards Matrix and GSS packets to the static routers in `Handlers`. The `MatrixRouter` resolves the Matrix wire id and invokes the `MessageID` method registered for it, and the `GssRouter` resolves the GSS typecode to a handler class marked with a `Typecode` attribute and invokes the `MessageID` method registered for the message id.
 
 ![](GameServer.png)
 

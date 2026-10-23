@@ -4,11 +4,17 @@ using AeroMessages.GSS;
 using AeroMessages.GSS.Character;
 using AeroMessages.GSS.Turret.Controller;
 using AeroMessages.GSS.Turret.View;
+using GameServer.Entities.Character;
 
 namespace GameServer.Entities.Turret;
 
 public sealed class TurretEntity : BaseEntity
 {
+    /// <summary>
+    ///     Status effect whose apply/remove chains run the TurretControl command, binding an NPC gunner to this turret.
+    /// </summary>
+    public const uint TurretControlEffectId = 1368;
+
     public TurretEntity(IShard shard, ulong eid, uint type, BaseEntity parent, byte parentChildIndex, byte posture, uint gunnerPoseId, Vector3 gunnerPoseOffset)
         : base(shard, eid)
     {
@@ -23,7 +29,10 @@ public sealed class TurretEntity : BaseEntity
 
         // BaseEntity has the Position prop and other systems may wish to use that
         // when processing this entity, EntityManagers scoping in/out logic is one such system.
+        // The turret rides on its deployable's transform: CurrentPose is a rotation in this frame, so the gun's
+        // rest direction is the deployable's +Y axis.
         Position = parent.Position;
+        Orientation = parent.Orientation;
 
         HostilityInfo = parent.HostilityInfo;
         InitControllers();
@@ -42,6 +51,46 @@ public sealed class TurretEntity : BaseEntity
     public byte Posture { get; set; }
     public uint GunnerPoseId { get; set; }
     public Vector3 GunnerPoseOffset { get; set; }
+    public CharacterEntity NpcGunner { get; private set; }
+
+    public bool IsNpcControlled => NpcGunner != null;
+
+    public void SetNpcGunner(CharacterEntity gunner)
+    {
+        NpcGunner = gunner;
+
+        var gunnerId = gunner?.AeroEntityId ?? new EntityId() { Backing = 0 };
+        Turret_ObserverView.GunnerIdProp = gunnerId;
+
+        if (Turret_BaseController != null)
+        {
+            Turret_BaseController.GunnerIdProp = gunnerId;
+        }
+    }
+
+    /// <summary>
+    ///     Points the turret's gun. Mirrors what the manned turret controller does with its PoseUpdate, so an
+    ///     NPC-driven turret animates on the client exactly like a manned one.
+    /// </summary>
+    /// <param name="rotation">The gun pose rotation to apply.</param>
+    public void SetAimRotation(Quaternion rotation)
+    {
+        Turret_ObserverView.CurrentPoseProp = new CurrentPoseStruct()
+        {
+            Rotation = rotation,
+            ShortTime = Shard.CurrentShortTime,
+        };
+    }
+
+    public void SetAmmo(ushort[] ammo)
+    {
+        Turret_ObserverView.AmmoProp = new AmmoStruct() { AmmoIndex = ammo };
+
+        if (Turret_BaseController != null)
+        {
+            Turret_BaseController.AmmoProp = new AmmoData() { Ammo = ammo };
+        }
+    }
 
     public void SetControllingPlayer(INetworkPlayer player)
     {

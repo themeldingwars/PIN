@@ -1,4 +1,5 @@
 using System.Threading;
+using AeroMessages.GSS.Character;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
@@ -11,7 +12,7 @@ namespace GameServer.Systems.Combat;
 
 public class DamageSystem
 {
-    private static readonly ILogger Logger = Log.ForContext<DamageSystem>();
+    private static readonly ILogger _logger = Log.ForContext<DamageSystem>();
 
     private readonly IEventBus _eventBus;
     private readonly Shard _shard;
@@ -24,28 +25,31 @@ public class DamageSystem
         _rules = rules;
     }
 
-    public void ApplyDamage(IEntity target, int amount, IEntity source = null)
+    public bool ApplyDamage(IEntity target, int amount, IEntity source = null, DamageInfo? damageInfo = null)
     {
-        if (amount <= 0)
+        if (target == null || amount <= 0 || !CanTakeDamage(target))
         {
-            return;
+            return false;
         }
+
+        DamageInfo info = damageInfo ?? new DamageInfo(amount, 0, false);
 
         if (target is CharacterEntity character)
         {
-            ApplyDamageToCharacter(character, amount, source);
+            ApplyDamageToCharacter(character, amount, source, info);
         }
         else if (target is DeployableEntity deployable)
         {
-            ApplyDamageToDeployable(deployable, amount, source);
+            ApplyDamageToDeployable(deployable, amount, source, info);
         }
         else
         {
-            Logger.Warning("ApplyDamage called on non-damageable entity {EntityId}, ignoring", target.EntityId);
-            return;
+            _logger.Warning("ApplyDamage called on non-damageable entity {EntityId}, ignoring", target.EntityId);
+            return false;
         }
 
         _eventBus.Publish(new EntityDamagedEvent(target, amount, source));
+        return true;
     }
 
     public void ApplyHeal(IEntity target, int amount, IEntity source = null)
@@ -65,7 +69,7 @@ public class DamageSystem
         }
         else
         {
-            Logger.Warning("ApplyHeal called on non-damageable entity {EntityId}, ignoring", target.EntityId);
+            _logger.Warning("ApplyHeal called on non-damageable entity {EntityId}, ignoring", target.EntityId);
             return;
         }
 
@@ -76,7 +80,17 @@ public class DamageSystem
     {
     }
 
-    private void ApplyDamageToCharacter(CharacterEntity character, int amount, IEntity source)
+    private static bool CanTakeDamage(IEntity target)
+    {
+        return target switch
+        {
+            CharacterEntity character => character.CharacterState.State != CharacterStateData.CharacterStatus.Dead && character.CurrentHealth > 0,
+            DeployableEntity deployable => !deployable.IsDead && deployable.CurrentHealth > 0,
+            _ => false,
+        };
+    }
+
+    private void ApplyDamageToCharacter(CharacterEntity character, int amount, IEntity source, DamageInfo damageInfo)
     {
         int remaining = amount;
 
@@ -91,6 +105,8 @@ public class DamageSystem
         {
             character.SetCurrentHealth(character.CurrentHealth - remaining);
         }
+
+        character.SetLastDamage(damageInfo);
     }
 
     private void ApplyHealToCharacter(CharacterEntity character, int amount, IEntity source)
@@ -98,7 +114,7 @@ public class DamageSystem
         character.SetCurrentHealth(character.CurrentHealth + amount);
     }
 
-    private void ApplyDamageToDeployable(DeployableEntity deployable, int amount, IEntity source)
+    private void ApplyDamageToDeployable(DeployableEntity deployable, int amount, IEntity source, DamageInfo damageInfo)
     {
         if (deployable.IsDead)
         {
@@ -113,10 +129,22 @@ public class DamageSystem
         }
 
         deployable.MarkDead();
+        _shard.EntityMan.DetachNpcGunner(deployable);
 
         var deployableInfo = SDBInterface.GetDeployable(deployable.Type);
-        deployable.SetGibVisuals(deployableInfo?.GibsetId ?? 0);
-        Logger.Information("{Name} destroyed", deployable);
+        uint gibsetId = deployableInfo?.GibsetId ?? 0;
+        if (GibVisualsSelector.TrySelectGibVisualsId(gibsetId, damageInfo, deployable.MaxHealth, deployable.CurrentHealth, out uint gibVisualsId))
+        {
+            deployable.SetGibVisuals(gibVisualsId);
+        }
+        else
+        {
+            _logger.Debug("No gib visuals id available for {Name} gibset={GibsetId}, skipping gib visuals", deployable, gibsetId);
+        }
+
+        _logger.Information("{Name} destroyed", deployable);
+
+        _eventBus.Publish(new DeployableDestroyedEvent(deployable, source));
 
         _shard.EntityMan.SetRemainingLifetime(deployable, (uint)_rules.CorpseLingerMs);
     }

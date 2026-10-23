@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.Threading;
 using GameServer.Entities;
 using GameServer.Entities.Outpost;
+using GameServer.Navigation;
 using GameServer.Physics;
 using GameServer.Systems.Admin;
 using GameServer.Systems.Aptitude;
+using GameServer.Systems.CharacterCreation;
 using GameServer.Systems.CharacterLifecycle;
 using GameServer.Systems.Chat;
 using GameServer.Systems.Combat;
 using GameServer.Systems.Encounters;
 using GameServer.Systems.EntityManager;
+using GameServer.Systems.Loot;
 using GameServer.Systems.MovementRelay;
 using GameServer.Systems.PlayerRespawn;
+using GameServer.Systems.Progression;
 using GameServer.Systems.ProjectileSim;
 using GameServer.Systems.SystemEvents;
 using GameServer.Systems.WeaponSim;
@@ -29,6 +33,8 @@ public interface IShard : IPacketSender
     IDictionary<ulong, IEncounter> Encounters { get; }
     IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; }
     PhysicsEngine Physics { get; }
+    NavMeshService NavMesh { get; }
+    CrowdNavigationService Crowd { get; }
     AIEngine AI { get; }
     MovementRelay Movement { get; }
     EntityManager EntityMan { get; }
@@ -39,8 +45,12 @@ public interface IShard : IPacketSender
     ChatService Chat { get; }
     AdminService Admin { get; }
     DamageSystem Damage { get; }
+    HostilityResolver Hostility { get; }
+    CharacterCreationService CharacterCreation { get; }
     CharacterLifecycleService CharacterLifecycle { get; }
     PlayerRespawnService PlayerRespawn { get; }
+    LootService Loot { get; }
+    ProgressionService Progression { get; }
     uint ZoneId { get; }
     ILogger Logger { get; }
     GameServerSettings Settings { get; }

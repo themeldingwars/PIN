@@ -11,19 +11,27 @@ using AeroMessages.GSS.Character.View;
 using BepuUtilities;
 using GameServer.Data;
 using GameServer.Entities.Deployable;
+using GameServer.Entities.Turret;
 using GameServer.Enums;
 using GameServer.StaticDB;
 using GameServer.StaticDB.Records.customdata;
 using GameServer.StaticDB.Records.dbcharacter;
 using GameServer.StaticDB.Records.dbitems;
 using GameServer.StaticDB.Records.dbvisualrecords;
+using GameServer.Systems.Ai;
+using GameServer.Systems.Ai.Behavior;
 using GameServer.Systems.Aptitude;
+using GameServer.Systems.Combat;
 using GameServer.Systems.Encounters;
 using GameServer.Systems.MovementRelay;
 using GameServer.Systems.WeaponSim;
 using GameServer.Test;
 using GrpcGameServerAPIClient;
 using Serilog;
+using Serilog.Events;
+
+// The GameServerAPI proto has its own CharacterLoadout message, so the bare name has to pick a side.
+using CharacterLoadout = GameServer.Data.CharacterLoadout;
 using GibVisuals = AeroMessages.GSS.Character.GibVisuals;
 using LoadoutVisualType = AeroMessages.GSS.Character.LoadoutConfig_Visual.LoadoutVisualType;
 
@@ -36,7 +44,10 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 {
     public const byte MaxMapMarkerCount = 64;
     public const byte MaxTinyCount = 32;
+    public const byte DefaultLevel = 1;
+    public const uint DefaultEliteLevel = 0;
     private const int _maxMovementSamples = 32; // ~1.6s at 20 samples/s
+    private const int _maxAimSamples = 8; // aim samples only arrive while firing, so a short history is enough
     private const int _maxExtrapolationMs = 100; // How far to predict beyond the newest sample
     private const float _fallbackRunSpeed = 4.5f; // TODO: Derive from SDB/character stats
     private const float _fallbackSprintSpeed = 7.0f; // TODO: Derive from SDB/character stats
@@ -45,11 +56,17 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const uint _abilityProjectileStaleMs = 1000; // a queued ability projectile older than this is dropped
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
+    private readonly AimSample[] _aimSamples = new AimSample[_maxAimSamples];
     private readonly Dictionary<AptitudeStat, ActiveStatModifier> _statOverrides = new();
     private readonly Queue<PendingAbilityProjectile> _pendingAbilityProjectiles = new();
+    private readonly HashSet<uint> _activatedDefaultAbilities = new();
+    private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
     private int _movementSampleCount;
     private int _movementSampleNewest;
+    private int _aimSampleCount;
+    private int _aimSampleNewest;
     private ActiveWeaponDetails[,] _weaponDetailsCache;
+    private uint _monsterTypeId;
 
     public CharacterEntity(IShard shard, ulong eid, CharacterEntity owner = null)
         : base(shard, eid, owner)
@@ -78,6 +95,23 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public bool IsPlayerControlled => Player != null;
     public Vector3 Velocity { get; set; }
     public Vector3 AimDirection { get; set; }
+    public Vector2 Heading { get; set; }
+    public bool IsNpc { get; private set; }
+
+    /// <summary>
+    ///     Server-only character: never scoped to any client, no physics body, no AI movement. Net captures
+    ///     show something like this for NPC-piloted turrets through <c>Turret::ObserverView.GunnerId</c>.
+    /// </summary>
+    public bool IsHidden { get; private set; }
+
+    /// <summary>
+    ///     Set by TurretControlCommand (status effect 1368). The NPC stops acting on its own and instead drives the
+    ///     turret's aim and weapon through the TurretSystem.
+    /// </summary>
+    public TurretEntity TurretControlledBy { get; set; }
+#nullable enable
+    public NpcMovementComponent? NpcMovement { get; set; }
+#nullable disable
     public short MovementState { get; set; }
     public ushort MovementShortTime { get; set; }
     public bool Alive { get; set; }
@@ -126,6 +160,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     };
 
     public ulong CurrentPermissionsValue => GetCurrentPermissionsValue();
+    public float GetMass => NpcSpeedCalculator.BodyMass(StaticInfo.CharacterTypeId, CurrentLoadout?.ChassisID ?? 0u);
 
     public StaticInfoData StaticInfo { get; set; }
     public ulong ArmyGUID { get; set; }
@@ -136,6 +171,17 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public MaxVital MaxHealth { get; private set; }
     public int CurrentHealth { get; private set; }
     public int CurrentShields { get; private set; }
+
+    // The most recent damage instance taken, used to pick a matching dbcharacter::HitFeedbackEntry result on death.
+    public DamageInfo LastDamage { get; private set; }
+
+    public byte Level { get; set; }
+    public byte EffectiveLevel { get; set; }
+    public uint EliteLevel { get; set; }
+
+    // True when an ability has queued a projectile that has not been fired or expired yet.
+    public bool HasPendingAbilityProjectiles => _pendingAbilityProjectiles.Count > 0;
+
     public GibVisuals GibVisualsInfo { get; set; }
     public ProcessDelayData ProcessDelay { get; set; }
     public EmoteData Emote { get; set; }
@@ -159,6 +205,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public List<DeployableEntity> OwnedDeployables { get; set; } = [];
     public RespawnTimesData? RespawnTimes { get; private set; }
     public IEntity InteractionTarget { get; set; }
+    public Guid? InteractionExecutionId { get; set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -252,63 +299,81 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public override string ToString()
     {
-        return IsPlayerControlled ? StaticInfo.DisplayName : base.ToString();
+        return IsPlayerControlled ? StaticInfo.DisplayName : $"Character {_monsterTypeId} ({EntityId:X8})";
     }
 
-    public void LoadMonster(uint typeId)
+    public void LoadMonster(uint typeId, byte level = DefaultLevel)
     {
-        // TODO: GetMonsterVisualOptions
         var monsterInfo = SDBInterface.GetMonster(typeId);
-        var chassisWarpaint = SDBUtils.GetChassisWarpaint(monsterInfo.ChassisId, monsterInfo.FullbodyWarpaintPaletteId, monsterInfo.ArmorWarpaintPaletteId, monsterInfo.BodysuitWarpaintPaletteId, monsterInfo.GlowWarpaintPaletteId);
+        SelectedMonsterVisuals monsterVisuals = LoadMonsterVisuals(typeId);
+        IsNpc = true;
+        ApplyProgressionLevels(level, DefaultEliteLevel);
+        _monsterTypeId = typeId;
 
         // TODO: Consider internalizing into the CharacterLoadout instead?
         var loadout = new CharacterLoadout
         {
-            ChassisID = monsterInfo.ChassisId,
-            BackpackID = monsterInfo.BackpackId,
-            ChassisWarpaint = chassisWarpaint
+            ChassisID = monsterVisuals.ChassisId,
+            BackpackID = monsterVisuals.BackpackId,
+            ChassisWarpaint = monsterVisuals.ChassiWarpaint,
+            ChassisWarpaintPatterns = monsterVisuals.ChassisWarpaintPatterns,
+            ChassisWarpaintTatoos = monsterVisuals.ChassisWarpaintTatoos,
         };
         loadout.SlottedItems[LoadoutSlotType.Primary] = monsterInfo.Weapon1Id;
         loadout.SlottedItems[LoadoutSlotType.Secondary] = monsterInfo.Weapon2Id;
 
+        if (monsterVisuals.VisualsGroupId != 0)
+        {
+            SetVisualOverrides(new()
+            {
+                Data = [
+                    new()
+                    {
+                        SlotType = 131, // Battleframe Visuals Override
+                        VisualsGroupId = monsterVisuals.VisualsGroupId
+                    }
+                ]
+            });
+        }
+
         var ornaments = new List<uint>();
-        if (monsterInfo.OrnamentsMapGroupId_1 != 0)
+        if (monsterVisuals.OrnamentsMapGroupId1 != 0)
         {
-            ornaments.Add(monsterInfo.OrnamentsMapGroupId_1);
+            ornaments.Add(monsterVisuals.OrnamentsMapGroupId1);
         }
 
-        if (monsterInfo.OrnamentsMapGroupId_2 != 0)
+        if (monsterVisuals.OrnamentsMapGroupId2 != 0)
         {
-            ornaments.Add(monsterInfo.OrnamentsMapGroupId_2);
+            ornaments.Add(monsterVisuals.OrnamentsMapGroupId2);
         }
 
-        if (monsterInfo.OrnamentsMapGroupId_3 != 0)
+        if (monsterVisuals.OrnamentsMapGroupId3 != 0)
         {
-            ornaments.Add(monsterInfo.OrnamentsMapGroupId_3);
+            ornaments.Add(monsterVisuals.OrnamentsMapGroupId3);
         }
 
-        if (monsterInfo.OrnamentsMapGroupId_4 != 0)
+        if (monsterVisuals.OrnamentsMapGroupId4 != 0)
         {
-            ornaments.Add(monsterInfo.OrnamentsMapGroupId_4);
+            ornaments.Add(monsterVisuals.OrnamentsMapGroupId4);
         }
 
-        SetStaticInfo(new StaticInfoData()
+        var staticInfo = new StaticInfoData()
         {
             DisplayName = "_noname",
             UniqueName = string.Empty,
-            Gender = (byte)(monsterInfo.Gender == 'F' ? 1 : 0),
+            Gender = (byte)(monsterVisuals.Sex == 'F' ? 1 : 0),
             Race = monsterInfo.Race,
             CharInfoId = monsterInfo.CharinfoId,
-            HeadMain = monsterInfo.HeadId,
-            Eyes = monsterInfo.EyesId,
+            HeadMain = monsterVisuals.HeadId,
+            Eyes = monsterInfo.EyesId, // !
             Unk_1 = 0xff,
             TargetFlags = TargetFlags.IsNPC,
             StaffFlags = 0,
             CharacterTypeId = monsterInfo.Id,
-            VoiceSet = monsterInfo.VoiceSet,
-            TitleId = monsterInfo.Title,
-            NameLocalizationId = monsterInfo.LocalizedNameId,
-            HeadAccessories = [monsterInfo.HeadAcc1Id, monsterInfo.HeadAcc2Id],
+            VoiceSet = monsterVisuals.VoiceSet,
+            TitleId = monsterInfo.Title, // !
+            NameLocalizationId = monsterVisuals.NameLocalizationId,
+            HeadAccessories = [monsterVisuals.HeadAcc1Id, monsterVisuals.HeadAcc2Id],
             LoadoutVehicle = 0,
             LoadoutGlider = 0,
             Visuals = new VisualsBlock
@@ -317,11 +382,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Gradients = [],
                 Colors =
                 [
-                    monsterInfo.SkinColor,
-                    monsterInfo.EyeColor,
-                    monsterInfo.LipColor,
-                    monsterInfo.HairColor,
-                    monsterInfo.FacialHairColor
+                    monsterVisuals.SkinColor,
+                    monsterVisuals.EyeColor,
+                    monsterVisuals.LipColor,
+                    monsterVisuals.HairColor,
+                    monsterVisuals.FacialHairColor
                 ],
                 Palettes = [],
                 Patterns = [],
@@ -331,7 +396,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Overlays = []
             },
             ArmyTag = string.Empty
-        });
+        };
+
+        SetStaticInfo(staticInfo);
 
         SetHostilityInfo(new HostilityInfoData
         {
@@ -361,6 +428,126 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Index = 2, PreviousIndex = 1, PlaySwapAnimation = 0, Time = Shard.CurrentTime
             });
         }
+
+        // Set up the AI movement component (navmesh path steering, parsed behavior config).
+        if (!IsHidden)
+        {
+            var behaviorConfig = new NpcBehaviorConfig(
+                monsterInfo.Behavior,
+                monsterInfo.BehaviorInstanceId,
+                monsterInfo.BehaviorOffensive,
+                monsterInfo.BehaviorOffensiveInstanceId,
+                monsterInfo.BehaviorDefensive,
+                monsterInfo.BehaviorDefensiveInstanceId);
+            var speeds = NpcSpeedCalculator.Calculate(this);
+            var strategy = new NavMeshPathStrategy(Shard.NavMesh);
+            NpcMovement = new NpcMovementComponent(this, strategy, behaviorConfig, speeds);
+        }
+    }
+
+    /// <summary>
+    ///     Marks the character as server-only. Must be set before the entity is added to the shard.
+    /// </summary>
+    /// <param name="hidden">True to make the character server-only (never scoped or updated to clients).</param>
+    public void SetHidden(bool hidden)
+    {
+        IsHidden = hidden;
+    }
+
+    public void ActivateDefaultAbilities(bool includeMonster = true, bool includeBattleframe = true, bool includeBackpack = true, bool includeCoreAbilityGroup = true)
+    {
+        if (!IsAlive)
+        {
+            return;
+        }
+
+        var sources = new List<(string Source, uint AbilityId)>();
+
+        if (includeMonster && _monsterTypeId != 0)
+        {
+            sources.AddRange(SDBInterface.GetDefaultMonsterAbilities(_monsterTypeId)
+                .Select(abilityId => ($"monster type {_monsterTypeId}", abilityId)));
+        }
+
+        uint chassisId = CurrentLoadout?.ChassisID ?? 0u;
+
+        if (includeBattleframe)
+        {
+            sources.AddRange(SDBInterface.GetDefaultBattleframeAbilities(chassisId)
+                .Select(abilityId => ($"chassis {chassisId}", abilityId)));
+        }
+
+        uint backpackId = CurrentLoadout?.BackpackID ?? 0u;
+
+        if (includeBackpack)
+        {
+            sources.AddRange(SDBInterface.GetDefaultBackpackAbilities(backpackId)
+                .Select(abilityId => ($"backpack {backpackId}", abilityId)));
+        }
+
+        uint coreAbilityGroupId = includeCoreAbilityGroup ? SDBInterface.GetBattleframe(chassisId)?.CoreAbilityGroupId ?? 0u : 0u;
+
+        if (coreAbilityGroupId != 0)
+        {
+            sources.AddRange(SDBInterface.GetDefaultCoreAbilityGroupAbilities(coreAbilityGroupId)
+                .Select(abilityId => ($"core ability group {coreAbilityGroupId}", abilityId)));
+        }
+
+        var skipped = new List<uint>();
+        var activated = 0;
+
+        foreach ((string source, uint abilityId) in sources)
+        {
+            if (abilityId == 0)
+            {
+                continue;
+            }
+
+            if (!_activatedDefaultAbilities.Add(abilityId))
+            {
+                skipped.Add(abilityId);
+                continue;
+            }
+
+            activated++;
+
+            if ((SDBInterface.GetAbilityData(abilityId)?.Chain ?? 0u) == 0u)
+            {
+                continue;
+            }
+
+            Logger.Debug("{Entity} activating {Source} default ability {AbilityId}", this, source, abilityId);
+
+            Shard.Abilities.HandleActivateAbility(Shard, this, abilityId, Shard.CurrentTime, new AptitudeTargets(this));
+        }
+
+        Logger.Debug(
+            "{Entity} activated {Activated} default abilities for chassis {ChassisId} (core ability group {CoreAbilityGroupId}), skipped {SkippedCount} already activated on an earlier frame: {Skipped}",
+            this,
+            activated,
+            chassisId,
+            coreAbilityGroupId,
+            skipped.Count,
+            string.Join(", ", skipped));
+    }
+
+    public void ResetCombatState(string reason)
+    {
+        var carriedEffects = ActiveEffects.Count(effect => effect != null);
+
+        Shard.Abilities.RemoveAllActiveEffects(this);
+        _abilityInputs.Clear();
+        Shard.WeaponSim.ResetAmmoState(this);
+
+        _activatedDefaultAbilities.Clear();
+        ActivateDefaultAbilities(includeMonster: false, includeBattleframe: true);
+
+        Logger.Debug(
+            "{Entity} reset combat state ({Reason}): {EffectCount} active effects cleared, ammo refilled, default abilities re-activated",
+            this,
+            reason,
+            carriedEffects);
+        LogSpeedSnapshot($"combat state reset ({reason})");
     }
 
     public void LoadRemote(CharacterAndBattleframeVisuals remoteData)
@@ -404,6 +591,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         var info = data.CharacterInfo;
         var visuals = data.CharacterVisuals;
+
+        var previousGender = StaticInfo.Gender;
+        var previousRace = StaticInfo.Race;
 
         SetStaticInfo(new StaticInfoData
         {
@@ -451,13 +641,52 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         SetTimePlayed(info.TimePlayed);
         SetArmyGUID(info.ArmyGuid);
         SetArmyIsOfficer((sbyte)(info.ArmyIsOfficer ? 1 : 0));
+
+        if (CurrentLoadout != null && (previousGender != StaticInfo.Gender || previousRace != StaticInfo.Race))
+        {
+            Log.Debug(
+                "Character {EntityId} changed gender or race, re-applying loadout {LoadoutId} to rebuild the frame model",
+                EntityId,
+                CurrentLoadout.LoadoutID);
+
+            ApplyLoadout(CurrentLoadout);
+        }
+    }
+
+    public void ApplyProgressionLevels(uint level, uint eliteLevel)
+    {
+        var newLevel = (byte)Math.Min(level, byte.MaxValue);
+
+        if (Level == newLevel && EffectiveLevel == newLevel && EliteLevel == eliteLevel)
+        {
+            return;
+        }
+
+        Level = newLevel;
+        EffectiveLevel = newLevel;
+        EliteLevel = eliteLevel;
+
+        UpdateLevelProps();
+    }
+
+    public void ApplyProgressionXp(ulong currentXp)
+    {
+        var xp = (uint)currentXp;
+
+        if (Character_BaseController != null && Character_BaseController.ProgressionXpProp != xp)
+        {
+            Character_BaseController.ProgressionXpProp = xp;
+        }
     }
 
     public void ApplyLoadout(CharacterLoadout loadout)
     {
+        uint previousChassisId = CurrentLoadout?.ChassisID ?? 0u;
+
         Shard.Admin.ApplyEquipmentOverrides(Player, loadout);
         CurrentLoadout = loadout;
         RebuildWeaponDetailsCache(loadout);
+        RecalculateHealthAndWeaponDamage();
 
         var emptyVisuals = new VisualsBlock
         {
@@ -680,6 +909,23 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
             DamageResponse = battleframeRecord.DamageResponse;
         }
+
+        if (IsNpc && previousChassisId != 0 && previousChassisId != loadout.ChassisID)
+        {
+            ActivateDefaultAbilities(includeMonster: false, includeBattleframe: true);
+        }
+
+        if (!IsNpc && previousChassisId != 0 && previousChassisId != loadout.ChassisID)
+        {
+            Logger.Debug(
+                "{Entity} changed chassis {PreviousChassisId} -> {ChassisId}: {EffectCount} active effects carried over and no stat modifier refreshed",
+                this,
+                previousChassisId,
+                loadout.ChassisID,
+                ActiveEffects.Count(effect => effect != null));
+        }
+
+        LogSpeedSnapshot($"applied loadout {loadout.LoadoutID}, chassis {previousChassisId} -> {loadout.ChassisID}");
     }
 
     public float GetItemAttribute(ushort id) => CurrentLoadout.ItemAttributes.GetValueOrDefault(id);
@@ -708,7 +954,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 Time = Shard.CurrentTime,
             };
 
-            Logger.Debug("StatModifier {Stat} set to {Value}", stat, value.Value);
+            Logger.Debug(
+                "{Entity} StatModifier {Stat} set to {Value} ({Breakdown})",
+                this,
+                stat,
+                value.Value,
+                DescribeStatModifier(stat));
 
             switch (stat)
             {
@@ -792,6 +1043,69 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         return value;
+    }
+
+    public string DescribeStatModifier(AptitudeStat stat)
+    {
+        var contributors = new List<string> { $"{BaseStatModifiers.GetValueOrDefault(stat, 1.0f):0.###}" };
+
+        foreach (var effect in GetActiveEffects())
+        {
+            if (effect?.Context == null || !effect.Context.StatChangelist.TryGetValue(stat, out var mod))
+            {
+                continue;
+            }
+
+            contributors.Add(
+                $"effect {effect.Effect.Id} in slot {effect.Index} ({effect.Stacks}/{effect.Effect.MaxStackCount} stacks) multi {mod.Multi:0.###} add {mod.Add:0.###}");
+        }
+
+        if (_statOverrides.TryGetValue(stat, out var overrideMod))
+        {
+            contributors.Add($"override multi {overrideMod.Multi:0.###} add {overrideMod.Add:0.###}");
+        }
+
+        return $"{string.Join(" + ", contributors)} = {GetCurrentStatModifierValue(stat):0.###}";
+    }
+
+    public void LogSpeedSnapshot(string reason)
+    {
+        if (!Logger.IsEnabled(LogEventLevel.Debug))
+        {
+            return;
+        }
+
+        var effects = new List<string>();
+
+        foreach (var effect in GetActiveEffects())
+        {
+            if (effect == null)
+            {
+                continue;
+            }
+
+            effects.Add(
+                $"{effect.Effect.Id} in {effect.Index} x{effect.Stacks}{(effect.Effect.DurationChain == null ? " (no duration)" : string.Empty)}");
+        }
+
+        var controller = Character_CombatController;
+
+        Logger.Debug(
+            "Speed snapshot {Reason} of {Entity}: chassis {ChassisId} level {Level}; item attributes run {RunSpeed}, sprint {SprintSpeed}, jump {JumpHeight}; " +
+            "controller run {RunSpeedMult}, forward run {FwdRunSpeedMult}, jump {JumpHeightMult}; speed {SpeedModifier}; {EffectCount} active effects: {Effects}",
+            reason,
+            this,
+            CurrentLoadout?.ChassisID ?? 0u,
+            Level,
+            CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)ItemAttributeId.RunSpeed) ?? 0f,
+            CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)ItemAttributeId.SprintSpeed) ?? 0f,
+            CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)ItemAttributeId.JumpHeight) ?? 0f,
+            controller?.RunSpeedMultProp.Value ?? 0f,
+            controller?.FwdRunSpeedMultProp.Value ?? 0f,
+            controller?.JumpHeightMultProp.Value ?? 0f,
+            DescribeStatModifier(AptitudeStat.Speed),
+            effects.Count,
+            string.Join(", ", effects));
     }
 
     public void SetCharacterStats(CharacterStatsData value)
@@ -903,17 +1217,30 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void SetFireBurst(uint time)
     {
+        Logger.Debug("SetFireBurst Time {Time} {Entity} ({Diff})",  time, this, Shard.CurrentTime - time);
         Character_CombatView.WeaponBurstFiredProp = time;
     }
 
     public void SetFireCancel(uint time)
     {
+        Logger.Debug("SetFireCancel Time {Time} {Entity} ({Diff})",  time, this, Shard.CurrentTime - time);
         Character_CombatView.WeaponBurstCancelledProp = time;
     }
 
     public void SetFireEnd(uint time)
     {
+        Logger.Debug("SetFireEnd Time {Time} {Entity} ({Diff})",  time, this, Shard.CurrentTime - time);
         Character_CombatView.WeaponBurstEndedProp = time;
+    }
+
+    /// <summary>
+    ///     Sets the NPC's current combat target on the CombatView (NPCTargetObjIdProp) so clients know who the monster
+    ///     is attacking (the original server writes this for NPCs in combat). Pass null to clear when it leaves combat.
+    /// </summary>
+    /// <param name="target">The targeted character, or null for none</param>
+    public void SetNpcTarget(CharacterEntity target)
+    {
+        Character_CombatView.NPCTargetObjIdProp = target?.AeroEntityId;
     }
 
     public void SetFireMode(byte index, FireModeData value)
@@ -947,7 +1274,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Orientation = poseData.PosRotState.Rot;
         MovementState = poseData.PosRotState.MovementState;
         Velocity = poseData.Velocity;
-        AimDirection = poseData.Aim;
+
+        if ((poseData.MovementType & MovementDataType.Aim) != 0)
+        {
+            AimDirection = poseData.Aim;
+        }
+
         MovementShortTime = shortTime;
         RefreshMovementView();
     }
@@ -1074,9 +1406,21 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    public void SetVisualOverrides(VisualOverridesField data)
+    {
+        VisualOverrides = data;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.VisualOverridesProp = VisualOverrides;
+        }
+
+        Character_EquipmentView.VisualOverridesProp = VisualOverrides;
+    }
+
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        Logger.Debug("Character.SetStatusEffect Index {Index}, Time {Time}, Id {Id}", index, time, data.Id);
+        Logger.Debug("{Entity} SetStatusEffect Index {Index}, Time {Time}, Id {Id}", this, index, time, data.Id);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -1096,7 +1440,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        Logger.Debug("Character.ClearStatusEffect Index {Index}, Time {Time}, Id {DebugEffectId}", index, time, debugEffectId);
+        Logger.Debug("{Entity} ClearStatusEffect Index {Index}, Time {Time}, Id {DebugEffectId}", this, index, time, debugEffectId);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -1148,7 +1492,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         var time = Shard.CurrentShortTime;
         for (int index = 0; index < 32; index++)
         {
-            Logger.Debug("Character.ClearStatusEffect Index {Index}, Time {Time}", index, time);
+            Logger.Debug("{Entity} ClearStatusEffect Index {Index}, Time {Time}", this, index, time);
 
             // Member
             GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -1224,6 +1568,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         Player.Inventory.EquipItemByGUID(loadoutId, slot, guid);
         ApplyLoadout(CurrentLoadout);
+
+        if (CharacterLoadout.LoadoutWeaponSlots.Contains(slot))
+        {
+            Shard.WeaponSim.ResetAmmoState(this);
+        }
     }
 
     public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)
@@ -1231,6 +1580,26 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
         Player.CharacterEntity.CurrentLoadout.GliderID = sdb_id;
         ApplyLoadout(CurrentLoadout);
+    }
+
+    /// <summary>
+    ///     Update loadout visuals
+    /// </summary>
+    /// <param name="loadoutId">The loadout to change</param>
+    /// <param name="configId">The loadout config, 0 for PvE and 1 for PvP</param>
+    /// <param name="visuals">The visuals to upsert</param>
+    /// <param name="applied">The visuals the loadout config holds afterwards</param>
+    /// <returns>True when the inventory changed</returns>
+    public bool SetLoadoutVisuals(int loadoutId, uint configId, IReadOnlyList<LoadoutConfig_Visual> visuals, out LoadoutConfig_Visual[] applied)
+    {
+        var changed = Player.Inventory.SetLoadoutVisuals(loadoutId, configId, visuals, out applied);
+        if (changed && loadoutId == SelectedLoadout && configId == CharacterInventory.PveConfigId)
+        {
+            ApplyLoadoutVisuals(applied);
+            ApplyLoadout(CurrentLoadout);
+        }
+
+        return changed;
     }
 
 #nullable enable
@@ -1251,7 +1620,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         byte index = WeaponIndex.Index;
         if (index > 2)
         {
-            Logger.Warning("GetActiveWeaponDetails failed because invalid selected weapon index {Index}", index);
+            Logger.Warning("{Entity} GetActiveWeaponDetails failed because invalid selected weapon index {Index}", this, index);
             return null;
         }
 
@@ -1277,6 +1646,21 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         return _weaponDetailsCache[index, modeIndex];
+    }
+
+    public ActiveWeaponDetails? GetWeaponDetails(byte slotIndex, byte modeIndex)
+    {
+        if (_weaponDetailsCache == null)
+        {
+            return null;
+        }
+
+        if (slotIndex > 2 || modeIndex > 1)
+        {
+            return null;
+        }
+
+        return _weaponDetailsCache[slotIndex, modeIndex];
     }
     #nullable disable
 
@@ -1344,6 +1728,51 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     }
 
     /// <summary>
+    ///     Consumes the pending ability projectile queued by the given ability execution,
+    ///     returning null when none is pending.
+    /// </summary>
+    /// <param name="executionId">Execution id of the activating ability</param>
+    /// <returns>PendingAbilityProjectile or null if none was queued for this execution</returns>
+    public PendingAbilityProjectile? TryConsumeAbilityProjectileByExecId(Guid executionId)
+    {
+        PendingAbilityProjectile? found = null;
+        var remaining = new Queue<PendingAbilityProjectile>();
+        foreach (var pending in _pendingAbilityProjectiles)
+        {
+            if (found == null && pending.ExecutionId == executionId)
+            {
+                found = pending;
+                continue;
+            }
+
+            remaining.Enqueue(pending);
+        }
+
+        _pendingAbilityProjectiles.Clear();
+        foreach (var pending in remaining)
+        {
+            _pendingAbilityProjectiles.Enqueue(pending);
+        }
+
+        return found;
+    }
+
+    /// <summary>
+    ///     Consumes the next pending ability projectile without the client-fire-time staleness filter.
+    ///     Used for server-driven NPCs, which have no client FireWeaponProjectile to correlate against.
+    /// </summary>
+    /// <returns>PendingAbilityProjectile or null if none was queued</returns>
+    public PendingAbilityProjectile? TryConsumeNextAbilityProjectile()
+    {
+        if (_pendingAbilityProjectiles.Count == 0)
+        {
+            return null;
+        }
+
+        return _pendingAbilityProjectiles.Dequeue();
+    }
+
+    /// <summary>
     ///     Drops any pending ability projectiles that are too old relative to the given time.
     /// </summary>
     /// <param name="currentTime">Gametime</param>
@@ -1386,6 +1815,67 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         {
             _movementSampleCount++;
         }
+    }
+
+    /// <summary>
+    ///     Records an aim direction from a client FireWeaponProjectile command.
+    ///     Only called on the shard thread. Samples older than the newest recorded one are ignored.
+    /// </summary>
+    /// <param name="clientTimeMs">Client time in ms of the sample</param>
+    /// <param name="aim">The aim direction the client reported</param>
+    public void RecordAimSample(uint clientTimeMs, Vector3 aim)
+    {
+        var shortTime = unchecked((ushort)clientTimeMs);
+
+        if (_aimSampleCount > 0)
+        {
+            var newest = _aimSamples[_aimSampleNewest];
+            if (AimSample.MsSince(newest.ShortTime, shortTime) > 0x8000)
+            {
+                return; // Out-of-order or stale sample
+            }
+        }
+
+        var index = (_aimSampleNewest + 1) % _maxAimSamples;
+        _aimSamples[index] = new AimSample { ShortTime = shortTime, Aim = aim };
+        _aimSampleNewest = index;
+        if (_aimSampleCount < _maxAimSamples)
+        {
+            _aimSampleCount++;
+        }
+    }
+
+    /// <summary>
+    ///     Gets the aim direction the client reported most recently at or before the given time. Unlike the
+    ///     movement samples there is nothing to interpolate between, so this is the closest reported sample
+    ///     rather than a value evaluated at the time, and it falls back to the newest sample when every
+    ///     recorded one is newer than the request.
+    /// </summary>
+    /// <param name="clientTimeMs">Client time in ms to look the aim up at</param>
+    /// <param name="aim">The aim direction of the matching sample</param>
+    /// <returns>False when no aim has ever been recorded for this character</returns>
+    public bool TryGetAimSample(uint clientTimeMs, out Vector3 aim)
+    {
+        var target = unchecked((ushort)clientTimeMs);
+
+        for (var age = 0; age < _aimSampleCount; age++)
+        {
+            var sample = _aimSamples[(_aimSampleNewest - age + _maxAimSamples) % _maxAimSamples];
+            if (AimSample.MsSince(sample.ShortTime, target) < 0x8000)
+            {
+                aim = sample.Aim;
+                return true;
+            }
+        }
+
+        if (_aimSampleCount == 0)
+        {
+            aim = Vector3.Zero;
+            return false;
+        }
+
+        aim = _aimSamples[_aimSampleNewest].Aim;
+        return true;
     }
 
     /// <summary>
@@ -1501,6 +1991,21 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    /// <summary>
+    ///     Sets the character's own stance towards each faction on top of its faction, and pushes it out to the
+    ///     controller. This is where reputation, contracts and temporary PvP overrides land.
+    /// </summary>
+    /// <param name="newValue">The character's per-faction stance overlay, or null to clear it.</param>
+    public void SetPersonalFactionStance(PersonalFactionStance? newValue)
+    {
+        PersonalFactionStance = newValue;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.PersonalFactionStanceProp = newValue?.Data;
+        }
+    }
+
     public void SetMaxHealth(int newValue, bool resetCurrent)
     {
         MaxHealth = new()
@@ -1604,6 +2109,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    public void SetLastDamage(DamageInfo damageInfo)
+    {
+        LastDamage = damageInfo;
+    }
+
     public bool TryGetGibVisualsId(out uint gibVisualsId)
     {
         gibVisualsId = 0;
@@ -1619,8 +2129,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             return false;
         }
 
-        gibVisualsId = battleframe.GibsetId;
-        return true;
+        return GibVisualsSelector.TrySelectGibVisualsId(battleframe.GibsetId, LastDamage, MaxHealth.Value, CurrentHealth, out gibVisualsId);
     }
 
     public ulong GetCurrentPermissionsValue()
@@ -1662,7 +2171,41 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetInteractionTarget(IEntity target)
     {
         InteractionTarget = target;
+
+        if (target == null)
+        {
+            InteractionExecutionId = null;
+        }
     }
+
+    public void SetAbilityInput(uint abilityId, Guid executionId, uint time)
+    {
+        _abilityInputs[abilityId] = new AbilityInput
+        {
+            AbilityId = abilityId,
+            ExecutionId = executionId,
+            ActivateTime = time,
+        };
+    }
+
+    public bool TryGetAbilityInput(uint abilityId, out AbilityInput input)
+    {
+        return _abilityInputs.TryGetValue(abilityId, out input);
+    }
+
+    public AbilityInput ClearAbilityInput(uint abilityId)
+    {
+        if (_abilityInputs.Remove(abilityId, out var input))
+        {
+            return input;
+        }
+
+        return null;
+    }
+
+    private static Dictionary<MonsterVisualOptionType, List<uint>> GroupOptionsByType(IEnumerable<MonsterVisualOption> options)
+        => options.GroupBy(o => (MonsterVisualOptionType)o.Type)
+                    .ToDictionary(g => g.Key, g => g.Select(o => o.Value).ToList());
 
     private static float FoldStatModifier(float value, ActiveStatModifier mod)
     {
@@ -1703,6 +2246,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     ///     Estimates the velocity the character is starting to move at, based on the movement input
     ///     axes and modifiers of a sample, for use when the recorded velocity is near zero
     /// </summary>
+    /// <param name="sample">The movement sample whose input axes and modifiers drive the estimate.</param>
+    /// <returns>The estimated initial movement velocity, or <see cref="Vector3.Zero" /> for negligible input.</returns>
     private static Vector3 EstimateInputVelocity(MovementSample sample)
     {
         var magnitude = MathF.Sqrt((sample.HorizontalInput * sample.HorizontalInput) + (sample.VerticalInput * sample.VerticalInput));
@@ -1740,34 +2285,37 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         var attributes = weaponAttributes.ToDictionary(p => p.Id, p => p.Value);
 
-        // Weapons missing the Weapon Spread attribute fall back to MinSpread/MaxSpread in WeaponSpreadProfile.Build.
-        float? weaponAttributeSpread = attributes.TryGetValue((ushort)ItemAttributeId.WeaponSpread, out var spreadAttr) ? spreadAttr : null;
-        float weaponAttributeRateOfFire = attributes.GetValueOrDefault((ushort)ItemAttributeId.RateOfFire, 1f);
-
-        // Base/other are built for the active fire mode (Main or Alt/Underbarrel) with the
-        // main weapon's Weapon Spread attribute scale, matching the client pipeline.
-        float msPerBurstOverride = attributes.TryGetValue((ushort)ItemAttributeId.RateOfFire, out var rofAttr) ? rofAttr : 0f;
-
         var main = new ActiveWeaponDetails()
         {
-            Weapon = weaponDetails.Main,
             WeaponId = weaponId,
-            SpreadProfile = WeaponSpreadProfile.Build(weaponDetails.Main, weaponId, weaponAttributeSpread, weaponDetails.Main.MaxSpread, msPerBurstOverride),
-            RateOfFire = weaponAttributeRateOfFire,
+            Weapon = weaponDetails.Main,
             Attributes = attributes,
+            WeaponProfile = WeaponProfile.Build(weaponId, weaponDetails.Main, attributes, weaponDetails.Main.MaxSpread),
         };
 
         cache[index, 0] = main;
         cache[index, 1] = weaponDetails.Alt != null
             ? new ActiveWeaponDetails()
             {
-                Weapon = weaponDetails.Alt,
                 WeaponId = weaponId,
-                SpreadProfile = WeaponSpreadProfile.Build(weaponDetails.Alt, weaponId, weaponAttributeSpread, weaponDetails.Main.MaxSpread, msPerBurstOverride),
-                RateOfFire = weaponAttributeRateOfFire,
+                Weapon = weaponDetails.Alt,
                 Attributes = attributes,
+                WeaponProfile = WeaponProfile.Build(weaponId, weaponDetails.Alt, attributes, weaponDetails.Main.MaxSpread),
             }
             : main;
+    }
+
+    private static void MergeAttributeRange(Dictionary<ushort, float> result, uint itemId)
+    {
+        if (itemId == 0)
+        {
+            return;
+        }
+
+        foreach (var range in SDBInterface.GetItemAttributeRange(itemId).Values)
+        {
+            result[range.AttributeId] = result.GetValueOrDefault(range.AttributeId) + range.Base;
+        }
     }
 
     private bool IsAltFireMode()
@@ -1785,6 +2333,77 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         BuildWeaponSlotDetails(cache, 2, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary), loadout.GetSecondaryWeaponAttributes());
 
         _weaponDetailsCache = cache;
+    }
+
+    private void RecalculateHealthAndWeaponDamage()
+    {
+        if (IsNpc)
+        {
+            RecalculateMonsterStats();
+        }
+        else
+        {
+            RecalculatePlayerHealth();
+        }
+    }
+
+    private void RecalculatePlayerHealth()
+    {
+        var levelBonus = SDBInterface.GetLevelItemAttribute((uint)ItemAttributeId.Health, Level)?.Value ?? 0f;
+        var total = CurrentLoadout.GearHealthAttribute + levelBonus;
+        CurrentLoadout.ItemAttributes[(ushort)ItemAttributeId.Health] = total;
+        SetMaxHealth((int)Math.Round(total), true);
+    }
+
+    private void RecalculateMonsterStats()
+    {
+        var scaling = SDBInterface.GetMonsterScaling(Level);
+        if (scaling == null)
+        {
+            Logger.Warning("No MonsterScaling row for level {Level} (monster {MonsterId}); leaving health unchanged", Level, _monsterTypeId);
+            return;
+        }
+
+        // Creature modifiers come from the chassis AttributeRange plus any per-monster MonsterAttributeRange overrides.
+        var mods = new Dictionary<ushort, float>();
+        MergeAttributeRange(mods, CurrentLoadout.ChassisID);
+        foreach (var (attributeId, range) in SDBInterface.GetMonsterAttributeRange(_monsterTypeId))
+        {
+            mods[attributeId] = mods.GetValueOrDefault(attributeId) + range.Base;
+        }
+
+        var hpModifier = mods.GetValueOrDefault((ushort)ItemAttributeId.CreatureHPModifier, 1f);
+        var health = scaling.Health * hpModifier;
+        CurrentLoadout.ItemAttributes[(ushort)ItemAttributeId.Health] = health;
+        SetMaxHealth((int)Math.Round(health), true);
+
+        // Weapon damage scales per weapon by that weapon's own Creature Weapon Damage Modifier (1145).
+        ApplyMonsterWeaponDamage(scaling.Damage, LoadoutSlotType.Primary);
+        ApplyMonsterWeaponDamage(scaling.Damage, LoadoutSlotType.Secondary);
+    }
+
+    private void ApplyMonsterWeaponDamage(uint baseDamage, LoadoutSlotType slot)
+    {
+        var weaponId = CurrentLoadout.SlottedItems.GetValueOrDefault(slot);
+        if (weaponId == 0 || _weaponDetailsCache == null)
+        {
+            return;
+        }
+
+        var weaponMods = new Dictionary<ushort, float>();
+        MergeAttributeRange(weaponMods, weaponId);
+        var damageModifier = weaponMods.GetValueOrDefault((ushort)ItemAttributeId.CreatureWeaponDamageModifier, 1f);
+        var damage = baseDamage * damageModifier;
+
+        // Inject as the WeaponDamage attribute (954) so WeaponSim.ResolveWeaponDamage uses the scaled value.
+        for (byte mode = 0; mode <= 1; mode++)
+        {
+            var details = _weaponDetailsCache[(int)slot, mode];
+            if (details != null && !details.IsEmpty)
+            {
+                details.Attributes[(ushort)ItemAttributeId.WeaponDamage] = damage;
+            }
+        }
     }
 
     private void InitTinyObjectView()
@@ -1842,6 +2461,26 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return result;
     }
 
+    private ulong GetCurrentFrameXp() => Player?.Battleframes.Get(Player.Battleframes.CurrentChassisId)?.CurrentXp ?? 0;
+
+    private void UpdateLevelProps()
+    {
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.LevelProp = Level;
+            Character_BaseController.EffectiveLevelProp = EffectiveLevel;
+            Character_BaseController.EliteLevelProp = EliteLevel;
+        }
+
+        if (Character_EquipmentView != null)
+        {
+            Character_EquipmentView.LevelProp = Level;
+            Character_EquipmentView.EffectiveLevelProp = EffectiveLevel;
+            Character_EquipmentView.ScalingLevelProp = Level;
+            Character_EquipmentView.EliteLevelProp = EliteLevel;
+        }
+    }
+
     private void InitFields()
     {
         Position = new Vector3();
@@ -1854,6 +2493,10 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Alive = false;
         TimeSinceLastJump = 0;
         IsAirborne = false;
+
+        Level = DefaultLevel;
+        EffectiveLevel = DefaultLevel;
+        EliteLevel = DefaultEliteLevel;
 
         StaticInfo = new StaticInfoData();
         CharacterState = new CharacterStateData { State = CharacterStateData.CharacterStatus.Living, Time = Shard.CurrentTime };
@@ -1972,13 +2615,13 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             CarryableObjects_2Prop = null,
             CachedAssetsProp = null,
             RespawnTimesProp = null,
-            ProgressionXpProp = 0,
+            ProgressionXpProp = (uint)GetCurrentFrameXp(),
             PermanentStatusEffectsProp = new PermanentStatusEffectsData { Effects = [] },
-            XpBoostModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
-            XpPermanentModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
-            XpZoneModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
-            XpVipModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
-            XpEventModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
+            XpBoostModifierProp = new StatModifierData { ModifierId = 0, StatValue = 1.0f },
+            XpPermanentModifierProp = new StatModifierData { ModifierId = 0, StatValue = 1.0f },
+            XpZoneModifierProp = new StatModifierData { ModifierId = 0, StatValue = 1.0f },
+            XpVipModifierProp = new StatModifierData { ModifierId = 0, StatValue = 1.0f },
+            XpEventModifierProp = new StatModifierData { ModifierId = 0, StatValue = 1.0f },
             ResourceBoostModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
             ResourcePermanentModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
             ResourceZoneModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
@@ -1996,8 +2639,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             ReputationEventModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
             WalletProp = new WalletData { Beans = 999, Epoch = 1462889864 },
             LoyaltyProp = new LoyaltyData { Current = 0, Lifetime = 0, Tier = 0 },
-            LevelProp = HardcodedCharacterData.Level,
-            EffectiveLevelProp = HardcodedCharacterData.EffectiveLevel,
+            LevelProp = Level,
+            EffectiveLevelProp = EffectiveLevel,
             LevelResetCountProp = 0,
             OldestDeployablesProp = new OldestDeployablesField { Data = [] },
             PerkRespecsProp = 0,
@@ -2045,7 +2688,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             PvPRankPointsProp = 0,
             PvPTokensProp = 0,
             BountyPointsLastClaimedProp = 0,
-            EliteLevelProp = 1
+            EliteLevelProp = EliteLevel
         };
 
         Character_CombatController = new CombatController
@@ -2092,7 +2735,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             ProcessDelayProp = ProcessDelay,
             CharacterStateProp = CharacterState,
             HostilityInfoProp = HostilityInfo,
-            PersonalFactionStanceProp = null,
+            PersonalFactionStanceProp = PersonalFactionStance?.Data,
             CurrentHealthPctProp = 100,
             MaxHealthProp = MaxHealth,
             EmoteIDProp = Emote,
@@ -2141,12 +2784,13 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         {
             VisualOverridesProp = VisualOverrides,
             CurrentEquipmentProp = CurrentEquipment,
-            LevelProp = 1,
+            LevelProp = Level,
+            EffectiveLevelProp = EffectiveLevel,
             CurrentDurabilityPctProp = 100,
             CharacterStatsProp = CharacterStats,
-            ScalingLevelProp = 1,
+            ScalingLevelProp = Level, // PIN scales item stats off the character level
             PvPRankProp = 0,
-            EliteLevelProp = 0
+            EliteLevelProp = EliteLevel
         };
         Character_CombatView = new CombatView
         {
@@ -2224,27 +2868,257 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                                             ?.SetValue(Character_MissionAndMarkerController, data);
     }
 
+    private SelectedMonsterVisuals LoadMonsterVisuals(uint typeId)
+    {
+        var monsterInfo = SDBInterface.GetMonster(typeId);
+        var chassisWarpaint = SDBUtils.GetChassisWarpaint(monsterInfo.ChassisId, monsterInfo.FullbodyWarpaintPaletteId, monsterInfo.ArmorWarpaintPaletteId, monsterInfo.BodysuitWarpaintPaletteId, monsterInfo.GlowWarpaintPaletteId);
+
+        var warpaintPatternData = WarpaintPatternData.Parse([.. monsterInfo.WarpaintPatternData]);
+        var warpaintTatooData = WarpaintTatooData.Parse([.. monsterInfo.WarpaintTattooData]);
+
+        SelectedMonsterVisuals result = new()
+        {
+            Sex = monsterInfo.Gender,
+            VisualsGroupId = monsterInfo.VisualsGroupId,
+            BackpackId = monsterInfo.BackpackId,
+            ChassiWarpaint = chassisWarpaint,
+            ChassisWarpaintPatterns = warpaintPatternData,
+            ChassisWarpaintTatoos = warpaintTatooData,
+
+            HairColor = monsterInfo.HairColor,
+            FacialHairColor = monsterInfo.FacialHairColor,
+            LipColor = monsterInfo.LipColor,
+            NameLocalizationId = monsterInfo.LocalizedNameId,
+            EyeColor = monsterInfo.EyeColor,
+            HeadId = monsterInfo.HeadId,
+            HeadAcc1Id = monsterInfo.HeadAcc1Id,
+            HeadAcc2Id = monsterInfo.HeadAcc2Id,
+            VoiceSet = monsterInfo.VoiceSet,
+            ChassisId = monsterInfo.ChassisId,
+            SkinColor = monsterInfo.SkinColor,
+            OrnamentsMapGroupId1 = monsterInfo.OrnamentsMapGroupId_1,
+            OrnamentsMapGroupId2 = monsterInfo.OrnamentsMapGroupId_2,
+            OrnamentsMapGroupId3 = monsterInfo.OrnamentsMapGroupId_3,
+            OrnamentsMapGroupId4 = monsterInfo.OrnamentsMapGroupId_4,
+        };
+
+        if (monsterInfo.VisualOptionsId == 0)
+        {
+            return result;
+        }
+
+        var record = SDBInterface.GetMonsterVisualOptions(monsterInfo.VisualOptionsId);
+        var entries = SDBInterface.GetMonsterVisualOption(monsterInfo.VisualOptionsId);
+        var options = GroupOptionsByType(entries);
+        var rng = new Random(BitConverter.ToInt32(BitConverter.GetBytes(EntityId), 0));
+
+        char sex = monsterInfo.Gender == 'F' ? 'F' : 'M';
+
+        if (record.Female == 1 && sex != 'F' && rng.Next(2) == 1)
+        {
+            sex = 'F';
+        }
+        else if (record.Male == 1 && sex != 'M' && rng.Next(2) == 1)
+        {
+            sex = 'M';
+        }
+
+        result.Sex = sex;
+
+        if (options.TryGetValue(MonsterVisualOptionType.HairColor, out var hairColorOptions))
+        {
+            var index = rng.Next(hairColorOptions.Count);
+            result.HairColor = hairColorOptions[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.FacialHairColor, out var facialHairColorOptions))
+        {
+            var index = rng.Next(facialHairColorOptions.Count);
+            result.FacialHairColor = facialHairColorOptions[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.LipColor, out var lipColorOptions))
+        {
+            var index = rng.Next(lipColorOptions.Count);
+            result.LipColor = lipColorOptions[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.EyeColor, out var eyeColorOptions))
+        {
+            var index = rng.Next(eyeColorOptions.Count);
+            result.EyeColor = eyeColorOptions[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.SkinColor, out var skinColorOptions))
+        {
+            var index = rng.Next(skinColorOptions.Count);
+            result.SkinColor = skinColorOptions[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.NameLocalizationId, out var nameLocalizationIdOptions))
+        {
+            var index = rng.Next(nameLocalizationIdOptions.Count);
+            result.NameLocalizationId = nameLocalizationIdOptions[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.ChassisId, out var chassisIdOptions))
+        {
+            var index = rng.Next(chassisIdOptions.Count);
+            result.ChassisId = chassisIdOptions[index];
+            result.ChassiWarpaint = SDBUtils.GetChassisWarpaint(result.ChassisId, monsterInfo.FullbodyWarpaintPaletteId, monsterInfo.ArmorWarpaintPaletteId, monsterInfo.BodysuitWarpaintPaletteId, monsterInfo.GlowWarpaintPaletteId);
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.ChassiWarpaintPaletteId, out var chassisWarpaintPalleteIdOptions))
+        {
+            var index = rng.Next(chassisWarpaintPalleteIdOptions.Count);
+            var customWarpaint = chassisWarpaintPalleteIdOptions[index];
+            result.ChassiWarpaint = SDBUtils.GetChassisWarpaint(result.ChassisId, customWarpaint, monsterInfo.ArmorWarpaintPaletteId, monsterInfo.BodysuitWarpaintPaletteId, monsterInfo.GlowWarpaintPaletteId);
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.HeadId, out var headOptions))
+        {
+            var heads = headOptions.Select(id => SDBInterface.GetHead(id)).Where((head) => head.Sex == sex).ToList();
+            if (heads.Count > 0)
+            {
+                var index = rng.Next(heads.Count);
+                result.HeadId = heads[index].HeadId;
+
+                var validAccessories = SDBInterface.GetHeadHeadAccessories(result.HeadId);
+                if (result.HeadAcc1Id != 0 && !validAccessories.Contains(result.HeadAcc1Id))
+                {
+                    result.HeadAcc1Id = 0;
+                }
+
+                if (result.HeadAcc2Id != 0 && !validAccessories.Contains(result.HeadAcc2Id))
+                {
+                    result.HeadAcc2Id = 0;
+                }
+            }
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.HeadAcc1Id, out var headAcc1Options))
+        {
+            var validForHead = SDBInterface.GetHeadHeadAccessories(result.HeadId);
+            var optionsRows = headAcc1Options;
+            var zeros = optionsRows.Where(id => id == 0);
+            var filtered = optionsRows.Where(id => id != 0).Select(id => SDBInterface.GetHeadAccessory(id)).Where((ha) => ha.Sex == sex && validForHead.Contains(ha.HaId)).Select((ha) => ha.HaId);
+
+            var valid = zeros.Concat(filtered).ToList();
+            if (valid.Count > 0)
+            {
+                var index = rng.Next(valid.Count);
+                result.HeadAcc1Id = valid[index];
+            }
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.HeadAcc2Id, out var headAcc2Options))
+        {
+            var validForHead = SDBInterface.GetHeadHeadAccessories(result.HeadId);
+            var optionsRows = headAcc2Options;
+            var zeros = optionsRows.Where(id => id == 0);
+            var filtered = optionsRows.Where(id => id != 0).Select(id => SDBInterface.GetHeadAccessory(id)).Where((ha) => ha.Sex == sex && validForHead.Contains(ha.HaId)).Select((ha) => ha.HaId);
+
+            var valid = zeros.Concat(filtered).ToList();
+            if (valid.Count > 0)
+            {
+                var index = rng.Next(valid.Count);
+                result.HeadAcc2Id = valid[index];
+            }
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.OrnamentsMapGroupId_1, out var ornamentsGroup1Options))
+        {
+            var index = rng.Next(ornamentsGroup1Options.Count);
+            result.OrnamentsMapGroupId1 = ornamentsGroup1Options[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.OrnamentsMapGroupId_2, out var ornamentsGroup2Options))
+        {
+            var index = rng.Next(ornamentsGroup2Options.Count);
+            result.OrnamentsMapGroupId2 = ornamentsGroup2Options[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.OrnamentsMapGroupId_3, out var ornamentsGroup3Options))
+        {
+            var index = rng.Next(ornamentsGroup3Options.Count);
+            result.OrnamentsMapGroupId3 = ornamentsGroup3Options[index];
+        }
+
+        if (options.TryGetValue(MonsterVisualOptionType.OrnamentsMapGroupId_4, out var ornamentsGroup4Options))
+        {
+            var index = rng.Next(ornamentsGroup4Options.Count);
+            result.OrnamentsMapGroupId4 = ornamentsGroup4Options[index];
+        }
+
+        Logger.Debug("SelectedMonsterVisuals {result}", result);
+
+        return result;
+    }
+
+    private void ApplyLoadoutVisuals(IReadOnlyList<LoadoutConfig_Visual> visuals)
+    {
+        CurrentLoadout.ApplyVisuals(visuals);
+
+        foreach (var visual in visuals)
+        {
+            switch (visual.VisualType)
+            {
+                case LoadoutVisualType.Glider:
+                    CurrentLoadout.GliderID = visual.ItemSdbId;
+                    SetStaticInfo(StaticInfo with { LoadoutGlider = visual.ItemSdbId });
+                    break;
+
+                case LoadoutVisualType.Vehicle:
+                    CurrentLoadout.VehicleID = visual.ItemSdbId;
+                    SetStaticInfo(StaticInfo with { LoadoutVehicle = visual.ItemSdbId });
+                    break;
+            }
+        }
+    }
+
+    public record struct SelectedMonsterVisuals
+    {
+        public char Sex;
+        public uint VisualsGroupId;
+        public uint BackpackId;
+        public ChassisWarpaintResult ChassiWarpaint;
+        public WarpaintPatternData ChassisWarpaintPatterns;
+        public WarpaintTatooData ChassisWarpaintTatoos;
+
+        public uint HairColor;
+        public uint FacialHairColor;
+        public uint LipColor;
+        public uint NameLocalizationId;
+        public uint EyeColor;
+        public uint HeadId;
+        public uint HeadAcc1Id;
+        public uint HeadAcc2Id;
+        public uint VoiceSet;
+        public uint ChassisId;
+        public uint SkinColor;
+        public uint OrnamentsMapGroupId1;
+        public uint OrnamentsMapGroupId2;
+        public uint OrnamentsMapGroupId3;
+        public uint OrnamentsMapGroupId4;
+    }
+
     public class ActiveWeaponDetails
     {
         public static readonly ActiveWeaponDetails Empty = new()
         {
-            Weapon = null,
             WeaponId = 0,
-            SpreadProfile = default,
-            RateOfFire = 0,
+            Weapon = null,
             Attributes = [],
+            WeaponProfile = default,
         };
 
-        public WeaponTemplateResult Weapon;
         public uint WeaponId;
-        public WeaponSpreadProfile SpreadProfile;
-        public float RateOfFire;
+        public WeaponTemplateResult Weapon;
         public Dictionary<ushort, float> Attributes = [];
+        public WeaponProfile WeaponProfile;
 
         public bool IsEmpty => Weapon == null;
-
         public string DisplayName => Weapon?.DebugName ?? "(not a weapon)";
-
-        public float Spread => SpreadProfile.OtherSpreadPct;
+        public float Spread => WeaponProfile.OtherSpreadPct;
     }
 }

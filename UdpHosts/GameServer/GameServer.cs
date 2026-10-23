@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FauFau.Formats;
-using GameServer.Controllers;
 using GameServer.GRPC;
+using GameServer.Protocol;
 using GameServer.StaticDB;
 using GameServer.Test;
 using Serilog;
@@ -17,6 +17,7 @@ namespace GameServer;
 internal class GameServer : PacketServer, IShardManager
 {
     private const double _gameTickRate = 1.0 / 60.0;
+    private const int _socketIdSize = 4;
 
     private readonly ConcurrentDictionary<uint, INetworkPlayer> _clientMap;
     private readonly ConcurrentDictionary<uint, IShard> _shardsByZone;
@@ -92,7 +93,7 @@ internal class GameServer : PacketServer, IShardManager
     protected override void Startup(CancellationToken ct)
     {
         DataUtils.Init();
-        Factory.Init();
+        LoginService.Init(this);
 
         _shardCancellation = ct;
         GetOrCreateShard(_settings.ZoneId);
@@ -119,8 +120,14 @@ internal class GameServer : PacketServer, IShardManager
             Logger.Verbose(">  {PacketData}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
         }
 
+        if (packet.PacketData.Length < _socketIdSize)
+        {
+            Logger.Warning("[GAME] Ignoring runt datagram of {PacketLength} bytes from {RemoteEndpoint}.", packet.PacketData.Length, packet.RemoteEndpoint);
+            return;
+        }
+
         var client = RetrieveClient(packet);
-        client.HandlePacket(packet.PacketData[4..], packet);
+        client.HandlePacket(packet.PacketData[_socketIdSize..], packet);
     }
 
     /// <summary>
@@ -151,28 +158,28 @@ internal class GameServer : PacketServer, IShardManager
 
     private INetworkClient RetrieveClient(Packet packet)
     {
-        var socketId = Utils.SimpleFixEndianness(packet.Read<uint>());
-        INetworkClient client;
+        var socketId = BinaryPrimitives.ReadUInt32BigEndian(packet.PacketData.Span);
 
-        if (!_clientMap.ContainsKey(socketId))
+        if (_clientMap.TryGetValue(socketId, out var knownClient))
         {
-            var newClient = new NetworkPlayer(packet.RemoteEndpoint, socketId, this, Logger);
-
-            if (!_isReady)
-            {
-                var rejected = new NetworkClient(packet.RemoteEndpoint, socketId, Logger);
-                rejected.NetClientStatus = ClientStatus.Aborted;
-                Logger.Information("Rejected connection from {Endpoint} — server not ready.", packet.RemoteEndpoint);
-                return rejected;
-            }
-
-            // New connections join the default shard, and move to the shard of their character's zone when they log in
-            client = _clientMap.AddOrUpdate(socketId, newClient, (_, nc) => nc);
-            DefaultShard.MigrateIn((INetworkPlayer)client);
+            return knownClient;
         }
-        else
+
+        var newClient = new NetworkPlayer(packet.RemoteEndpoint, socketId, Logger);
+
+        if (!_isReady)
         {
-            client = _clientMap[socketId];
+            var rejected = new NetworkClient(packet.RemoteEndpoint, socketId, Logger);
+            rejected.NetClientStatus = ClientStatus.Aborted;
+            Logger.Information("Rejected connection from {Endpoint} — server not ready.", packet.RemoteEndpoint);
+            return rejected;
+        }
+
+        // New connections join the default shard, and move to the shard of their character's zone when they log in
+        var client = _clientMap.GetOrAdd(socketId, newClient);
+        if (ReferenceEquals(client, newClient))
+        {
+            DefaultShard.MigrateIn(client);
         }
 
         return client;
@@ -185,11 +192,26 @@ internal class GameServer : PacketServer, IShardManager
             try
             {
                 await GRPCService.ListenAsync(_clientMap, ct);
+
+                // RIN tears the stream down when a command hits a database error, which ends the read without throwing
+                Logger.ForContext(typeof(GRPCService)).Warning("GRPC stream closed, reconnecting in 30 seconds");
             }
-            catch (Exception)
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
-                Logger.ForContext(typeof(GRPCService)).Error("Failed to establish GRPC stream, retrying in 30 seconds");
+                break;
+            }
+            catch (Exception e)
+            {
+                Logger.ForContext(typeof(GRPCService)).Error(e, "Failed to establish GRPC stream, retrying in 30 seconds");
+            }
+
+            try
+            {
                 await Task.Delay(TimeSpan.FromSeconds(30), ct);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
             }
         }
     }

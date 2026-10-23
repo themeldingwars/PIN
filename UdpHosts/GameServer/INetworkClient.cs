@@ -3,19 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
+using GameServer.Protocol;
 using Shared.Udp;
 
 namespace GameServer;
-
-public enum ClientStatus
-{
-    Unknown = 0,
-    Connecting = 1,
-    Connected,
-    Idle,
-    Disconnecting,
-    Aborted
-}
 
 public interface INetworkClient
 {
@@ -26,6 +17,11 @@ public interface INetworkClient
     ImmutableDictionary<ChannelType, Channel> NetChannels { get; }
     IShard AssignedShard { get; }
     ConcurrentQueue<Memory<byte>> SequencedMessages { get; }
+
+    /// <summary>
+    ///     The player this connection belongs to
+    /// </summary>
+    IPlayer Player { get; }
 
     void Init(IPlayer player, IShard shard, IPacketSender sender);
     void AssignShard(IShard shard);

@@ -8,7 +8,7 @@ public enum ItemFlags : uint
     IsTradable = 0x01,
     IsMailable = 0x02,
     Hidden = 0x04,
-    Unk_0x08 = 0x08, // ?
+    IsStackable = 0x08, // Only when Resource is not set, and Unlimited is set
     Resource = 0x10,
     Nopersist = 0x20,
     Cached = 0x40,
@@ -17,7 +17,7 @@ public enum ItemFlags : uint
     Unk_0x200 = 0x200, // Crystite (sdb_id 10) is the only item with this set
     Unk_0x400 = 0x400, // maybe developer only or something
     Unk_0x800 = 0x800, // maybe deprecated / unobtainable or broken
-    Unk_0x1000 = 0x1000, // maybe "is_stackable"
+    Unk_0x1000 = 0x1000, // Set on 98% of weapons/modules/blueprints, 0% of consumables/resources/crafting components.
     Unlimited = 0x2000,
     IsSalvageable = 0x4000,
     IsFancyNamed = 0x8000,

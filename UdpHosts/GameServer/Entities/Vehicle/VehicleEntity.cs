@@ -208,6 +208,11 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
     public uint DespawnAbility { get; set; }
     public uint DeathAbility { get; set; }
 
+    public override string ToString()
+    {
+        return $"Vehicle {VehicleId} ({EntityId:X8})";
+    }
+
     public void Load(VehicleInfoResult vehicleInfo)
     {
         VehicleId = vehicleInfo.VehicleId;
@@ -335,7 +340,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
         Position = newPosition;
         RefreshCurrentPose();
     }
-    
+
     public void SetOrientation(Quaternion newOrientation)
     {
         Orientation = newOrientation;
@@ -379,7 +384,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        Logger.Debug("Vehicle.SetStatusEffect Index {index}, Time {time}, Id {id}", index, time, data.Id);
+        Logger.Debug("{Entity} SetStatusEffect Index {index}, Time {time}, Id {id}", this, index, time, data.Id);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -399,7 +404,7 @@ public sealed class VehicleEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        Logger.Debug("Vehicle.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}", index, time, debugEffectId);
+        Logger.Debug("{Entity} ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}", this, index, time, debugEffectId);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);

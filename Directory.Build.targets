@@ -1,7 +1,8 @@
 <Project>
     <ItemGroup Condition="'$(MSBuildProjectName)' != 'AeroMessages' And
-                          '$(MSBuildProjectName)' != 'BepuPhysics' And
-                          '$(MSBuildProjectName)' != 'BepuUtilities'">
+                           '$(MSBuildProjectName)' != 'BepuPhysics' And
+                           '$(MSBuildProjectName)' != 'BepuUtilities' And
+                           '$(MSBuildProjectName)' != 'PhysicsDebugRenderer'">
         <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.556">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

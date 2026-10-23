@@ -15,7 +15,14 @@ using Records.vcs;
 
 public class SDBInterface
 {
+    // Handed back for ids that have no rows, so callers never have to null check
+    private static readonly Dictionary<ushort, AttributeRange> _noAttributeRange = new();
+    private static readonly Dictionary<ushort, ItemModuleScalars> _noItemModuleScalars = new();
+    private static readonly Dictionary<ushort, ItemCharacterScalars> _noItemCharacterScalars = new();
+    private static readonly Dictionary<ushort, MonsterAttributeRange> _noMonsterAttributeRange = new();
+
     // dbcharacter
+    private static Dictionary<uint, List<AbilityGroupModule>> _abilityGroupModule;
     private static Dictionary<uint, CharCreateLoadout> _charCreateLoadout;
     private static Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> _charCreateLoadoutSlots;
     private static Dictionary<uint, Deployable> _deployable;
@@ -24,14 +31,25 @@ public class SDBInterface
     private static Dictionary<uint, Faction> _faction;
     private static List<FactionRelations> _factionRelations;
     private static Dictionary<uint, List<FactionReputations>> _factionReputations;
+    private static Dictionary<uint, List<HitFeedbackEntry>> _hitFeedbackEntry;
     private static Dictionary<uint, Monster> _monster;
+    private static Dictionary<byte, MonsterScaling> _monsterScaling;
+    private static Dictionary<uint, Dictionary<ushort, MonsterAttributeRange>> _monsterAttributeRange;
+    private static Dictionary<uint, XPRewardType> _xpRewardType;
     private static Dictionary<uint, Turret> _turret;
+    private static Dictionary<uint, List<TurretWeapon>> _turretWeapon;
     private static Dictionary<uint, PoseType> _poseType;
     private static Dictionary<uint, CharInfo> _charInfo;
     private static Dictionary<byte, DamageType> _damageType;
     private static Dictionary<byte, DamageResponse> _damageResponse;
     private static Dictionary<uint, DamageResponseDamageType> _damageResponseDamageType;
+    private static Dictionary<KeyValuePair<byte, byte>, DamageResponseDamageType> _damageResponseDamageTypeByPair;
     private static Dictionary<uint, TinyObject> _tinyObject;
+    private static Dictionary<uint, MonsterVisualOptions> _monsterVisualOptions;
+    private static Dictionary<uint, List<MonsterVisualOption>> _monsterVisualOption;
+    private static Dictionary<uint, Head> _heads;
+    private static Dictionary<uint, HeadAccessory> _headAccessories;
+    private static Dictionary<uint, List<uint>> _headHeadAccessories;
 
     // dbencounterdata
     private static Dictionary<uint, MapMarkerInfo> _mapMarkerInfo;
@@ -47,9 +65,9 @@ public class SDBInterface
     // dbitems
     private static Dictionary<uint, AttributeCategory> _attributeCategory;
     private static Dictionary<uint, AttributeDefinition> _attributeDefinition;
-    private static Dictionary<KeyValuePair<uint, ushort>, AttributeRange> _attributeRange;
-    private static Dictionary<KeyValuePair<uint, ushort>, ItemModuleScalars> _itemModuleScalars;
-    private static Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> _itemCharacterScalars;
+    private static Dictionary<uint, Dictionary<ushort, AttributeRange>> _attributeRange;
+    private static Dictionary<uint, Dictionary<ushort, ItemModuleScalars>> _itemModuleScalars;
+    private static Dictionary<uint, Dictionary<ushort, ItemCharacterScalars>> _itemCharacterScalars;
     private static Dictionary<uint, RootItem> _rootItem;
     private static Dictionary<uint, AbilityModule> _abilityModule;
     private static Dictionary<uint, Battleframe> _battleframe;
@@ -62,12 +80,21 @@ public class SDBInterface
     private static Dictionary<uint, WeaponUnderbarrel> _weaponUnderbarrel;
     private static Dictionary<uint, Ammo> _ammo;
     private static Dictionary<uint, LevelBand> _levelBand;
+    private static Dictionary<uint, LootTable> _lootTable;
+    private static Dictionary<uint, List<LootTableItemDist>> _lootTableItemDist;
+    private static Dictionary<uint, List<LootTableSubTableDist>> _lootTableSubTableDist;
+    private static Dictionary<uint, List<LootTableDistRequirements>> _lootTableDistRequirements;
     private static Dictionary<uint, ResourceNodeBeacon> _resourceNodeBeacon;
     private static Dictionary<KeyValuePair<uint, uint>, LevelCategoryScalars> _levelCategoryScalars;
+    private static Dictionary<KeyValuePair<uint, uint>, LevelItemAttributes> _levelItemAttributes;
     private static Dictionary<uint, FrameProgressionLevel> _frameProgressionLevel;
     private static Dictionary<uint, Blueprints> _blueprints;
     private static Dictionary<uint, List<Blueprint_Items>> _blueprintItems;
     private static Dictionary<uint, List<BattleframeVisuals>> _battleframeVisuals;
+    private static Dictionary<uint, List<MonsterSlot>> _monsterSlot;
+    private static Dictionary<uint, List<BattleframeSlot>> _battleframeSlot;
+    private static Dictionary<uint, List<BackpackSlot>> _backpackSlot;
+    private static Dictionary<uint, LoadoutSlot> _loadoutSlot;
 
     // dbzonemetadata
     private static Dictionary<uint, ZoneRecord> _zoneRecord;
@@ -276,6 +303,7 @@ public class SDBInterface
         var loader = new StaticDBLoader(instance);
 
         // dbcharacter
+        _abilityGroupModule = loader.LoadAbilityGroupModule();
         _charCreateLoadout = loader.LoadCharCreateLoadout();
         _charCreateLoadoutSlots = loader.LoadCharCreateLoadoutSlots();
         _deployable = loader.LoadDeployable();
@@ -284,14 +312,31 @@ public class SDBInterface
         _faction = loader.LoadFaction();
         _factionRelations = loader.LoadFactionRelations();
         _factionReputations = loader.LoadFactionReputations();
+        _hitFeedbackEntry = loader.LoadHitFeedbackEntry();
         _monster = loader.LoadMonster();
+        _monsterScaling = loader.LoadMonsterScaling();
+        _monsterAttributeRange = loader.LoadMonsterAttributeRange();
+        _xpRewardType = loader.LoadXPRewardType();
         _turret = loader.LoadTurret();
+        _turretWeapon = loader.LoadTurretWeapon();
         _poseType = loader.LoadPoseType();
         _charInfo = loader.LoadCharInfo();
         _damageType = loader.LoadDamageType();
         _damageResponse = loader.LoadDamageResponse();
         _damageResponseDamageType = loader.LoadDamageResponseDamageType();
+
+        // The combat path asks for the multiplier of a damage response and damage type pair, so index the
+        // rows by that pair instead of scanning the table on every hit. Duplicated pairs keep their first
+        // row, matching the first-match semantics a table scan would have produced.
+        _damageResponseDamageTypeByPair = _damageResponseDamageType.Values
+        .GroupBy(row => new KeyValuePair<byte, byte>(row.Damageresponse, row.Damagetype))
+        .ToDictionary(group => group.Key, group => group.First());
         _tinyObject = loader.LoadTinyObject();
+        _monsterVisualOptions = loader.LoadMonsterVisualOptions();
+        _monsterVisualOption = loader.LoadMonsterVisualOption();
+        _heads = loader.LoadHeads();
+        _headAccessories = loader.LoadHeadAccessories();
+        _headHeadAccessories = loader.LoadHeadHeadAccessories();
 
         // dbencounterdata
         _mapMarkerInfo = loader.LoadMapMarkerInfo();
@@ -322,12 +367,21 @@ public class SDBInterface
         _weaponUnderbarrel = loader.LoadWeaponUnderbarrel();
         _ammo = loader.LoadAmmo();
         _levelBand = loader.LoadLevelBand();
+        _lootTable = loader.LoadLootTable();
+        _lootTableItemDist = loader.LoadLootTableItemDist();
+        _lootTableSubTableDist = loader.LoadLootTableSubTableDist();
+        _lootTableDistRequirements = loader.LoadLootTableDistRequirements();
         _resourceNodeBeacon = loader.LoadResourceNodeBeacon();
         _levelCategoryScalars = loader.LoadLevelCategoryScalars();
+        _levelItemAttributes = loader.LoadLevelItemAttributes();
         _frameProgressionLevel = loader.LoadFrameProgressionLevel();
         _blueprints = loader.LoadBlueprints();
         _blueprintItems = loader.LoadBlueprintItems();
         _battleframeVisuals = loader.LoadBattleframeVisuals();
+        _monsterSlot = loader.LoadMonsterSlot();
+        _battleframeSlot = loader.LoadBattleframeSlot();
+        _backpackSlot = loader.LoadBackpackSlot();
+        _loadoutSlot = loader.LoadLoadoutSlot();
 
         // dbzonemetadata
         _zoneRecord = loader.LoadZoneRecord();
@@ -540,29 +594,11 @@ public class SDBInterface
 
     public static AttributeCategory GetAttributeCategory(uint id) => _attributeCategory.GetValueOrDefault(id);
     public static AttributeDefinition GetAttributeDefinition(uint id) => _attributeDefinition.GetValueOrDefault(id);
-    public static Dictionary<ushort, AttributeRange> GetItemAttributeRange(uint itemId)
-    {
-        return _attributeRange
-        .Where(pair => pair.Key.Key.Equals(itemId))
-        .Select(pair => new KeyValuePair<ushort, AttributeRange>(pair.Key.Value, pair.Value))
-        .ToDictionary();
-    }
+    public static IReadOnlyDictionary<ushort, AttributeRange> GetItemAttributeRange(uint itemId) => _attributeRange.GetValueOrDefault(itemId) ?? _noAttributeRange;
 
-    public static Dictionary<ushort, (float, float)> GetItemModuleScalars(uint itemId)
-    {
-        return _itemModuleScalars
-        .Where(pair => pair.Key.Key.Equals(itemId))
-        .Select(pair => new KeyValuePair<ushort, (float value, float perLevel)>(pair.Value.AttributeCategory, (pair.Value.Value, pair.Value.PerLevel)))
-        .ToDictionary();
-    }
+    public static IReadOnlyDictionary<ushort, ItemModuleScalars> GetItemModuleScalars(uint itemId) => _itemModuleScalars.GetValueOrDefault(itemId) ?? _noItemModuleScalars;
 
-    public static Dictionary<ushort, (float, float)> GetItemCharacterScalars(uint itemId)
-    {
-        return _itemCharacterScalars
-        .Where(pair => pair.Key.Key.Equals(itemId))
-        .Select(pair => new KeyValuePair<ushort, (float value, float perLevel)>(pair.Value.AttributeCategory, (pair.Value.Value, pair.Value.PerLevel)))
-        .ToDictionary();
-    }
+    public static IReadOnlyDictionary<ushort, ItemCharacterScalars> GetItemCharacterScalars(uint itemId) => _itemCharacterScalars.GetValueOrDefault(itemId) ?? _noItemCharacterScalars;
 
     public static Dictionary<byte, CharCreateLoadoutSlots> GetCharCreateLoadoutSlots(uint id) => _charCreateLoadoutSlots.GetValueOrDefault(id);
     public static Deployable GetDeployable(uint id) => _deployable.GetValueOrDefault(id);
@@ -571,18 +607,29 @@ public class SDBInterface
     public static DamageType GetDamageType(byte id) => _damageType.GetValueOrDefault(id);
     public static DamageResponse GetDamageResponse(byte id) => _damageResponse.GetValueOrDefault(id);
     public static DamageResponseDamageType GetDamageResponseDamageType(uint id) => _damageResponseDamageType.GetValueOrDefault(id);
-    public static float? GetDamageResponseDamageType(byte damageResponse, byte damageType) => _damageResponseDamageType?.Values.FirstOrDefault(row =>
-            row.Damageresponse == damageResponse && row.Damagetype == damageType)?.Multiplier;
+    public static float? GetDamageResponseDamageType(byte damageResponse, byte damageType) => _damageResponseDamageTypeByPair.GetValueOrDefault(new KeyValuePair<byte, byte>(damageResponse, damageType))?.Multiplier;
     public static TinyObject GetTinyObject(uint id) => _tinyObject.GetValueOrDefault(id);
     public static Faction GetFaction(uint id) => _faction.GetValueOrDefault(id);
     public static List<Faction> GetFactions() => [.. _faction.Select(pair => pair.Value)];
     public static List<FactionRelations> GetFactionRelations() => _factionRelations;
     public static List<FactionReputations> GetFactionReputations(uint id) => _factionReputations.GetValueOrDefault(id);
+    public static List<HitFeedbackEntry> GetHitFeedbackEntries(uint hitfeedbackId) => _hitFeedbackEntry.GetValueOrDefault(hitfeedbackId);
 
     public static Monster GetMonster(uint id) => _monster.GetValueOrDefault(id);
+    public static MonsterScaling GetMonsterScaling(byte level) => _monsterScaling.GetValueOrDefault(level);
+    public static XPRewardType GetXPRewardType(uint id) => _xpRewardType.GetValueOrDefault(id);
+    public static IReadOnlyDictionary<ushort, MonsterAttributeRange> GetMonsterAttributeRange(uint monsterId) => _monsterAttributeRange.GetValueOrDefault(monsterId) ?? _noMonsterAttributeRange;
+
     public static Turret GetTurret(uint id) => _turret.GetValueOrDefault(id);
+    public static List<TurretWeapon> GetTurretWeapons(uint turretTypeId) => _turretWeapon.GetValueOrDefault(turretTypeId);
     public static PoseType GetPoseType(uint id) => _poseType.GetValueOrDefault(id);
     public static CharInfo GetCharInfo(uint id) => _charInfo.GetValueOrDefault(id);
+
+    public static MonsterVisualOptions GetMonsterVisualOptions(uint id) => _monsterVisualOptions.GetValueOrDefault(id);
+    public static List<MonsterVisualOption> GetMonsterVisualOption(uint id) => _monsterVisualOption.GetValueOrDefault(id);
+    public static Head GetHead(uint id) => _heads.GetValueOrDefault(id);
+    public static HeadAccessory GetHeadAccessory(uint id) => _headAccessories.GetValueOrDefault(id);
+    public static List<uint> GetHeadHeadAccessories(uint id) => _headHeadAccessories.GetValueOrDefault(id);
 
     // dbencounterdata
     public static MapMarkerInfo GetMapMarkerInfo(uint id) => _mapMarkerInfo.GetValueOrDefault(id);
@@ -608,12 +655,35 @@ public class SDBInterface
     public static WeaponUnderbarrel GetWeaponUnderbarrel(uint id) => _weaponUnderbarrel.GetValueOrDefault(id);
     public static Ammo GetAmmo(uint id) => _ammo.GetValueOrDefault(id);
     public static LevelBand GetLevelBand(uint id) => _levelBand.GetValueOrDefault(id);
+    public static LootTable GetLootTable(uint id) => _lootTable.GetValueOrDefault(id);
+    public static List<LootTableItemDist> GetLootTableItemDists(uint lootTableId) => _lootTableItemDist.GetValueOrDefault(lootTableId) ?? [];
+    public static List<LootTableSubTableDist> GetLootTableSubTableDists(uint lootTableId) => _lootTableSubTableDist.GetValueOrDefault(lootTableId) ?? [];
+    public static List<LootTableDistRequirements> GetLootTableDistRequirements(uint distId) => _lootTableDistRequirements.GetValueOrDefault(distId) ?? [];
     public static ResourceNodeBeacon GetResourceNodeBeacon(uint id) => _resourceNodeBeacon.GetValueOrDefault(id);
     public static LevelCategoryScalars GetLevelCategoryScalar(uint attributeCategory, uint level) => _levelCategoryScalars.GetValueOrDefault(new KeyValuePair<uint, uint>(attributeCategory, level));
+    public static LevelItemAttributes GetLevelItemAttribute(uint attributeId, uint level) => _levelItemAttributes.GetValueOrDefault(new KeyValuePair<uint, uint>(attributeId, level));
     public static FrameProgressionLevel GetFrameProgressionLevel(uint level) => _frameProgressionLevel.GetValueOrDefault(level);
     public static Blueprints GetBlueprint(uint id) => _blueprints.GetValueOrDefault(id);
     public static List<Blueprint_Items> GetBlueprintItems(uint blueprintId) => _blueprintItems.GetValueOrDefault(blueprintId);
     public static List<BattleframeVisuals> GetBattleframeVisuals(uint id) => _battleframeVisuals.GetValueOrDefault(id);
+    public static List<MonsterSlot> GetMonsterSlots(uint monsterId) => _monsterSlot.GetValueOrDefault(monsterId);
+    public static List<BattleframeSlot> GetBattleframeSlots(uint battleframeId) => _battleframeSlot.GetValueOrDefault(battleframeId);
+    public static List<BackpackSlot> GetBackpackSlots(uint backpackId) => _backpackSlot.GetValueOrDefault(backpackId);
+    public static LoadoutSlot GetLoadoutSlot(uint slotId) => _loadoutSlot.GetValueOrDefault(slotId);
+
+    public static List<uint> GetDefaultMonsterAbilities(uint monsterId) =>
+        GetMonsterSlots(monsterId)?.Select(slot => slot.DefaultAbility).Where(abilityId => abilityId != 0).ToList() ?? [];
+
+    public static List<uint> GetDefaultBattleframeAbilities(uint battleframeId) =>
+        GetBattleframeSlots(battleframeId)?.Select(slot => slot.DefaultAbility).Where(abilityId => abilityId != 0).ToList() ?? [];
+
+    public static List<uint> GetDefaultBackpackAbilities(uint backpackId) =>
+        GetBackpackSlots(backpackId)?.Select(slot => slot.DefaultAbility).Where(abilityId => abilityId != 0).ToList() ?? [];
+
+    public static List<AbilityGroupModule> GetAbilityGroupModules(uint groupId) => _abilityGroupModule.GetValueOrDefault(groupId);
+
+    public static List<uint> GetDefaultCoreAbilityGroupAbilities(uint coreAbilityGroupId) =>
+        GetAbilityGroupModules(coreAbilityGroupId)?.Select(entry => entry.Abilityid).Where(abilityId => abilityId != 0).ToList() ?? [];
 
     // dbzonemetadata
     public static ZoneRecord GetZoneRecord(uint id) => _zoneRecord.GetValueOrDefault(id);

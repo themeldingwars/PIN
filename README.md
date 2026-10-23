@@ -44,16 +44,14 @@ PlayIntroMovie = false
 - Loading into any zone
 - Basic character movement, including jetpacks and gliders
 - Switch between battleframes with preconfigured loadouts
-- Customize character appearance in NewYou (RIN.WebAPI)
+- Customize character appearance in NewYou and Garage
 - Call down vehicles and some deployables
 
 ### Limitations
 
-- There is no combat, projectile or damage simulation
 - Most of the UI doesn't work properly
 - Most abilities are not fully working
 - Vehicles only have physics if a player is driving it (client-side)
-- No AI
 - No Encounters
 - No PvP
 
@@ -76,7 +74,7 @@ Calldown works for development as well, it builds and runs PIN and RIN.WebAPI fr
 ### Web API
 
 The web tier lives in [RIN.WebAPI](https://github.com/themeldingwars/RIN.WebAPI), PIN doesn't serve any HTTP endpoints for the client.
-The GameServer fetches the character data from RIN.InternalAPI over gRPC (`GrpcChannelAddress`, `http://localhost:5201` by default). If it can't be reached, the GameServer falls back to hardcoded character data.
+The GameServer validates logins through RIN.InternalAPI over gRPC (`GrpcChannelAddress`, `http://localhost:5201` by default). If it can't be reached, or if character data is missing, the login is rejected. Set `AllowHardcodedCharacterData` to `true` to let the GameServer fall back to hardcoded inventory and battleframe progression instead.
 
 | Host             | Port              |
 |------------------|-------------------|

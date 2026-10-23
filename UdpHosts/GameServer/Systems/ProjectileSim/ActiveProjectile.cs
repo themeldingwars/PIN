@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using GameServer.Enums;
 using GameServer.StaticDB.Records.dbitems;
@@ -46,4 +47,7 @@ public struct ActiveProjectile
 
     public bool IsDrunk;
     public bool IsAbilityProjectile;
+
+    public uint NextPeriodAbilityTime;
+    public Guid? SourceExecutionId;
 }

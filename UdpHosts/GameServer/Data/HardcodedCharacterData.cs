@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AeroMessages.GSS.Character;
 using AeroMessages.GSS.Character.Event;
 using GameServer.StaticDB;
 using GameServer.StaticDB.Records.dbcharacter;
@@ -13,7 +14,7 @@ public static class HardcodedCharacterData
     public static ulong ArmyGUID = 1u;
     public static int SelectedLoadout = 184538131;
     public static byte Level = 45;
-    public static byte EffectiveLevel = 45;
+    public static byte EliteLevel = 1;
     public static int MaxHealth = 19192;
     public static int GeneratedLoadoutCounter = 20001;
     public static HashSet<uint> HostileFactionIds = [2, 3, 5, 6, 7, 8, 17, 22, 42, 43, 45, 46, 47, 48];
@@ -989,4 +990,5 @@ public class LoadoutReferenceData
     public uint ChassisId;
     public Dictionary<LoadoutSlotType, uint> SlottedItemsPvE = [];
     public Dictionary<LoadoutSlotType, uint> SlottedItemsPvP = [];
+    public List<LoadoutConfig_Visual> Visuals = [];
 }

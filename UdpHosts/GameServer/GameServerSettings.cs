@@ -78,6 +78,13 @@ public class GameServerSettings
     public string GrpcChannelAddress { get; set; } = "http://localhost:5201";
 
     /// <summary>
+    ///    Lets a login fall back to the hardcoded inventory and battleframe progression when RIN has nothing
+    ///    for the character or cannot be reached. Off by default: a character whose persisted data cannot be
+    ///    retrieved is rejected instead of being logged in with placeholder gear and levels.
+    /// </summary>
+    public bool AllowHardcodedCharacterData { get; set; }
+
+    /// <summary>
     ///    File path to "clientdb.sd2" located in the "db" folder of the Firefall installation
     /// </summary>
     public string StaticDBPath { get; set; } = @"C:\Program Files\Steam\steamapps\common\Firefall\system\db\clientdb.sd2";
@@ -126,6 +133,43 @@ public class GameServerSettings
     ///    Batch multiple outgoing game messages into a single packet (up to the MTU budget).
     /// </summary>
     public bool BatchOutgoingPackets { get; set; } = true;
+
+    /// <summary>
+    ///    NPCs steer around each other instead of pathing through one another.
+    /// </summary>
+    public bool CrowdNavigation { get; set; } = true;
+
+    /// <summary>
+    ///    How strongly crowd agents push apart from neighbours that are not on a collision course.
+    /// </summary>
+    public float CrowdSeparationWeight { get; set; } = 0f;
+
+    /// <summary>
+    ///    Largest per-tick positional correction (world units) copied from the crowd's de-overlap resolution onto
+    ///    the physics body.
+    /// </summary>
+    public float CrowdSeparationNudge { get; set; }
+
+    /// <summary>
+    ///    How far an NPC may stand from the walkable navmesh and still be driven by the crowd.
+    /// </summary>
+    public float CrowdMaxMeshGap { get; set; } = 5f;
+
+    /// <summary>
+    ///    Detailed per-step crowd diagnostics: the periodic "Crowd step" cadence line and the per-NPC "steer"
+    ///    trace. Off by default: both fire on the movement cadence and flood the log on a busy zone.
+    /// </summary>
+    public bool CrowdDebugLogging { get; set; }
+
+    /// <summary>
+    ///    Enable the in-process physics debug renderer.
+    /// </summary>
+    public bool EnablePhysicsDebugRenderer { get; set; }
+
+    /// <summary>
+    ///    Frame rate cap for the physics debug renderer window.
+    /// </summary>
+    public int PhysicsDebugRendererFrameRate { get; set; } = 60;
 
     /// <summary>
     ///     Log settings that only apply to a single sink

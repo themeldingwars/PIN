@@ -20,6 +20,7 @@ using GameServer.Systems.Aptitude.Commands.Requirement;
 using GameServer.Systems.Aptitude.Commands.Self;
 using GameServer.Systems.Aptitude.Commands.Target;
 using GameServer.Systems.Aptitude.Commands.TinyObject;
+using GameServer.Systems.Aptitude.Commands.Update;
 using Serilog;
 
 namespace GameServer.Systems.Aptitude;
@@ -114,10 +115,10 @@ public class Factory
                 return new ImpactApplyEffectCommand(SDBInterface.GetImpactApplyEffectCommandDef(commandId));
             case CommandType.InstantActivation:
                 return new InstantActivationCommand(SDBInterface.GetInstantActivationCommandDef(commandId));
-            // case CommandType.TargetFriendlies:
-            //     return new TargetFriendliesCommand(SDBInterface.GetTargetFriendliesCommandDef(commandId));
-            // case CommandType.TargetHostiles:
-            //     return new TargetHostilesCommand(SDBInterface.GetTargetHostilesCommandDef(commandId));
+            case CommandType.TargetFriendlies:
+                return new TargetFriendliesCommand(SDBInterface.GetTargetFriendliesCommandDef(commandId));
+            case CommandType.TargetHostiles:
+                return new TargetHostilesCommand(SDBInterface.GetTargetHostilesCommandDef(commandId));
             case CommandType.TargetPBAE:
                 return new TargetPBAECommand(SDBInterface.GetTargetPBAECommandDef(commandId));
             case CommandType.TargetSelf:
@@ -136,8 +137,8 @@ public class Factory
                 return new TargetByEffectCommand(SDBInterface.GetTargetByEffectCommandDef(commandId));
             case CommandType.TargetClear:
                 return new TargetClearCommand(SDBInterface.GetTargetClearCommandDef(commandId));
-            // case CommandType.TargetConeAE:
-            //     return new TargetConeAECommand(SDBInterface.GetTargetConeAECommandDef(commandId));
+            case CommandType.TargetConeAE:
+                return new TargetConeAECommand(SDBInterface.GetTargetConeAECommandDef(commandId));
             case CommandType.StatModifier:
                 return new StatModifierCommand(SDBInterface.GetStatModifierCommandDef(commandId));
             case CommandType.TimeDuration:
@@ -168,8 +169,8 @@ public class Factory
                 return new TargetPreviousCommand(SDBInterface.GetTargetPreviousCommandDef(commandId));
             case CommandType.HasTargetsDuration:
                 return new HasTargetsDurationCommand(SDBInterface.GetHasTargetsDurationCommandDef(commandId));
-            // case CommandType.InflictDamage:
-            //     return new InflictDamageCommand(SDBInterface.GetInflictDamageCommandDef(commandId));
+            case CommandType.InflictDamage:
+                return new InflictDamageCommand(SDBInterface.GetInflictDamageCommandDef(commandId));
             // case CommandType.CreateAbilityObject:
             //     return new CreateAbilityObjectCommand(CustomDBInterface.GetCreateAbilityObjectCommandDef(commandId));
             case CommandType.DestroyAbilityObject:
@@ -356,16 +357,16 @@ public class Factory
             //     return new SlotAbilityCommand(CustomDBInterface.GetSlotAbilityCommandDef(commandId));
             case CommandType.TargetTrim:
                 return new TargetTrimCommand(SDBInterface.GetTargetTrimCommandDef(commandId));
-            // case CommandType.SetWeaponDamage:
-            //     return new SetWeaponDamageCommand(SDBInterface.GetSetWeaponDamageCommandDef(commandId));
+            case CommandType.SetWeaponDamage:
+                return new SetWeaponDamageCommand(SDBInterface.GetSetWeaponDamageCommandDef(commandId));
             // case CommandType.ConsumeEnergyOverTime:
             //     return new ConsumeEnergyOverTimeCommand(SDBInterface.GetConsumeEnergyOverTimeCommandDef(commandId));
             // case CommandType.RequestAbilitySelection:
             //     return new RequestAbilitySelectionCommand(SDBInterface.GetRequestAbilitySelectionCommandDef(commandId));
             // case CommandType.NPCDespawn:
             //     return new NPCDespawnCommand(CustomDBInterface.GetNPCDespawnCommandDef(commandId));
-            // case CommandType.RestockAmmo:
-            //     return new RestockAmmoCommand(CustomDBInterface.GetRestockAmmoCommandDef(commandId));
+            case CommandType.RestockAmmo:
+                return new RestockAmmoCommand(CustomDBInterface.GetRestockAmmoCommandDef(commandId));
             case CommandType.SetRegister:
                 return new SetRegisterCommand(SDBInterface.GetSetRegisterCommandDef(commandId));
             // case CommandType.LoadRegisterFromBonus:
@@ -465,8 +466,8 @@ public class Factory
             //     return new TemporaryEquipmentCommand(CustomDBInterface.GetTemporaryEquipmentCommandDef(commandId));
             // case CommandType.RequireDamageResponse:
             //     return new RequireDamageResponseCommand(SDBInterface.GetRequireDamageResponseCommandDef(commandId));
-            // case CommandType.TargetByDamageResponse:
-            //     return new TargetByDamageResponseCommand(SDBInterface.GetTargetByDamageResponseCommandDef(commandId));
+            case CommandType.TargetByDamageResponse:
+                return new TargetByDamageResponseCommand(SDBInterface.GetTargetByDamageResponseCommandDef(commandId));
             case CommandType.OrientationLock:
                 return new OrientationLockCommand(SDBInterface.GetOrientationLockCommandDef(commandId));
             // case CommandType.LoadRegisterFromModulePower:
@@ -522,8 +523,8 @@ public class Factory
                 return new EncounterSignalCommand(CustomDBInterface.GetEncounterSignalCommandDef(commandId));
             case CommandType.RequireNeedsAmmo:
                 return new RequireNeedsAmmoCommand(SDBInterface.GetRequireNeedsAmmoCommandDef(commandId));
-            // case CommandType.TargetByNPCType:
-            //     return new TargetByNPCTypeCommand(CustomDBInterface.GetTargetByNPCTypeCommandDef(commandId));
+            case CommandType.TargetByNPCType:
+                return new TargetByNPCTypeCommand(CustomDBInterface.GetTargetByNPCTypeCommandDef(commandId));
             case CommandType.LoadRegisterFromItemStat:
                 return new LoadRegisterFromItemStatCommand(SDBInterface.GetLoadRegisterFromItemStatCommandDef(commandId));
             // case CommandType.HostilityHack:
@@ -628,8 +629,8 @@ public class Factory
             //     return new RequireItemAttributeCommand(SDBInterface.GetRequireItemAttributeCommandDef(commandId));
             // case CommandType.AddLootTable:
             //     return new AddLootTableCommand(CustomDBInterface.GetAddLootTableCommandDef(commandId));
-            // case CommandType.UpdateWaitAndFireOnce:
-            //     return new UpdateWaitAndFireOnceCommand(SDBInterface.GetUpdateWaitAndFireOnceCommandDef(commandId));
+            case CommandType.UpdateWaitAndFireOnce:
+                return new UpdateWaitAndFireOnceCommand(SDBInterface.GetUpdateWaitAndFireOnceCommandDef(commandId));
             case CommandType.RequireZoneType:
                 return new RequireZoneTypeCommand(SDBInterface.GetRequireZoneTypeCommandDef(commandId));
             // case CommandType.SetInteractionType:

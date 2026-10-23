@@ -27,6 +27,7 @@ public class BeginInteractionCommand : ICommand
         var source = (CharacterEntity)context.Self;
         var target = context.Targets.Peek();
         source.SetInteractionTarget((IEntity)target);
+        source.InteractionExecutionId = context.ExecutionId;
 
         var abilityId = ((BaseEntity)target).Interaction.StartedAbilityId;
         if (abilityId != 0)

@@ -1,6 +1,5 @@
 namespace GameServer.StaticDB;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -14,6 +13,12 @@ using Serilog;
 
 public class SDBUtils
 {
+    // dbvisualrecords::WarpaintPalette.type_flags bits
+    public const uint ArmorPaletteBit = 1 << 0;
+    public const uint BodysuitPaletteBit = 1 << 1;
+    public const uint GlowPaletteBit = 1 << 3;
+    public const uint FullbodyPaletteBit = 1 << 4;
+
     private static readonly ILogger _logger = Log.ForContext<SDBInterface>();
 
     public static Vector3 Vector3FromFauFau(FauFau.Util.CommmonDataTypes.Vector3 input)
@@ -156,7 +161,7 @@ public class SDBUtils
             };
 
             // Fullbody
-            if ((data.TypeFlags & (uint)Math.Pow(2, 4)) != 0)
+            if ((data.TypeFlags & FullbodyPaletteBit) != 0)
             {
                 colors[0] = paletteColors[0];
                 colors[1] = paletteColors[1];
@@ -168,7 +173,7 @@ public class SDBUtils
             }
 
             // Armor
-            if ((data.TypeFlags & (uint)Math.Pow(2, 0)) != 0)
+            if ((data.TypeFlags & ArmorPaletteBit) != 0)
             {
                 colors[0] = paletteColors[0];
                 colors[1] = paletteColors[1];
@@ -176,14 +181,14 @@ public class SDBUtils
             }
 
             // Bodysuit
-            if ((data.TypeFlags & (uint)Math.Pow(2, 1)) != 0)
+            if ((data.TypeFlags & BodysuitPaletteBit) != 0)
             {
                 colors[3] = paletteColors[3];
                 colors[4] = paletteColors[4];
             }
 
             // Glow
-            if ((data.TypeFlags & (uint)Math.Pow(2, 3)) != 0)
+            if ((data.TypeFlags & GlowPaletteBit) != 0)
             {
                 colors[5] = paletteColors[5];
                 colors[6] = paletteColors[6];

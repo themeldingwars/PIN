@@ -1,8 +1,10 @@
 #nullable enable
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using Shared.Collision.Navigation;
 
 namespace CollisionGenerator;
 
@@ -14,15 +16,20 @@ public sealed record CacheManifest(
     string? AssetId,
     bool AllAssets,
     string? MapsFingerprint,
-    string? AssetDbFingerprint)
-{   
+    string? AssetDbFingerprint,
+    string? NavMeshParamsHash)
+{
     private const string _fileName = "manifest.json";
-    private const int _currentFormatVersion = 1;
+    private const int _currentFormatVersion = 2;
 
     private static readonly JsonSerializerOptions _serializerOptions = new() { WriteIndented = true };
 
     public static CacheManifest FromOptions(Options opts)
     {
+        // Baking settings live in code, not on the command line, so they have to be part of the
+        // manifest or a parameter change would leave a cached navmesh looking up to date.
+        var navMeshParamsHash = new NavMeshBuildParams().ComputeHash().ToString(CultureInfo.InvariantCulture);
+
         return new CacheManifest(
             _currentFormatVersion,
             opts.ChunkName,
@@ -31,7 +38,8 @@ public sealed record CacheManifest(
             opts.AssetId,
             opts.AllAssets,
             Fingerprint(opts.MapsPath),
-            Fingerprint(opts.AssetDbPath));
+            Fingerprint(opts.AssetDbPath),
+            navMeshParamsHash);
     }
 
     public static CacheManifest? Load(string cachePath)

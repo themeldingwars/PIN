@@ -41,7 +41,7 @@ public class DebugWeaponTemplateServerCommand : ServerCommand
         sb.AppendLine("=== Weapon Debug ===");
         sb.AppendLine($"WeaponId: {info.WeaponId}");
         sb.AppendLine($"Active: {info.Weapon.DebugName}");
-        sb.AppendLine($"SpreadFactor: {info.Spread} | RateOfFire: {info.RateOfFire}");
+        sb.AppendLine($"SpreadFactor: {info.Spread}");
         if (fullInfo.Alt != null)
         {
             sb.AppendLine($"Alt (Underbarrel): {fullInfo.Alt.DebugName}");
@@ -75,7 +75,7 @@ public class DebugWeaponTemplateServerCommand : ServerCommand
         AppendAttributes(sb, character);
 
         sb.AppendLine();
-        AppendSpreadProfile(sb, info.SpreadProfile);
+        AppendWeaponProfile(sb, info.WeaponProfile);
 
         context.SourcePlayer.SendDebugLog(sb.ToString());
         SourceFeedback("Printing weapon info to console", context);
@@ -432,7 +432,7 @@ public class DebugWeaponTemplateServerCommand : ServerCommand
         }
     }
 
-    private static void AppendSpreadProfile(StringBuilder sb, WeaponSpreadProfile wp)
+    private static void AppendWeaponProfile(StringBuilder sb, WeaponProfile wp)
     {
         sb.AppendLine("--- WeaponSpreadProfile---");
         sb.AppendLine($"  BaseSpreadPct: {wp.BaseSpreadPct}");
@@ -450,5 +450,8 @@ public class DebugWeaponTemplateServerCommand : ServerCommand
         sb.AppendLine($"  MsAgilityReturn: {wp.MsAgilityReturn}");
         sb.AppendLine($"  MsAgilityReturnDelay: {wp.MsAgilityReturnDelay}");
         sb.AppendLine($"  MsPerBurst: {wp.MsPerBurst}");
+
+        sb.AppendLine($"  BaseClipSize: {wp.BaseClipSize}");
+        sb.AppendLine($"  MaxAmmo: {wp.MaxAmmo}");
     }
 }

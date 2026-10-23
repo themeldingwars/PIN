@@ -15,6 +15,8 @@ public enum ItemAttributeId : ushort
     WeaponSpread = 958,
     JetSprintCost = 1121,
     CreatureHPModifier = 1143,
+    CreatureDamageModifier = 1144,
+    CreatureWeaponDamageModifier = 1145,
     PowerRating = 1451,
     SprintSpeed = 1377
 }

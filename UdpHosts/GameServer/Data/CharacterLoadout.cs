@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using AeroMessages.GSS;
 using AeroMessages.GSS.Character;
+using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.StaticDB;
 using Serilog;
+using LoadoutVisualType = AeroMessages.GSS.Character.LoadoutConfig_Visual.LoadoutVisualType;
 
 namespace GameServer.Data;
 
@@ -49,6 +52,11 @@ public enum AbilitySlotType
 
 public class CharacterLoadout
 {
+    // The Usage field of a pattern or decal carries which chassis region it paints, counted from zero:
+    // 0 armor, 1 bodysuit, 2 weapon. 255 says there is no region, which is what the retail wire carries for an
+    // empty pattern slot and for every decal, a decal being placed by its own transform rather than by region.
+    public const byte NoRegionUsage = 255;
+
     public static readonly LoadoutSlotType[] LoadoutAbilitySlots =
     [
         LoadoutSlotType.Ability1,
@@ -176,10 +184,17 @@ public class CharacterLoadout
     public uint BackpackID { get; set; }
     public uint ChassisChangeTime { get; set; }
     public ChassisWarpaintResult ChassisWarpaint { get; set; }
+    public WarpaintPatternData ChassisWarpaintPatterns { get; set; }
+    public WarpaintTatooData ChassisWarpaintTatoos { get; set; }
+
+    public float GearHealthAttribute { get; set; }
 
     /// <summary>
     /// Parses a friendly slot name (e.g. "primary_weapon") into a <see cref="LoadoutSlotType"/>.
     /// </summary>
+    /// <param name="name">The friendly slot name to parse.</param>
+    /// <param name="slot">Receives the parsed slot type when the name is recognized.</param>
+    /// <returns>True when the name maps to a known slot; false otherwise.</returns>
     public static bool TryParseSlot(string name, out LoadoutSlotType slot)
     {
         return _slotNames.TryGetValue(name, out slot);
@@ -188,6 +203,8 @@ public class CharacterLoadout
     /// <summary>
     /// Gets the item type accepted by a loadout slot, or null if the slot does not accept items.
     /// </summary>
+    /// <param name="slot">The loadout slot to query.</param>
+    /// <returns>The item type the slot accepts, or null when the slot does not accept items.</returns>
     public static ItemType? GetAcceptedItemType(LoadoutSlotType slot)
     {
         if (LoadoutWeaponSlots.Contains(slot))
@@ -217,16 +234,120 @@ public class CharacterLoadout
     {
         return new VisualsBlock
         {
-            Decals = [],
+            Decals = ChassisWarpaintTatoos.ToAero(),
             Gradients = ChassisWarpaint.Gradients,
             Colors = ChassisWarpaint.Colors,
             Palettes = ChassisWarpaint.Palettes,
-            Patterns = [],
+            Patterns = ChassisWarpaintPatterns.ToAero(),
             OrnamentGroupIds = [],
             CziMapAssetIds = [],
             MorphWeights = [],
             Overlays = []
         };
+    }
+
+    /// <summary>
+    ///     Rebuild the chassis warpaint, patterns and decals from the visuals slotted on the loadout, the way the
+    ///     monster visuals path builds them from the Monster row.
+    ///     An empty list leaves the battleframe on its dbitems::Battleframe defaults.
+    /// </summary>
+    /// <param name="visuals">The visuals slotted on the loadout config</param>
+    public void ApplyVisuals(IReadOnlyList<LoadoutConfig_Visual> visuals)
+    {
+        var fullbody = 0u;
+        var armor = 0u;
+        var bodysuit = 0u;
+        var glow = 0u;
+        var patterns = new List<WarpaintPattern>();
+        var tatoos = new List<WarpaintTatoo>();
+
+        foreach (var visual in visuals)
+        {
+            switch (visual.VisualType)
+            {
+                case LoadoutVisualType.Palette:
+                    var palette = SDBInterface.GetWarpaintPalette(visual.ItemSdbId);
+                    if (palette == null)
+                    {
+                        Log.Warning("Loadout {LoadoutId} slots palette item {SdbId}, which has no dbvisualrecords::WarpaintPalette row", LoadoutID, visual.ItemSdbId);
+                        break;
+                    }
+
+                    // A fullbody palette paints all seven colors, so it takes every palette slot. Leaving one to the
+                    // battleframe default would let that default overwrite part of the pick: GetChassisWarpaint
+                    // blends fullbody first and the narrower palettes after it.
+                    if ((palette.TypeFlags & SDBUtils.FullbodyPaletteBit) != 0)
+                    {
+                        fullbody = palette.Id;
+                        armor = palette.Id;
+                        bodysuit = palette.Id;
+                        glow = palette.Id;
+                        break;
+                    }
+
+                    var slotted = false;
+                    if ((palette.TypeFlags & SDBUtils.ArmorPaletteBit) != 0)
+                    {
+                        armor = palette.Id;
+                        slotted = true;
+                    }
+
+                    if ((palette.TypeFlags & SDBUtils.BodysuitPaletteBit) != 0)
+                    {
+                        bodysuit = palette.Id;
+                        slotted = true;
+                    }
+
+                    if ((palette.TypeFlags & SDBUtils.GlowPaletteBit) != 0)
+                    {
+                        glow = palette.Id;
+                        slotted = true;
+                    }
+
+                    if (!slotted)
+                    {
+                        Log.Warning("WarpaintPalette {PaletteId} on loadout {LoadoutId} has no armor, bodysuit or glow region flag ({TypeFlags})", palette.Id, LoadoutID, palette.TypeFlags);
+                    }
+
+                    break;
+
+                case LoadoutVisualType.Pattern:
+                    var region = ReadPatternRegion(visual.Data1);
+                    if (region == NoRegionUsage)
+                    {
+                        Log.Debug("Loadout {LoadoutId} slots pattern {SdbId} on region {Region}, which is not a chassis region PIN knows", LoadoutID, visual.ItemSdbId, visual.Data1);
+                    }
+
+                    var transform = ReadPatternTransform(visual.Transform);
+
+                    if (Math.Max(Math.Max(transform.Y, transform.Z), transform.W) > WarpaintPatternData.WireMaxValue)
+                    {
+                        Log.Warning("Loadout {LoadoutId} pattern {SdbId} carries transform {Transform}, and the visuals block holds scale and offsets as fixed point topping out at {Max}", LoadoutID, visual.ItemSdbId, transform, WarpaintPatternData.WireMaxValue);
+                    }
+
+                    patterns.Add(new WarpaintPattern
+                    {
+                        Id = visual.ItemSdbId,
+                        Transform = transform,
+                        Usage = region,
+                    });
+                    break;
+
+                case LoadoutVisualType.Decal:
+                    tatoos.Add(new WarpaintTatoo
+                    {
+                        Id = visual.ItemSdbId,
+                        Color = visual.Data2,
+                        Transform = ReadVisualTransform(visual.Transform, 3),
+                        Usage = NoRegionUsage,
+                    });
+                    break;
+            }
+        }
+
+        ChassisWarpaint = SDBUtils.GetChassisWarpaint(ChassisID, fullbody, armor, bodysuit, glow);
+        ChassisWarpaintPatterns = new WarpaintPatternData { Entries = [.. patterns] };
+        ChassisWarpaintTatoos = new WarpaintTatooData { Entries = [.. tatoos] };
     }
 
     public uint GetAbilityModuleIdBySlotIndex(byte slotIndex)
@@ -352,6 +473,43 @@ public class CharacterLoadout
         })];
     }
 
+    private static byte ReadPatternRegion(uint data1) => data1 is >= 1 and <= 3 ? (byte)(data1 - 1) : NoRegionUsage;
+
+    /// <summary>
+    ///     Read the four dials a pattern carries as a vector of real numbers: rotation in degrees, scale, the
+    ///     horizontal offset and the vertical offset.
+    /// <param name="values">The four floats the client sent</param>
+    /// <returns>The rotation in degrees, the scale and the offsets as one vector</returns>
+    private static Vector4 ReadPatternTransform(float[] values) => ReadVisualTransform(values, 1)[0];
+
+    /// <summary>
+    ///     Read the placement a decal visual carries as the three vectors the visuals block wants. A decal's twelve
+    ///     floats are a row major 3x3 rotation and scale followed by the translation.
+    /// </summary>
+    /// <param name="values">The floats the client sent</param>
+    /// <param name="vectorCount">How many vectors the visual type carries</param>
+    /// <returns>The vectors, zero filled where the input ran out</returns>
+    private static Vector4[] ReadVisualTransform(float[] values, int vectorCount)
+    {
+        var vectors = new Vector4[vectorCount];
+        if (values == null)
+        {
+            return vectors;
+        }
+
+        for (var vector = 0; vector < vectorCount; vector++)
+        {
+            var offset = vector * 4;
+            vectors[vector] = new Vector4(
+                offset < values.Length ? values[offset] : 0f,
+                offset + 1 < values.Length ? values[offset + 1] : 0f,
+                offset + 2 < values.Length ? values[offset + 2] : 0f,
+                offset + 3 < values.Length ? values[offset + 3] : 0f);
+        }
+
+        return vectors;
+    }
+
     private static void MergeItemAttributeRange(Dictionary<ushort, float> result, uint itemId)
     {
         var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
@@ -407,7 +565,7 @@ public class CharacterLoadout
         LoadoutID = refData.LoadoutId;
         ChassisID = refData.ChassisId;
         BackpackID = SDBUtils.GetChassisDefaultBackpack(ChassisID);
-        ChassisWarpaint = SDBUtils.GetChassisWarpaint(ChassisID, 0, 0, 0, 0);
+        ApplyVisuals(refData.Visuals ?? []);
 
         // Assume PvE
         foreach (var (slot, type) in refData.SlottedItemsPvE)
@@ -434,7 +592,7 @@ public class CharacterLoadout
         }
 
         var itemModuleScalars = SDBInterface.GetItemModuleScalars(itemTypeId);
-        foreach ((ushort attributeCategoryId, (float value, float perLevel)) in itemModuleScalars)
+        foreach (var (attributeCategoryId, scalars) in itemModuleScalars)
         {
             var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
             if (!totalCharacterScalars.ContainsKey(attributeCategoryId))
@@ -448,12 +606,12 @@ public class CharacterLoadout
             }
             else
             {
-                totalCharacterScalars[attributeCategoryId] += value - 1;
+                totalCharacterScalars[attributeCategoryId] += scalars.Value - 1;
             }
         }
 
         var itemCharacterScalars = SDBInterface.GetItemCharacterScalars(itemTypeId);
-        foreach ((ushort attributeCategoryId, (float value, float perLevel)) in itemCharacterScalars)
+        foreach (var (attributeCategoryId, scalars) in itemCharacterScalars)
         {
             var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
             if (!totalModuleScalars.ContainsKey(attributeCategoryId))
@@ -467,7 +625,7 @@ public class CharacterLoadout
             }
             else
             {
-                totalModuleScalars[attributeCategoryId] += value - 1;
+                totalModuleScalars[attributeCategoryId] += scalars.Value - 1;
             }
         }
     }
@@ -521,5 +679,6 @@ public class CharacterLoadout
         ItemAttributes = attributes;
         ItemModuleScalars = moduleScalars;
         ItemCharacterScalars = characterScalars;
+        GearHealthAttribute = attributes.GetValueOrDefault((ushort)ItemAttributeId.Health);
     }
 }

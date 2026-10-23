@@ -318,7 +318,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, TargetByNPCTypeCommandDef> LoadTargetByNPCTypeCommandDef()
     {
-        return LoadJSON<TargetByNPCTypeCommandDef>("./StaticDB/CustomData/Todo/aptgss_agsTargetByNPCTypeCommandDef.json")
+        return LoadJSON<TargetByNPCTypeCommandDef>("./StaticDB/CustomData/aptgss_agsTargetByNPCTypeCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 
@@ -907,6 +907,12 @@ public class CustomDBLoader
         return LoadJSON<LgvRaceDef>("./StaticDB/CustomData/lgv_race.json")
                .GroupBy(row => row.ZoneId)
                .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
+    }
+
+    public List<XpLevelScale> LoadXpLevelScales()
+    {
+        return [.. LoadJSON<XpLevelScale>("./StaticDB/CustomData/xp_level_scales.json")
+            .OrderBy(row => row.MinLevel)];
     }
 
     private T[] LoadJSON<T>(string fileName)

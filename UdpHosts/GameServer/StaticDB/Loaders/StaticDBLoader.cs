@@ -46,6 +46,13 @@ public class StaticDBLoader : ISDBLoader
         _sdb = instance;
     }
 
+    public Dictionary<uint, List<AbilityGroupModule>> LoadAbilityGroupModule()
+    {
+        return LoadStaticDB<AbilityGroupModule>("dbcharacter::AbilityGroupModule")
+        .GroupBy(row => row.Groupid)
+        .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
     public Dictionary<uint, CharCreateLoadout> LoadCharCreateLoadout()
     {
         return LoadStaticDB<CharCreateLoadout>("dbcharacter::CharCreateLoadout")
@@ -96,9 +103,69 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(group => group.Key, group => group.ToList());
     }
 
+    public Dictionary<uint, List<HitFeedbackEntry>> LoadHitFeedbackEntry()
+    {
+        return LoadStaticDB<HitFeedbackEntry>("dbcharacter::HitFeedbackEntry")
+        .GroupBy(row => row.HitfeedbackId)
+        .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    public Dictionary<uint, MonsterVisualOptions> LoadMonsterVisualOptions()
+    {
+        return LoadStaticDB<MonsterVisualOptions>("dbcharacter::MonsterVisualOptions")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, List<MonsterVisualOption>> LoadMonsterVisualOption()
+    {
+        return LoadStaticDB<MonsterVisualOption>("dbcharacter::MonsterVisualOption")
+        .GroupBy(row => row.Parent)
+        .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
     public Dictionary<uint, Monster> LoadMonster()
     {
         return LoadStaticDB<Monster>("dbcharacter::Monster")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<byte, MonsterScaling> LoadMonsterScaling()
+    {
+        return LoadStaticDB<MonsterScaling>("dbcharacter::MonsterScaling")
+        .GroupBy(row => row.Level)
+        .ToDictionary(group => group.Key, group => group.First());
+    }
+
+    // Indexed by monster, then by attribute, so a monster lookup does not have to walk the whole table
+    public Dictionary<uint, Dictionary<ushort, MonsterAttributeRange>> LoadMonsterAttributeRange()
+    {
+        return LoadStaticDB<MonsterAttributeRange>("dbcharacter::MonsterAttributeRange")
+        .GroupBy(row => row.MonsterId)
+        .ToDictionary(group => group.Key, group => group.GroupBy(row => row.AttributeId).ToDictionary(dupe => dupe.Key, dupe => dupe.Last()));
+    }
+
+    public Dictionary<uint, Head> LoadHeads()
+    {
+        return LoadStaticDB<Head>("dbcharacter::Head")
+        .ToDictionary(row => row.HeadId);
+    }
+
+    public Dictionary<uint, HeadAccessory> LoadHeadAccessories()
+    {
+        return LoadStaticDB<HeadAccessory>("dbcharacter::HeadAccessory")
+        .ToDictionary(row => row.HaId);
+    }
+
+    public Dictionary<uint, List<uint>> LoadHeadHeadAccessories()
+    {
+        return LoadStaticDB<HeadHeadAccessory>("dbcharacter::HeadHeadAccessory")
+        .GroupBy(r => r.HeadId)
+        .ToDictionary(g => g.Key, g => g.Select(r => r.HeadaccessoryId).ToList());
+    }
+
+    public Dictionary<uint, XPRewardType> LoadXPRewardType()
+    {
+        return LoadStaticDB<XPRewardType>("dbcharacter::XPRewardType")
         .ToDictionary(row => row.Id);
     }
 
@@ -106,6 +173,13 @@ public class StaticDBLoader : ISDBLoader
     {
         return LoadStaticDB<Turret>("dbcharacter::Turret")
             .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, List<TurretWeapon>> LoadTurretWeapon()
+    {
+        return LoadStaticDB<TurretWeapon>("dbcharacter::TurretWeapon")
+            .GroupBy(row => row.TurretTypeId)
+            .ToDictionary(group => group.Key, group => group.ToList());
     }
 
     public Dictionary<uint, MapMarkerInfo> LoadMapMarkerInfo()
@@ -144,24 +218,29 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
-    public Dictionary<KeyValuePair<uint, ushort>, AttributeRange> LoadAttributeRange()
+    // Indexed by item, then by attribute, so an item lookup does not have to walk the whole table
+    public Dictionary<uint, Dictionary<ushort, AttributeRange>> LoadAttributeRange()
     {
         // There are duplicates, like item 78084 which has the range attribute twice. Ingame, it seems too use only one result for that one, so chosing to do the same here.
         return LoadStaticDB<AttributeRange>("dbitems::AttributeRange")
-        .GroupBy(row => new KeyValuePair<uint, ushort>(row.ItemId, row.AttributeId))
-        .ToDictionary(group => group.Key, group => group.Last());
+        .GroupBy(row => row.ItemId)
+        .ToDictionary(group => group.Key, group => group.GroupBy(row => row.AttributeId).ToDictionary(dupe => dupe.Key, dupe => dupe.Last()));
     }
 
-    public Dictionary<KeyValuePair<uint, ushort>, ItemModuleScalars> LoadItemModuleScalars()
+    // Indexed by item, then by attribute category, so an item lookup does not have to walk the whole table
+    public Dictionary<uint, Dictionary<ushort, ItemModuleScalars>> LoadItemModuleScalars()
     {
         return LoadStaticDB<ItemModuleScalars>("dbitems::ItemModuleScalars")
-        .ToDictionary(row => new KeyValuePair<uint, ushort>(row.ItemId, row.AttributeCategory));
+        .GroupBy(row => row.ItemId)
+        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.AttributeCategory));
     }
 
-    public Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> LoadItemCharacterScalars()
+    // Indexed by item, then by attribute category, so an item lookup does not have to walk the whole table
+    public Dictionary<uint, Dictionary<ushort, ItemCharacterScalars>> LoadItemCharacterScalars()
     {
         return LoadStaticDB<ItemCharacterScalars>("dbitems::ItemCharacterScalars")
-        .ToDictionary(row => new KeyValuePair<uint, ushort>(row.ItemId, row.AttributeCategory));
+        .GroupBy(row => row.ItemId)
+        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.AttributeCategory));
     }
 
     public Dictionary<uint, RootItem> LoadRootItem()
@@ -181,6 +260,34 @@ public class StaticDBLoader : ISDBLoader
         return LoadStaticDB<BattleframeVisuals>("dbitems::BattleframeVisuals")
         .GroupBy(row => row.VisualGroup)
         .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    public Dictionary<uint, List<MonsterSlot>> LoadMonsterSlot()
+    {
+        return LoadStaticDB<MonsterSlot>("dbitems::MonsterSlot")
+        .GroupBy(row => row.MonsterId)
+        .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    public Dictionary<uint, List<BattleframeSlot>> LoadBattleframeSlot()
+    {
+        return LoadStaticDB<BattleframeSlot>("dbitems::BattleframeSlot")
+        .GroupBy(row => row.BattleframeId)
+        .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    public Dictionary<uint, List<BackpackSlot>> LoadBackpackSlot()
+    {
+        return LoadStaticDB<BackpackSlot>("dbitems::BackpackSlot")
+        .GroupBy(row => row.BackpackId)
+        .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    public Dictionary<uint, LoadoutSlot> LoadLoadoutSlot()
+    {
+        return LoadStaticDB<LoadoutSlot>("dbitems::LoadoutSlot")
+        .GroupBy(row => row.Id)
+        .ToDictionary(group => group.Key, group => group.First());
     }
 
     public Dictionary<uint, AbilityModule> LoadAbilityModule()
@@ -1404,6 +1511,33 @@ public class StaticDBLoader : ISDBLoader
             .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, LootTable> LoadLootTable()
+    {
+        return LoadStaticDB<LootTable>("dbitems::LootTable")
+            .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, List<LootTableItemDist>> LoadLootTableItemDist()
+    {
+        return LoadStaticDB<LootTableItemDist>("dbitems::LootTableItemDist")
+            .GroupBy(row => (uint)row.LootTableId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    public Dictionary<uint, List<LootTableSubTableDist>> LoadLootTableSubTableDist()
+    {
+        return LoadStaticDB<LootTableSubTableDist>("dbitems::LootTableSubTableDist")
+            .GroupBy(row => (uint)row.LootTableId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
+    public Dictionary<uint, List<LootTableDistRequirements>> LoadLootTableDistRequirements()
+    {
+        return LoadStaticDB<LootTableDistRequirements>("dbitems::LootTableDistRequirements")
+            .GroupBy(row => row.LootTableDistId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
     public Dictionary<uint, ZoneRecord> LoadZoneRecord()
     {
         return LoadStaticDB<ZoneRecord>("dbzonemetadata::ZoneRecord")
@@ -1420,6 +1554,13 @@ public class StaticDBLoader : ISDBLoader
     {
         return LoadStaticDB<LevelCategoryScalars>("dbitems::LevelCategoryScalars")
             .GroupBy(row => new KeyValuePair<uint, uint>(row.AttributeCategory, row.Level))
+            .ToDictionary(group => group.Key, group => group.First());
+    }
+
+    public Dictionary<KeyValuePair<uint, uint>, LevelItemAttributes> LoadLevelItemAttributes()
+    {
+        return LoadStaticDB<LevelItemAttributes>("dbitems::LevelItemAttributes")
+            .GroupBy(row => new KeyValuePair<uint, uint>(row.AttributeId, row.Level))
             .ToDictionary(group => group.Key, group => group.First());
     }
 

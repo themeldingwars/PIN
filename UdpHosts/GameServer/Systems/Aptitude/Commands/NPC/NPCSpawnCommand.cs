@@ -22,9 +22,17 @@ public class NPCSpawnCommand : Command, ICommand
         }
 
         var owner = Params.SetOwner ? context.Self as CharacterEntity : null;
+        var level = Params.Level != 0 ? Params.Level : CharacterEntity.DefaultLevel;
 
-        context.Shard.EntityMan.SpawnCharacter(Params.MonsterId, context.InitPosition, owner);
+        var spawned = context.Shard.EntityMan.SpawnCharacter(Params.MonsterId, context.InitPosition, owner, level: level, hidden: Params.Hidden);
+        if (spawned == null)
+        {
+            Logger.Warning("{Command} {CommandId} failed to spawn monster {MonsterId}", nameof(NPCSpawnCommand), Params.Id, Params.MonsterId);
+            result.SetFail();
+            return;
+        }
 
+        context.Targets.Push(spawned);
         result.SetPass();
         return;
     }

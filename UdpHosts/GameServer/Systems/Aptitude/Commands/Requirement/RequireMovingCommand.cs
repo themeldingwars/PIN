@@ -30,8 +30,8 @@ public class RequireMovingCommand : Command, ICommand
                 }
                 else
                 {
-                    // todo
-                    Logger.Debug("[{Command} {CommandId}] velocity tolerance: {VelocityTol}, negate: {Negate}", nameof(RequireMovingCommand), Params.Id, Params.Velocitytol, Params.Negate);
+                    // TODO: the velocity tolerance is not applied yet
+                    Logger.Debug("{Command} {CommandId} velocity tolerance: {VelocityTol}, negate: {Negate}", nameof(RequireMovingCommand), Params.Id, Params.Velocitytol, Params.Negate);
                 }
             }
         }

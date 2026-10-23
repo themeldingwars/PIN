@@ -2,6 +2,7 @@ using AeroMessages.GSS.Character.Event;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Entities.Vehicle;
+using GameServer.Protocol;
 using GameServer.Systems.Encounters;
 using Serilog;
 

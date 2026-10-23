@@ -14,6 +14,7 @@ using Records.vcs;
 public interface ISDBLoader
 {
     // dbcharacter
+    Dictionary<uint, List<AbilityGroupModule>> LoadAbilityGroupModule();
     Dictionary<uint, CharCreateLoadout> LoadCharCreateLoadout();
     Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> LoadCharCreateLoadoutSlots();
     Dictionary<uint, Deployable> LoadDeployable();
@@ -22,7 +23,11 @@ public interface ISDBLoader
     Dictionary<uint, Faction> LoadFaction();
     List<FactionRelations> LoadFactionRelations();
     Dictionary<uint, List<FactionReputations>> LoadFactionReputations();
+    Dictionary<uint, List<HitFeedbackEntry>> LoadHitFeedbackEntry();
     Dictionary<uint, Monster> LoadMonster();
+    Dictionary<byte, MonsterScaling> LoadMonsterScaling();
+    Dictionary<uint, Dictionary<ushort, MonsterAttributeRange>> LoadMonsterAttributeRange();
+    Dictionary<uint, XPRewardType> LoadXPRewardType();
     Dictionary<uint, Turret> LoadTurret();
     Dictionary<uint, PoseType> LoadPoseType();
     Dictionary<uint, CharInfo> LoadCharInfo();
@@ -30,6 +35,11 @@ public interface ISDBLoader
     Dictionary<byte, DamageResponse> LoadDamageResponse();
     Dictionary<uint, DamageResponseDamageType> LoadDamageResponseDamageType();
     Dictionary<uint, TinyObject> LoadTinyObject();
+    Dictionary<uint, MonsterVisualOptions> LoadMonsterVisualOptions();
+    Dictionary<uint, List<MonsterVisualOption>> LoadMonsterVisualOption();
+    Dictionary<uint, Head> LoadHeads();
+    Dictionary<uint, HeadAccessory> LoadHeadAccessories();
+    Dictionary<uint, List<uint>> LoadHeadHeadAccessories();
 
     // dbencounterdata
     Dictionary<uint, MapMarkerInfo> LoadMapMarkerInfo();
@@ -45,9 +55,9 @@ public interface ISDBLoader
     // dbitems
     Dictionary<uint, AttributeCategory> LoadAttributeCategory();
     Dictionary<uint, AttributeDefinition> LoadAttributeDefinition();
-    Dictionary<KeyValuePair<uint, ushort>, AttributeRange> LoadAttributeRange();
-    Dictionary<KeyValuePair<uint, ushort>, ItemModuleScalars> LoadItemModuleScalars();
-    Dictionary<KeyValuePair<uint, ushort>, ItemCharacterScalars> LoadItemCharacterScalars();
+    Dictionary<uint, Dictionary<ushort, AttributeRange>> LoadAttributeRange();
+    Dictionary<uint, Dictionary<ushort, ItemModuleScalars>> LoadItemModuleScalars();
+    Dictionary<uint, Dictionary<ushort, ItemCharacterScalars>> LoadItemCharacterScalars();
     Dictionary<uint, RootItem> LoadRootItem();
     Dictionary<uint, Battleframe> LoadBattleframe();
     Dictionary<uint, CarryableObject> LoadCarryableObject();
@@ -59,12 +69,21 @@ public interface ISDBLoader
     Dictionary<uint, WeaponUnderbarrel> LoadWeaponUnderbarrel();
     Dictionary<uint, Ammo> LoadAmmo();
     Dictionary<uint, LevelBand> LoadLevelBand();
+    Dictionary<uint, LootTable> LoadLootTable();
+    Dictionary<uint, List<LootTableItemDist>> LoadLootTableItemDist();
+    Dictionary<uint, List<LootTableSubTableDist>> LoadLootTableSubTableDist();
+    Dictionary<uint, List<LootTableDistRequirements>> LoadLootTableDistRequirements();
     Dictionary<uint, ResourceNodeBeacon> LoadResourceNodeBeacon();
     Dictionary<KeyValuePair<uint, uint>, LevelCategoryScalars> LoadLevelCategoryScalars();
+    Dictionary<KeyValuePair<uint, uint>, LevelItemAttributes> LoadLevelItemAttributes();
     Dictionary<uint, FrameProgressionLevel> LoadFrameProgressionLevel();
     Dictionary<uint, Blueprints> LoadBlueprints();
     Dictionary<uint, List<Blueprint_Items>> LoadBlueprintItems();
     Dictionary<uint, List<BattleframeVisuals>> LoadBattleframeVisuals();
+    Dictionary<uint, List<MonsterSlot>> LoadMonsterSlot();
+    Dictionary<uint, List<BattleframeSlot>> LoadBattleframeSlot();
+    Dictionary<uint, List<BackpackSlot>> LoadBackpackSlot();
+    Dictionary<uint, LoadoutSlot> LoadLoadoutSlot();
 
     // dbzonemetadata
     Dictionary<uint, ZoneRecord> LoadZoneRecord();

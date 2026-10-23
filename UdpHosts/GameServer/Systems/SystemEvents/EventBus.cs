@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace GameServer.Systems.SystemEvents;
@@ -6,7 +7,10 @@ namespace GameServer.Systems.SystemEvents;
 public sealed class EventBus : IEventBus
 {
     private readonly Dictionary<Type, List<Delegate>> _handlers = [];
-    private readonly Queue<object> _eventQueue = new();
+
+    // Handlers run on the shard thread, but events are also enqueued from work that runs off it, such as a
+    // login fetching its character data, so the queue itself has to survive more than one writer.
+    private readonly ConcurrentQueue<object> _eventQueue = new();
 
     public IDisposable Subscribe<TEvent>(Action<TEvent> handler)
     {
@@ -43,10 +47,8 @@ public sealed class EventBus : IEventBus
 
     public void Flush()
     {
-        while (_eventQueue.Count > 0)
+        while (_eventQueue.TryDequeue(out var evt))
         {
-            var evt = _eventQueue.Dequeue();
-
             DispatchDynamic(evt);
         }
     }

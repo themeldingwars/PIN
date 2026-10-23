@@ -4,6 +4,8 @@ using System.Linq;
 using Aero.Gen;
 using AeroMessages.Common;
 using AeroMessages.GSS.Generic;
+using GameServer.Extensions;
+using GameServer.Protocol;
 
 namespace GameServer.Systems.Encounters;
 
@@ -55,9 +57,17 @@ public abstract class BaseEncounter : IEncounter
     {
         var msg = new PlayDialogScriptMessage() { DialogId = id, Speakers = [0] };
 
+        if (!WireIds.TryGetGssWireIds(typeof(PlayDialogScriptMessage), Shard.Settings.GssProtocolVersion, out var typecode, out var messageId) || messageId == 0)
+        {
+            Shard.Logger.Error("Could not resolve GSS wire ids for {Type} in protocol version {Version}", typeof(PlayDialogScriptMessage).FullName, Shard.Settings.GssProtocolVersion);
+            return;
+        }
+
+        msg.SerializeToMemory(out var messageData);
+
         foreach (var p in Participants)
         {
-            p.NetChannels[ChannelType.ReliableGss].SendMessage(msg, p.CharacterEntity.EntityId);
+            p.NetChannels[ChannelType.ReliableGss].SendGssMessage(p.CharacterEntity.EntityId, messageId, typecode, messageData.Span);
         }
     }
 

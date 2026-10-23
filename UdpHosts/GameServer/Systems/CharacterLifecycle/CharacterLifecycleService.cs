@@ -151,7 +151,7 @@ public class CharacterLifecycleService
             }
             else
             {
-                TransitionToDead(character);
+                TransitionToDead(character, evt.Source);
             }
         }
     }
@@ -177,7 +177,7 @@ public class CharacterLifecycleService
         _eventBus.Publish(new CharacterEnteredBleedoutEvent(character, tracker.BleedoutStartTime + (ulong)_rules.BleedoutDurationMs));
     }
 
-    private void TransitionToDead(CharacterEntity character)
+    private void TransitionToDead(CharacterEntity character, IEntity source = null)
     {
         if (!_trackers.TryGetValue(character.EntityId, out var tracker))
         {
@@ -196,7 +196,7 @@ public class CharacterLifecycleService
         character.Alive = false;
 
         Logger.Information("{Name} died", character);
-        _eventBus.Publish(new CharacterDiedEvent(character));
+        _eventBus.Publish(new CharacterDiedEvent(character, source));
     }
 
     private void HandleBleedoutTick(LifecycleTracker tracker, CharacterEntity character)

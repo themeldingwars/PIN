@@ -1,3 +1,4 @@
+using GameServer.Protocol;
 using GameServer.StaticDB.Records.apt;
 
 namespace GameServer.Systems.Aptitude.Commands.Activation;

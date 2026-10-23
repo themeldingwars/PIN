@@ -202,7 +202,7 @@ public abstract class PacketServer : IPacketSender
                 Packet? packet;
                 while ((packet = await OutgoingPackets.ReceiveAsync(ct)) != null)
                 {
-                    _ = ServerSocket.SendTo(packet.Value.PacketData.ToArray(), packet.Value.PacketData.Length, SocketFlags.None, packet.Value.RemoteEndpoint);
+                    _ = ServerSocket.SendTo(packet.Value.PacketData.Span, SocketFlags.None, packet.Value.RemoteEndpoint);
                 }
             }
             catch (OperationCanceledException)

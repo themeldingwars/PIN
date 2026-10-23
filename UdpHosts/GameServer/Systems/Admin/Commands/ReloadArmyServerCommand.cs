@@ -1,4 +1,5 @@
 using AeroMessages.GSS.Character.Event;
+using GameServer.Protocol;
 
 namespace GameServer.Systems.Admin.Commands;
 

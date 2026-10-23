@@ -107,9 +107,14 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
     public StatusEffectData? StatusEffects_30 { get; set; }
     public StatusEffectData? StatusEffects_31 { get; set; }
 
+    public override string ToString()
+    {
+        return $"Deployable {Type} ({EntityId:X8})";
+    }
+
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        Logger.Debug("Deployable.SetStatusEffect Index {index}, Time {time}, Id {id}", index, time, data.Id);
+        Logger.Debug("{Entity} SetStatusEffect Index {index}, Time {time}, Id {id}", this, index, time, data.Id);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -122,7 +127,7 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        Logger.Debug("Deployable.ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}", index, time, debugEffectId);
+        Logger.Debug("{Entity} ClearStatusEffect Index {index}, Time {time}, Id {debugEffectId}", this, index, time, debugEffectId);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -206,6 +211,30 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
         ConstructedTime = Shard.CurrentTime;
     }
 
+    /// <summary>
+    /// The deployable's four RGB565 warpaint colors, snapshotted from the owner's chassis warpaint at
+    /// build time. Observed on 1962/V74 replays: slots 0-2 are the high 16 bits of the chassis
+    /// Visuals.Colors entries 0-2 (palette colors 1-3) and slot 3 is entry 5 (palette color 6).
+    /// </summary>
+    /// <param name="owner">The character that built the deployable; its chassis warpaint supplies the colors.</param>
+    /// <returns>The four RGB565 warpaint colors (slots 0-3).</returns>
+    private ushort[] BuildWarpaintColors(CharacterEntity owner)
+    {
+        var colors = owner?.CurrentLoadout?.ChassisWarpaint?.Colors;
+        if (colors is null || colors.Length < 6)
+        {
+            return [];
+        }
+
+        return
+        [
+            (ushort)(colors[0] >> 16),
+            (ushort)(colors[1] >> 16),
+            (ushort)(colors[2] >> 16),
+            (ushort)(colors[5] >> 16),
+        ];
+    }
+
     private void InitViews()
     {
         Deployable_ObserverView = new ObserverView
@@ -236,7 +265,7 @@ public sealed class DeployableEntity : BaseAptitudeEntity, IAptitudeTarget
                 AttributeCategories1 = [],
                 AttributeCategories2 = []
             },
-            WarpaintColorsProp = [],
+            WarpaintColorsProp = BuildWarpaintColors(Owner),
             PersonalFactionStanceProp = null,
             SinFlagsProp = 0,
             SinFactionsAcquiredByProp = null,

@@ -1,6 +1,7 @@
 using System;
 using AeroMessages.GSS.Character.Event;
 using GameServer.Enums;
+using GameServer.Protocol;
 using GameServer.StaticDB;
 
 namespace GameServer.Systems.Admin.Commands;

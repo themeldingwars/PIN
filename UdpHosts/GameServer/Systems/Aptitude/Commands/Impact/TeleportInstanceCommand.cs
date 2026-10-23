@@ -1,5 +1,6 @@
 ﻿using AeroMessages.Matrix;
 using GameServer.Entities.Character;
+using GameServer.Protocol;
 using GameServer.StaticDB.Records.customdata;
 using GameServer.Test;
 

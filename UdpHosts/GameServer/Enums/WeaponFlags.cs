@@ -11,7 +11,7 @@ public readonly record struct WeaponFlags(uint Raw)
         M1 = 1, // HMG?
         M2 = 2, // Bolt Action?
         M3 = 3,
-        M4 = 4, // Fire starts chargeup
+        M4 = 4, // ?
         M5 = 5, // gets double recoil alt fire?
         M6 = 6, // Rated limited
         M7 = 7 // Similar to M1

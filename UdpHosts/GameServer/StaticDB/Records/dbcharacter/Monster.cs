@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using FauFau.Util.CommmonDataTypes;
 
 namespace GameServer.StaticDB.Records.dbcharacter;
@@ -25,7 +26,7 @@ public record class Monster
     public uint OrnamentsMapGroupId_4 { get; set; }
     public uint OrnamentsMapGroupId_1 { get; set; }
 
-    // public int[] WarpaintTattooData { get; set; }
+    public List<byte> WarpaintTattooData { get; set; }
     public uint Weapon1Id { get; set; }
     public uint ChassisId { get; set; }
     public uint GlowWarpaintPaletteId { get; set; }
@@ -33,7 +34,7 @@ public record class Monster
     public uint PosetypeId { get; set; }
     public uint SkinColor { get; set; }
 
-    // public int[] WarpaintPatternData { get; set; }
+    public List<byte> WarpaintPatternData { get; set; }
     public uint ScalingTableId { get; set; }
     public float MinRandScale { get; set; }
     public uint VisualOptionsId { get; set; }

@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using AeroMessages.Common;
 using AeroMessages.GSS;
+using GameServer.Systems.Combat;
 using Serilog;
 
 namespace GameServer.Entities;
@@ -22,6 +23,8 @@ public class BaseEntity : IEntity
     public Vector3 Position { get; set; } = Vector3.Zero;
     public Quaternion Orientation { get; set; } = Quaternion.Identity;
     public HostilityInfoData HostilityInfo { get; set; }
+
+    public PersonalFactionStance? PersonalFactionStance { get; set; }
 
     public byte DamageResponse { get; protected set; }
 

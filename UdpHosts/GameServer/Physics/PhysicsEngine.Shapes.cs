@@ -175,7 +175,7 @@ public partial class PhysicsEngine
 
         var entry = new CompoundCacheEntry
         {
-            ShapeIndex = Simulation.Shapes.Add(compound)
+            ShapeIndex = Simulation.Shapes.Add(compound),
         };
 
         return (entry, result);

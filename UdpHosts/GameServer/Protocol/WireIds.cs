@@ -14,33 +14,69 @@ namespace GameServer.Protocol;
 public static class WireIds
 {
     private static readonly ConcurrentDictionary<(Type Type, GssVersion Version), GssWireId> GssCache = new();
+    private static readonly ConcurrentDictionary<(Type Type, GssVersion Version, string ViewEnum, int ViewOrdinal), GssWireId> GssRouteCache = new();
     private static readonly ConcurrentDictionary<(Type Type, MatrixVersion Version), byte> MatrixCache = new();
+    private static readonly ConcurrentDictionary<Type, ControlWireId> ControlCache = new();
 
     /// <summary>
     ///     Wire ids of a GSS message/command/view type in the given protocol version.
     ///     For views the typecode is the view typecode and the message id is 0.
     /// </summary>
+    /// <param name="messageType">The Aero message, command or view type to resolve</param>
+    /// <param name="version">The GSS protocol version to resolve against</param>
+    /// <param name="typecode">The wire typecode of the type, 0 when the type does not resolve</param>
+    /// <param name="messageId">The wire message id of the type, 0 for views and when the type does not resolve</param>
+    /// <returns>true if the type has wire ids in this protocol version, false otherwise</returns>
     public static bool TryGetGssWireIds(Type messageType, GssVersion version, out byte typecode, out byte messageId)
     {
         var key = (messageType, version);
-        if (GssCache.TryGetValue(key, out var cached))
+        if (!GssCache.TryGetValue(key, out var cached))
         {
-            typecode = cached.Typecode;
-            messageId = cached.MessageId;
-            return cached.Valid;
+            cached = ResolveGss(messageType, version, GetAeroMessageId(messageType));
+            GssCache[key] = cached;
         }
 
-        var result = ResolveGss(messageType, version);
-        GssCache[key] = result;
+        typecode = cached.Typecode;
+        messageId = cached.MessageId;
+        return cached.Valid;
+    }
 
-        typecode = result.Typecode;
-        messageId = result.MessageId;
-        return result.Valid;
+    /// <summary>
+    ///     Wire ids of a GSS message on the route of one particular view or controller.
+    /// </summary>
+    /// <param name="messageType">The Aero message type to resolve</param>
+    /// <param name="version">The GSS protocol version to resolve against</param>
+    /// <param name="view">The view or controller the message is to be sent on</param>
+    /// <param name="typecode">The route's wire typecode, 0 when the message is not sent on it</param>
+    /// <param name="messageId">The wire message id of the type, 0 when the message is not sent on the route</param>
+    /// <returns>true if the message has wire ids on that route in this protocol version, false otherwise</returns>
+    public static bool TryGetGssWireIdsOnView(Type messageType, GssVersion version, Enum view, out byte typecode, out byte messageId)
+    {
+        var viewEnum = view.GetType().Name;
+        var viewOrdinal = Convert.ToInt32(view);
+        var key = (messageType, version, viewEnum, viewOrdinal);
+
+        if (!GssRouteCache.TryGetValue(key, out var cached))
+        {
+            var attribute = GetAeroMessageIds(messageType)
+                .FirstOrDefault(entry => entry.ViewEnum == viewEnum && entry.ViewOrdinal == viewOrdinal);
+
+            cached = ResolveGss(messageType, version, attribute);
+            GssRouteCache[key] = cached;
+        }
+
+        typecode = cached.Typecode;
+        messageId = cached.MessageId;
+        return cached.Valid;
     }
 
     /// <summary>
     ///     Wire id of a matrix message type in the given protocol version.
     /// </summary>
+    /// <param name="messageType">The Aero matrix message type to resolve</param>
+    /// <param name="version">The matrix protocol version to resolve against</param>
+    /// <param name="messageId">The matrix wire id of the message type, 0 when the type does not resolve</param>
+    /// <returns>true if the type is a matrix message in this protocol version, false otherwise</returns>
     public static bool TryGetMatrixWireId(Type messageType, MatrixVersion version, out byte messageId)
     {
         var key = (messageType, version);
@@ -58,11 +94,40 @@ public static class WireIds
     }
 
     /// <summary>
+    ///     Wire id of a control message type. Control messages are not version routed: the message id
+    ///     from the AeroMessageId attribute is the wire id.
+    /// </summary>
+    /// <param name="messageType">The Aero message type to resolve</param>
+    /// <param name="messageId">The control wire id of the message type, 0 when the type does not resolve</param>
+    /// <returns>true if the type is a control message, false otherwise</returns>
+    public static bool TryGetControlWireId(Type messageType, out byte messageId)
+    {
+        if (ControlCache.TryGetValue(messageType, out var cached))
+        {
+            messageId = cached.MessageId;
+            return cached.Valid;
+        }
+
+        var attr = GetAeroMessageId(messageType);
+        var result = attr is { Typ: AeroMessageIdAttribute.MsgType.Control }
+                         ? new ControlWireId((byte)attr.MessageId, true)
+                         : default;
+        ControlCache[messageType] = result;
+
+        messageId = result.MessageId;
+        return result.Valid;
+    }
+
+    /// <summary>
     ///     Universal (namespace, view ordinal) route carried by a wire typecode in the given protocol version.
     ///     View routes resolve to their view ordinal, namespace routes to a view ordinal of -1.
     ///     Typecodes that match no known route fall back to the root namespace: the client sends
     ///     root-namespace messages on typecode 0 as well as on the unrouted shard typecode (251).
     /// </summary>
+    /// <param name="version">The GSS protocol version the typecode comes from</param>
+    /// <param name="typecode">The wire typecode to route</param>
+    /// <param name="nsIndex">The universal namespace the typecode belongs to</param>
+    /// <param name="viewOrdinal">The view ordinal the typecode carries, -1 for a namespace route or an unknown typecode</param>
     public static void ResolveGssRoute(GssVersion version, byte typecode, out int nsIndex, out int viewOrdinal)
     {
         if (GssTables.TryFindView(version, typecode, out nsIndex, out viewOrdinal))
@@ -82,9 +147,16 @@ public static class WireIds
         viewOrdinal = -1;
     }
 
-    private static GssWireId ResolveGss(Type messageType, GssVersion version)
+    /// <summary>
+    ///     Resolves a GSS type's wire ids from its AeroMessageId attribute and the versioned routing tables.
+    /// </summary>
+    /// <param name="messageType">The Aero message, command or view type to resolve</param>
+    /// <param name="version">The GSS protocol version to resolve against</param>
+    /// <param name="attr">The route declaration to resolve, null when the type has none for what was asked</param>
+    /// <returns>The wire ids, or a default result when the route is absent from this protocol version</returns>
+    private static GssWireId ResolveGss(Type messageType, GssVersion version, AeroMessageIdAttribute? attr)
     {
-        if (GetAeroMessageId(messageType) is not { Typ: AeroMessageIdAttribute.MsgType.GSS, MessageEnum: not null } attr)
+        if (attr is not { Typ: AeroMessageIdAttribute.MsgType.GSS, MessageEnum: not null })
         {
             return default;
         }
@@ -140,6 +212,12 @@ public static class WireIds
         return new GssWireId(typecode, messageId, true);
     }
 
+    /// <summary>
+    ///     Resolves a matrix message type's wire id from its AeroMessageId attribute and the versioned matrix table.
+    /// </summary>
+    /// <param name="messageType">The Aero matrix message type to resolve</param>
+    /// <param name="version">The matrix protocol version to resolve against</param>
+    /// <returns>The wire id, 0 when the type is absent from this protocol version</returns>
     private static byte ResolveMatrix(Type messageType, MatrixVersion version)
     {
         if (GetAeroMessageId(messageType) is not { Typ: AeroMessageIdAttribute.MsgType.Matrix, MessageEnum: not null } attr)
@@ -161,10 +239,28 @@ public static class WireIds
         return MatrixTables.GetMessageId(version, (MatrixMessage)attr.MessageOrdinal);
     }
 
+    /// <summary>
+    ///     Reads the first AeroMessageId attribute a message type carries, which is its default route.
+    /// </summary>
+    /// <param name="messageType">The type to read the attribute from</param>
+    /// <returns>The attribute, null when the type carries none</returns>
     private static AeroMessageIdAttribute? GetAeroMessageId(Type messageType)
     {
-        return (AeroMessageIdAttribute?)messageType.GetCustomAttributes(typeof(AeroMessageIdAttribute), false).FirstOrDefault();
+        return GetAeroMessageIds(messageType).FirstOrDefault();
+    }
+
+    /// <summary>
+    ///     Reads every AeroMessageId attribute a message type carries. A type sent to more than one kind of
+    ///     recipient carries one per route it rides on, in declaration order.
+    /// </summary>
+    /// <param name="messageType">The type to read the attributes from</param>
+    /// <returns>The attributes, empty when the type carries none</returns>
+    private static AeroMessageIdAttribute[] GetAeroMessageIds(Type messageType)
+    {
+        return messageType.GetCustomAttributes(typeof(AeroMessageIdAttribute), false).Cast<AeroMessageIdAttribute>().ToArray();
     }
 
     private readonly record struct GssWireId(byte Typecode, byte MessageId, bool Valid);
+
+    private readonly record struct ControlWireId(byte MessageId, bool Valid);
 }

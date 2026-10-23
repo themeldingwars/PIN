@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Numerics;
 using System.Threading;
@@ -9,32 +8,35 @@ using AeroMessages.GSS.Character.Controller;
 using AeroMessages.GSS.Character.Event;
 using AeroMessages.Matrix;
 using GameServer.Data;
-using GameServer.GRPC;
+using GameServer.Protocol;
 using GameServer.StaticDB.Records.customdata;
-using GameServer.Test;
-using GrpcGameServerAPIClient;
+using GameServer.Systems.Combat;
 using Serilog;
 using CharacterEntity = GameServer.Entities.Character.CharacterEntity;
+using ClientStatus = GameServer.Protocol.ClientStatus;
 
 namespace GameServer;
 
 public class NetworkPlayer : NetworkClient, INetworkPlayer
 {
-    private readonly IShardManager _shards;
+    private static readonly PersonalFactionStance DefaultPlayerFactionStance = new(new PersonalFactionStanceData
+    {
+        Friendly = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = [0x09, 0x0e, 0x5d, 0xff, 0x5f, 0x08, 0x00, 0x00] },
+        Hostile = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = [0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00] },
+    });
 
-    public NetworkPlayer(IPEndPoint endPoint, uint socketId, IShardManager shards, ILogger logger)
+    public NetworkPlayer(IPEndPoint endPoint, uint socketId, ILogger logger)
         : base(endPoint, socketId, logger)
     {
-        _shards = shards;
         CharacterEntity = null;
         Status = IPlayer.PlayerStatus.Connecting;
         ConnectedAt = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
-    public ulong PlayerId { get; private set; }
-    public ulong CharacterId { get; private set; }
-    public CharacterEntity CharacterEntity { get; private set; }
-    public IPlayer.PlayerStatus Status { get; private set; }
+    public ulong PlayerId { get; set; }
+    public ulong CharacterId { get; set; }
+    public CharacterEntity CharacterEntity { get; set; }
+    public IPlayer.PlayerStatus Status { get; set; }
     public PlayerPreferences Preferences { get; private set; }
     public Zone CurrentZone { get; private set; }
     public uint CurrentOutpostId { get; private set; }
@@ -42,7 +44,10 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public uint RequestedClientTime { get; set; }
     public bool FirstUpdateRequested { get; set; }
     public ulong SteamUserId { get; set; }
+    public bool OwnCharacterViewsRequested { get; set; }
     public CharacterInventory Inventory { get; set; }
+    public CharacterUnlocks Unlocks { get; set; }
+    public CharacterBattleframes Battleframes { get; set; }
     public uint ConnectedAt { get; }
     public bool CanReceiveGSS => (Status.Equals(IPlayer.PlayerStatus.Playing) || Status.Equals(IPlayer.PlayerStatus.Loading)) && NetClientStatus.Equals(ClientStatus.Connected);
 
@@ -52,107 +57,16 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         Preferences = new PlayerPreferences();
     }
 
-    public async void Login(ulong characterId)
-    {
-        PlayerId = 0x4658281c142e9f00ul;
-        var guid = characterId & 0xffffffffffffff00;
-        CharacterId = guid;
-
-        // Don't crash if they are already logged in
-        if (_shards.Shards.Any(shard => shard.Entities.ContainsKey(CharacterId)))
-        {
-            Logger.Warning("Closing login because entity with this id is already zoned in");
-            var resp = new AeroMessages.Control.CloseConnection { ShutdownCode = 0 };
-            NetChannels[ChannelType.Control].SendMessage(resp);
-            return;
-        }
-
-        // Try to get remote character data
-        CharacterAndBattleframeVisuals remoteData = null;
-        try
-        {
-            remoteData = await GRPCService.GetCharacterAndBattleframeVisualsAsync((long)characterId);
-        }
-        catch
-        {
-            Logger.ForContext(typeof(GRPCService)).Warning("Could not get character over GRPC, will use fallback");
-        }
-
-        // Move to the shard of the zone the character belongs in, before anything gets created on the current one
-        var zone = PickZone(characterId, remoteData);
-        var shard = _shards.GetOrCreateShard(zone.ID);
-        if (shard != AssignedShard)
-        {
-            AssignedShard.MigrateOut(this);
-            shard.TransferIn(this);
-        }
-
-        // Begin setting up player character
-        CharacterEntity = new CharacterEntity(AssignedShard, guid);
-
-        // Load inventory so we get loadouts
-        Inventory = new CharacterInventory(AssignedShard, this, CharacterEntity);
-        Inventory.LoadHardcodedInventory();
-
-        // Use remote data or fallback to setup character
-        bool useRemoteData = true;
-        int loadoutId;
-        if (remoteData != null && useRemoteData)
-        {
-            CharacterEntity.LoadRemote(remoteData);
-
-            // Todo: load inventory from db so we can use those loadouts
-            loadoutId = Inventory.GetLoadoutIdForChassis(remoteData.CharacterInfo.CurrentBattleframeSDBId);
-        }
-        else
-        {
-            CharacterEntity.Load(HardcodedCharacterData.FallbackData);
-            loadoutId = Inventory.GetLoadoutIdForChassis(76331);
-        }
-
-        var loadoutRefData = Inventory.GetLoadoutReferenceData(loadoutId);
-        var loadout = new CharacterLoadout(loadoutRefData);
-        AssignedShard.Admin.ApplyEquipmentOverrides(this, loadout);
-        CharacterEntity.ApplyLoadout(loadout);
-
-        // Collision data should have been initialized now, create physics representation
-        AssignedShard.Physics.CreateKineticEntity(CharacterEntity);
-
-        CharacterEntity.SetControllingPlayer(this);
-        CharacterEntity.CanBleedout = true;
-        AssignedShard.CharacterLifecycle.OnCharacterCreated(CharacterEntity);
-        CharacterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Spawning, AssignedShard.CurrentTime);
-        Status = IPlayer.PlayerStatus.LoggedIn;
-
-        // WelcomeToTheMatrix
-        var wel = new WelcomeToTheMatrix { PlayerID = PlayerId, Unk1 = [], Unk2 = [] };
-        NetChannels[ChannelType.Matrix].SendMessage(wel);
-
-        uint outpostId;
-
-        if (remoteData != null)
-        {
-            outpostId = remoteData.CharacterInfo.LastZoneId == zone.ID ? FindClosestAvailableOutpost(zone, remoteData.CharacterInfo.LastOutpostId) : 0;
-        }
-        else
-        {
-            outpostId = zone.DefaultOutpostId;
-        }
-
-        Logger.Information("Zone {zoneId} Outpost {outpostId}", zone.ID, outpostId);
-
-        EnterZone(zone, outpostId);
-    }
-
     public void EnterZoneAck()
     {
+        OwnCharacterViewsRequested = false;
         AssignedShard.EntityMan.Add(CharacterEntity.EntityId, CharacterEntity);
         AssignedShard.EntityMan.OnPlayerJoin(this);
     }
 
     public void ExitZoneAck()
     {
-        AssignedShard.EntityMan.Remove(CharacterEntity);
+        LeaveZone();
     }
 
     public void Respawn()
@@ -186,7 +100,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         CharacterEntity.SetSpawnTime(AssignedShard.CurrentTime);
         CharacterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Respawning, AssignedShard.CurrentTime);
         CharacterEntity.SetSpawnPose();
-        baseController.RespawnTimesProp = new RespawnTimesData(); 
+        baseController.RespawnTimesProp = new RespawnTimesData();
         baseController.RespawnTimesProp = null; // Make the field dirty so we send clear because we probably should send clear. At some point investigaste if this is neccessary.
         baseController.TimedDailyRewardProp = new TimedDailyRewardData { State = TokenMachineState.Rolled, MaxRolls = 1, CountdownToTime = AssignedShard.CurrentTime };
         NetChannels[ChannelType.ReliableGss].SendChanges(baseController, CharacterEntity.EntityId);
@@ -196,17 +110,18 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         baseController.GibVisualsIdProp = new GibVisuals { Id = 0, Time = AssignedShard.CurrentTime + 1 };
         baseController.RespawnTimesProp = new RespawnTimesData(); // Shake it up
         baseController.RespawnTimesProp = null; // It's dirt
-        baseController.CurrentHealthProp = HardcodedCharacterData.MaxHealth;
-        baseController.MaxHealthProp = new MaxVital { Value = HardcodedCharacterData.MaxHealth, Time = AssignedShard.CurrentTime };
+        baseController.CurrentHealthProp = CharacterEntity.MaxHealth.Value;
+        baseController.MaxHealthProp = new MaxVital { Value = CharacterEntity.MaxHealth.Value, Time = AssignedShard.CurrentTime };
         baseController.CurrentShieldsProp = 0;
         baseController.ZoneUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
         baseController.RegionUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
-        baseController.PersonalFactionStanceProp = new PersonalFactionStanceData
-        {
-            Friendly = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = [0x09, 0x0e, 0x5d, 0xff, 0x5f, 0x08, 0x00, 0x00] },
-            Hostile = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = [0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00] }
-        };
+        CharacterEntity.SetPersonalFactionStance(DefaultPlayerFactionStance);
         NetChannels[ChannelType.ReliableGss].SendChanges(baseController, CharacterEntity.EntityId);
+
+        // A respawn starts a new life: no status effect, held ability or half-spent magazine from the old one
+        // carries over, and the frame's default abilities run again. This also keeps the jetpack effects below
+        // from stacking on every respawn.
+        CharacterEntity.ResetCombatState("respawn");
 
         // Hack to add in jetpack fx until we hook up item effects
         CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(986), new Systems.Aptitude.Context(AssignedShard, CharacterEntity)
@@ -218,15 +133,13 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
             InitTime = AssignedShard.CurrentTime,
         });
 
+        CharacterEntity.LogSpeedSnapshot("after respawn");
+
         var combatController = new CombatController
         {
             CombatTimer_0Prop = AssignedShard.CurrentTime,
         };
         NetChannels[ChannelType.ReliableGss].SendChanges(combatController, CharacterEntity.EntityId);
-
-        // InventoryUpdate
-        Inventory.SendFullInventory();
-        Inventory.EnablePartialUpdates = true;
 
         AssignedShard.Physics.UpdateEntity(CharacterEntity);
         CharacterEntity.Alive = true; // Accept MovementInputs only after Respawn
@@ -312,22 +225,17 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         return closestOutpostId;
     }
 
-    public void HandleFireWeaponProjectile(uint time, Vector3 aim, Vector3? shooterVelocity = null)
-    {
-        AssignedShard.WeaponSim.OnFireWeaponProjectile(CharacterEntity, time, aim, shooterVelocity);
-    }
-
-    public void EnterZone(Zone z, uint outpostId = 0)
+    public void EnterZone(Zone zone, uint outpostId = 0)
     {
         var spawnPoint = outpostId == 0
-                             ? new SpawnPoint { Position = z.POIs["spawn"] }
-                             : AssignedShard.Outposts[z.ID][outpostId].RandomSpawnPoint;
+                             ? new SpawnPoint { Position = zone.POIs["spawn"] }
+                             : AssignedShard.Outposts[zone.ID][outpostId].RandomSpawnPoint;
 
         // Ensure character entity is placed at the respawn point
         CharacterEntity.PositionAtSpawnPoint(spawnPoint);
         CharacterEntity.SetSpawnPose();
 
-        CurrentZone = z;
+        CurrentZone = zone;
         CurrentOutpostId = outpostId;
 
         var msg = new EnterZone
@@ -363,20 +271,9 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         Status = IPlayer.PlayerStatus.Loading;
     }
 
-    /// <summary>
-    ///     The character's last zone from RIN, or for fallback characters the zone encoded in the low bits of the id.
-    ///     Unknown zones fall back to the default shard's zone.
-    /// </summary>
-    private Zone PickZone(ulong characterId, CharacterAndBattleframeVisuals remoteData)
+    private void LeaveZone()
     {
-        var zoneId = remoteData != null ? remoteData.CharacterInfo.LastZoneId : (uint)(characterId & 0x000000000000ffff);
-
-        if (DataUtils.TryGetZone(zoneId, out var zone))
-        {
-            return zone;
-        }
-
-        Logger.Information("Zone {ZoneId} isn't known, using the default zone", zoneId);
-        return DataUtils.GetZone(_shards.DefaultShard.ZoneId);
+        AssignedShard.EntityMan.OnPlayerLeft(this);
+        AssignedShard.EntityMan.Remove(CharacterEntity);
     }
 }

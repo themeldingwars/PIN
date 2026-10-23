@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using GameServer.Data;
 using GameServer.GRPC;
+using GameServer.Protocol;
 using GameServer.Test;
 using Serilog;
 

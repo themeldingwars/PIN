@@ -50,7 +50,6 @@ public class GameServerModule : Module
         {
             var settings = new GameServerSettings();
             ctx.Resolve<IConfiguration>().GetSection("GameServer").Bind(settings);
-
             ResolveProtocolVersions(settings);
 
             return settings;
@@ -134,6 +133,7 @@ public class GameServerModule : Module
     ///     <see cref="GameServerSettings.ClientBranch" /> and <see cref="GameServerSettings.ClientVersion" />
     ///     to the GSS/matrix protocol versions this server instance should speak.
     /// </summary>
+    /// <param name="settings">The settings whose client environment/branch/version select the protocol versions.</param>
     private static void ResolveProtocolVersions(GameServerSettings settings)
     {
         var environment = settings.ClientEnvironment.Trim();
@@ -186,6 +186,9 @@ public class GameServerModule : Module
     ///     configured environment/branch, or the available environment/branch combinations when the
     ///     configured combination itself is unknown.
     /// </summary>
+    /// <param name="environment">The configured client environment name.</param>
+    /// <param name="branch">The configured client branch name.</param>
+    /// <returns>A human-readable list of known versions (or available environment/branch combinations) for the error message.</returns>
     private static string KnownVersionsHint(string environment, string branch)
     {
         var versions = Patches.All

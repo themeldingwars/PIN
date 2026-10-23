@@ -361,7 +361,8 @@
   {
     "id": 860808,
     "comment": "33947. Engineer Turret spawn NPC gunner ; Called from construction of turret",
-    "monster_id": 393
+    "monster_id": 393,
+    "hidden": true
   },
   {
     "id": 860814,
@@ -369,7 +370,9 @@
   },
   {
     "id": 860820,
-    "comment": ""
+    "comment": "41477/41891. Multi Turret spawn NPC gunner ; Called from construction of turret",
+    "monster_id": 393,
+    "hidden": true
   },
   {
     "id": 860827,
@@ -377,7 +380,9 @@
   },
   {
     "id": 860833,
-    "comment": ""
+    "comment": "34702. Multi Turret spawn NPC gunner ; Called from construction of turret",
+    "monster_id": 393,
+    "hidden": true
   },
   {
     "id": 860839,
@@ -941,7 +946,9 @@
   },
   {
     "id": 1312688,
-    "comment": ""
+    "comment": "35543/39420/41885/41944. Heavy Turret spawn NPC gunner ; Called from construction of turret",
+    "monster_id": 701,
+    "hidden": true
   },
   {
     "id": 1317811,

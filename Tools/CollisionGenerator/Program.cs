@@ -9,7 +9,6 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using BepuPhysics;
-using BepuPhysics.Collidables;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using CommandLine;
@@ -54,6 +53,18 @@ public class Options
 
     [Option('f', "force", Required = false, HelpText = "Regenerate the cache even if it was already generated with the same options and source files")]
     public bool Force { get; set; }
+
+    [Option("navmesh", Required = false, HelpText = "Bake navmesh for a zone (requires --zone-id)")]
+    public bool NavMesh { get; set; }
+
+    [Option("selfTest", Required = false, HelpText = "Run navmesh self-test (requires --zone-id)")]
+    public bool SelfTest { get; set; }
+
+    [Option("objYUp", Required = false, HelpText = "Export OBJ in Y-up (Recast space) instead of Z-up (world space)")]
+    public bool ObjYUp { get; set; }
+
+    [Option("inputObj", Required = false, HelpText = "Export the raw input geometry as OBJ (large file, for debugging)")]
+    public bool InputObj { get; set; }
 }
 
 internal static class Program
@@ -113,10 +124,11 @@ internal static class Program
         var assetTime = TimeSpan.Zero;
 
         var hasChunkMode = !string.IsNullOrEmpty(opts.ChunkName) || opts.AllChunks;
-        var hasZoneMode = opts.ZoneId.HasValue || opts.AllZones;
+        var hasZoneMode = (opts.ZoneId.HasValue || opts.AllZones) && !opts.SelfTest;
         var hasAssetMode = !string.IsNullOrEmpty(opts.AssetId) || opts.AllAssets;
+        var hasNavMeshBake = opts.NavMesh;
 
-        if (!hasChunkMode && !hasZoneMode && !hasAssetMode)
+        if (!hasChunkMode && !hasZoneMode && !hasAssetMode && !opts.NavMesh && !opts.SelfTest)
         {
             Console.Error.WriteLine("Error: No mode selected. Specify at least one: chunk, zone, or asset mode.");
             PrintUsage();
@@ -144,7 +156,7 @@ internal static class Program
             return 1;
         }
 
-        if ((hasChunkMode || hasZoneMode) && string.IsNullOrEmpty(opts.MapsPath))
+        if ((hasChunkMode || hasZoneMode || hasNavMeshBake) && string.IsNullOrEmpty(opts.MapsPath))
         {
             Console.Error.WriteLine("Error: --maps-path is required for chunk and zone modes.");
             PrintUsage();
@@ -208,7 +220,7 @@ internal static class Program
         stopwatch.Restart();
 
         // Phase 2: Zone phase
-        if (opts.ZoneId.HasValue)
+        if (opts.ZoneId.HasValue && !opts.SelfTest)
         {
             Logger.Information("=== ZONE PHASE: Loading zone {ZoneId} ===", opts.ZoneId.Value);
             ProcessSingleZone(opts.ZoneId.Value, opts.MapsPath!, opts.CachePath, jobs);
@@ -242,13 +254,39 @@ internal static class Program
         }
 
         assetTime = stopwatch.Elapsed;
+        stopwatch.Restart();
+
+        // Phase 4: Navmesh phase
+        if (opts.NavMesh || opts.SelfTest)
+        {
+            if (!opts.ZoneId.HasValue)
+            {
+                Console.Error.WriteLine("Error: --navmesh and --selfTest require --zone-id.");
+                return 1;
+            }
+
+            if (opts.NavMesh)
+            {
+                Logger.Information("=== NAVMESH PHASE: Baking zone {ZoneId} ===", opts.ZoneId.Value);
+                NavMeshBaker.Bake(opts.ZoneId.Value, opts.MapsPath!, opts.CachePath, opts.ObjYUp, opts.InputObj);
+            }
+
+            if (opts.SelfTest)
+            {
+                Logger.Information("=== NAVMESH PHASE: Self-test zone {ZoneId} ===", opts.ZoneId.Value);
+                NavMeshBaker.SelfTest(opts.ZoneId.Value, opts.CachePath);
+            }
+        }
+
+        var navmeshTime = stopwatch.Elapsed;
         stopwatch.Stop();
 
         Logger.Information("=== Summary ===");
         Logger.Information("  Chunk phase: {Elapsed}", chunkTime);
         Logger.Information("  Zone phase:  {Elapsed}", zoneTime);
         Logger.Information("  Asset phase: {Elapsed}", assetTime);
-        Logger.Information("  Total:       {Elapsed}", chunkTime + zoneTime + assetTime);
+        Logger.Information("  Navmesh phase: {Elapsed}", navmeshTime);
+        Logger.Information("  Total:         {Elapsed}", stopwatch.Elapsed);
 
         if (_failures > 0)
         {
@@ -287,6 +325,12 @@ Asset mode (requires --asset-db-path):
   --all-assets           Process ALL .hkx files in assetdb
   Note: --asset-id and --all-assets are mutually exclusive
 
+Navmesh mode (requires --zone-id):
+  --navmesh           Bake navmesh for the zone
+  --selfTest          Run navmesh self-test (pathfinding sanity check)
+  --objYUp            Export OBJ in Y-up (Recast space) for use in Recast Demo
+  --inputObj          Also export raw input geometry OBJ (large, for debugging)
+
 Other:
   --jobs, -j             Number of parallel jobs (default: CPU count - 2)
   --force, -f            Regenerate the cache even if it was already generated with the same options and source files
@@ -312,6 +356,12 @@ Examples:
 
   # Process all zones AND all assets
   CollisionGenerator -c ./cache -m ./maps --all-zones -a ./assetdb --all-assets
+
+  # Bake navmesh for a zone
+  CollisionGenerator -c ./cache -m ./maps -z 1 --navmesh
+
+  # Run navmesh self-test
+  CollisionGenerator -c ./cache -z 1 --selfTest
 ");
     }
 

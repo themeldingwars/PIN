@@ -100,9 +100,14 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
     public StatusEffectData? StatusEffects_30 { get; set; }
     public StatusEffectData? StatusEffects_31 { get; set; }
 
+    public override string ToString()
+    {
+        return $"Carryable {Type} ({EntityId:X8})";
+    }
+
     public override void SetStatusEffect(byte index, ushort time, StatusEffectData data)
     {
-        Logger.Debug("Carryable.SetStatusEffect Index {index}, Time {time}, Id {effectId}", index, time, data.Id);
+        Logger.Debug("{Entity} SetStatusEffect Index {index}, Time {time}, Id {effectId}", this, index, time, data.Id);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);
@@ -115,7 +120,7 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override void ClearStatusEffect(byte index, ushort time, uint debugEffectId)
     {
-        Logger.Debug("Carryable.ClearStatusEffect Index {index}, Time {time}, Id {effectId}", index, time, debugEffectId);
+        Logger.Debug("{Entity} ClearStatusEffect Index {index}, Time {time}, Id {effectId}", this, index, time, debugEffectId);
 
         // Member
         GetType().GetProperty($"StatusEffectsChangeTime_{index}").SetValue(this, time, null);

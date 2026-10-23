@@ -28,7 +28,7 @@ public class RequireLevelCommand : Command, ICommand
             }
             else if (Params.SessionLevel == 1)
             {
-                // todo
+                // TODO: session level is not checked yet; the requirement passes unconditionally.
                 Logger.Information("[{Command} {CommandId}] Session level, level {Level}", nameof(RequireLevelCommand), Params.Id, Params.Level);
                 cmdResult = true;
             }

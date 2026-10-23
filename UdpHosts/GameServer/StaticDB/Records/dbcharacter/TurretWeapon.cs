@@ -4,7 +4,7 @@ namespace GameServer.StaticDB.Records.dbcharacter;
 public record class TurretWeapon
 {
     public Vector3 PhysicalOrigin { get; set; }
-    public string MuzzleHardpoint { get; set; }
+    public string MuzzleHardpointName { get; set; }
     public uint TurretTypeId { get; set; }
     public uint WeaponId { get; set; }
     public uint DamageStatId { get; set; }

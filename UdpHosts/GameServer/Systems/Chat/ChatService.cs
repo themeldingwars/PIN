@@ -7,6 +7,8 @@ using AeroMessages.GSS.Generic;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.Extensions;
+using GameServer.Protocol;
 using GameServer.Systems.SystemEvents;
 using Serilog;
 
@@ -77,13 +79,15 @@ public class ChatService
     public void SendToAll(string message, ChatChannel channel, IEntity sender)
     {
         var response = PrepareSingleMessage(message, channel, sender);
-        foreach (var client in _shard.Clients.Values)
+
+        if (!WireIds.TryGetGssWireIds(typeof(ChatMessageList), _shard.Settings.GssProtocolVersion, out var typecode, out var messageId))
         {
-            if (client.Status.Equals(IPlayer.PlayerStatus.Playing))
-            {
-                client.NetChannels[ChannelType.UnreliableGss].SendMessage(response, _shard.InstanceId);
-            }
+            _logger.Error("Could not resolve GSS wire id for {Type} in protocol version {Version}", typeof(ChatMessageList).FullName, _shard.Settings.GssProtocolVersion);
+            return;
         }
+
+        response.SerializeToMemory(out var messageData);
+        _shard.BroadcastGssMessage(_shard.InstanceId, messageId, typecode, messageData.Span, ChannelType.UnreliableGss, static player => player.Status.Equals(IPlayer.PlayerStatus.Playing));
     }
 
     public string GetCommandList()

@@ -20,12 +20,14 @@ public interface IPlayer
         Playing = 999
     }
 
-    ulong PlayerId { get; }
-    ulong CharacterId { get; }
+    ulong PlayerId { get; set; }
+    ulong CharacterId { get; set; }
     ulong EntityId => CharacterId & 0xffffffffffffff00; // Ignore last byte
-    CharacterEntity CharacterEntity { get; }
+    CharacterEntity CharacterEntity { get; set; }
     CharacterInventory Inventory { get; set; }
-    PlayerStatus Status { get; }
+    CharacterUnlocks Unlocks { get; set; }
+    CharacterBattleframes Battleframes { get; set; }
+    PlayerStatus Status { get; set; }
     PlayerPreferences Preferences { get; }
     Zone CurrentZone { get; }
     uint ConnectedAt { get; }
@@ -33,6 +35,11 @@ public interface IPlayer
     uint RequestedClientTime { get; set; }
     bool FirstUpdateRequested { get; set; }
     bool CanReceiveGSS { get; }
+
+    /// <summary>
+    ///     Wait for the client to request its own remote views
+    /// </summary>
+    bool OwnCharacterViewsRequested { get; set; }
 
     /// <summary>
     ///     The player's user id on steam
@@ -45,7 +52,12 @@ public interface IPlayer
 
     void Init(IShard shard);
 
-    void Login(ulong characterId);
+    /// <summary>
+    ///     Places the character at the spawn point of a zone and tells the client to enter it
+    /// </summary>
+    /// <param name="zone">The zone to enter</param>
+    /// <param name="outpostId">The outpost to spawn at, 0 for the zone's spawn point</param>
+    void EnterZone(Zone zone, uint outpostId = 0);
     void EnterZoneAck();
     void ExitZoneAck();
     void Ready();
@@ -53,6 +65,5 @@ public interface IPlayer
     void Jump();
     void Tick(double deltaTime, ulong currentTime, CancellationToken ct);
     uint FindClosestAvailableOutpost(Zone zone, uint targetOutpostId);
-    void HandleFireWeaponProjectile(uint time, Vector3 aim, Vector3? shooterVelocity = null);
     void RequestRevive(INetworkPlayer reviver);
 }

@@ -1,3 +1,4 @@
+using GameServer.Data;
 using GameServer.Entities.Character;
 using GameServer.StaticDB.Records.customdata;
 
@@ -21,8 +22,10 @@ public class UnlockBattleframesCommand : Command, ICommand
             return;
         }
 
-        if (context.Self is CharacterEntity character)
+        if (context.Self is CharacterEntity { IsPlayerControlled: true } character)
         {
+            // Records that the chassis is unlocked. Granting the chassis item and its loadout is still missing.
+            character.Player.Unlocks.Grant(UnlockTypes.Battleframe, Params.SdbId);
         }
 
         result.SetPass();

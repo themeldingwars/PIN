@@ -1,3 +1,5 @@
+using GameServer.Data;
+using GameServer.Entities.Character;
 using GameServer.StaticDB.Records.customdata;
 
 namespace GameServer.Systems.Aptitude.Commands.Unlock;
@@ -20,7 +22,12 @@ public class UnlockTitlesCommand : Command, ICommand
             return;
         }
 
-        // todo aptitude: unlock title
+        if (context.Self is CharacterEntity { IsPlayerControlled: true } character)
+        {
+            // Records that the title is unlocked. Showing it in the title picker is still missing.
+            character.Player.Unlocks.Grant(UnlockTypes.Title, Params.TitleId);
+        }
+
         result.SetPass();
         return;
     }

@@ -75,11 +75,11 @@ public class StatModifierCommand : Command, ICommand
         const float PercentScale = 0.01f;
         return (int)op switch
         {
-            0 => new ActiveStatModifier { Stat = stat, Multi = 1.0f, Add = value },                             // add
-            1 => new ActiveStatModifier { Stat = stat, Multi = value * PercentScale, Add = 0.0f },              // percent (value/100)
-            2 => new ActiveStatModifier { Stat = stat, Multi = value, Add = 0.0f },                             // multi
-            3 => new ActiveStatModifier { Stat = stat, Multi = 1.0f, Add = value, Cap = value, HasCap = true }, // floor (max)
-            4 => new ActiveStatModifier { Stat = stat, Multi = value, Add = 0.0f, Cap = value, HasCap = true }, // special (min after multi)
+            1 => new ActiveStatModifier { Stat = stat, Multi = 1.0f, Add = value },                             // add
+            2 => new ActiveStatModifier { Stat = stat, Multi = value * PercentScale, Add = 0.0f },              // percent (value/100)
+            3 => new ActiveStatModifier { Stat = stat, Multi = value, Add = 0.0f },                             // multi
+            4 => new ActiveStatModifier { Stat = stat, Multi = 1.0f, Add = value, Cap = value, HasCap = true }, // floor (max)
+            5 => new ActiveStatModifier { Stat = stat, Multi = value, Add = 0.0f, Cap = value, HasCap = true }, // special (min after multi)
             _ => null,
         };
     }

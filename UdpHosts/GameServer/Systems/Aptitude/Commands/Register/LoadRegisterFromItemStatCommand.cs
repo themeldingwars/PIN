@@ -21,6 +21,7 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
 
         if (Params.FromTarget == 1)
         {
+            Logger.Debug("{Command} {CommandId} FromTarget=1", nameof(LoadRegisterFromItemStatCommand), Params.Id);
             if (context.Targets.Count > 0)
             {
                 target = context.Targets.Peek();
@@ -35,6 +36,7 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
 
         if (Params.FromInitiator == 1)
         {
+            Logger.Debug("{Command} {CommandId} FromInitiator=1", nameof(LoadRegisterFromItemStatCommand), Params.Id);
             target = context.Initiator;
         }
 

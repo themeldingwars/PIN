@@ -3,12 +3,15 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
+using Aero.Gen;
 using AeroMessages.Common;
 using AeroMessages.GSS.Character.Command;
 using AeroMessages.GSS.Character.Event;
 using AeroMessages.GSS.Generic;
 using GameServer.Entities;
 using GameServer.Entities.Character;
+using GameServer.Extensions;
+using GameServer.Protocol;
 using GameServer.StaticDB;
 using GameServer.StaticDB.Records.aptfs;
 using GameServer.Systems.Encounters.Encounters;
@@ -218,10 +221,7 @@ public class EncounterManager
                       ShadowFieldValues = serializedData.ToArray()
                   };
 
-        foreach (var player in encounter.Participants)
-        {
-            player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, player.CharacterEntity.EntityId);
-        }
+        SendToParticipants(encounter, msg);
     }
 
     private void FlushChanges(IEncounter encounter)
@@ -242,10 +242,7 @@ public class EncounterManager
                       SinCardChanges = [],
                   };
 
-        foreach (var player in encounter.Participants)
-        {
-            player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, player.CharacterEntity.EntityId);
-        }
+        SendToParticipants(encounter, msg);
     }
 
     private void ScopeOut(IEncounter encounter)
@@ -256,9 +253,28 @@ public class EncounterManager
         }
 
         var msg = new EncounterUIScopeOut() { EncounterId = encounter.AeroEntityId };
+        SendToParticipants(encounter, msg);
+    }
+
+    /// <summary>
+    ///     Send an Aero message to every participant of an encounter on the ReliableGss channel. The message
+    ///     is serialized once regardless of how many participants there are.
+    /// </summary>
+    /// <param name="encounter">The encounter whose participants receive the message</param>
+    /// <param name="message">The Aero message to send</param>
+    private void SendToParticipants(IEncounter encounter, IAero message)
+    {
+        if (!WireIds.TryGetGssWireIds(message.GetType(), _shard.Settings.GssProtocolVersion, out var typecode, out var messageId) || messageId == 0)
+        {
+            _shard.Logger.Error("Could not resolve GSS wire ids for {Type} in protocol version {Version}", message.GetType().FullName, _shard.Settings.GssProtocolVersion);
+            return;
+        }
+
+        message.SerializeToMemory(out var messageData);
+
         foreach (var player in encounter.Participants)
         {
-            player.NetChannels[ChannelType.ReliableGss].SendMessage(msg, player.CharacterEntity.EntityId);
+            player.NetChannels[ChannelType.ReliableGss].SendGssMessage(player.CharacterEntity.EntityId, messageId, typecode, messageData.Span);
         }
     }
 

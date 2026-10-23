@@ -3,10 +3,12 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
+using AeroMessages.GSS.Character.Event;
 using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.Physics;
 using GameServer.StaticDB.Records.dbitems;
+using GameServer.Systems.Aptitude;
 
 namespace GameServer.Systems.ProjectileSim;
 
@@ -25,7 +27,7 @@ public class ProjectileSim
         _activeProjectiles = new ConcurrentDictionary<(ulong EntityId, uint TraceId), ActiveProjectile>();
     }
 
-    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, float damage, bool isAbilityProjectile = false)
+    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, float damage, bool isAbilityProjectile = false, Guid? sourceExecutionId = null)
     {
         var ammoFlags = new AmmoFlags(ammo.Flags);
         bool isDrunk = DrunkMissile.IsActive(ammo);
@@ -69,7 +71,9 @@ public class ProjectileSim
             DamageType = ammo.Damagetype,
             DamageResponse = ammo.DamageResponse,
             IsDrunk = isDrunk,
-            IsAbilityProjectile = isAbilityProjectile
+            IsAbilityProjectile = isAbilityProjectile,
+            NextPeriodAbilityTime = ammo.PeriodAbilityMs > 0 ? _shard.CurrentTime + ammo.PeriodAbilityMs : 0,
+            SourceExecutionId = sourceExecutionId
         };
 
         _activeProjectiles.TryAdd((entity.EntityId, trace), projectile);
@@ -134,6 +138,16 @@ public class ProjectileSim
 
             projectile.CurrentPosition = basePosition + projectile.DrunkOffset;
 
+            if (projectile.Ammo.PeriodAbilityId != 0 && projectile.Ammo.PeriodAbilityMs > 0 && currentTime >= projectile.NextPeriodAbilityTime)
+            {
+                var periodSource = GetSourceEntity(projectile);
+                if (periodSource != null)
+                {
+                    _shard.Abilities.HandleActivateAbility(_shard, periodSource, projectile.Ammo.PeriodAbilityId, (uint)currentTime, new AptitudeTargets(), projectile.SourceExecutionId, projectile.CurrentPosition);
+                    projectile.NextPeriodAbilityTime += projectile.Ammo.PeriodAbilityMs;
+                }
+            }
+
             var hit = _shard.Physics.SegmentRayCast(projectile.PreviousPosition, projectile.CurrentPosition, projectile.EntityId);
 
             if (hit.Hit)
@@ -157,13 +171,38 @@ public class ProjectileSim
                     var source = GetSourceEntity(projectile);
                     if (source != null)
                     {
+                        if (source is CharacterEntity shooter)
+                        {
+                            SendProjectileHitReported(shooter, projectile.TraceId, (uint)currentTime);
+                        }
+
                         _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.ImpactRadius, projectile.Damage, projectile.DamageType, projectile.IsAbilityProjectile);
+
+                        if (projectile.Ammo.AbilityId != 0)
+                        {
+                            var targets = new AptitudeTargets();
+                            if (hit.HitEntityId != 0 && _shard.Entities.TryGetValue(hit.HitEntityId, out var hitEntity) && hitEntity is IAptitudeTarget hitTarget)
+                            {
+                                targets.Push(hitTarget);
+                            }
+
+                            _shard.Abilities.HandleActivateAbility(_shard, source, projectile.Ammo.AbilityId, (uint)currentTime, targets, projectile.SourceExecutionId, hit.HitPosition);
+                        }
                     }
                 }
             }
 
             if (elapsedMs >= projectile.LifetimeMs)
             {
+                if (projectile.Ammo.AirburstAbilityId != 0)
+                {
+                    var airburstSource = GetSourceEntity(projectile);
+                    if (airburstSource != null)
+                    {
+                        _shard.Abilities.HandleActivateAbility(_shard, airburstSource, projectile.Ammo.AirburstAbilityId, (uint)currentTime, new AptitudeTargets(), projectile.SourceExecutionId, projectile.CurrentPosition);
+                    }
+                }
+
                 _activeProjectiles.TryRemove(key, out _);
                 _logger.Debug("Projectile trace={Trace} expired at {Elapsed}/{Lifetime}ms", projectile.TraceId, elapsedMs, projectile.LifetimeMs);
                 SendDebugTimeout(projectile, projectile.CurrentPosition);
@@ -263,6 +302,21 @@ public class ProjectileSim
         }
 
         return null;
+    }
+
+    // Original-server monster attacks write a ProjectileHitReported message on the shooter's CombatView for each shot.
+    // The two trailing bytes are still unknown; zero is the observed default for ordinary single hits.
+    private void SendProjectileHitReported(CharacterEntity shooter, uint traceId, uint time)
+    {
+        var message = new ProjectileHitReported
+        {
+            TraceRef = (ushort)traceId,
+            ShortTime = (ushort)time,
+            SegmentFraction = 0,
+            Unk3 = 0,
+        };
+
+        _shard.EntityMan.SendToScopedReliable(shooter, message);
     }
 
     private void SendDebugSpawn(CharacterEntity entity, uint traceId, Vector3 origin, Vector3 direction, float speed)

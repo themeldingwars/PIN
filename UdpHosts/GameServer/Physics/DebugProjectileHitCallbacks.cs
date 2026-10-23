@@ -1,6 +1,7 @@
 using System.Numerics;
 using AeroMessages.GSS.Character.Event;
 using GameServer.Entities.Character;
+using GameServer.Protocol;
 
 namespace GameServer.Physics;
 
