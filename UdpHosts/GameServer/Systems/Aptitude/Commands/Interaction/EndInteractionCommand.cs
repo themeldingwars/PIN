@@ -11,6 +11,7 @@ namespace GameServer.Systems.Aptitude.Commands.Interaction;
 public class EndInteractionCommand : ICommand
 {
     protected readonly ILogger Logger = Log.ForContext<BeginInteractionCommand>();
+    private const ulong _releaseToleranceMs = 200;
 
     public EndInteractionCommand(uint id)
     {
@@ -30,7 +31,16 @@ public class EndInteractionCommand : ICommand
 
         var source = (CharacterEntity)context.Self;
         var interactionEntity = (BaseEntity)source.InteractionTarget;
+        var elapsedMs = context.Shard.CurrentTimeLong - source.InteractionStartedAt;
         source.SetInteractionTarget(null);
+
+        // Ended before the interaction took as long as its target asks for: cancelled, not completed.
+        // The client times the hold itself, so a release right at the end may arrive a little early.
+        if (elapsedMs + _releaseToleranceMs < interactionEntity.Interaction.DurationMs)
+        {
+            result.SetPass();
+            return;
+        }
 
         if (character is { IsPlayerControlled: true })
         {

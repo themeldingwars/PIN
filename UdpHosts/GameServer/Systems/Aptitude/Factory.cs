@@ -104,8 +104,8 @@ public class Factory
                 return new PassiveInitiationCommand(SDBInterface.GetPassiveInitiationCommandDef(commandId));
             case CommandType.StagedActivation:
                 return new StagedActivationCommand(SDBInterface.GetStagedActivationCommandDef(commandId));
-            // case CommandType.ActivationDuration:
-            //     return new ActivationDurationCommand(SDBInterface.GetActivationDurationCommandDef(commandId));
+            case CommandType.ActivationDuration:
+                return new ActivationDurationCommand(SDBInterface.GetActivationDurationCommandDef(commandId));
             case CommandType.TeleportInstance:
                 return new TeleportInstanceCommand(CustomDBInterface.GetTeleportInstanceCommandDef(commandId));
             // case CommandType.ResetTrauma:
@@ -282,8 +282,8 @@ public class Factory
                 return new InteractionTypeCommand(SDBInterface.GetInteractionTypeCommandDef(commandId));
             case CommandType.TargetStackEmpty:
                 return new TargetStackEmptyCommand(SDBInterface.GetTargetStackEmptyCommandDef(commandId));
-            // case CommandType.InteractionInProgress:
-            //     return new InteractionInProgressCommand(CustomDBInterface.GetInteractionInProgressCommandDef(commandId));
+            case CommandType.InteractionInProgress:
+                return new InteractionInProgressCommand(CustomDBInterface.GetInteractionInProgressCommandDef(commandId));
             // case CommandType.InteractionCompletionTime:
             //     return new InteractionCompletionTimeCommand(CustomDBInterface.GetInteractionCompletionTimeCommandDef(commandId));
             // case CommandType.Execute:

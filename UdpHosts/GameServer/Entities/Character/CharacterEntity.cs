@@ -211,6 +211,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public RespawnTimesData? RespawnTimes { get; private set; }
     public IEntity InteractionTarget { get; set; }
     public Guid? InteractionExecutionId { get; set; }
+    public ulong InteractionStartedAt { get; private set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -2241,6 +2242,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetInteractionTarget(IEntity target)
     {
         InteractionTarget = target;
+        InteractionStartedAt = Shard.CurrentTimeLong;
 
         if (target == null)
         {
