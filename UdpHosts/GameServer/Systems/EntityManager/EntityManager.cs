@@ -1434,18 +1434,17 @@ public class EntityManager
 
     public void ScopeOut(INetworkPlayer player, IEntity entity)
     {
-        _scopedPlayersByEntity[entity.EntityId].Remove(player);
+        // Remove the tracking even if the player can't receive the scope out.
+        // The entity can already be removed. Refer to the same guard in ScopeIn.
+        if (_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayers))
+        {
+            scopedPlayers.Remove(player);
+        }
 
         // Avoid sending messages if player is not in the appropriate state
         if (!player.CanReceiveGSS)
         {
             return;
-        }
-
-        // The entity can already be removed. Refer to the same guard in ScopeIn.
-        if (_scopedPlayersByEntity.TryGetValue(entity.EntityId, out var scopedPlayers))
-        {
-            scopedPlayers.Remove(player);
         }
 
         if (entity is CharacterEntity character)
