@@ -101,7 +101,7 @@ public class CharacterCreationService
         {
             outpostId = data.Character.CharacterInfo.LastZoneId == zone.ID
                             ? player.FindClosestAvailableOutpost(zone, data.Character.CharacterInfo.LastOutpostId)
-                            : 0;
+                            : zone.DefaultOutpostId;
         }
         else
         {
