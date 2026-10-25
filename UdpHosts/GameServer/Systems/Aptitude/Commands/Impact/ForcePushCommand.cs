@@ -17,7 +17,7 @@ public class ForcePushCommand : Command, ICommand
     ///     How long a pushed NPC body keeps its knockback velocity before the AI steering motor takes over
     ///     again. The def has no duration of its own, so this is a fixed grace period.
     /// </summary>
-    private const float _npcPushSeconds = 0.5f;
+    private const float _npcPushSeconds = 1.5f;
 
     private const float _epsilon = 0.001f;
 
@@ -68,6 +68,15 @@ public class ForcePushCommand : Command, ICommand
         result.SetPass();
     }
 
+    private static Vector3 WithLoft(Vector3 direction, float loft)
+    {
+        float climb = loft * new Vector2(direction.X, direction.Y).Length();
+        float z = direction.Z < climb && direction.Z > -climb ? climb : direction.Z;
+        Vector3 raised = new(direction.X, direction.Y, z);
+
+        return raised.LengthSquared() <= _epsilon ? Vector3.UnitZ : Vector3.Normalize(raised);
+    }
+
     /// <summary>
     ///     Works out the push velocity for one target and hands it to whichever mover owns that character: the
     ///     physics engine for server-authoritative bodies, the client for player controlled ones. A negative
@@ -79,19 +88,19 @@ public class ForcePushCommand : Command, ICommand
     /// <param name="strength">The regop resolved push strength, negative meaning a pull</param>
     private void PushCharacter(Context context, CharacterEntity character, Vector3 origin, float strength)
     {
-        Vector3 displacement = character.Position - origin;
-        Vector3 direction = new(displacement.X, displacement.Y, 0f);
-
-        if (direction.LengthSquared() <= _epsilon)
+        if (!character.TryGetInterpolatedPose(context.CurrentTime, null, out var target, out _, out _))
         {
-            direction = new Vector3(context.InitAimDirection.X, context.InitAimDirection.Y, 0f);
-            if (direction.LengthSquared() <= _epsilon)
-            {
-                direction = Vector3.UnitX;
-            }
+            target = character.Position;
         }
 
-        direction = Vector3.Normalize(direction);
+        Vector3 displacement = target - origin;
+
+        if (displacement.LengthSquared() <= _epsilon)
+        {
+            displacement = Vector3.UnitZ;
+        }
+
+        Vector3 direction = Vector3.Normalize(displacement);
 
         // falloff is the distance over which the shove dies out, and zero means it does not fall off at all.
         float factor = 1f;
@@ -106,19 +115,28 @@ public class ForcePushCommand : Command, ICommand
         }
 
         float speed = Math.Abs(strength) * factor;
-        Vector3 velocity = direction * (speed * Math.Sign(strength));
-        velocity.Z = Params.Loft * speed;
 
-        if (context.Shard.Physics.ApplyPushVelocity(character, velocity, _npcPushSeconds))
-        {
-            Logger.Debug("{Command} {CommandId} pushed {Entity} to {Velocity}", nameof(ForcePushCommand), Params.Id, character.EntityId, velocity);
-            return;
-        }
+        Vector3 travel = direction * Math.Sign(strength);
+        Vector3 velocity = WithLoft(travel, Params.Loft) * speed;
 
         if (character.IsPlayerControlled && character.Player != null)
         {
             SendForcedMovement(context, character, velocity);
             return;
+        }
+        else
+        {
+            if (context.Shard.Physics.ApplyPushVelocity(character, velocity, _npcPushSeconds))
+            {
+                Logger.Debug("{Command} {CommandId} pushed {Entity} target={TargetPosition} displacement={Displacement} to {Velocity}",
+                    nameof(ForcePushCommand),
+                    Params.Id,
+                    character.EntityId,
+                    target,
+                    displacement,
+                    velocity);
+                return;
+            }
         }
 
         Logger.Debug("{Command} {CommandId} cannot push {Entity}: no dynamic body and not player controlled", nameof(ForcePushCommand), Params.Id, character.EntityId);

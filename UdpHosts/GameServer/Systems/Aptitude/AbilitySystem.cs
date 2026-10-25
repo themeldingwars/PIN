@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 using AeroMessages.GSS.Character.Command;
@@ -292,16 +293,18 @@ public class AbilitySystem
 
         var commandDef = SDBInterface.GetRegisterClientProximityCommandDef(commandId);
 
+        IAptitudeTarget triggerer = targets.OfType<CharacterEntity>().FirstOrDefault();
+
         if (commandDef.AbilityId != 0)
         {
-            HandleActivateAbility(shard, source, commandDef.AbilityId, time, targets, execId);
+            HandleActivateAbility(shard, source, commandDef.AbilityId, time, targets, execId, self: triggerer);
         }
 
         if (commandDef.Chain != 0)
         {
             var chain = Factory.LoadChain(commandDef.Chain);
             var localProxResult = new CommandResult { Success = true };
-            chain.Execute(new Context(shard, source)
+            var context = new Context(shard, source, triggerer)
             {
                 ExecutionId = execId,
                 ChainId = commandDef.Chain,
@@ -309,12 +312,14 @@ public class AbilitySystem
                 InitTime = time,
                 CurrentTime = time,
                 ExecutionHint = ExecutionHint.Proximity
-            },
-            ref localProxResult);
+            };
+
+            context.SnapshotInitPose();
+            chain.Execute(context, ref localProxResult);
         }
     }
 
-    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, Vector3? initPosition = null)
+    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, Vector3? initPosition = null, IAptitudeTarget self = null)
     {
         var execId = executionId ?? Guid.NewGuid();
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
@@ -333,7 +338,7 @@ public class AbilitySystem
 
         _logger.Information("HandleActivateAbility: Ability {AbilityId} starting Chain {ChainId}", abilityId, chainId);
 
-        var context = new Context(shard, initiator)
+        var context = new Context(shard, initiator, self)
         {
             ExecutionId = execId,
             ChainId = chainId,
@@ -345,6 +350,11 @@ public class AbilitySystem
         if (initPosition.HasValue)
         {
             context.InitPosition = initPosition.Value;
+        }
+
+        if (!ReferenceEquals(context.Self, initiator))
+        {
+            context.SnapshotInitPose();
         }
 
         var chain = Factory.LoadChain(chainId);

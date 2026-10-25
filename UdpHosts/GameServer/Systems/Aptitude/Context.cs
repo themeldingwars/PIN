@@ -10,11 +10,11 @@ namespace GameServer.Systems.Aptitude;
 
 public class Context
 {
-    public Context(IShard shard, IAptitudeTarget initiator)
+    public Context(IShard shard, IAptitudeTarget initiator, IAptitudeTarget self = null)
     {
         Shard = shard;
         Initiator = initiator;
-        Self = initiator;
+        Self = self ?? initiator;
         Abilities = shard.Abilities;
         Targets = new AptitudeTargets();
         FormerTargets = new AptitudeTargets();
@@ -89,14 +89,13 @@ public class Context
 
     public static Context CopyContext(Context original)
     {
-        return new Context(original.Shard, original.Initiator)
+        return new Context(original.Shard, original.Initiator, original.Self)
         {
             ChainId = original.ChainId,
             AbilityId = original.AbilityId,
             Success = original.Success,
             Shard = original.Shard,
             Abilities = original.Abilities,
-            Self = original.Self,
             Initiator = original.Initiator,
             Targets = original.Targets,
             FormerTargets = original.FormerTargets,
@@ -118,11 +117,10 @@ public class Context
     }
 
     /// <summary>
-    ///     Takes the pose snapshot the client's apt_context_SetInitPos takes when a context is initiated: the
-    ///     body position, the aim/eye position and the aim direction, all read from the caster's pose at the
-    ///     context's current time.
+    ///     Takes the pose snapshot the client's <c>apt_context_SetInitPos</c> takes when a context is initiated: the
+    ///     body position, the aim/eye position and the aim direction, all read from <see cref="Self"/>, at the context's current time.
     /// </summary>
-    private void SnapshotInitPose()
+    public void SnapshotInitPose()
     {
         if (Self is CharacterEntity character)
         {

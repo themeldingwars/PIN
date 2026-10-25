@@ -14,7 +14,7 @@ public class ImpactToggleEffectCommand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
-        Context effectContext = new Context(context.Shard, context.Initiator)
+        Context effectContext = new Context(context.Shard, context.Initiator, context.Self)
         {
             ExecutionId = context.ExecutionId,
             CurrentTime = context.CurrentTime,
