@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.Threading;
 using Aero.Protocol;
 using MatrixServer.Packets;
@@ -77,6 +78,15 @@ internal class MatrixServer : PacketServer
 
     private static uint GenerateSocketId()
     {
-        return unchecked((uint)((0xff00ff << 8) | new Random().Next(0, 256)));
+        Span<byte> bytes = stackalloc byte[sizeof(uint)];
+        uint socketId;
+        do
+        {
+            RandomNumberGenerator.Fill(bytes);
+            socketId = BitConverter.ToUInt32(bytes);
+        }
+        while (socketId == 0);
+
+        return socketId;
     }
 }

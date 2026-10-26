@@ -31,6 +31,7 @@
 
 - Make the server handling code more robust
 - Many improvements in the entity definitions
+- Hand out random 32-bit socket ids, two clients could get the same one out of 256
 
 ## [1.2.0] - 2023-06-02
 
