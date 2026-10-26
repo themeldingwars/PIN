@@ -267,12 +267,12 @@ public class NetworkClient : INetworkClient
                 Close("the client closed the connection");
                 break;
             case ControlPacketType.MatrixAck:
-                // TODO: Track reliable packets we sent, detect misses and resend
                 LogAck(packet, ChannelType.Matrix);
+                HandleAck(packet, ChannelType.Matrix);
                 break;
             case ControlPacketType.ReliableGSSAck:
-                // TODO: Track reliable packets we sent, detect misses and resend
                 LogAck(packet, ChannelType.ReliableGss);
+                HandleAck(packet, ChannelType.ReliableGss);
                 break;
             case ControlPacketType.TimeSyncRequest:
                 var timeSyncRequestPackage = packet.Unpack<TimeSyncRequest>();
@@ -290,6 +290,24 @@ public class NetworkClient : INetworkClient
                 Logger.Warning(">  {PacketData}", BitConverter.ToString(packet.PacketData.ToArray()).Replace("-", " "));
                 break;
         }
+    }
+
+    private void HandleAck(GamePacket packet, ChannelType forChannel)
+    {
+        var data = packet.PacketData.Span[packet.CurrentPosition..];
+        if (data.Length < 4)
+        {
+            return;
+        }
+
+        var cumulative = BinaryPrimitives.ReadUInt16BigEndian(data[2..]);
+        Span<ushort> selective = stackalloc ushort[(data.Length - 4) / 2];
+        for (var i = 0; i < selective.Length; i++)
+        {
+            selective[i] = BinaryPrimitives.ReadUInt16BigEndian(data[(4 + (i * 2))..]);
+        }
+
+        NetChannels[forChannel].HandleAck(cumulative, selective);
     }
 
     /// <summary>

@@ -53,6 +53,7 @@ public class Channel
     private readonly SortedDictionary<ushort, GamePacket> _incomingSplitMessagePackets;
     private readonly int _channelFramingSize;
     private readonly int _maxMessageSize;
+    private readonly ReliableSender? _reliable;
 
     private int _sendSequenceNumber;
     private ushort _lastAck;
@@ -78,6 +79,7 @@ public class Channel
         _incomingPackets = new ConcurrentQueue<GamePacket>();
         _outgoingPackets = new ConcurrentQueue<Memory<byte>>();
         _incomingSplitMessagePackets = [];
+        _reliable = isReliable ? new ReliableSender() : null;
     }
 
     public delegate void PacketAvailableDelegate(GamePacket packet);
@@ -113,6 +115,8 @@ public class Channel
         {
             _client.Send(qi);
         }
+
+        _reliable?.Pump(DateTime.UtcNow, _client.Send);
 
         while (_incomingPackets.TryDequeue(out var packet))
         {
@@ -185,6 +189,16 @@ public class Channel
                 PacketAvailable?.Invoke(packet);
             }
         }
+    }
+
+    /// <summary>
+    ///     Handles the client's ack for this reliable channel
+    /// </summary>
+    /// <param name="cumulative">The client has every frame up to this one</param>
+    /// <param name="selective">Frames that arrived past a gap</param>
+    public void HandleAck(ushort cumulative, ReadOnlySpan<ushort> selective)
+    {
+        _reliable?.Acked(cumulative, selective);
     }
 
     /// <summary>
@@ -708,10 +722,11 @@ public class Channel
             prefix.CopyTo(destination);
             messageData.CopyTo(destination[prefix.Length..]);
             WriteFraming(buffer, (ushort)buffer.Length, false);
-            Enqueue(buffer);
+            Enqueue([buffer]);
             return true;
         }
 
+        var fragments = new List<byte[]>();
         for (var offset = 0; offset < totalSize; offset += _maxMessageSize)
         {
             var fragmentSize = Math.Min(_maxMessageSize, totalSize - offset);
@@ -728,16 +743,18 @@ public class Channel
                        .CopyTo(destination[prefixBytes..]);
 
             WriteFraming(buffer, (ushort)buffer.Length, offset + fragmentSize < totalSize);
-            Enqueue(buffer);
+            fragments.Add(buffer);
         }
 
+        Enqueue(fragments.ToArray());
         return true;
     }
 
     private void WriteFraming(byte[] buffer, ushort packetLength, bool isSplit)
     {
         var destination = buffer.AsSpan();
-        if (IsSequenced)
+        // Reliable frames get their sequence number when they go out, see ReliableSender
+        if (IsSequenced && _reliable == null)
         {
             unchecked
             {
@@ -754,15 +771,24 @@ public class Channel
         new GamePacketHeader(Type, 0, isSplit, packetLength).Write(destination);
     }
 
-    private void Enqueue(byte[] buffer)
+    private void Enqueue(byte[][] frames)
     {
-        if (IsGSS)
+        if (_reliable != null)
         {
-            _client.SequencedMessages.Enqueue(buffer);
+            _reliable.Enqueue(frames);
+            return;
         }
-        else
+
+        foreach (var frame in frames)
         {
-            _outgoingPackets.Enqueue(buffer);
+            if (IsGSS)
+            {
+                _client.SequencedMessages.Enqueue(frame);
+            }
+            else
+            {
+                _outgoingPackets.Enqueue(frame);
+            }
         }
     }
 
