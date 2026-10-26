@@ -159,7 +159,7 @@ public abstract class PacketServer : IPacketSender
                     // TODO: Move Endpoint and Memory<byte> management to Packet (constructor + destructor)
                     var buf = new byte[numberOfBytesReceived];
                     buffer.AsSpan()[..numberOfBytesReceived].CopyTo(buf);
-                    _ = await IncomingPackets.SendAsync(new Packet((IPEndPoint)remoteEndPoint, buf.AsMemory(0, numberOfBytesReceived), DateTime.Now), ct);
+                    _ = await IncomingPackets.SendAsync(new Packet((IPEndPoint)remoteEndPoint, buf.AsMemory(0, numberOfBytesReceived), DateTime.UtcNow), ct);
 
                     // Not 100% sure this needs to be cleared?
                     remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);

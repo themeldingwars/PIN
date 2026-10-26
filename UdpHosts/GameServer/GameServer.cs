@@ -202,7 +202,7 @@ internal class GameServer : PacketServer, IShardManager
         {
             while (await timer.WaitForNextTickAsync(ct))
             {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 foreach (var entry in _clientMap)
                 {
                     if (entry.Value.NetClosedAt is { } closedAt && now - closedAt > _closedClientGrace)

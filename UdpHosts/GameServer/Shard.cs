@@ -338,7 +338,7 @@ public class Shard : IShard
 
     private void RunThread(CancellationToken ct)
     {
-        _startTime = (long)DateTime.Now.UnixTimestamp();
+        _startTime = (long)DateTime.UtcNow.UnixTimestampUtc();
         _lastNetTick = TimeSpan.Zero;
 
         var stopwatch = Stopwatch.StartNew();

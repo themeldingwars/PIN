@@ -13,7 +13,7 @@ public struct Packet
         RemoteEndpoint = ep;
         PacketData = data;
         CurrentPosition = 0;
-        this.Received = received ?? DateTime.Now;
+        this.Received = received ?? DateTime.UtcNow;
     }
     
     public int CurrentPosition { get; private set; }

@@ -22,7 +22,7 @@ public struct GamePacket
         Header = hdr;
         PacketData = data;
         CurrentPosition = 0;
-        Received = received ?? DateTime.Now;
+        Received = received ?? DateTime.UtcNow;
     }
 
     /// <summary>

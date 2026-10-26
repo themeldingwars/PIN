@@ -35,7 +35,7 @@ public class NetworkClient : INetworkClient
         SocketId = socketId;
         RemoteEndpoint = endPoint;
         NetClientStatus = ClientStatus.Unknown;
-        NetLastActive = DateTime.Now;
+        NetLastActive = DateTime.UtcNow;
     }
 
     public ClientStatus NetClientStatus { get; internal set; }
@@ -102,14 +102,14 @@ public class NetworkClient : INetworkClient
             index += header.Length;
         }
 
-        NetLastActive = DateTime.Now;
+        NetLastActive = DateTime.UtcNow;
     }
 
     public virtual void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
         // A client that crashed or lost its connection never sends CloseConnection
         var timeout = TimeSpan.FromSeconds(AssignedShard.Settings.ClientTimeoutSeconds);
-        if (NetClosedAt == null && DateTime.Now - NetLastActive > timeout)
+        if (NetClosedAt == null && DateTime.UtcNow - NetLastActive > timeout)
         {
             Close($"nothing received for {timeout.TotalSeconds} s");
             return;
@@ -140,7 +140,7 @@ public class NetworkClient : INetworkClient
         }
 
         Logger.Information("Closing socket {SocketId} ({RemoteEndpoint}): {Reason}", SocketId, RemoteEndpoint, reason);
-        NetClosedAt = DateTime.Now;
+        NetClosedAt = DateTime.UtcNow;
         NetClientStatus = ClientStatus.Disconnecting;
 
         if (this is INetworkPlayer player)
@@ -228,7 +228,7 @@ public class NetworkClient : INetworkClient
         {
             if (received != null)
             {
-                Logger.Verbose("<-- {Channel} Ack for {SeqNum} on {ForChannel} after {ElapsedTime}ms.", ChannelType.Control, forSequenceNumber, forChannel, (DateTime.Now - received.Value).TotalMilliseconds);
+                Logger.Verbose("<-- {Channel} Ack for {SeqNum} on {ForChannel} after {ElapsedTime}ms.", ChannelType.Control, forSequenceNumber, forChannel, (DateTime.UtcNow - received.Value).TotalMilliseconds);
             }
             else
             {
@@ -316,7 +316,7 @@ public class NetworkClient : INetworkClient
     /// <param name="packet">One framed game sub-packet: channel header, sequence number on sequenced channels, then the message body</param>
     private void SendDatagram(Memory<byte> packet)
     {
-        NetLastActive = DateTime.Now;
+        NetLastActive = DateTime.UtcNow;
 
         var buffer = new byte[_socketIdSize + packet.Length];
         BinaryPrimitives.WriteUInt32BigEndian(buffer, SocketId);
@@ -337,7 +337,7 @@ public class NetworkClient : INetworkClient
             return;
         }
 
-        NetLastActive = DateTime.Now;
+        NetLastActive = DateTime.UtcNow;
 
         var datagram = new byte[_maxDatagramPayload];
         BinaryPrimitives.WriteUInt32BigEndian(datagram, SocketId);
