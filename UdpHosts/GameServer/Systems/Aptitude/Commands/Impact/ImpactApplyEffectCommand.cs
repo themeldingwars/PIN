@@ -21,6 +21,9 @@ public class ImpactApplyEffectCommand : Command, ICommand
             ExecutionHint = ExecutionHint.ApplyEffect,
         };
 
+        // The constructor took the pose at the shard's time, but the effect starts at the parent's time
+        effectContext.SnapshotInitPose();
+
         if (Params.InheritInitPos == 1)
         {
             effectContext.InitPosition = context.InitPosition;

@@ -20,6 +20,9 @@ public class ImpactToggleEffectCommand : Command, ICommand
             CurrentTime = context.CurrentTime,
         };
 
+        // The constructor took the pose at the shard's time, but the effect starts at the parent's time
+        effectContext.SnapshotInitPose();
+
         if (Params.PassRegister == 1)
         {
             effectContext.Register = context.Register;
