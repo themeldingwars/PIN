@@ -18,6 +18,7 @@ internal class GameServer : PacketServer, IShardManager
 {
     private const double _gameTickRate = 1.0 / 60.0;
     private const int _socketIdSize = 4;
+    private static readonly TimeSpan _closedClientGrace = TimeSpan.FromSeconds(10);
 
     private readonly ConcurrentDictionary<uint, INetworkPlayer> _clientMap;
     private readonly ConcurrentDictionary<uint, IShard> _shardsByZone;
@@ -103,6 +104,8 @@ internal class GameServer : PacketServer, IShardManager
             GetOrCreateShard(zoneId);
         }
 
+        _ = ForgetClosedClientsAsync(ct);
+
         if (_settings.GrpcChannelAddress != string.Empty)
         {
             _ = ListenGrpcAsync(ct);
@@ -183,6 +186,28 @@ internal class GameServer : PacketServer, IShardManager
         }
 
         return client;
+    }
+
+    private async Task ForgetClosedClientsAsync(CancellationToken ct)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(ct))
+            {
+                var now = DateTime.Now;
+                foreach (var entry in _clientMap)
+                {
+                    if (entry.Value.NetClosedAt is { } closedAt && now - closedAt > _closedClientGrace)
+                    {
+                        _clientMap.TryRemove(entry);
+                    }
+                }
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+        }
     }
 
     private async Task ListenGrpcAsync(CancellationToken ct)
