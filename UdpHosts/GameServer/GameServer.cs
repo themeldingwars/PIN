@@ -130,7 +130,7 @@ internal class GameServer : PacketServer, IShardManager
         }
 
         var client = RetrieveClient(packet);
-        client.HandlePacket(packet.PacketData[_socketIdSize..], packet);
+        client?.HandlePacket(packet.PacketData[_socketIdSize..], packet);
     }
 
     /// <summary>
@@ -165,6 +165,13 @@ internal class GameServer : PacketServer, IShardManager
 
         if (_clientMap.TryGetValue(socketId, out var knownClient))
         {
+            // Another client got the same socket id or someone guessed it, either way it isn't this connection
+            if (!knownClient.RemoteEndpoint.Equals(packet.RemoteEndpoint))
+            {
+                Logger.Debug("Ignoring a datagram for socket {SocketId} from {RemoteEndpoint}, the socket belongs to {Owner}", socketId, packet.RemoteEndpoint, knownClient.RemoteEndpoint);
+                return null;
+            }
+
             return knownClient;
         }
 
