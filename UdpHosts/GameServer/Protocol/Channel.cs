@@ -116,7 +116,11 @@ public class Channel
             _client.Send(qi);
         }
 
-        _reliable?.Pump(DateTime.UtcNow, _client.Send);
+        if (_reliable?.Pump(DateTime.UtcNow, _client.Send) is { } failure)
+        {
+            _client.Close($"{failure} on {Type}, {_reliable.InFlightCount} frames unacked");
+            return;
+        }
 
         while (_incomingPackets.TryDequeue(out var packet))
         {
@@ -198,7 +202,7 @@ public class Channel
     /// <param name="selective">Frames that arrived past a gap</param>
     public void HandleAck(ushort cumulative, ReadOnlySpan<ushort> selective)
     {
-        _reliable?.Acked(cumulative, selective);
+        _reliable?.Acked(cumulative, selective, DateTime.UtcNow);
     }
 
     /// <summary>
