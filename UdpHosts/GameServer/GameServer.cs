@@ -16,7 +16,7 @@ namespace GameServer;
 
 internal class GameServer : PacketServer, IShardManager
 {
-    private const double _gameTickRate = 1.0 / 60.0;
+    private static readonly TimeSpan _gameTickRate = TimeSpan.FromSeconds(1.0 / 60.0);
     private const int _socketIdSize = 4;
     private static readonly TimeSpan _closedClientGrace = TimeSpan.FromSeconds(10);
 

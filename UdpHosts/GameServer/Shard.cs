@@ -36,13 +36,11 @@ namespace GameServer;
 
 public class Shard : IShard
 {
-    private const double _networkTickRate = 1.0 / 20.0;
-
     private long _startTime;
-    private double _lastNetTick;
+    private TimeSpan _lastNetTick;
     private Thread _debugRendererThread;
 
-    public Shard(double gameTickRate, ulong instanceId, uint zoneId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
+    public Shard(TimeSpan gameTickRate, ulong instanceId, uint zoneId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
     {
         InstanceId = instanceId;
         Settings = settings;
@@ -278,11 +276,6 @@ public class Shard : IShard
         return GuidService.GetNext(this, type);
     }
 
-    protected virtual bool ShouldNetworkTick(double deltaTime, ulong currentTime)
-    {
-        return deltaTime >= _networkTickRate;
-    }
-
     private void SpawnDebugRenderer(CancellationToken ct)
     {
         var bodyFrames = Physics.DebugBodyFrames;
@@ -346,26 +339,20 @@ public class Shard : IShard
     private void RunThread(CancellationToken ct)
     {
         _startTime = (long)DateTime.Now.UnixTimestamp();
-        _lastNetTick = 0;
+        _lastNetTick = TimeSpan.Zero;
 
-        var stopwatch = new Stopwatch();
-        var lastTime = 0.0;
-
-        stopwatch.Start();
+        var stopwatch = Stopwatch.StartNew();
+        var lastTime = TimeSpan.Zero;
 
         while (!ct.IsCancellationRequested)
         {
             var currentUnixTimestamp = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var currentTime = unchecked((ulong)stopwatch.Elapsed.TotalMilliseconds);
-            var delta = currentTime - lastTime;
+            var currentTime = TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds);
 
-            if (ShouldNetworkTick(currentTime - _lastNetTick, currentUnixTimestamp))
-            {
-                NetworkTick(currentTime - _lastNetTick, currentUnixTimestamp, ct);
-                _lastNetTick = currentTime;
-            }
+            NetworkTick((currentTime - _lastNetTick).TotalMilliseconds, currentUnixTimestamp, ct);
+            _lastNetTick = currentTime;
 
-            if (!Tick(delta, currentUnixTimestamp, ct))
+            if (!Tick((currentTime - lastTime).TotalMilliseconds, currentUnixTimestamp, ct))
             {
                 break;
             }
