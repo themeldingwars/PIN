@@ -316,8 +316,6 @@ public class NetworkClient : INetworkClient
     /// <param name="packet">One framed game sub-packet: channel header, sequence number on sequenced channels, then the message body</param>
     private void SendDatagram(Memory<byte> packet)
     {
-        NetLastActive = DateTime.UtcNow;
-
         var buffer = new byte[_socketIdSize + packet.Length];
         BinaryPrimitives.WriteUInt32BigEndian(buffer, SocketId);
         packet.Span.CopyTo(buffer.AsSpan(_socketIdSize));
@@ -336,8 +334,6 @@ public class NetworkClient : INetworkClient
         {
             return;
         }
-
-        NetLastActive = DateTime.UtcNow;
 
         var datagram = new byte[_maxDatagramPayload];
         BinaryPrimitives.WriteUInt32BigEndian(datagram, SocketId);
