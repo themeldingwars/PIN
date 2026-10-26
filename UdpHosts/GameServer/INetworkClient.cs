@@ -14,6 +14,7 @@ public interface INetworkClient
     uint SocketId { get; }
     IPEndPoint RemoteEndpoint { get; }
     DateTime NetLastActive { get; }
+    DateTime? NetClosedAt { get; }
     ImmutableDictionary<ChannelType, Channel> NetChannels { get; }
     IShard AssignedShard { get; }
     ConcurrentQueue<Memory<byte>> SequencedMessages { get; }
@@ -27,6 +28,7 @@ public interface INetworkClient
     void AssignShard(IShard shard);
     void HandlePacket(ReadOnlyMemory<byte> data, Packet packet);
     void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct);
+    void Close(string reason);
     void Send(Memory<byte> packet);
     void SendAck(ChannelType forChannel, ushort forSequenceNumber, DateTime? received = null);
 

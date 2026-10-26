@@ -42,6 +42,7 @@ public class NetworkClient : INetworkClient
     public uint SocketId { get; }
     public IPEndPoint RemoteEndpoint { get; }
     public DateTime NetLastActive { get; private set; }
+    public DateTime? NetClosedAt { get; private set; }
     public ImmutableDictionary<ChannelType, Channel> NetChannels { get; private set; }
     public IShard AssignedShard { get; private set; }
     public ConcurrentQueue<Memory<byte>> SequencedMessages { get; private set; }
@@ -106,6 +107,14 @@ public class NetworkClient : INetworkClient
 
     public virtual void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
+        // A client that crashed or lost its connection never sends CloseConnection
+        var timeout = TimeSpan.FromSeconds(AssignedShard.Settings.ClientTimeoutSeconds);
+        if (NetClosedAt == null && DateTime.Now - NetLastActive > timeout)
+        {
+            Close($"nothing received for {timeout.TotalSeconds} s");
+            return;
+        }
+
         while (SequencedMessages.TryDequeue(out var qi))
         {
             Send(qi);
@@ -117,6 +126,27 @@ public class NetworkClient : INetworkClient
         }
 
         FlushOutgoing();
+    }
+
+    /// <summary>
+    ///     Takes the player off its shard. A second call does nothing.
+    /// </summary>
+    /// <param name="reason">Why the connection ended, for the log</param>
+    public void Close(string reason)
+    {
+        if (NetClosedAt != null)
+        {
+            return;
+        }
+
+        Logger.Information("Closing socket {SocketId} ({RemoteEndpoint}): {Reason}", SocketId, RemoteEndpoint, reason);
+        NetClosedAt = DateTime.Now;
+        NetClientStatus = ClientStatus.Disconnecting;
+
+        if (this is INetworkPlayer player)
+        {
+            AssignedShard?.MigrateOut(player);
+        }
     }
 
     public void SendDebugChat(string message)
@@ -234,9 +264,7 @@ public class NetworkClient : INetworkClient
         switch (messageId)
         {
             case ControlPacketType.CloseConnection:
-                Logger.Information("RECEIVED CloseConnection");
-                NetClientStatus = ClientStatus.Disconnecting;
-                AssignedShard.MigrateOut((INetworkPlayer)this);
+                Close("the client closed the connection");
                 break;
             case ControlPacketType.MatrixAck:
                 // TODO: Track reliable packets we sent, detect misses and resend

@@ -130,6 +130,11 @@ public class GameServerSettings
     public bool ForceReloadZone { get; set; }
 
     /// <summary>
+    ///    Seconds without a datagram from a client before the server drops its connection.
+    /// </summary>
+    public double ClientTimeoutSeconds { get; set; } = 60;
+
+    /// <summary>
     ///    Batch multiple outgoing game messages into a single packet (up to the MTU budget).
     /// </summary>
     public bool BatchOutgoingPackets { get; set; } = true;
