@@ -15,11 +15,11 @@ namespace GameServer.Protocol;
 internal sealed class ReliableSender
 {
     public const int Window = 256;
+    public const int MaxSends = 16;
 
     public static readonly TimeSpan InitialResendTimeout = TimeSpan.FromSeconds(1);
     public static readonly TimeSpan MinResendTimeout = TimeSpan.FromMilliseconds(250);
     public static readonly TimeSpan MaxResendTimeout = TimeSpan.FromMilliseconds(2500);
-    public const int MaxSends = 16;
     public static readonly TimeSpan FillTimeout = TimeSpan.FromSeconds(15);
 
     private const int _sequenceOffset = GamePacketHeader.Size;

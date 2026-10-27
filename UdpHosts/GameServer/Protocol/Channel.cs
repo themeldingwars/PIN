@@ -757,6 +757,7 @@ public class Channel
     private void WriteFraming(byte[] buffer, ushort packetLength, bool isSplit)
     {
         var destination = buffer.AsSpan();
+
         // Reliable frames get their sequence number when they go out, see ReliableSender
         if (IsSequenced && _reliable == null)
         {

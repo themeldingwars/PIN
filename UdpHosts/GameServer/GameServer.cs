@@ -16,8 +16,8 @@ namespace GameServer;
 
 internal class GameServer : PacketServer, IShardManager
 {
-    private static readonly TimeSpan _gameTickRate = TimeSpan.FromMilliseconds(5);
     private const int _socketIdSize = 4;
+    private static readonly TimeSpan _gameTickRate = TimeSpan.FromMilliseconds(5);
     private static readonly TimeSpan _closedClientGrace = TimeSpan.FromSeconds(10);
 
     private readonly ConcurrentDictionary<uint, INetworkPlayer> _clientMap;
