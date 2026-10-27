@@ -16,7 +16,7 @@ internal static class Program
         using var container = CreateContainer(CommandLineOverrides(options));
 
         // System.Runtime is .NET's own meter for GC, heap and thread pool
-        using var metrics = OpenTelemetryMetrics.StartIfEnabled("System.Runtime");
+        using var metrics = OpenTelemetryMetrics.StartIfEnabled(ShardMetrics.MeterName, "System.Runtime");
 
         var server = container.Resolve<GameServer>();
         server.Run();

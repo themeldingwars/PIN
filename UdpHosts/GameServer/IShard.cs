@@ -57,6 +57,7 @@ public interface IShard : IPacketSender
     LootService Loot { get; }
     ProgressionService Progression { get; }
     uint ZoneId { get; }
+    ShardMetrics Metrics { get; }
     ILogger Logger { get; }
     GameServerSettings Settings { get; }
     EventBus EventBus { get; }

@@ -74,6 +74,8 @@ public class NetworkClient : INetworkClient
 
     public void HandlePacket(ReadOnlyMemory<byte> data, Packet packet)
     {
+        AssignedShard?.Metrics.Received(packet.PacketData.Length);
+
         if (NetClientStatus == ClientStatus.Connecting)
         {
             NetClientStatus = ClientStatus.Connected; // the connection must have been established in order to receive a packet, so we must now be connected
@@ -341,7 +343,7 @@ public class NetworkClient : INetworkClient
         BinaryPrimitives.WriteUInt32BigEndian(buffer, SocketId);
         packet.Span.CopyTo(buffer.AsSpan(_socketIdSize));
 
-        Sender.SendAsync(buffer, RemoteEndpoint);
+        Transmit(buffer);
     }
 
     /// <summary>
@@ -364,7 +366,7 @@ public class NetworkClient : INetworkClient
         {
             if (currentSize + packet.Length > _maxDatagramPayload)
             {
-                Sender.SendAsync(datagram.AsMemory(0, currentSize), RemoteEndpoint);
+                Transmit(datagram.AsMemory(0, currentSize));
 
                 datagram = new byte[_maxDatagramPayload];
                 BinaryPrimitives.WriteUInt32BigEndian(datagram, SocketId);
@@ -375,9 +377,15 @@ public class NetworkClient : INetworkClient
             currentSize += packet.Length;
         }
 
-        Sender.SendAsync(datagram.AsMemory(0, currentSize), RemoteEndpoint);
+        Transmit(datagram.AsMemory(0, currentSize));
 
         _outgoingBatch.Clear();
+    }
+
+    private void Transmit(Memory<byte> datagram)
+    {
+        AssignedShard?.Metrics.Sent(datagram.Length);
+        Sender.SendAsync(datagram, RemoteEndpoint);
     }
 
     private List<string> SplitConsoleMessage(string input)

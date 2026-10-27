@@ -59,6 +59,7 @@ public class Shard : IShard
         Logger = logger;
         Clients = new ConcurrentDictionary<uint, INetworkPlayer>();
         Entities = new ConcurrentDictionary<ulong, IEntity>();
+        Metrics = new ShardMetrics(zoneId, () => Clients.Count, () => Entities.Count);
         Encounters = new ConcurrentDictionary<ulong, IEncounter>();
         Outposts = new ConcurrentDictionary<uint, IDictionary<uint, OutpostEntity>>();
         EventBus = new EventBus();
@@ -139,6 +140,7 @@ public class Shard : IShard
     public ProgressionService Progression { get; }
     public ulong InstanceId { get; }
     public uint ZoneId { get; }
+    public ShardMetrics Metrics { get; }
     public ulong CurrentTimeLong { get; private set; }
     public uint CurrentTime => unchecked((uint)CurrentTimeLong);
     public ushort CurrentShortTime => unchecked((ushort)CurrentTime);
@@ -162,11 +164,15 @@ public class Shard : IShard
 
     public void NetworkTick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
+        var start = Stopwatch.GetTimestamp();
+
         // Handle timeout, reliable retransmission, normal rx/tx
         foreach (var client in Clients.Values)
         {
             client.NetworkTick(deltaTime, currentTime, ct);
         }
+
+        Metrics.NetworkTick(start);
     }
 
     /// <summary>
@@ -222,23 +228,39 @@ public class Shard : IShard
     {
         CurrentTimeLong = currentTime;
 
+        var start = Stopwatch.GetTimestamp();
         RunPostedActions(currentTime);
+        var last = Metrics.Tick(ShardSystem.Posted, start);
 
         // AI runs after physics so it can read the integrated pose back from dynamic NPC bodies,
         // steer, and broadcast the result. Players (kinematic) are unaffected by the ordering.
         Physics.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Physics, last);
         AI.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.AI, last);
         EntityMan.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Entities, last);
         EncounterMan.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Encounters, last);
         Abilities.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Abilities, last);
         WeaponSim.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Weapons, last);
         TurretSim.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Turrets, last);
         ProjectileSim.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Projectiles, last);
         Damage.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Damage, last);
         CharacterLifecycle.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Lifecycle, last);
         PlayerRespawn.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Respawn, last);
         Loot.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Loot, last);
         EventBus.Flush();
+        Metrics.Tick(ShardSystem.Events, last);
+        Metrics.Tick(ShardSystem.All, start);
 
         return true;
     }
