@@ -789,8 +789,9 @@ public partial class PhysicsEngine
 
         var hitHandler = default(RayHitHandler);
         hitHandler.T = maxRange;
-        hitHandler.AvoidSourceBody = true;
-        hitHandler.SourceBody = _entityIdToBody[source.EntityId];
+
+        // The source's body may still wait in the command queue, then there's nothing to skip yet
+        hitHandler.AvoidSourceBody = _entityIdToBody.TryGetValue(source.EntityId, out hitHandler.SourceBody);
         Simulation.RayCast(origin, direction, float.MaxValue, BufferPool, ref hitHandler);
         if (hitHandler.T < maxRange)
         {
