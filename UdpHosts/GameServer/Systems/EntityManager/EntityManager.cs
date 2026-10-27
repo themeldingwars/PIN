@@ -38,10 +38,12 @@ public class EntityManager
     private readonly ILogger _logger;
     private readonly ulong _updateFlushIntervalMs = 5;
     private readonly ulong _scopeInIntervalMs = 20;
+    private readonly int _scopeInsPerInterval = 5;
     private readonly ulong _scopeCheckIntervalMs = 5000;
     private readonly ulong _lifetimeCheckIntervalMs = 1000;
     private readonly ConcurrentDictionary<ulong, HashSet<INetworkPlayer>> _scopedPlayersByEntity = new();
     private readonly ConcurrentQueue<ScopeInRequest> _queuedScopeIn = new();
+    private readonly Dictionary<INetworkPlayer, int> _scopeInsThisInterval = new();
     private readonly ConcurrentDictionary<ulong, Lifetime> _lifetimeByEntity = new();
     private readonly ConcurrentQueue<(ulong DueTime, System.Action Action)> _incomingDelayedActions = new();
     private readonly List<(ulong DueTime, System.Action Action)> _delayedActions = new();
@@ -504,14 +506,28 @@ public class EntityManager
 
         ProcessDelayedActions(currentTime);
 
-        // Process queued scope-ins
+        // The limit is per player, a shard wide one would keep a crowd waiting for minutes after a join
         if (!_queuedScopeIn.IsEmpty && currentTime > _lastScopeIn + _scopeInIntervalMs)
         {
-            var processed = 0;
+            _scopeInsThisInterval.Clear();
 
-            while (processed < 5 && _queuedScopeIn.TryDequeue(out ScopeInRequest request))
+            for (var pending = _queuedScopeIn.Count; pending > 0 && _queuedScopeIn.TryDequeue(out ScopeInRequest request); pending--)
             {
+                // The scope check queues pairs again every 5 s while they still wait
+                if (_scopedPlayersByEntity.TryGetValue(request.Entity.EntityId, out var scopedPlayers) && scopedPlayers.Contains(request.Player))
+                {
+                    continue;
+                }
+
+                _scopeInsThisInterval.TryGetValue(request.Player, out var sent);
+                if (sent >= _scopeInsPerInterval)
+                {
+                    _queuedScopeIn.Enqueue(request);
+                    continue;
+                }
+
                 ScopeIn(request.Player, request.Entity);
+                _scopeInsThisInterval[request.Player] = sent + 1;
             }
 
             _lastScopeIn = currentTime;
