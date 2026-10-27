@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Autofac;
 using CommandLine;
 using CommandLine.Text;
+using Shared.Common;
 
 namespace GameServer;
 
@@ -13,6 +14,9 @@ internal static class Program
         var options = ParseCliOptions(arguments);
 
         using var container = CreateContainer(CommandLineOverrides(options));
+
+        // System.Runtime is .NET's own meter for GC, heap and thread pool
+        using var metrics = OpenTelemetryMetrics.StartIfEnabled("System.Runtime");
 
         var server = container.Resolve<GameServer>();
         server.Run();
