@@ -61,7 +61,7 @@ public class Shard : IShard
         Physics = new PhysicsEngine(
             new()
             {
-                ZoneId = Settings.ZoneId,
+                ZoneId = zoneId,
                 MapsPath = Settings.MapsPath,
                 AssetDBPath = Settings.AssetDBPath,
                 LoadMapsCollision = Settings.LoadMapsCollision,
@@ -79,7 +79,7 @@ public class Shard : IShard
             Movement,
             debugCallbacks);
         NavMesh = new NavMeshService(logger);
-        NavMesh.Load(Settings.ZoneId, Settings.CachePath);
+        NavMesh.Load(zoneId, Settings.CachePath);
         Crowd = new CrowdNavigationService(NavMesh, Settings);
         Hostility = new HostilityResolver();
         AI = new AIEngine(this);
