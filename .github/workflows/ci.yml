@@ -51,6 +51,8 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore
+      - name: Test
+        run: dotnet test --configuration Release --no-build
       - name: Publish
         if: matrix.platform.name == 'Windows' && matrix.dotnet.name == '.NET 9'
         run: |

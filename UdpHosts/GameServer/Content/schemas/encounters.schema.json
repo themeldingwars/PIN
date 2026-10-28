@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Encounters of a zone",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "encounters": {
+      "type": "array",
+      "items": {
+        "description": "Something that runs in the zone, the type decides which fields it has",
+        "oneOf": [
+          {
+            "$ref": "#/$defs/lgv_race"
+          },
+          {
+            "$ref": "#/$defs/melding_repulsor"
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "encounters"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "lgv_race": {
+      "type": "object",
+      "description": "An LGV race",
+      "properties": {
+        "type": {
+          "const": "lgv-race"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "leaderboard_id": {
+          "$ref": "common.schema.json#/$defs/uint32"
+        },
+        "label_text_id": {
+          "$ref": "common.schema.json#/$defs/uint32",
+          "description": "SDB text id of the race's name"
+        },
+        "start_dialog": {
+          "$ref": "common.schema.json#/$defs/uint32"
+        },
+        "start": {
+          "$ref": "common.schema.json#/$defs/pose"
+        },
+        "finish": {
+          "$ref": "common.schema.json#/$defs/pose"
+        },
+        "terminal": {
+          "$ref": "common.schema.json#/$defs/pose"
+        },
+        "time_limit_ms": {
+          "$ref": "common.schema.json#/$defs/uint32"
+        },
+        "bonus_time_limit_ms": {
+          "$ref": "common.schema.json#/$defs/uint32"
+        },
+        "source": {
+          "$ref": "common.schema.json#/$defs/source"
+        },
+        "edited": {
+          "$ref": "common.schema.json#/$defs/edited"
+        },
+        "notes": {
+          "$ref": "common.schema.json#/$defs/notes"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "start",
+        "finish",
+        "terminal"
+      ],
+      "additionalProperties": false
+    },
+    "melding_repulsor": {
+      "type": "object",
+      "description": "A melding repulsor encounter",
+      "properties": {
+        "type": {
+          "const": "melding-repulsor"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "perimeter_set": {
+          "type": "string"
+        },
+        "repulsor": {
+          "$ref": "#/$defs/placed_object"
+        },
+        "terminal": {
+          "$ref": "#/$defs/placed_object"
+        },
+        "melding_position": {
+          "type": "object",
+          "description": "Where the perimeter moves to once the repulsor is up",
+          "properties": {
+            "control_point_index": {
+              "$ref": "common.schema.json#/$defs/uint32"
+            },
+            "position": {
+              "$ref": "common.schema.json#/$defs/vector3"
+            }
+          },
+          "required": [
+            "control_point_index",
+            "position"
+          ],
+          "additionalProperties": false
+        },
+        "source": {
+          "$ref": "common.schema.json#/$defs/source"
+        },
+        "edited": {
+          "$ref": "common.schema.json#/$defs/edited"
+        },
+        "notes": {
+          "$ref": "common.schema.json#/$defs/notes"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "perimeter_set",
+        "repulsor",
+        "terminal",
+        "melding_position"
+      ],
+      "additionalProperties": false
+    },
+    "placed_object": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "common.schema.json#/$defs/uint32",
+          "description": "SDB deployable id"
+        },
+        "position": {
+          "$ref": "common.schema.json#/$defs/vector3"
+        },
+        "orientation": {
+          "$ref": "common.schema.json#/$defs/quaternion"
+        }
+      },
+      "required": [
+        "type",
+        "position"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

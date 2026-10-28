@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Deployables placed in a zone",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "deployables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "A deployable that's there when the zone starts",
+        "properties": {
+          "id": {
+            "$ref": "common.schema.json#/$defs/id"
+          },
+          "type": {
+            "$ref": "common.schema.json#/$defs/uint32",
+            "description": "SDB deployable id"
+          },
+          "position": {
+            "$ref": "common.schema.json#/$defs/vector3"
+          },
+          "orientation": {
+            "$ref": "common.schema.json#/$defs/quaternion"
+          },
+          "source": {
+            "$ref": "common.schema.json#/$defs/source"
+          },
+          "edited": {
+            "$ref": "common.schema.json#/$defs/edited"
+          },
+          "notes": {
+            "$ref": "common.schema.json#/$defs/notes"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "position"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "deployables"
+  ],
+  "additionalProperties": false
+}

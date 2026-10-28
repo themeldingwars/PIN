@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Melding perimeters of a zone",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "meldings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "A melding perimeter",
+        "properties": {
+          "id": {
+            "$ref": "common.schema.json#/$defs/id"
+          },
+          "perimeter_set": {
+            "type": "string",
+            "description": "Name of the melding perimeter set in the zone's data"
+          },
+          "timestamp_micro": {
+            "$ref": "common.schema.json#/$defs/uint32"
+          },
+          "duration_micro": {
+            "$ref": "common.schema.json#/$defs/uint32"
+          },
+          "unk3": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "control_points": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/vector3"
+            }
+          },
+          "offsets": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/vector3"
+            },
+            "description": "The tangent of the control point at the same index"
+          },
+          "source": {
+            "$ref": "common.schema.json#/$defs/source"
+          },
+          "edited": {
+            "$ref": "common.schema.json#/$defs/edited"
+          },
+          "notes": {
+            "$ref": "common.schema.json#/$defs/notes"
+          }
+        },
+        "required": [
+          "id",
+          "perimeter_set",
+          "control_points",
+          "offsets"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "meldings"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Data types the content schemas share",
+  "$defs": {
+    "vector3": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "[x, y, z]"
+    },
+    "quaternion": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 4,
+      "maxItems": 4,
+      "description": "Quaternion [x, y, z, w], [0, 0, 0, 1] when left out"
+    },
+    "pose": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "$ref": "#/$defs/vector3"
+        },
+        "orientation": {
+          "$ref": "#/$defs/quaternion"
+        }
+      },
+      "required": [
+        "position"
+      ],
+      "additionalProperties": false
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Unique within the file, lowercase letters and digits with dashes, e.g. ne-brontodon-01"
+    },
+    "uint32": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "source": {
+      "type": "string",
+      "description": "Where an imported entry came from, e.g. a replay or capture entity"
+    },
+    "edited": {
+      "type": "boolean",
+      "description": "Set once a person changed an imported entry, a re-import leaves it alone then"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free text, instead of comments, which tools don't keep"
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Outposts of a zone",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "outposts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "An outpost",
+        "properties": {
+          "id": {
+            "$ref": "common.schema.json#/$defs/uint32",
+            "description": "The outpost id the game uses, the client and RIN refer to outposts by it"
+          },
+          "name_text_id": {
+            "$ref": "common.schema.json#/$defs/uint32",
+            "description": "SDB text id of the name"
+          },
+          "position": {
+            "$ref": "common.schema.json#/$defs/vector3"
+          },
+          "radius": {
+            "type": "number"
+          },
+          "level_band_id": {
+            "$ref": "common.schema.json#/$defs/uint32"
+          },
+          "sin_unlock_index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "teleport_cost": {
+            "type": "integer"
+          },
+          "faction_id": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "outpost_type": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "possible_buffs_id": {
+            "$ref": "common.schema.json#/$defs/uint32"
+          },
+          "marker_type": {
+            "$ref": "common.schema.json#/$defs/uint32"
+          },
+          "spawn_points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/spawn_point"
+            }
+          },
+          "source": {
+            "$ref": "common.schema.json#/$defs/source"
+          },
+          "edited": {
+            "$ref": "common.schema.json#/$defs/edited"
+          },
+          "notes": {
+            "$ref": "common.schema.json#/$defs/notes"
+          }
+        },
+        "required": [
+          "id",
+          "name_text_id",
+          "position"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "outposts"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "spawn_point": {
+      "type": "object",
+      "properties": {
+        "position": {
+          "$ref": "common.schema.json#/$defs/vector3"
+        },
+        "orientation": {
+          "$ref": "common.schema.json#/$defs/quaternion"
+        },
+        "aim_direction": {
+          "$ref": "common.schema.json#/$defs/vector3"
+        }
+      },
+      "required": [
+        "position"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
