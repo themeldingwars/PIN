@@ -38,6 +38,8 @@ public class Shard : IShard
 {
     private readonly AutoResetEvent _wake = new(false);
     private readonly TimeSpan _gameTickRate;
+    private readonly ConcurrentQueue<(ulong DueTime, Action Action)> _postedActions = new();
+    private readonly List<(ulong DueTime, Action Action)> _waitingActions = new();
 
     private long _startTime;
     private TimeSpan _lastNetTick;
@@ -200,9 +202,22 @@ public class Shard : IShard
         }
     }
 
+    /// <summary>
+    ///     Runs the action on the shard thread at the start of the first tick after the delay. Any thread may call this,
+    ///     it's the way for timers and RIN events to touch shard state.
+    /// </summary>
+    /// <param name="delayMs">How long to wait at least, in milliseconds</param>
+    public void Post(Action action, ulong delayMs = 0)
+    {
+        var dueTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + delayMs;
+        _postedActions.Enqueue((dueTime, action));
+    }
+
     public bool Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
         CurrentTimeLong = currentTime;
+
+        RunPostedActions(currentTime);
 
         // AI runs after physics so it can read the integrated pose back from dynamic NPC bodies,
         // steer, and broadcast the result. Players (kinematic) are unaffected by the ordering.
@@ -392,6 +407,36 @@ public class Shard : IShard
         }
 
         stopwatch.Stop();
+    }
+
+    private void RunPostedActions(ulong currentTime)
+    {
+        while (_postedActions.TryDequeue(out var posted))
+        {
+            _waitingActions.Add(posted);
+        }
+
+        for (var i = 0; i < _waitingActions.Count; i++)
+        {
+            if (_waitingActions[i].DueTime > currentTime)
+            {
+                continue;
+            }
+
+            var action = _waitingActions[i].Action;
+            _waitingActions.RemoveAt(i);
+            i--;
+
+            // Nothing above the shard thread catches, so one bad RIN event or timer would end the process
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "A posted action failed");
+            }
+        }
     }
 
     private void NetworkTick(TimeSpan now, CancellationToken ct)

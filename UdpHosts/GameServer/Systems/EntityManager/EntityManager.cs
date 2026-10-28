@@ -45,8 +45,6 @@ public class EntityManager
     private readonly ConcurrentQueue<ScopeInRequest> _queuedScopeIn = new();
     private readonly Dictionary<INetworkPlayer, int> _scopeInsThisInterval = new();
     private readonly ConcurrentDictionary<ulong, Lifetime> _lifetimeByEntity = new();
-    private readonly ConcurrentQueue<(ulong DueTime, System.Action Action)> _incomingDelayedActions = new();
-    private readonly List<(ulong DueTime, System.Action Action)> _delayedActions = new();
     private uint _counter;
     private ulong _lastUpdateFlush;
     private ulong _lastScopeIn;
@@ -220,7 +218,7 @@ public class EntityManager
 
         if (deployableInfo.ConstructedAbilityid != 0)
         {
-            RunDelayed(deployableInfo.BuildTimeMs, () => _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, deployableInfo.ConstructedAbilityid));
+            _shard.Post(() => _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, deployableInfo.ConstructedAbilityid), deployableInfo.BuildTimeMs);
         }
 
         if (deployableInfo.TurretType != 0)
@@ -242,11 +240,13 @@ public class EntityManager
                 }
             }
 
-            RunDelayed(deployableInfo.BuildTimeMs, () =>
-            {
-                _logger.ForContext<AbilitySystem>().Information("Deployable: Executing powered on ability {PoweredOnAbility}", poweredOnAbility);
-                _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, poweredOnAbility);
-            });
+            _shard.Post(
+                () =>
+                {
+                    _logger.ForContext<AbilitySystem>().Information("Deployable: Executing powered on ability {PoweredOnAbility}", poweredOnAbility);
+                    _shard.Abilities.HandleActivateAbility(_shard, deployableEntity, poweredOnAbility);
+                },
+                deployableInfo.BuildTimeMs);
         }
 
         if (deployableInfo.PoweredOffAbility != 0)
@@ -503,8 +503,6 @@ public class EntityManager
                 SpawnZoneEntities(_shard.ZoneId);
             }
         }
-
-        ProcessDelayedActions(currentTime);
 
         // The limit is per player, a shard wide one would keep a crowd waiting for minutes after a join
         if (!_queuedScopeIn.IsEmpty && currentTime > _lastScopeIn + _scopeInIntervalMs)
@@ -2169,34 +2167,6 @@ public class EntityManager
             {
                 ScopeOut(client, entity);
             }
-        }
-    }
-
-    private void RunDelayed(ulong delayMs, System.Action action)
-    {
-        var dueTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + delayMs;
-        _incomingDelayedActions.Enqueue((dueTime, action));
-    }
-
-    private void ProcessDelayedActions(ulong currentTime)
-    {
-        while (_incomingDelayedActions.TryDequeue(out var delayed))
-        {
-            _delayedActions.Add(delayed);
-        }
-
-        for (var i = 0; i < _delayedActions.Count; i++)
-        {
-            if (_delayedActions[i].DueTime > currentTime)
-            {
-                continue;
-            }
-
-            var action = _delayedActions[i].Action;
-            _delayedActions.RemoveAt(i);
-            i--;
-
-            action();
         }
     }
 
