@@ -29,7 +29,7 @@ public static class ContentJson
 
         // An encounter's type doesn't have to be its first field, people add fields wherever
         AllowOutOfOrderMetadataProperties = true,
-        Converters = { new Vector3Converter(), new QuaternionConverter() },
+        Converters = { new Vector3Converter(), new QuaternionConverter(), new NumberRangeConverter() },
     };
 
     private const string SchemaProperty = "$schema";
@@ -43,19 +43,19 @@ public static class ContentJson
             using var document = JsonDocument.Parse(json);
             if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
-                throw new ContentException(path, $"expected an object with a \"{kind.Name}\" list");
+                throw new ContentException(path, $"expected an object with a \"{kind.ListName}\" list");
             }
 
             IReadOnlyList<T> entries = [];
             foreach (var property in document.RootElement.EnumerateObject())
             {
-                if (property.Name == kind.Name)
+                if (property.Name == kind.ListName)
                 {
                     entries = property.Value.Deserialize<List<T>>(Options) ?? [];
                 }
                 else if (property.Name != SchemaProperty)
                 {
-                    throw new ContentException(path, $"unknown property \"{property.Name}\", expected \"{kind.Name}\"");
+                    throw new ContentException(path, $"unknown property \"{property.Name}\", expected \"{kind.ListName}\"");
                 }
             }
 
@@ -75,14 +75,51 @@ public static class ContentJson
         return Read(kind, File.ReadAllText(path), path);
     }
 
+    /// <summary>Reads a file that holds one object instead of a list of entries, e.g. a zone's <c>zone.json</c>.</summary>
+    /// <exception cref="ContentException">The file isn't valid JSON or doesn't match <typeparamref name="T"/>.</exception>
+    public static T ReadObject<T>(string json, string path)
+        where T : class, new()
+    {
+        try
+        {
+            if (JsonNode.Parse(json) is not JsonObject root)
+            {
+                throw new ContentException(path, "expected an object");
+            }
+
+            root.Remove(SchemaProperty);
+            return root.Deserialize<T>(Options) ?? new T();
+        }
+        catch (Exception e) when (e is JsonException or NotSupportedException)
+        {
+            throw new ContentException(path, e.Message, e);
+        }
+    }
+
+    /// <summary>The canonical text of a file that holds one object, see <see cref="ReadObject{T}"/>.</summary>
+    public static string WriteObject<T>(T value, string schemaReference)
+        where T : class
+    {
+        var root = new JsonObject { [SchemaProperty] = schemaReference };
+        foreach (var (name, node) in JsonSerializer.SerializeToNode(value, Options)!.AsObject().ToList())
+        {
+            root[name] = node?.DeepClone();
+        }
+
+        var text = new StringBuilder();
+        WriteNode(text, root, 0);
+        text.Append('\n');
+        return text.ToString();
+    }
+
     /// <summary>The canonical text of a content file: entries sorted by key, two space indent, vectors on one line.</summary>
     public static string Write<T>(ContentKind<T> kind, IEnumerable<T> entries)
         where T : ContentEntry
     {
         var root = new JsonObject
         {
-            [SchemaProperty] = $"../../schemas/{kind.Name}.schema.json",
-            [kind.Name] = JsonSerializer.SerializeToNode(kind.Sort(entries).ToList(), Options),
+            [SchemaProperty] = kind.SchemaReference,
+            [kind.ListName] = JsonSerializer.SerializeToNode(kind.Sort(entries).ToList(), Options),
         };
 
         var text = new StringBuilder();

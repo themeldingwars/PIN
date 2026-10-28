@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 
 namespace Shared.Content.Tests;
 
@@ -8,13 +9,22 @@ namespace Shared.Content.Tests;
 public sealed class RepositoryContentTests
 {
     [TestMethod]
+    public void TheSpawnTables_LoadWithoutProblems()
+    {
+        var problems = ContentValidator.Validate(ContentFolder.LoadSpawnTables(ContentRoot()));
+
+        Assert.IsEmpty(problems, string.Join("\n", problems));
+    }
+
+    [TestMethod]
     public void EveryZone_LoadsWithoutProblems()
     {
         var root = ContentRoot();
+        var spawnTables = ContentFolder.LoadSpawnTables(root).SelectMany(file => file.Tables).Select(table => table.Id).ToHashSet();
 
         foreach (var zoneId in ContentFolder.Zones(root))
         {
-            var problems = ContentValidator.Validate(ContentFolder.LoadZone(root, zoneId));
+            var problems = ContentValidator.Validate(ContentFolder.LoadZone(root, zoneId), spawnTables);
 
             Assert.IsEmpty(problems, string.Join("\n", problems));
         }

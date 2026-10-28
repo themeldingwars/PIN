@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Spawn tables, what spawns in the regions",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "spawn_tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "A spawn table, its id is unique across all spawn table files",
+        "properties": {
+          "id": {
+            "$ref": "common.schema.json#/$defs/id"
+          },
+          "level": {
+            "$ref": "common.schema.json#/$defs/range",
+            "description": "The level each NPC gets, rolled per NPC. Without one they spawn at the monster's default level"
+          },
+          "respawn_seconds": {
+            "$ref": "common.schema.json#/$defs/range",
+            "description": "How long a killed group stays dead before the region spawns a new one"
+          },
+          "groups": {
+            "type": "array",
+            "minItems": 1,
+            "description": "A spawn picks one group by weight",
+            "items": {
+              "type": "object",
+              "description": "NPCs that spawn together and count as dead once all of them are",
+              "properties": {
+                "weight": {
+                  "$ref": "common.schema.json#/$defs/uint32",
+                  "description": "1 when left out"
+                },
+                "style": {
+                  "enum": [
+                    "herd",
+                    "solo"
+                  ],
+                  "description": "How the members behave together. A herd shares a home and drifts around it, solo members each keep the spot they spawned at. A herd when left out"
+                },
+                "spread": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Meters the members spread around their home, where they spawn and wander. The style's default when left out, 20 for both"
+                },
+                "members": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "monster": {
+                        "$ref": "common.schema.json#/$defs/uint32",
+                        "description": "SDB monster id"
+                      },
+                      "count": {
+                        "$ref": "common.schema.json#/$defs/range",
+                        "description": "1 when left out"
+                      }
+                    },
+                    "required": [
+                      "monster"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "members"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "source": {
+            "$ref": "common.schema.json#/$defs/source"
+          },
+          "edited": {
+            "$ref": "common.schema.json#/$defs/edited"
+          },
+          "notes": {
+            "$ref": "common.schema.json#/$defs/notes"
+          }
+        },
+        "required": [
+          "id",
+          "respawn_seconds",
+          "groups"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "spawn_tables"
+  ],
+  "additionalProperties": false
+}

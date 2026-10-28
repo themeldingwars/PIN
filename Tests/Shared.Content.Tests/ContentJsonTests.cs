@@ -1,4 +1,5 @@
 using System.Numerics;
+using Shared.Content.Spawns;
 using Shared.Content.Zones;
 using Shared.Content.Zones.Encounters;
 
@@ -107,6 +108,123 @@ public sealed class ContentJsonTests
     public void Read_RejectsAnUnknownOrMissingEncounterType(string text)
     {
         Assert.ThrowsExactly<ContentException>(() => ContentJson.Read(ContentKinds.Encounters, text, "encounters.json"));
+    }
+
+    [TestMethod]
+    public void Write_PutsRangesOnOneLineAndASingleNumberWithoutBrackets()
+    {
+        var table = new SpawnTable
+        {
+            Id = "brontodon-herd",
+            RespawnSeconds = new NumberRange(300, 600),
+            Groups = [new SpawnGroup { Members = [new SpawnMember { Monster = 642 }, new SpawnMember { Monster = 582, Count = new NumberRange(3, 5) }] }],
+        };
+
+        var text = ContentJson.Write(ContentKinds.SpawnTables, [table]);
+
+        Assert.AreEqual(
+            """
+            {
+              "$schema": "../schemas/spawn-tables.schema.json",
+              "spawn_tables": [
+                {
+                  "id": "brontodon-herd",
+                  "respawn_seconds": [300, 600],
+                  "groups": [
+                    {
+                      "weight": 1,
+                      "style": "herd",
+                      "members": [
+                        {
+                          "monster": 642,
+                          "count": 1
+                        },
+                        {
+                          "monster": 582,
+                          "count": [3, 5]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+
+            """.ReplaceLineEndings("\n"),
+            text);
+        Assert.AreEqual(text, ContentJson.Write(ContentKinds.SpawnTables, ContentJson.Read(ContentKinds.SpawnTables, text, "brontodons.json")));
+    }
+
+    [TestMethod]
+    public void Write_PutsTheShapeTypeFirstAndLeavesOutOverridesThatArentSet()
+    {
+        var region = new SpawnRegion
+        {
+            Id = "ne-brontodon-01",
+            Table = "brontodon-herd",
+            Shape = new PolygonShape { Points = [new Vector3(0, 0, 500), new Vector3(40, 0, 500), new Vector3(0, 40, 500)] },
+            DespawnAfterSeconds = 60,
+        };
+
+        var text = ContentJson.Write(ContentKinds.Regions, [region]);
+
+        Assert.AreEqual(
+            """
+            {
+              "$schema": "../../schemas/regions.schema.json",
+              "regions": [
+                {
+                  "id": "ne-brontodon-01",
+                  "table": "brontodon-herd",
+                  "shape": {
+                    "type": "polygon",
+                    "points": [
+                      [0, 0, 500],
+                      [40, 0, 500],
+                      [0, 40, 500]
+                    ]
+                  },
+                  "population": 1,
+                  "despawn_after_seconds": 60
+                }
+              ]
+            }
+
+            """.ReplaceLineEndings("\n"),
+            text);
+        Assert.AreEqual(text, ContentJson.Write(ContentKinds.Regions, ContentJson.Read(ContentKinds.Regions, text, "regions.json")));
+    }
+
+    [TestMethod]
+    public void ReadObject_KeepsTheDefaultsForWhatTheFileLeavesOut()
+    {
+        const string text = """{ "$schema": "../../schemas/zone.schema.json", "population": { "activation_radius": 450 } }""";
+
+        var settings = ContentJson.ReadObject<ZoneSettings>(text, "zone.json");
+
+        Assert.AreEqual(450f, settings.Population.ActivationRadius);
+        Assert.AreEqual(new PopulationSettings().DespawnAfterSeconds, settings.Population.DespawnAfterSeconds);
+        Assert.AreEqual(settings, ContentJson.ReadObject<ZoneSettings>(ContentJson.WriteObject(settings, "../../schemas/zone.schema.json"), "zone.json"));
+    }
+
+    [TestMethod]
+    public void ReadObject_RejectsAnUnknownField()
+    {
+        const string text = """{ "populaton": {} }""";
+
+        Assert.ThrowsExactly<ContentException>(() => ContentJson.ReadObject<ZoneSettings>(text, "zone.json"));
+    }
+
+    [TestMethod]
+    [DataRow("1.5")]
+    [DataRow("-1")]
+    [DataRow("[1]")]
+    [DataRow("[1, 2.5]")]
+    public void Read_RejectsARangeThatIsntWholeNumbers(string count)
+    {
+        var text = $$"""{ "spawn_tables": [ { "id": "a", "respawn_seconds": 60, "groups": [ { "members": [ { "monster": 1, "count": {{count}} } ] } ] } ] }""";
+
+        Assert.ThrowsExactly<ContentException>(() => ContentJson.Read(ContentKinds.SpawnTables, text, "a.json"));
     }
 
     [TestMethod]

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Spawn regions of a zone",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "Where a spawn table spawns, the region keeps its population alive while players are near",
+        "properties": {
+          "id": {
+            "$ref": "common.schema.json#/$defs/id"
+          },
+          "table": {
+            "type": "string",
+            "description": "Id of the spawn table"
+          },
+          "shape": {
+            "description": "The area the groups spawn in, the type decides which fields it has",
+            "oneOf": [
+              {
+                "$ref": "#/$defs/circle"
+              },
+              {
+                "$ref": "#/$defs/polygon"
+              }
+            ]
+          },
+          "population": {
+            "$ref": "common.schema.json#/$defs/uint32",
+            "minimum": 1,
+            "description": "How many groups the region keeps alive, 1 when left out"
+          },
+          "activation_radius": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Meters from the region's edge within which a player fills it, the zone's population.activation_radius when left out"
+          },
+          "despawn_after_seconds": {
+            "$ref": "common.schema.json#/$defs/uint32",
+            "description": "How long the region keeps its NPCs after the last player left, the zone's population.despawn_after_seconds when left out"
+          },
+          "source": {
+            "$ref": "common.schema.json#/$defs/source"
+          },
+          "edited": {
+            "$ref": "common.schema.json#/$defs/edited"
+          },
+          "notes": {
+            "$ref": "common.schema.json#/$defs/notes"
+          }
+        },
+        "required": [
+          "id",
+          "table",
+          "shape"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "regions"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "circle": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "circle"
+        },
+        "center": {
+          "$ref": "common.schema.json#/$defs/vector3"
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Groups spawn anywhere on the navmesh within the radius, 0 or left out spawns them at the center"
+        }
+      },
+      "required": [
+        "type",
+        "center"
+      ],
+      "additionalProperties": false
+    },
+    "polygon": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "polygon"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "common.schema.json#/$defs/vector3"
+          },
+          "description": "The corners in order, only x and y decide what's inside, the height is where the search for the ground starts"
+        }
+      },
+      "required": [
+        "type",
+        "points"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Settings of a zone",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "population": {
+      "type": "object",
+      "description": "How the zone's spawn regions behave, a region can override each of these",
+      "properties": {
+        "activation_radius": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "A region fills while a player is within this many meters of its edge, 300 when left out"
+        },
+        "despawn_after_seconds": {
+          "$ref": "common.schema.json#/$defs/uint32",
+          "description": "How long a region keeps its NPCs after the last player left, 180 when left out"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

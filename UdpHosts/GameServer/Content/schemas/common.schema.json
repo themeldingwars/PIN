@@ -45,6 +45,27 @@
       "minimum": 0,
       "maximum": 4294967295
     },
+    "range": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/uint32"
+        },
+        {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/uint32"
+            },
+            {
+              "$ref": "#/$defs/uint32"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ],
+      "description": "A whole number, or [min, max] with both ends included"
+    },
     "source": {
       "type": "string",
       "description": "Where an imported entry came from, e.g. a replay or capture entity"
