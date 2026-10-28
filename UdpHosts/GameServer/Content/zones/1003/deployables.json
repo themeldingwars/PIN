@@ -1,0 +1,89 @@
+{
+  "$schema": "../../schemas/deployables.schema.json",
+  "deployables": [
+    {
+      "id": "deployable-1627",
+      "type": 439,
+      "position": [-72.88989, -149.21788, 90.41804],
+      "orientation": [0, 0, 1, 4.371139E-08],
+      "source": "2016-08-06_065333_Gnubee_GnuBee replay240 PacMan.18374686479671624995"
+    },
+    {
+      "id": "deployable-1628",
+      "type": 439,
+      "position": [-72.734146, -129.20526, 90.42927],
+      "orientation": [9.313228E-10, 1.164153E-10, 1, 5.116197E-08],
+      "source": "2016-08-06_065333_Gnubee_GnuBee replay240 PacMan.18374686479671625763"
+    },
+    {
+      "id": "deployable-1629",
+      "type": 439,
+      "position": [-53.204025, -129.18558, 90.42928],
+      "orientation": [5.0886782E-18, 1.1641539E-10, 1, 5.1161972E-08],
+      "source": "2016-08-06_065333_Gnubee_GnuBee replay240 PacMan.18374686479671625507"
+    },
+    {
+      "id": "deployable-1630",
+      "type": 439,
+      "position": [-53.16278, -149.16757, 90.42929],
+      "orientation": [0, 0, 0.723355, 0.69047636],
+      "source": "2016-08-06_065333_Gnubee_GnuBee replay240 PacMan.18374686479671625251"
+    },
+    {
+      "id": "deployable-1631",
+      "type": 439,
+      "position": [-25.869446, -17.547806, 97.2362],
+      "orientation": [0, 0, 1, 4.371139E-08],
+      "source": "2016-08-06_065333_Gnubee_GnuBee replay240 PacMan.18374686479671624483"
+    },
+    {
+      "id": "deployable-1632",
+      "type": 439,
+      "position": [-25.784454, 1.603836, 97.2362],
+      "orientation": [0, 0, 1, 4.371139E-08],
+      "source": "2016-08-06_065333_Gnubee_GnuBee replay240 PacMan.18374686479671627043"
+    },
+    {
+      "id": "deployable-1633",
+      "type": 439,
+      "position": [-5.888443, -17.502869, 97.2362],
+      "orientation": [0, 0, 0.723355, 0.69047636],
+      "source": "2016-08-06_065333_Gnubee_GnuBee replay240 PacMan.18374686479671624739"
+    },
+    {
+      "id": "deployable-1634",
+      "type": 439,
+      "position": [-5.8419647, 2.0165405, 97.2362],
+      "orientation": [0, 0, 1, 4.371139E-08],
+      "source": "2016-08-06_065333_Gnubee_GnuBee replay240 PacMan.18374686479671627299"
+    },
+    {
+      "id": "deployable-1635",
+      "type": 439,
+      "position": [22.973633, -129.64899, 90.78731],
+      "orientation": [-1.2776883E-09, -0.029230101, 0.9995727, 4.369271E-08],
+      "source": "2017-04-18_113310_SynaOlmai_replay54.18374686479671626275"
+    },
+    {
+      "id": "deployable-1636",
+      "type": 439,
+      "position": [23.01892, -149.63303, 89.61752],
+      "orientation": [-1.2776885E-09, -0.029230107, 0.9995727, 4.369271E-08],
+      "source": "2017-04-18_113310_SynaOlmai_replay54.18374686479671626531"
+    },
+    {
+      "id": "deployable-1637",
+      "type": 439,
+      "position": [42.49263, -149.60027, 89.61944],
+      "orientation": [-1.2776886E-09, -0.029230108, 0.9995727, 4.369271E-08],
+      "source": "2017-04-18_113310_SynaOlmai_replay54.18374686479671626787"
+    },
+    {
+      "id": "deployable-1638",
+      "type": 439,
+      "position": [42.55655, -129.66673, 90.78774],
+      "orientation": [-1.2776882E-09, -0.0292301, 0.9995727, 4.369271E-08],
+      "source": "2017-04-18_113302_SynaOlmai_replay53.18374686479671626019"
+    }
+  ]
+}

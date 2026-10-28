@@ -1,0 +1,25 @@
+{
+  "$schema": "../../schemas/meldings.schema.json",
+  "meldings": [
+    {
+      "id": "gatecrasher-melding",
+      "perimeter_set": "gatecrasher_melding",
+      "timestamp_micro": 0,
+      "duration_micro": 0,
+      "unk3": 0,
+      "control_points": [
+        [469.6821, 426.8339, 6.592728],
+        [-521.7269, 578.6458, -0.8242679],
+        [-590.7134, -460.9206, 2.432825],
+        [465.8546, -533.8143, 3.831256]
+      ],
+      "offsets": [
+        [-592.0513, 477.4043, 0],
+        [-732.1018, -1035.568, 0],
+        [363.4563, -492.7227, -3.814697E-06],
+        [850.5978, 1094.156, -0.9327593]
+      ],
+      "notes": "From the 1.6 replays, no 1962 replay has this instance"
+    }
+  ]
+}

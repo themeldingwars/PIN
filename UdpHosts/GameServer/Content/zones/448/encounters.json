@@ -1,0 +1,129 @@
+{
+  "$schema": "../../schemas/encounters.schema.json",
+  "encounters": [
+    {
+      "type": "lgv-race",
+      "id": "copacabana-thump-dump",
+      "leaderboard_id": 4,
+      "label_text_id": 151665,
+      "start_dialog": 11585,
+      "start": {
+        "position": [-667.259, -329.08145, 442.6372],
+        "orientation": [0.071605094, 0.026196381, -0.28091335, 0.9566996]
+      },
+      "finish": {
+        "position": [-1644.0122, 1294.1882, 492.19205],
+        "orientation": [0, 0, 0.76565653, -0.6432496]
+      },
+      "terminal": {
+        "position": [-667.1653, -324.08643, 441.51447],
+        "orientation": [0, 0, 0.94959587, -0.31347674]
+      },
+      "time_limit_ms": 180000,
+      "bonus_time_limit_ms": 120000
+    },
+    {
+      "type": "lgv-race",
+      "id": "copacabana-trans-hub",
+      "leaderboard_id": 1,
+      "label_text_id": 156505,
+      "start_dialog": 11156,
+      "start": {
+        "position": [-357.18137, -467.0791, 418.69153],
+        "orientation": [0.002591103, 0.0435862, 0.9839613, -0.17295577]
+      },
+      "finish": {
+        "position": [-1020.0957, -908.4936, 430.22083],
+        "orientation": [0, 0, 0.9836375, 0.1801588]
+      },
+      "terminal": {
+        "position": [-360.3101, -465.41077, 418.7193],
+        "orientation": [0, 0, 0.6964997, 0.7175571]
+      },
+      "time_limit_ms": 80000,
+      "bonus_time_limit_ms": 50000
+    },
+    {
+      "type": "melding-repulsor",
+      "id": "hydro-core-melding-02",
+      "perimeter_set": "Hydro_Core_Melding_02",
+      "repulsor": {
+        "type": 3695,
+        "position": [-901.675, 828.024, 401.654],
+        "orientation": [0, 0, 0.25967574, -0.96569586]
+      },
+      "terminal": {
+        "type": 1142,
+        "position": [-896.65735, 823.70123, 401.28564],
+        "orientation": [0, 0, 0.25967574, -0.96569586]
+      },
+      "melding_position": {
+        "control_point_index": 4,
+        "position": [-1113.6375, 908.70935, 581.6483]
+      }
+    },
+    {
+      "type": "lgv-race",
+      "id": "sunken-harbor-copacabana",
+      "leaderboard_id": 3,
+      "label_text_id": 135929,
+      "start_dialog": 11012,
+      "start": {
+        "position": [642.5165, -1483.9686, 414.5769],
+        "orientation": [-0.012024249, -0.010168955, -0.6440147, 0.7648511]
+      },
+      "finish": {
+        "position": [-350.43024, -421.0469, 415.03412],
+        "orientation": [0, 0, 0.9990132, 0.044414524]
+      },
+      "terminal": {
+        "position": [646.72455, -1488.7458, 414.7206],
+        "orientation": [0, 0, 0.012992493, 0.9999156]
+      },
+      "time_limit_ms": 160000,
+      "bonus_time_limit_ms": 100000
+    },
+    {
+      "type": "lgv-race",
+      "id": "thump-dump-copacabana",
+      "leaderboard_id": 5,
+      "label_text_id": 135929,
+      "start_dialog": 11012,
+      "start": {
+        "position": [-1653.0381, 1294.0789, 490.8708],
+        "orientation": [-0.03600099, 0.05213954, 0.82197124, 0.5659935]
+      },
+      "finish": {
+        "position": [-683.5235, -322.81204, 441.3647],
+        "orientation": [0, 0, 0.38707846, 0.9220468]
+      },
+      "terminal": {
+        "position": [-1649.3523, 1289.0253, 491.0055],
+        "orientation": [0, 0, 0.45437527, -0.8908104]
+      },
+      "time_limit_ms": 180000,
+      "bonus_time_limit_ms": 120000
+    },
+    {
+      "type": "lgv-race",
+      "id": "trans-hub-sunken-harbor",
+      "leaderboard_id": 2,
+      "label_text_id": 141983,
+      "start_dialog": 11387,
+      "start": {
+        "position": [-1023.5559, -910.0665, 429.2187],
+        "orientation": [0.014921068, 0.041290212, 0.9396565, 0.3392906]
+      },
+      "finish": {
+        "position": [627.6951, -1452.6569, 411.7513],
+        "orientation": [0, 0, 0.8624195, -0.50619423]
+      },
+      "terminal": {
+        "position": [-1028.4078, -907.1568, 428.6798],
+        "orientation": [0, 0, 0.2160475, -0.97638285]
+      },
+      "time_limit_ms": 180000,
+      "bonus_time_limit_ms": 120000
+    }
+  ]
+}

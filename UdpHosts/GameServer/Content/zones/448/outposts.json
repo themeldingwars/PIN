@@ -1,0 +1,513 @@
+{
+  "$schema": "../../schemas/outposts.schema.json",
+  "outposts": [
+    {
+      "id": 17,
+      "name_text_id": 151333,
+      "position": [172.17278, 254.14604, 479.88083],
+      "radius": 485,
+      "level_band_id": 10073,
+      "sin_unlock_index": 0,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [176.65, 250.13, 491.94],
+          "orientation": [0, 0, 0.37442, -0.92721],
+          "aim_direction": [-0.6929, 0.7208, -0.0162]
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name_text_id": 153402,
+      "position": [-1075.734, -923.4863, 446.9358],
+      "radius": 385,
+      "level_band_id": 10062,
+      "sin_unlock_index": 2,
+      "teleport_cost": 65,
+      "faction_id": 9,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-1052.0374, -888.0177, 432.2278],
+          "orientation": [0, 0, 0.6031, -0.7976],
+          "aim_direction": [-0.962, 0.2708, -0.0277]
+        },
+        {
+          "position": [-1053.9053, -892.082, 432.229],
+          "orientation": [0, 0, 0.4508, -0.8925],
+          "aim_direction": [-0.8046, 0.5932, -0.0258]
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "name_text_id": 157724,
+      "position": [-805.0525, -138.34735, 462.73996],
+      "radius": 485,
+      "level_band_id": 10013,
+      "sin_unlock_index": 17,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [-805.1793, -146.3524, 474.83466],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [0, 1, 0]
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name_text_id": 151788,
+      "position": [-247.1391, -1705.5587, 545.45996],
+      "radius": 299.99997,
+      "level_band_id": 10063,
+      "sin_unlock_index": 21,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [-246.51927, -1709.634, 557.5507],
+          "orientation": [0, 0, 0.9929696, 0.11836971],
+          "aim_direction": [0.23427846, -0.97151834, -0.03557799]
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "name_text_id": 153392,
+      "position": [135.2574, -1851.7065, 537.91455],
+      "radius": 340,
+      "level_band_id": 10063,
+      "sin_unlock_index": 10,
+      "teleport_cost": 75,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [137.678, -1877.184, 539.235],
+          "orientation": [0, 0, 0.20925735, 0.9778606],
+          "aim_direction": [0.4088596, 0.9116524, -0.041516572]
+        },
+        {
+          "position": [133.6827, -1875.127, 539.235],
+          "orientation": [0, 0, 0.20925735, 0.9778606],
+          "aim_direction": [0.40885955, 0.9116525, -0.041517314]
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "name_text_id": 153387,
+      "position": [-908.9305, -1581.8104, 473.7916],
+      "radius": 400,
+      "level_band_id": 10018,
+      "sin_unlock_index": 8,
+      "teleport_cost": 75,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-867.8795, -1713.6259, 495.11786],
+          "orientation": [0, 0, 0.5602749, -0.82830673],
+          "aim_direction": [-0.92824614, 0.3719205, -0.005846482]
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "name_text_id": 135929,
+      "position": [-312.5574, -416.0484, 417.75537],
+      "radius": 470,
+      "level_band_id": 10013,
+      "sin_unlock_index": 0,
+      "teleport_cost": 50,
+      "faction_id": 9,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-429.97443, -383.73978, 439.07806],
+          "orientation": [0, 0, 0.9133179, -0.40724728],
+          "aim_direction": [-0.7441163, -0.66804963, -0.00076721335]
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "name_text_id": 157726,
+      "position": [-173.72266, -946.86566, 462.68002],
+      "radius": 200,
+      "level_band_id": 10017,
+      "sin_unlock_index": 19,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [-169.75339, -944.3721, 474.77264],
+          "orientation": [0, 0, 0.4377773, 0.89908344],
+          "aim_direction": [0.7873108, 0.61654633, 0.0034984737]
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "name_text_id": 158449,
+      "position": [445.9255, -1697.9397, 506.37997],
+      "radius": 150,
+      "level_band_id": 10048,
+      "sin_unlock_index": 22,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [450.44742, -1702.3003, 518.47095],
+          "orientation": [0, 0, 0.39605603, -0.91822636],
+          "aim_direction": [-0.728382, 0.6847913, -0.022818584]
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "name_text_id": 151552,
+      "position": [-552.3151, -1180.1615, 560.92004],
+      "radius": 185,
+      "level_band_id": 10018,
+      "sin_unlock_index": 18,
+      "teleport_cost": -1,
+      "faction_id": 2,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 14,
+      "spawn_points": [
+        {
+          "position": [-550.39624, -1174.2151, 573.0134],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.29412526, -0.95555836, -0.019962752]
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name_text_id": 151819,
+      "position": [-297.36798, -840.42596, 421.27844],
+      "radius": 450,
+      "level_band_id": 10017,
+      "sin_unlock_index": 5,
+      "teleport_cost": 70,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-319.7783, -864.7448, 415.4892],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.062041707, 0.99755824, -0.032067597]
+        },
+        {
+          "position": [-308.2907, -863.0764, 415.4892],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.29588234, 0.95455384, -0.035786856]
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "name_text_id": 158448,
+      "position": [395.69437, -1103.5222, 442.69998],
+      "radius": 350,
+      "level_band_id": 10017,
+      "sin_unlock_index": 20,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [402.1067, -1107.7646, 454.794],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.81029886, 0.5858886, -0.0122571355]
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "name_text_id": 157722,
+      "position": [-1218.381, 587.28076, 492.88998],
+      "radius": 500,
+      "level_band_id": 10014,
+      "sin_unlock_index": 15,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": []
+    },
+    {
+      "id": 30,
+      "name_text_id": 151665,
+      "position": [-1743.53, 1304.77, 504.84518],
+      "radius": 550,
+      "level_band_id": 10015,
+      "sin_unlock_index": 11,
+      "teleport_cost": 60,
+      "faction_id": 9,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-1637.1694, 1451.547, 640.9483],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.46010286, -0.88656414, -0.048055653]
+        },
+        {
+          "position": [-1644.1735, 1455.4482, 640.94836],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.4601038, -0.8865637, -0.04805567]
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "name_text_id": 152040,
+      "position": [59.4551, -1195.8907, 469.45676],
+      "radius": 400,
+      "level_band_id": 10017,
+      "sin_unlock_index": 4,
+      "teleport_cost": 70,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [189.9317, -1297.3365, 451.7472],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.98844403, 0.15060507, -0.017218098]
+        },
+        {
+          "position": [24.735119, -1193.4972, 469.47113],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [0.9243346, 0.3786763, -0.047008567]
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "name_text_id": 438306,
+      "position": [-1105.2205, 359.9344, 556.788],
+      "radius": 400,
+      "level_band_id": 10016,
+      "sin_unlock_index": 6,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 217,
+      "spawn_points": []
+    },
+    {
+      "id": 33,
+      "name_text_id": 153419,
+      "position": [770.4636, -1484.4159, 416.5774],
+      "radius": 360,
+      "level_band_id": 10048,
+      "sin_unlock_index": 12,
+      "teleport_cost": 70,
+      "faction_id": 9,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [692.5257, -1482.3231, 415.117],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [0.91781664, 0.3961044, -0.026721729]
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "name_text_id": 158450,
+      "position": [807.6699, -1670.5673, 494.50998],
+      "radius": 300,
+      "level_band_id": 10048,
+      "sin_unlock_index": 23,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [806.49554, -1678.6111, 506.53473],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [0.119727425, 0.9928008, -0.0034286147]
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "name_text_id": 151789,
+      "position": [-332.5838, 742.1649, 429.36426],
+      "radius": 500,
+      "level_band_id": 10014,
+      "sin_unlock_index": 7,
+      "teleport_cost": 55,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-330.1296, 742.6514, 402.0584],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.47854626, 0.87806237, -0.000321857]
+        },
+        {
+          "position": [-335.9246, 739.5213, 402.0584],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.4785463, 0.8780623, -0.00032163336]
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "name_text_id": 341842,
+      "position": [-1155.36, -84.92, 512.9801],
+      "radius": 350,
+      "level_band_id": 10016,
+      "sin_unlock_index": 3,
+      "teleport_cost": 65,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-1141.3888, -109.29301, 511.7666],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.27640542, 0.9608394, 0.019690078]
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "name_text_id": 153390,
+      "position": [-159.78009, -1363.3401, 484.66898],
+      "radius": 185,
+      "level_band_id": 10018,
+      "sin_unlock_index": 9,
+      "teleport_cost": 75,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-157.7855, -1329.995, 480.78735],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.190854, -0.979479, 0.06477378]
+        },
+        {
+          "position": [-153.496, -1331.1447, 480.78723],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.190855, -0.9794788, 0.06477371]
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "name_text_id": 157721,
+      "position": [217.96487, 1123.656, 409.13998],
+      "radius": 485,
+      "level_band_id": 10014,
+      "sin_unlock_index": 14,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [210.805, 1126.6473, 421.23447],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [0.9293588, -0.36802614, -0.029137334]
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "name_text_id": 151796,
+      "position": [-1556.8442, 460.60208, 535.0605],
+      "radius": 400,
+      "level_band_id": 10061,
+      "sin_unlock_index": 6,
+      "teleport_cost": 60,
+      "faction_id": 1,
+      "outpost_type": 0,
+      "possible_buffs_id": 0,
+      "marker_type": 10,
+      "spawn_points": [
+        {
+          "position": [-1460.2278, 349.9261, 541.37134],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.43065447, 0.90186906, -0.034188207]
+        },
+        {
+          "position": [-1455.8278, 351.7137, 541.4014],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [-0.4306544, 0.9018691, -0.034188204]
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "name_text_id": 157723,
+      "position": [-1809.628, 1041.3738, 572.01],
+      "radius": 485,
+      "level_band_id": 10015,
+      "sin_unlock_index": 16,
+      "teleport_cost": -1,
+      "faction_id": 1,
+      "outpost_type": 1,
+      "possible_buffs_id": 0,
+      "marker_type": 13,
+      "spawn_points": [
+        {
+          "position": [-1815.8041, 1045.4521, 584.10657],
+          "orientation": [0, 0, 0, 1],
+          "aim_direction": [0.8478772, -0.53008103, 0.010879588]
+        }
+      ]
+    }
+  ]
+}
