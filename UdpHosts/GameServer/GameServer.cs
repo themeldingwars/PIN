@@ -12,6 +12,7 @@ using GameServer.StaticDB;
 using GameServer.Systems.Content;
 using GameServer.Test;
 using Serilog;
+using Shared.Content.Spawns;
 using Shared.Content.Zones;
 using Shared.Udp;
 
@@ -65,6 +66,7 @@ internal class GameServer : PacketServer, IShardManager
         if (serverSettings.WatchContent)
         {
             _content.ZoneChanged += OnZoneContentChanged;
+            _content.SpawnTablesChanged += OnSpawnTablesChanged;
             _content.Watch();
         }
 
@@ -261,7 +263,19 @@ internal class GameServer : PacketServer, IShardManager
     {
         if (_shardsByZone.TryGetValue(after.ZoneId, out var shard))
         {
-            shard.Post(() => shard.EntityMan.ApplyContentChanges(before, after));
+            shard.Post(() =>
+            {
+                shard.EntityMan.ApplyContentChanges(before, after);
+                shard.Population.ApplyContentChanges(before, after);
+            });
+        }
+    }
+
+    private void OnSpawnTablesChanged(IReadOnlyDictionary<string, SpawnTable> before, IReadOnlyDictionary<string, SpawnTable> after)
+    {
+        foreach (var shard in _shardsByZone.Values)
+        {
+            shard.Post(() => shard.Population.ApplySpawnTableChanges(before, after));
         }
     }
 

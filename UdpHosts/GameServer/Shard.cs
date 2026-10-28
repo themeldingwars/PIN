@@ -25,6 +25,7 @@ using GameServer.Systems.Loot;
 using GameServer.Systems.MovementRelay;
 using GameServer.Systems.NpcDeath;
 using GameServer.Systems.PlayerRespawn;
+using GameServer.Systems.Population;
 using GameServer.Systems.Progression;
 using GameServer.Systems.ProjectileSim;
 using GameServer.Systems.SystemEvents;
@@ -32,6 +33,7 @@ using GameServer.Systems.Turret;
 using GameServer.Systems.WeaponSim;
 using GameServer.Systems.ZoneBorders;
 using Shared.Common;
+using Shared.Content.Spawns;
 using Shared.Content.Zones;
 using Shared.Udp;
 
@@ -94,6 +96,7 @@ public class Shard : IShard
         Abilities = new AbilitySystem(this);
         EntityMan = new EntityManager(this);
         EncounterMan = new EncounterManager(this);
+        Population = new PopulationDirector(this);
         WeaponSim = new WeaponSim(this);
         TurretSim = new TurretSystem(this);
         ProjectileSim = new ProjectileSim(this, debugCallbacks);
@@ -117,6 +120,7 @@ public class Shard : IShard
     public IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; protected set; }
     public IDictionary<uint, INetworkPlayer> Clients { get; }
     public ZoneContent Content => _content.Zone(ZoneId);
+    public IReadOnlyDictionary<string, SpawnTable> SpawnTables => _content.SpawnTables;
     public EventBus EventBus { get; }
     public PhysicsEngine Physics { get; }
     public NavMeshService NavMesh { get; }
@@ -125,6 +129,7 @@ public class Shard : IShard
     public MovementRelay Movement { get; }
     public EntityManager EntityMan { get; }
     public EncounterManager EncounterMan { get; }
+    public PopulationDirector Population { get; }
     public AbilitySystem Abilities { get; }
     public ProjectileSim ProjectileSim { get; }
     public WeaponSim WeaponSim { get; }
@@ -245,6 +250,8 @@ public class Shard : IShard
         last = Metrics.Tick(ShardSystem.Entities, last);
         EncounterMan.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.Encounters, last);
+        Population.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Population, last);
         Abilities.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.Abilities, last);
         WeaponSim.Tick(deltaTime, currentTime, ct);

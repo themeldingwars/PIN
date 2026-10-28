@@ -14,6 +14,7 @@ public enum ShardSystem
     AI,
     Entities,
     Encounters,
+    Population,
     Abilities,
     Weapons,
     Turrets,

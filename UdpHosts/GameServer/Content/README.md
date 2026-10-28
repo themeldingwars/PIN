@@ -35,7 +35,7 @@ A spawn table lists groups with a weight, e.g. a herd of a Herdmaster and three 
 
 ## Trying changes
 
-Set `WatchContent` to `true` and `ContentPath` to this folder in the `GameServer` section of `appsettings.json`, then the game server reloads a zone whenever one of its files changes. Without `ContentPath` it reads the copy in the build output, which doesn't see your edits. Deployables change in the running game right away, the other kinds only after a restart. A file with problems is logged and the zone keeps what it had.
+Set `WatchContent` to `true` and `ContentPath` to this folder in the `GameServer` section of `appsettings.json`, then the game server reloads a zone whenever one of its files changes. Without `ContentPath` it reads the copy in the build output, which doesn't see your edits. Deployables, regions, spawn tables and the population settings in `zone.json` change in the running game right away, the other kinds only after a restart. A file with problems is logged and the zone keeps what it had.
 
 ## Checking
 

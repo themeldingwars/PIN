@@ -486,8 +486,9 @@ public class EntityManager
     }
 
     /// <summary>
-    ///     Applies a reload of the zone's content. Deployables are respawned right away, the other kinds only log, they need a
-    ///     restart. Before the zone entities spawned there's nothing to do, the spawn reads the reloaded content.
+    ///     Applies a reload of the zone's content. Deployables are respawned right away, outposts, meldings and encounters
+    ///     only log, they need a restart, and the regions are the population director's. Before the zone entities spawned
+    ///     there's nothing to do, the spawn reads the reloaded content.
     /// </summary>
     public void ApplyContentChanges(ZoneContent before, ZoneContent after)
     {

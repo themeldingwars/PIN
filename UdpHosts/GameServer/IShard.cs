@@ -16,11 +16,13 @@ using GameServer.Systems.EntityManager;
 using GameServer.Systems.Loot;
 using GameServer.Systems.MovementRelay;
 using GameServer.Systems.PlayerRespawn;
+using GameServer.Systems.Population;
 using GameServer.Systems.Progression;
 using GameServer.Systems.ProjectileSim;
 using GameServer.Systems.SystemEvents;
 using GameServer.Systems.WeaponSim;
 using Serilog;
+using Shared.Content.Spawns;
 using Shared.Content.Zones;
 using Shared.Udp;
 
@@ -31,8 +33,9 @@ public interface IShard : IPacketSender
     ulong InstanceId { get; }
     IDictionary<uint, INetworkPlayer> Clients { get; }
 
-    /// <summary>The zone's current content, see the content folder's README.</summary>
     ZoneContent Content { get; }
+
+    IReadOnlyDictionary<string, SpawnTable> SpawnTables { get; }
 
     IDictionary<ulong, IEntity> Entities { get; }
     IDictionary<ulong, IEncounter> Encounters { get; }
@@ -44,6 +47,7 @@ public interface IShard : IPacketSender
     MovementRelay Movement { get; }
     EntityManager EntityMan { get; }
     EncounterManager EncounterMan { get; }
+    PopulationDirector Population { get; }
     AbilitySystem Abilities { get; }
     ProjectileSim ProjectileSim { get; }
     WeaponSim WeaponSim { get; }
