@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 using Aero.Gen;
@@ -14,7 +15,9 @@ using GameServer.Extensions;
 using GameServer.Protocol;
 using GameServer.StaticDB;
 using GameServer.StaticDB.Records.aptfs;
+using GameServer.Systems.Content;
 using GameServer.Systems.Encounters.Encounters;
+using Shared.Content.Zones.Encounters;
 
 namespace GameServer.Systems.Encounters;
 
@@ -83,17 +86,18 @@ public class EncounterManager
 
     public void SpawnZoneEncounters(uint zoneId)
     {
-        foreach (var entry in CustomDBInterface.GetZoneMeldingRepulsors(zoneId))
+        var content = _shard.Content;
+        foreach (var repulsor in content.Encounters.OfType<ZoneMeldingRepulsor>())
         {
             var guid = _shard.GetNextGuid((byte)Controller.Encounter);
-            Add(guid, new MeldingRepulsor(_shard, guid, [], entry.Value));
+            Add(guid, new MeldingRepulsor(_shard, guid, [], repulsor.ToRecord(zoneId)));
         }
 
-        foreach (var entry in CustomDBInterface.GetZoneLgvRaces(zoneId))
+        foreach (var race in content.Encounters.OfType<ZoneLgvRace>())
         {
-            var t = entry.Value.Terminal;
-            var terminal = _shard.EntityMan.SpawnDeployable(820, t.Position, t.Orientation);
-            terminal.Encounter = new EncounterComponent() { SpawnDef = entry.Value, Events = EncounterComponent.Event.Interaction };
+            var def = race.ToRecord(zoneId);
+            var terminal = _shard.EntityMan.SpawnDeployable(820, def.Terminal.Position, def.Terminal.Orientation);
+            terminal.Encounter = new EncounterComponent() { SpawnDef = def, Events = EncounterComponent.Event.Interaction };
         }
     }
 

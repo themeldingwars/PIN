@@ -27,6 +27,7 @@ using GameServer.StaticDB;
 using GameServer.StaticDB.Records.aptfs;
 using GameServer.StaticDB.Records.customdata;
 using GameServer.Systems.Aptitude;
+using GameServer.Systems.Content;
 using Serilog;
 
 namespace GameServer.Systems.EntityManager;
@@ -449,34 +450,31 @@ public class EntityManager
 
     public void SpawnZoneEntities(uint zoneId)
     {
-        // Deployable
-        foreach (var entry in CustomDBInterface.GetZoneDeployables(zoneId))
+        var content = _shard.Content;
+        foreach (var deployable in content.Deployables)
         {
-            var deployable = entry.Value;
             SpawnDeployable(deployable.Type, deployable.Position, deployable.Orientation);
         }
 
-        // Melding
-        foreach (var entry in CustomDBInterface.GetZoneMeldings(zoneId))
+        foreach (var melding in content.Meldings)
         {
-            var melding = entry.Value;
-            SpawnMelding(melding.PerimiterSetName, new ActiveDataStruct()
+            Vector3[] points = [.. melding.ControlPoints];
+            Vector3[] tangents = [.. melding.Offsets];
+            SpawnMelding(melding.PerimeterSet, new ActiveDataStruct()
             {
-                TimestampMicro = melding.Unk1,
-                DurationMicro = melding.Unk2,
+                TimestampMicro = melding.TimestampMicro,
+                DurationMicro = melding.DurationMicro,
                 Unk3 = melding.Unk3,
-                FromPoints = melding.ControlPoints,
-                FromTangents = melding.Offsets,
-                ToPoints = melding.ControlPoints,
-                ToTangets = melding.Offsets,
+                FromPoints = points,
+                FromTangents = tangents,
+                ToPoints = points,
+                ToTangets = tangents,
             });
         }
 
-        // Outpost
-        foreach (var entry in CustomDBInterface.GetZoneOutposts(zoneId))
+        foreach (var outpost in content.Outposts)
         {
-            var outpost = entry.Value;
-            SpawnOutpost(outpost);
+            SpawnOutpost(outpost.ToRecord(zoneId));
         }
 
         // Testing

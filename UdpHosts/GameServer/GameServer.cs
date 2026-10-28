@@ -8,6 +8,7 @@ using FauFau.Formats;
 using GameServer.GRPC;
 using GameServer.Protocol;
 using GameServer.StaticDB;
+using GameServer.Systems.Content;
 using GameServer.Test;
 using Serilog;
 using Shared.Udp;
@@ -25,6 +26,7 @@ internal class GameServer : PacketServer, IShardManager
     private readonly Lock _shardCreationLock = new();
 
     private readonly ulong _serverId;
+    private readonly ContentStore _content;
     private readonly GameServerSettings  _settings;
 
     private byte _nextShardIndex = 1;
@@ -55,6 +57,9 @@ internal class GameServer : PacketServer, IShardManager
         Logger.ForContext<SDBInterface>().Information("Reading custom data");
         CustomDBInterface.Init();
 
+        _content = new ContentStore(serverSettings.ContentPath, Logger);
+        _content.Load();
+
         Logger.ForContext(typeof(GRPCService)).Information("Initializing GRPC");
         GRPCService.Init(serverSettings.GrpcChannelAddress);
     }
@@ -83,7 +88,7 @@ internal class GameServer : PacketServer, IShardManager
             var shardId = _serverId | ((ulong)_nextShardIndex++ << 8) | (byte)GuidService.AdditionalTypes.Instance;
             Logger.Information("Creating shard {ShardId:X16} for zone {ZoneId}", shardId, zoneId);
 
-            shard = new Shard(_gameTickRate, shardId, zoneId, _settings, this, Logger);
+            shard = new Shard(_gameTickRate, shardId, zoneId, _settings, _content, this, Logger);
             shard.Run(_shardCancellation);
             _shardsByZone[zoneId] = shard;
 

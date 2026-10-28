@@ -18,6 +18,7 @@ using GameServer.Systems.CharacterCreation;
 using GameServer.Systems.CharacterLifecycle;
 using GameServer.Systems.Chat;
 using GameServer.Systems.Combat;
+using GameServer.Systems.Content;
 using GameServer.Systems.Encounters;
 using GameServer.Systems.EntityManager;
 using GameServer.Systems.Loot;
@@ -30,6 +31,7 @@ using GameServer.Systems.SystemEvents;
 using GameServer.Systems.Turret;
 using GameServer.Systems.WeaponSim;
 using Shared.Common;
+using Shared.Content.Zones;
 using Shared.Udp;
 
 namespace GameServer;
@@ -38,6 +40,7 @@ public class Shard : IShard
 {
     private readonly AutoResetEvent _wake = new(false);
     private readonly TimeSpan _gameTickRate;
+    private readonly ContentStore _content;
     private readonly ConcurrentQueue<(ulong DueTime, Action Action)> _postedActions = new();
     private readonly List<(ulong DueTime, Action Action)> _waitingActions = new();
 
@@ -45,9 +48,10 @@ public class Shard : IShard
     private TimeSpan _lastNetTick;
     private Thread _debugRendererThread;
 
-    public Shard(TimeSpan gameTickRate, ulong instanceId, uint zoneId, GameServerSettings settings, IPacketSender sender, Serilog.ILogger logger)
+    public Shard(TimeSpan gameTickRate, ulong instanceId, uint zoneId, GameServerSettings settings, ContentStore content, IPacketSender sender, Serilog.ILogger logger)
     {
         _gameTickRate = gameTickRate;
+        _content = content;
         InstanceId = instanceId;
         Settings = settings;
         ZoneId = zoneId;
@@ -109,6 +113,7 @@ public class Shard : IShard
     public IDictionary<ulong, IEncounter> Encounters { get; protected set; }
     public IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; protected set; }
     public IDictionary<uint, INetworkPlayer> Clients { get; }
+    public ZoneContent Content => _content.Zone(ZoneId);
     public EventBus EventBus { get; }
     public PhysicsEngine Physics { get; }
     public NavMeshService NavMesh { get; }

@@ -115,6 +115,11 @@ public class GameServerSettings
     public string PreloadZones { get; set; } = string.Empty;
 
     /// <summary>
+    ///    The content folder with the zones' deployables, outposts and so on, relative to the GameServer's folder unless absolute.
+    /// </summary>
+    public string ContentPath { get; set; } = "Content";
+
+    /// <summary>
     ///    Enable loading zone collision data
     /// </summary>
     public bool LoadMapsCollision { get; set; }

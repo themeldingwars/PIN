@@ -354,11 +354,12 @@ public static class Character_BaseController
 
         // Workaround by looking for Z coordinate in Outposts since that's the primary way players send this message
         var zoneId = player.CurrentZone.ID;
-        foreach (var outpost in CustomDBInterface.GetZoneOutposts(zoneId).Values)
+        foreach (var outpost in shard.Content.Outposts)
         {
-            if (Math.Round(outpost.Position.X) == Math.Round(query.PosX) && Math.Round(outpost.Position.Y) == Math.Round(query.PosY))
+            if (Math.Round(outpost.Position.X) == Math.Round(query.PosX) && Math.Round(outpost.Position.Y) == Math.Round(query.PosY)
+                && shard.Outposts.TryGetValue(zoneId, out var outposts) && outposts.TryGetValue(outpost.Id, out var entity))
             {
-                spawnPoint = shard.Outposts[zoneId][outpost.Id].RandomSpawnPoint;
+                spawnPoint = entity.RandomSpawnPoint;
                 break;
             }
         }

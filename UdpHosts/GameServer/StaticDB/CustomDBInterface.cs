@@ -153,11 +153,6 @@ public class CustomDBInterface
     private static Dictionary<uint, UnpackItemCommandDef> _unpackItemCommandDef;
 
     // custom
-    private static Dictionary<uint, Dictionary<uint, Deployable>> _deployable;
-    private static Dictionary<uint, Dictionary<uint, Melding>> _melding;
-    private static Dictionary<uint, Dictionary<uint, Outpost>> _outpost;
-    private static Dictionary<uint, Dictionary<uint, MeldingRepulsorDef>> _meldingRepulsor;
-    private static Dictionary<uint, Dictionary<uint, LgvRaceDef>> _lgvRace;
     private static List<XpLevelScale> _xpLevelScales;
     private static DefaultCertificate[] _defaultCertificates;
 
@@ -312,11 +307,6 @@ public class CustomDBInterface
         _unpackItemCommandDef = loader.LoadUnpackItemCommandDef();
 
         // custom
-        _deployable = loader.LoadDeployable();
-        _melding = loader.LoadMelding();
-        _outpost = loader.LoadOutpost();
-        _meldingRepulsor = loader.LoadMeldingRepulsor();
-        _lgvRace = loader.LoadLgvRace();
         _xpLevelScales = loader.LoadXpLevelScales();
     }
 
@@ -467,10 +457,5 @@ public class CustomDBInterface
     public static UnpackItemCommandDef GetUnpackItemCommandDef(uint id) => _unpackItemCommandDef.GetValueOrDefault(id);
 
     // custom
-    public static Dictionary<uint, Deployable> GetZoneDeployables(uint zoneId) => _deployable.GetValueOrDefault(zoneId) ?? [];
-    public static Dictionary<uint, Melding> GetZoneMeldings(uint zoneId) => _melding.GetValueOrDefault(zoneId) ?? [];
-    public static Dictionary<uint, Outpost> GetZoneOutposts(uint zoneId) => _outpost.GetValueOrDefault(zoneId) ?? [];
-    public static Dictionary<uint, MeldingRepulsorDef> GetZoneMeldingRepulsors(uint zoneId) => _meldingRepulsor.GetValueOrDefault(zoneId) ?? [];
-    public static Dictionary<uint, LgvRaceDef> GetZoneLgvRaces(uint zoneId) => _lgvRace.GetValueOrDefault(zoneId) ?? [];
     public static List<XpLevelScale> GetXpLevelScales() => _xpLevelScales ?? [];
 }

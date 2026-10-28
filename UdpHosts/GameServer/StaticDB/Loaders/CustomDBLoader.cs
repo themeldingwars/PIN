@@ -879,41 +879,6 @@ public class CustomDBLoader
             .ToDictionary(row => row.Id);
     }
 
-    public Dictionary<uint, Dictionary<uint, Deployable>> LoadDeployable()
-    {
-        return LoadJSON<Deployable>("./StaticDB/CustomData/deployable.json")
-        .GroupBy(row => row.ZoneId)
-        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
-    }
-
-    public Dictionary<uint, Dictionary<uint, Melding>> LoadMelding()
-    {
-        return LoadJSON<Melding>("./StaticDB/CustomData/melding.json")
-        .GroupBy(row => row.ZoneId)
-        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
-    }
-
-    public Dictionary<uint, Dictionary<uint, Outpost>> LoadOutpost()
-    {
-        return LoadJSON<Outpost>("./StaticDB/CustomData/outpost.json")
-        .GroupBy(row => row.ZoneId)
-        .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
-    }
-
-    public Dictionary<uint, Dictionary<uint, MeldingRepulsorDef>> LoadMeldingRepulsor()
-    {
-        return LoadJSON<MeldingRepulsorDef>("./StaticDB/CustomData/meldingRepulsor.json")
-               .GroupBy(row => row.ZoneId)
-               .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
-    }
-
-    public Dictionary<uint, Dictionary<uint, LgvRaceDef>> LoadLgvRace()
-    {
-        return LoadJSON<LgvRaceDef>("./StaticDB/CustomData/lgv_race.json")
-               .GroupBy(row => row.ZoneId)
-               .ToDictionary(group => group.Key, group => group.ToDictionary(row => row.Id, row => row));
-    }
-
     public List<XpLevelScale> LoadXpLevelScales()
     {
         return [.. LoadJSON<XpLevelScale>("./StaticDB/CustomData/xp_level_scales.json")

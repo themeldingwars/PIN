@@ -21,6 +21,7 @@ using GameServer.Systems.ProjectileSim;
 using GameServer.Systems.SystemEvents;
 using GameServer.Systems.WeaponSim;
 using Serilog;
+using Shared.Content.Zones;
 using Shared.Udp;
 
 namespace GameServer;
@@ -29,6 +30,10 @@ public interface IShard : IPacketSender
 {
     ulong InstanceId { get; }
     IDictionary<uint, INetworkPlayer> Clients { get; }
+
+    /// <summary>The zone's current content, see the content folder's README.</summary>
+    ZoneContent Content { get; }
+
     IDictionary<ulong, IEntity> Entities { get; }
     IDictionary<ulong, IEncounter> Encounters { get; }
     IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; }
