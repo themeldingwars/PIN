@@ -1,0 +1,35 @@
+{
+  "$schema": "../schemas/spawn-tables.schema.json",
+  "spawn_tables": [
+    {
+      "id": "brontodon-herd",
+      "level": [17, 19],
+      "respawn_seconds": [300, 600],
+      "groups": [
+        {
+          "weight": 1,
+          "style": "herd",
+          "members": [
+            {
+              "monster": 642,
+              "count": 1
+            },
+            {
+              "monster": 582,
+              "count": [1, 3]
+            },
+            {
+              "monster": 633,
+              "count": [0, 2]
+            },
+            {
+              "monster": 634,
+              "count": [0, 1]
+            }
+          ]
+        }
+      ],
+      "notes": "New Eden herds in the 2016-07-18 and 2017-04-29 replays: a Herdmaster each, Brontodons, Young and rarely an Elder, levels 17 to 19. Sertao's herds were level 30 to 33"
+    }
+  ]
+}

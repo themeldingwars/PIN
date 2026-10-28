@@ -1,0 +1,38 @@
+{
+  "$schema": "../../schemas/regions.schema.json",
+  "regions": [
+    {
+      "id": "ne-brontodon-01",
+      "table": "brontodon-herd",
+      "shape": {
+        "type": "circle",
+        "center": [-1287, 254, 539],
+        "radius": 40
+      },
+      "population": 2,
+      "notes": "Two Herdmasters, five Brontodons and four Young in the 2016-07-18 replay"
+    },
+    {
+      "id": "ne-brontodon-02",
+      "table": "brontodon-herd",
+      "shape": {
+        "type": "circle",
+        "center": [-1409, 442, 534],
+        "radius": 50
+      },
+      "population": 2,
+      "notes": "Two Herdmasters, three Brontodons and three Young in the 2016-07-18 replay"
+    },
+    {
+      "id": "ne-brontodon-03",
+      "table": "brontodon-herd",
+      "shape": {
+        "type": "circle",
+        "center": [-1308, 110, 529],
+        "radius": 40
+      },
+      "population": 1,
+      "notes": "A Herdmaster, a Brontodon and an Elder in the 2017-04-29 replay"
+    }
+  ]
+}
