@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GameServer.GRPC.EventHandlers;
@@ -121,7 +121,7 @@ public static class GRPCService
         }
     }
 
-    public static async Task ListenAsync(ConcurrentDictionary<uint, INetworkPlayer> clientMap, CancellationToken ct)
+    public static async Task ListenAsync(IShardManager shards, CancellationToken ct)
     {
         _stream = _client.Stream(cancellationToken: ct);
 
@@ -130,56 +130,12 @@ public static class GRPCService
             await foreach (var evt in _stream.ResponseStream.ReadAllAsync(ct))
             {
                 _logger.Information("{Event}", evt);
-                switch (evt.SubtypeCase)
+
+                // The handlers change characters and send to players, which only the shard thread may do
+                foreach (var shard in shards.Shards)
                 {
-                    case Event.SubtypeOneofCase.ArmyApplicationApproved:
-                        ArmyEventHandler.HandleEvent(evt.ArmyApplicationApproved, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyApplicationReceived:
-                        ArmyEventHandler.HandleEvent(evt.ArmyApplicationReceived, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyApplicationRejected:
-                        ArmyEventHandler.HandleEvent(evt.ArmyApplicationRejected, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyApplicationsUpdated:
-                        ArmyEventHandler.HandleEvent(evt.ArmyApplicationsUpdated, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyIdChanged:
-                        ArmyEventHandler.HandleEvent(evt.ArmyIdChanged, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyInfoUpdated:
-                        ArmyEventHandler.HandleEvent(evt.ArmyInfoUpdated, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyInviteApproved:
-                        ArmyEventHandler.HandleEvent(evt.ArmyInviteApproved, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyInviteReceived:
-                        ArmyEventHandler.HandleEvent(evt.ArmyInviteReceived, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyInviteRejected:
-                        ArmyEventHandler.HandleEvent(evt.ArmyInviteRejected, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyMembersUpdated:
-                        ArmyEventHandler.HandleEvent(evt.ArmyMembersUpdated, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyRanksUpdated:
-                        ArmyEventHandler.HandleEvent(evt.ArmyRanksUpdated, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.ArmyTagUpdated:
-                        ArmyEventHandler.HandleEvent(evt.ArmyTagUpdated, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.CharacterVisualsUpdated:
-                        CharacterEventHandler.HandleEvent(evt.CharacterVisualsUpdated, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.InventoryUpdated:
-                        InventoryEventHandler.HandleEvent(evt.InventoryUpdated, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.UnlocksUpdated:
-                        UnlockEventHandler.HandleEvent(evt.UnlocksUpdated, clientMap);
-                        break;
-                    case Event.SubtypeOneofCase.None:
-                    default:
-                        break;
+                    var clients = shard.Clients;
+                    shard.Post(() => Dispatch(evt, clients));
                 }
             }
         }
@@ -187,6 +143,61 @@ public static class GRPCService
         {
             // Stop sending into a stream that is gone; ListenAsync opens a new one on the next pass
             _stream = null;
+        }
+    }
+
+    private static void Dispatch(Event evt, IDictionary<uint, INetworkPlayer> clients)
+    {
+        switch (evt.SubtypeCase)
+        {
+            case Event.SubtypeOneofCase.ArmyApplicationApproved:
+                ArmyEventHandler.HandleEvent(evt.ArmyApplicationApproved, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyApplicationReceived:
+                ArmyEventHandler.HandleEvent(evt.ArmyApplicationReceived, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyApplicationRejected:
+                ArmyEventHandler.HandleEvent(evt.ArmyApplicationRejected, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyApplicationsUpdated:
+                ArmyEventHandler.HandleEvent(evt.ArmyApplicationsUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyIdChanged:
+                ArmyEventHandler.HandleEvent(evt.ArmyIdChanged, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyInfoUpdated:
+                ArmyEventHandler.HandleEvent(evt.ArmyInfoUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyInviteApproved:
+                ArmyEventHandler.HandleEvent(evt.ArmyInviteApproved, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyInviteReceived:
+                ArmyEventHandler.HandleEvent(evt.ArmyInviteReceived, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyInviteRejected:
+                ArmyEventHandler.HandleEvent(evt.ArmyInviteRejected, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyMembersUpdated:
+                ArmyEventHandler.HandleEvent(evt.ArmyMembersUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyRanksUpdated:
+                ArmyEventHandler.HandleEvent(evt.ArmyRanksUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.ArmyTagUpdated:
+                ArmyEventHandler.HandleEvent(evt.ArmyTagUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.CharacterVisualsUpdated:
+                CharacterEventHandler.HandleEvent(evt.CharacterVisualsUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.InventoryUpdated:
+                InventoryEventHandler.HandleEvent(evt.InventoryUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.UnlocksUpdated:
+                UnlockEventHandler.HandleEvent(evt.UnlocksUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.None:
+            default:
+                break;
         }
     }
 }

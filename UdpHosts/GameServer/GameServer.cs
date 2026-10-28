@@ -229,7 +229,7 @@ internal class GameServer : PacketServer, IShardManager
         {
             try
             {
-                await GRPCService.ListenAsync(_clientMap, ct);
+                await GRPCService.ListenAsync(this, ct);
 
                 // RIN tears the stream down when a command hits a database error, which ends the read without throwing
                 Logger.ForContext(typeof(GRPCService)).Warning("GRPC stream closed, reconnecting in 30 seconds");
