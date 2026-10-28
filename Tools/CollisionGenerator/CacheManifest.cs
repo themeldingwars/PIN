@@ -17,7 +17,8 @@ public sealed record CacheManifest(
     bool AllAssets,
     string? MapsFingerprint,
     string? AssetDbFingerprint,
-    string? NavMeshParamsHash)
+    string? NavMeshParamsHash,
+    bool NavMesh)
 {
     private const string _fileName = "manifest.json";
     private const int _currentFormatVersion = 2;
@@ -39,7 +40,8 @@ public sealed record CacheManifest(
             opts.AllAssets,
             Fingerprint(opts.MapsPath),
             Fingerprint(opts.AssetDbPath),
-            navMeshParamsHash);
+            navMeshParamsHash,
+            opts.NavMesh);
     }
 
     public static CacheManifest? Load(string cachePath)
