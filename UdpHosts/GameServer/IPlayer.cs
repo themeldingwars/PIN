@@ -37,6 +37,12 @@ public interface IPlayer
     bool CanReceiveGSS { get; }
 
     /// <summary>
+    ///     Set once the zone and outpost the character continues in are saved, so a later disconnect doesn't overwrite
+    ///     them, e.g. after a transfer
+    /// </summary>
+    bool SessionSaved { get; set; }
+
+    /// <summary>
     ///     Wait for the client to request its own remote views
     /// </summary>
     bool OwnCharacterViewsRequested { get; set; }
@@ -66,4 +72,10 @@ public interface IPlayer
     void Tick(double deltaTime, ulong currentTime, CancellationToken ct);
     uint FindClosestAvailableOutpost(Zone zone, uint targetOutpostId);
     void RequestRevive(INetworkPlayer reviver);
+
+    /// <summary>
+    ///     Saves the zone, the closest outpost and the time played, unless that already happened. Does nothing before the
+    ///     character is in the world and in instanced zones.
+    /// </summary>
+    void SaveSession();
 }

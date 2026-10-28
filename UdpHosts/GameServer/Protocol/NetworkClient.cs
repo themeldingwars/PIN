@@ -146,6 +146,8 @@ public class NetworkClient : INetworkClient
 
         if (this is INetworkPlayer player)
         {
+            // A crash or a lost connection never sends RequestLogout, and the character has to be saved before it leaves
+            player.SaveSession();
             AssignedShard?.MigrateOut(player);
         }
     }

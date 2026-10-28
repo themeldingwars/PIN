@@ -8,6 +8,7 @@ using AeroMessages.GSS.Character.Controller;
 using AeroMessages.GSS.Character.Event;
 using AeroMessages.Matrix;
 using GameServer.Data;
+using GameServer.GRPC;
 using GameServer.Protocol;
 using GameServer.StaticDB.Records.customdata;
 using GameServer.Systems.Combat;
@@ -49,6 +50,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public CharacterUnlocks Unlocks { get; set; }
     public CharacterBattleframes Battleframes { get; set; }
     public uint ConnectedAt { get; }
+    public bool SessionSaved { get; set; }
     public bool CanReceiveGSS => (Status.Equals(IPlayer.PlayerStatus.Playing) || Status.Equals(IPlayer.PlayerStatus.Loading)) && NetClientStatus.Equals(ClientStatus.Connected);
 
     public void Init(IShard shard)
@@ -183,6 +185,21 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         }
     }
 
+    public void SaveSession()
+    {
+        if (SessionSaved || CharacterEntity == null || CurrentZone is not { IsOpenWorld: true } zone)
+        {
+            return;
+        }
+
+        SessionSaved = true;
+        _ = GRPCService.SaveCharacterSessionDataAsync(
+              CharacterId + (byte)GuidService.AdditionalTypes.Character,
+              zone.ID,
+              ClosestOutpostId(zone),
+              (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds() - ConnectedAt);
+    }
+
     public uint FindClosestAvailableOutpost(Zone zone, uint targetOutpostId = 0)
     {
         bool haveOutposts = AssignedShard.Outposts.TryGetValue(zone.ID, out var outposts);
@@ -269,6 +286,28 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         NetChannels[ChannelType.Matrix].SendMessage(msg);
 
         Status = IPlayer.PlayerStatus.Loading;
+    }
+
+    private uint ClosestOutpostId(Zone zone)
+    {
+        var position = CharacterEntity.Position;
+        var minDistance = Vector3.DistanceSquared(position, zone.POIs["spawn"]);
+        var closestOutpostId = zone.DefaultOutpostId;
+
+        if (AssignedShard.Outposts.TryGetValue(zone.ID, out var outposts))
+        {
+            foreach (var outpost in outposts)
+            {
+                var distance = Vector3.DistanceSquared(position, outpost.Value.Outpost_ObserverView.PositionProp);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestOutpostId = outpost.Key;
+                }
+            }
+        }
+
+        return closestOutpostId;
     }
 
     private void LeaveZone()
