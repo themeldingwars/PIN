@@ -120,6 +120,11 @@ public class GameServerSettings
     public string ContentPath { get; set; } = "Content";
 
     /// <summary>
+    ///    Reload content files when they change, for development. Deployables change right away, the other kinds after a restart.
+    /// </summary>
+    public bool WatchContent { get; set; }
+
+    /// <summary>
     ///    Enable loading zone collision data
     /// </summary>
     public bool LoadMapsCollision { get; set; }

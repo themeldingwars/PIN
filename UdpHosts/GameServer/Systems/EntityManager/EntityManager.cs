@@ -29,6 +29,9 @@ using GameServer.StaticDB.Records.customdata;
 using GameServer.Systems.Aptitude;
 using GameServer.Systems.Content;
 using Serilog;
+using Shared.Content;
+using Shared.Content.Zones;
+using Shared.Content.Zones.Encounters;
 
 namespace GameServer.Systems.EntityManager;
 
@@ -46,6 +49,7 @@ public class EntityManager
     private readonly ConcurrentQueue<ScopeInRequest> _queuedScopeIn = new();
     private readonly Dictionary<INetworkPlayer, int> _scopeInsThisInterval = new();
     private readonly ConcurrentDictionary<ulong, Lifetime> _lifetimeByEntity = new();
+    private readonly Dictionary<string, DeployableEntity> _contentDeployables = new();
     private uint _counter;
     private ulong _lastUpdateFlush;
     private ulong _lastScopeIn;
@@ -453,7 +457,7 @@ public class EntityManager
         var content = _shard.Content;
         foreach (var deployable in content.Deployables)
         {
-            SpawnDeployable(deployable.Type, deployable.Position, deployable.Orientation);
+            _contentDeployables[deployable.Id] = SpawnDeployable(deployable.Type, deployable.Position, deployable.Orientation);
         }
 
         foreach (var melding in content.Meldings)
@@ -479,6 +483,55 @@ public class EntityManager
 
         // Testing
         TempSpawnTestEntities();
+    }
+
+    /// <summary>
+    ///     Applies a reload of the zone's content. Deployables are respawned right away, the other kinds only log, they need a
+    ///     restart. Before the zone entities spawned there's nothing to do, the spawn reads the reloaded content.
+    /// </summary>
+    public void ApplyContentChanges(ZoneContent before, ZoneContent after)
+    {
+        if (!_hasSpawnedZoneEntities)
+        {
+            return;
+        }
+
+        var deployables = ContentChanges<ZoneDeployable>.Between(before.Deployables, after.Deployables);
+        foreach (var gone in deployables.Removed.Concat(deployables.Changed.Select(c => c.Before)))
+        {
+            if (_contentDeployables.Remove(gone.Id, out var entity))
+            {
+                // Remove doesn't take a deployable's turret along
+                if (entity.Turret != null)
+                {
+                    Remove(entity.Turret);
+                }
+
+                Remove(entity);
+            }
+        }
+
+        foreach (var placed in deployables.Added.Concat(deployables.Changed.Select(c => c.After)))
+        {
+            _contentDeployables[placed.Id] = SpawnDeployable(placed.Type, placed.Position, placed.Orientation);
+        }
+
+        if (!deployables.IsEmpty)
+        {
+            _logger.Information(
+                "Deployables of zone {ZoneId}: {Added} added, {Removed} removed, {Changed} changed",
+                _shard.ZoneId,
+                deployables.Added.Count,
+                deployables.Removed.Count,
+                deployables.Changed.Count);
+        }
+
+        if (!ContentChanges<ZoneOutpost>.Between(before.Outposts, after.Outposts).IsEmpty
+            || !ContentChanges<ZoneMelding>.Between(before.Meldings, after.Meldings).IsEmpty
+            || !ContentChanges<ZoneEncounter>.Between(before.Encounters, after.Encounters).IsEmpty)
+        {
+            _logger.Warning("Outposts, meldings or encounters of zone {ZoneId} changed, they apply after a restart", _shard.ZoneId);
+        }
     }
 
     public void SetRemainingLifetime(IEntity entity, uint timeMs)

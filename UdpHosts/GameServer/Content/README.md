@@ -25,6 +25,10 @@ The kinds so far:
 - **`source`** says where an imported entry came from, e.g. a replay or capture entity. Set **`edited`** to `true` when you change an imported entry, a re-import then leaves it alone.
 - The schemas make Rider and VS Code complete fields and flag mistakes while you type, through the `$schema` at the top of every file.
 
+## Trying changes
+
+Set `WatchContent` to `true` and `ContentPath` to this folder in the `GameServer` section of `appsettings.json`, then the game server reloads a zone whenever one of its files changes. Without `ContentPath` it reads the copy in the build output, which doesn't see your edits. Deployables change in the running game right away, the other kinds only after a restart. A file with problems is logged and the zone keeps what it had.
+
 ## Checking
 
 `dotnet test` in the repository loads and validates every zone.

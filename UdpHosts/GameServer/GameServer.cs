@@ -11,6 +11,7 @@ using GameServer.StaticDB;
 using GameServer.Systems.Content;
 using GameServer.Test;
 using Serilog;
+using Shared.Content.Zones;
 using Shared.Udp;
 
 namespace GameServer;
@@ -59,6 +60,11 @@ internal class GameServer : PacketServer, IShardManager
 
         _content = new ContentStore(serverSettings.ContentPath, Logger);
         _content.Load();
+        if (serverSettings.WatchContent)
+        {
+            _content.ZoneChanged += OnZoneContentChanged;
+            _content.Watch();
+        }
 
         Logger.ForContext(typeof(GRPCService)).Information("Initializing GRPC");
         GRPCService.Init(serverSettings.GrpcChannelAddress);
@@ -204,6 +210,14 @@ internal class GameServer : PacketServer, IShardManager
         }
 
         return client;
+    }
+
+    private void OnZoneContentChanged(ZoneContent before, ZoneContent after)
+    {
+        if (_shardsByZone.TryGetValue(after.ZoneId, out var shard))
+        {
+            shard.Post(() => shard.EntityMan.ApplyContentChanges(before, after));
+        }
     }
 
     private async Task ForgetClosedClientsAsync(CancellationToken ct)
