@@ -37,6 +37,8 @@ A spawn table lists groups with a weight, e.g. a herd of a Herdmaster and three 
 
 Set `WatchContent` to `true` and `ContentPath` to this folder in the `GameServer` section of `appsettings.json`, then the game server reloads a zone whenever one of its files changes. Without `ContentPath` it reads the copy in the build output, which doesn't see your edits. Deployables, regions, spawn tables and the population settings in `zone.json` change in the running game right away, the other kinds only after a restart. A file with problems is logged and the zone keeps what it had.
 
+In the game, `regions` lists the spawn regions near you with what's alive in them, and `region_respawn <id>` spawns a region's groups anew. A region only has NPCs while a player is within its activation radius.
+
 ## Checking
 
 `dotnet test` in the repository loads and validates every zone.
