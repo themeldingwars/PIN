@@ -21,6 +21,8 @@ public abstract class PacketServer : IPacketSender
     protected BufferBlock<Packet?> OutgoingPackets;
     protected CancellationTokenSource Source;
 
+    private const int _sioUdpConnReset = unchecked((int)0x9800000C);
+
     private readonly ManualResetEventSlim _stopped = new(false);
     private PosixSignalRegistration _sigterm;
 
@@ -133,6 +135,14 @@ public abstract class PacketServer : IPacketSender
         ServerSocket.ReceiveBufferSize = MTU * 100;
         ServerSocket.SendBufferSize = MTU * 100;
         ServerSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
+
+        // Windows reports the ICMP port unreachable from a client that's gone as a connection reset on the next ReceiveFrom,
+        // so every datagram sent to a crashed client would throw a SocketException 10054 in the listen loop
+        if (OperatingSystem.IsWindows())
+        {
+            ServerSocket.IOControl(_sioUdpConnReset, [0, 0, 0, 0], null);
+        }
+
         ServerSocket.Bind(ListenEndpoint);
 
         Logger.Information("Listening on {0}", ListenEndpoint);
