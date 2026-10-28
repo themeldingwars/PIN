@@ -110,7 +110,7 @@ public static class LoginService
     {
         try
         {
-            var refusal = await LoginRefusalAsync(ticket, characterId);
+            var (refusal, accountId) = await AuthorizeAsync(ticket, characterId);
             if (refusal != null)
             {
                 _logger.Warning("Closing the login of character {CharacterId:X16} on socket {SocketId}: {Refusal}", characterId, client.SocketId, refusal);
@@ -139,7 +139,7 @@ public static class LoginService
 
             MoveToCharacterShard(client, data, characterId);
 
-            client.AssignedShard.EventBus.Enqueue(new CharacterDataFetchedEvent(client, data));
+            client.AssignedShard.EventBus.Enqueue(new CharacterDataFetchedEvent(client, data, accountId));
         }
         finally
         {
@@ -149,19 +149,19 @@ public static class LoginService
 
     /// <summary>
     ///     Checks whether the ticket the client presented valid and whether the account behind it may
-    ///     play this character. Returns the refusal to close the connection with, or null when the login may go
-    ///     ahead.
+    ///     play this character. Returns the refusal to close the connection with, or null and the account id when the
+    ///     login may go ahead.
     ///     The ticket is a long-lived bearer secret covering every character on the account, so it is never
     ///     logged.
     /// </summary>
     /// <param name="ticket">The ticket payload exactly as the client sent it, header included</param>
     /// <param name="characterId">The full character guid the client asked to play</param>
-    private static async Task<string> LoginRefusalAsync(byte[] ticket, ulong characterId)
+    private static async Task<(string Refusal, long AccountId)> AuthorizeAsync(byte[] ticket, ulong characterId)
     {
         // There is nothing to check it against.
         if (ticket == null || ticket.Length == 0)
         {
-            return "the client presented no login ticket";
+            return ("the client presented no login ticket", 0);
         }
 
         LoginAuthorizationResponse auth;
@@ -172,7 +172,7 @@ public static class LoginService
         catch
         {
             _logger.Error("Could not ask RIN to authorize the login of character {CharacterId:X16}", characterId);
-            return "RIN could not be reached to authorize the login";
+            return ("RIN could not be reached to authorize the login", 0);
         }
 
         if (auth.Authorized)
@@ -183,13 +183,13 @@ public static class LoginService
                 characterId,
                 auth.AccountId,
                 auth.IsDev || auth.CharacterIsDev ? " (developer)" : string.Empty);
-            return null;
+            return (null, auth.AccountId);
         }
 
         if (auth.Reason == _rinDatabaseError)
         {
             _logger.Error("RIN could not check the login of character {CharacterId:X16}: {Reason}", characterId, auth.Reason);
-            return "RIN could not check the login";
+            return ("RIN could not check the login", 0);
         }
 
         // A malformed ticket is not a live secret
@@ -201,7 +201,7 @@ public static class LoginService
             auth.AccountId,
             auth.Reason,
             detail);
-        return $"RIN refused the login ({auth.Reason})";
+        return ($"RIN refused the login ({auth.Reason})", 0);
     }
 
     private static string DescribeTicket(byte[] ticket)

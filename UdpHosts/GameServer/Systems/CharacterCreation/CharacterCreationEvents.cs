@@ -5,4 +5,5 @@ namespace GameServer.Systems.CharacterCreation;
 
 public readonly record struct CharacterDataFetchedEvent(
     NetworkClient Client,
-    CharacterData Data);
+    CharacterData Data,
+    long AccountId);

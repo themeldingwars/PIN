@@ -41,7 +41,7 @@ public class CharacterCreationService
             return;
         }
 
-        player.PlayerId = 0x4658281c142e9f00ul;
+        player.PlayerId = (ulong)evt.AccountId;
 
         player.CharacterEntity = new CharacterEntity(_shard, guid);
 
