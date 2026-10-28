@@ -71,16 +71,15 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
                 _  => 0u,
             };
 
-        var timer = new Timer(state =>
+        shard.Post(
+            () =>
             {
                 if (shard.Encounters.ContainsKey(EntityId))
                 {
                     PlayDialog(bonusTimeDialog);
                 }
-
-                ((Timer)state)?.Dispose();
-            });
-        timer.Change(30_000, Timeout.Infinite);
+            },
+            30_000);
 
         _finishLine = Shard.EntityMan.SpawnAreaVisualData(data.Finish.Position, new ScopingComponent() { Range = 150 });
         _finishLine.SetPosition(data.Finish.Position);
