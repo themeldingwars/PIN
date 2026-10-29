@@ -269,8 +269,8 @@ public class Factory
                 return new LogicOrCommand(SDBInterface.GetLogicOrCommandDef(commandId));
             case CommandType.LogicNegate:
                 return new LogicNegateCommand(SDBInterface.GetLogicNegateCommandDef(commandId));
-            // case CommandType.Return:
-            //     return new ReturnCommand(SDBInterface.GetReturnCommandDef(commandId));
+            case CommandType.Return:
+                return new ReturnCommand(SDBInterface.GetReturnCommandDef(commandId));
             case CommandType.Call:
                 return new CallCommand(SDBInterface.GetCallCommandDef(commandId));
             case CommandType.PushTargets:

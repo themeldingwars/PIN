@@ -14,9 +14,9 @@ public class ReturnCommand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
-        // return status: 3
-        // 30669. Terrorclaw "Pound" Melee TEST ; Shadowstrike as a Beetle "pound the ground" attack.
-
-        // TODO:
+        result.Success = Params.ReturnSuccess != 0;
+        result.Yield = Params.ReturnYield != 0;
+        result.Halt = Params.ReturnHalt != 0;
+        result.StatusCode = (StatusCode)Params.ReturnStatus;
     }
 }
