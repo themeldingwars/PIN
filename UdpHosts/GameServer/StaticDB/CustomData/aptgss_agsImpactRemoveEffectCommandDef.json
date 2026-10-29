@@ -5445,11 +5445,15 @@
 	},
 	{
 		"id": 787534,
-		"comment": "Triggered by Ability 37807 - Activate: One-Use Celestial Wings\u0000 "
+		"comment": "Triggered by Ability 37807 - Activate: One-Use Celestial Wings\u0000; removes the glider state, 1.6/1.7 replays: removed in 78 of 79 wing launches made while it was active",
+		"effect_id": 3418,
+		"remove_from_self": true
 	},
 	{
 		"id": 787535,
-		"comment": "Triggered by Ability 37807 - Activate: One-Use Celestial Wings\u0000 "
+		"comment": "Triggered by Ability 37807 - Activate: One-Use Celestial Wings\u0000; removes the glider parameters, 1.6/1.7 replays: removed in 110 of 111 wing launches made while it was active",
+		"effect_id": 3417,
+		"remove_from_self": true
 	},
 	{
 		"id": 787536,
@@ -6987,11 +6991,15 @@
 	},
 	{
 		"id": 983972,
-		"comment": "Triggered by Ability 38620 - Activate: Rocket Wings\u0000 "
+		"comment": "Triggered by Ability 38620 - Activate: Rocket Wings\u0000; removes the glider state, 1.6/1.7 replays: removed in 78 of 79 wing launches made while it was active",
+		"effect_id": 3418,
+		"remove_from_self": true
 	},
 	{
 		"id": 983973,
-		"comment": "Triggered by Ability 38620 - Activate: Rocket Wings\u0000 "
+		"comment": "Triggered by Ability 38620 - Activate: Rocket Wings\u0000; removes the glider parameters, 1.6/1.7 replays: removed in 110 of 111 wing launches made while it was active",
+		"effect_id": 3417,
+		"remove_from_self": true
 	},
 	{
 		"id": 983974,
@@ -9777,11 +9785,15 @@
 	},
 	{
 		"id": 1139215,
-		"comment": "Triggered by Ability 39864 - Activate: Red 5 Dev Wings\u0000 "
+		"comment": "Triggered by Ability 39864 - Activate: Red 5 Dev Wings\u0000; removes the glider state, 1.6/1.7 replays: removed in 78 of 79 wing launches made while it was active",
+		"effect_id": 3418,
+		"remove_from_self": true
 	},
 	{
 		"id": 1139216,
-		"comment": "Triggered by Ability 39864 - Activate: Red 5 Dev Wings\u0000 "
+		"comment": "Triggered by Ability 39864 - Activate: Red 5 Dev Wings\u0000; removes the glider parameters, 1.6/1.7 replays: removed in 110 of 111 wing launches made while it was active",
+		"effect_id": 3417,
+		"remove_from_self": true
 	},
 	{
 		"id": 1139217,
@@ -10037,11 +10049,15 @@
 	},
 	{
 		"id": 1146943,
-		"comment": "Triggered by Ability 38053 - Chosen Glider Wings\u0000 "
+		"comment": "Triggered by Ability 38053 - Chosen Glider Wings\u0000; removes the glider state, 1.6/1.7 replays: removed in 78 of 79 wing launches made while it was active",
+		"effect_id": 3418,
+		"remove_from_self": true
 	},
 	{
 		"id": 1146944,
-		"comment": "Triggered by Ability 38053 - Chosen Glider Wings\u0000 "
+		"comment": "Triggered by Ability 38053 - Chosen Glider Wings\u0000; removes the glider parameters, 1.6/1.7 replays: removed in 110 of 111 wing launches made while it was active",
+		"effect_id": 3417,
+		"remove_from_self": true
 	},
 	{
 		"id": 1146945,
@@ -10073,11 +10089,15 @@
 	},
 	{
 		"id": 1147919,
-		"comment": "Triggered by Ability 37751 - Celestial Wings\u0000 "
+		"comment": "Triggered by Ability 37751 - Celestial Wings\u0000; removes the glider state, 1.6/1.7 replays: removed in 78 of 79 wing launches made while it was active",
+		"effect_id": 3418,
+		"remove_from_self": true
 	},
 	{
 		"id": 1147920,
-		"comment": "Triggered by Ability 37751 - Celestial Wings\u0000 "
+		"comment": "Triggered by Ability 37751 - Celestial Wings\u0000; removes the glider parameters, 1.6/1.7 replays: removed in 110 of 111 wing launches made while it was active",
+		"effect_id": 3417,
+		"remove_from_self": true
 	},
 	{
 		"id": 1147921,
@@ -10093,11 +10113,15 @@
 	},
 	{
 		"id": 1148023,
-		"comment": "Triggered by Ability 37770 - Accord Emergency Gliderwings\u0000 "
+		"comment": "Triggered by Ability 37770 - Accord Emergency Gliderwings\u0000; removes the glider state, 1.6/1.7 replays: removed in 78 of 79 wing launches made while it was active",
+		"effect_id": 3418,
+		"remove_from_self": true
 	},
 	{
 		"id": 1148024,
-		"comment": "Triggered by Ability 37770 - Accord Emergency Gliderwings\u0000 "
+		"comment": "Triggered by Ability 37770 - Accord Emergency Gliderwings\u0000; removes the glider parameters, 1.6/1.7 replays: removed in 110 of 111 wing launches made while it was active",
+		"effect_id": 3417,
+		"remove_from_self": true
 	},
 	{
 		"id": 1148025,
