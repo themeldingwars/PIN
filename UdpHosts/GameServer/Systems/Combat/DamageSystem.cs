@@ -4,6 +4,7 @@ using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Entities.Deployable;
 using GameServer.StaticDB;
+using GameServer.Systems.Aptitude;
 using GameServer.Systems.NpcDeath;
 using GameServer.Systems.SystemEvents;
 using Serilog;
@@ -146,7 +147,14 @@ public class DamageSystem
 
         _eventBus.Publish(new DeployableDestroyedEvent(deployable, source));
 
-        _shard.EntityMan.SetRemainingLifetime(deployable, (uint)_rules.CorpseLingerMs);
+        // The death ability carries what the SDB loot table doesn't, a surface deposit's crystite comes from its SpawnLoot
+        if (deployableInfo?.DeathAbilityid is > 0 and var deathAbility)
+        {
+            var initiator = source as IAptitudeTarget ?? deployable;
+            _shard.Abilities.HandleActivateAbility(_shard, initiator, deathAbility, _shard.CurrentTime, new AptitudeTargets(), self: deployable);
+        }
+
+        _shard.EntityMan.SetRemainingLifetime(deployable, (uint)_rules.DestroyedDeployableLingerMs);
     }
 
     private void ApplyHealToDeployable(DeployableEntity deployable, int amount, IEntity source)
