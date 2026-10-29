@@ -468,6 +468,7 @@ public static class Character_BaseController
             if (loadoutChanged)
             {
                 player.CharacterEntity.ResetCombatState($"switched to loadout {query.LoadoutId}");
+                SendFrameSwitch(client, shard, player, loadout.ChassisID);
             }
 
             player.CharacterEntity.LogSpeedSnapshot($"after switching to loadout {query.LoadoutId}");
@@ -644,5 +645,41 @@ public static class Character_BaseController
         }
 
         return true;
+    }
+
+    private static void SendFrameSwitch(NetworkClient client, IShard shard, IPlayer player, uint chassisId)
+    {
+        var character = player.CharacterEntity;
+        var progression = player.Battleframes.Get(chassisId);
+        var channel = client.NetChannels[ChannelType.ReliableGss];
+
+        channel.SendMessage(
+            new EliteLevels_InitFrame
+            {
+                Frame = new EliteFrameInfoSingle
+                {
+                    ChassisId = chassisId,
+                    EliteRank = character.EliteLevel,
+                    EliteXP = (uint)(progression?.CurrentEliteXp ?? 0),
+                    ElitePoints = progression?.ElitePoints ?? 0,
+                    AvailableUpgrades = [],
+                    PreviousUpgrades = [],
+                },
+            },
+            character.EntityId);
+
+        character.SetWeaponIndex(new WeaponIndexData
+        {
+            Index = 1,
+            PreviousIndex = character.WeaponIndex.Index,
+            PlaySwapAnimation = 0,
+            Time = shard.CurrentTime,
+        });
+        channel.SendMessage(new ForcedWeaponSwap { WeaponIndex = 1, ShortTime = shard.CurrentShortTime }, character.EntityId);
+
+        if (player is INetworkPlayer networkPlayer)
+        {
+            shard.Progression.SendXpRefresh(networkPlayer, chassisId);
+        }
     }
 }
