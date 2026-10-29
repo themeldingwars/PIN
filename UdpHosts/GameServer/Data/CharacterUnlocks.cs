@@ -6,6 +6,7 @@ using AeroMessages.GSS.Character.Event;
 using GameServer.Entities.Character;
 using GameServer.GRPC;
 using GameServer.Protocol;
+using GameServer.StaticDB;
 using Serilog;
 using GrpcUnlocksResponse = GrpcGameServerAPIClient.CharacterUnlocksResponse;
 
@@ -26,6 +27,7 @@ public readonly record struct UnlockKey(string UnlockType, uint UnlockId, uint F
 public static class UnlockTypes
 {
     public const string Battleframe = "battleframe";
+    public const string Certificate = "certificate";
     public const string Title = "title";
 }
 
@@ -123,13 +125,35 @@ public class CharacterUnlocks
         }
     }
 
-    // TODO: Fixme
     public void SendFullUnlocks()
     {
+        // Until certificates are earned and stored, every character gets the set of a captured level 40 account,
+        // without them the client refuses most weapons and both weapon slots
+        var certificates = CustomDBInterface.GetDefaultCertificates()
+            .Select(c => new UnlockKey(UnlockTypes.Certificate, c.Id, c.ItemId))
+            .Concat(_unlocks.Where(u => u.UnlockType == UnlockTypes.Certificate));
+
+        var groups = _unlocks.Where(u => u.UnlockType != UnlockTypes.Certificate)
+            .Concat(certificates)
+            .Distinct()
+            .GroupBy(u => u.UnlockType)
+            .Select(g => new UnlockGroup
+            {
+                Key = g.Key == UnlockTypes.Title ? "titles" : g.Key,
+                AddEntries = [.. g.Select(u => new UnlockGroupEntry
+                {
+                    UnlockId = u.UnlockId,
+                    HaveItemSdbId = (byte)(u.FrameId != 0 ? 1 : 0),
+                    ItemSdbId = u.FrameId,
+                    Unk3 = string.Empty,
+                })],
+                RemEntries = [],
+            });
+
         var update = new UnlocksUpdate()
         {
             ClearExistingData = 1,
-            Groups = []
+            Groups = [.. groups]
         };
 
         _player.NetChannels[ChannelType.ReliableGss].SendMessage(update, _character.EntityId);

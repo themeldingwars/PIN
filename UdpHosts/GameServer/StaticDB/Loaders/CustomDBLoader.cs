@@ -40,6 +40,11 @@ public class CustomDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public DefaultCertificate[] LoadDefaultCertificates()
+    {
+        return LoadJSON<DefaultCertificate>("./StaticDB/CustomData/default_certificates.json");
+    }
+
     public Dictionary<uint, DeployableSpawnCommandDef> LoadDeployableSpawnCommandDef()
     {
         return LoadJSON<DeployableSpawnCommandDef>("./StaticDB/CustomData/aptgss_agsDeployableSpawnCommandDef.json")

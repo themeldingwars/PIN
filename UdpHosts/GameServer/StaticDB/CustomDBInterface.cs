@@ -159,6 +159,7 @@ public class CustomDBInterface
     private static Dictionary<uint, Dictionary<uint, MeldingRepulsorDef>> _meldingRepulsor;
     private static Dictionary<uint, Dictionary<uint, LgvRaceDef>> _lgvRace;
     private static List<XpLevelScale> _xpLevelScales;
+    private static DefaultCertificate[] _defaultCertificates;
 
     public static void Init()
     {
@@ -170,6 +171,7 @@ public class CustomDBInterface
         _modifyPermissionCommandDef = loader.LoadModifyPermissionCommandDef();
         _impactRemoveEffectCommandDef = loader.LoadImpactRemoveEffectCommandDef();
         _deployableSpawnCommandDef = loader.LoadDeployableSpawnCommandDef();
+        _defaultCertificates = loader.LoadDefaultCertificates();
         _encounterSignalCommandDef = loader.LoadEncounterSignalCommandDef();
         _encounterSpawnCommandDef = loader.LoadEncounterSpawnCommandDef();
         _mountVehicleCommandDef = loader.LoadMountVehicleCommandDef();
@@ -324,6 +326,7 @@ public class CustomDBInterface
     public static ModifyPermissionCommandDef GetModifyPermissionCommandDef(uint id) => _modifyPermissionCommandDef.GetValueOrDefault(id);
     public static ImpactRemoveEffectCommandDef GetImpactRemoveEffectCommandDef(uint id) => _impactRemoveEffectCommandDef.GetValueOrDefault(id);
     public static DeployableSpawnCommandDef GetDeployableSpawnCommandDef(uint id) => _deployableSpawnCommandDef.GetValueOrDefault(id);
+    public static IReadOnlyList<DefaultCertificate> GetDefaultCertificates() => _defaultCertificates;
     public static EncounterSignalCommandDef GetEncounterSignalCommandDef(uint id) => _encounterSignalCommandDef.GetValueOrDefault(id);
     public static EncounterSpawnCommandDef GetEncounterSpawnCommandDef(uint id) => _encounterSpawnCommandDef.GetValueOrDefault(id);
     public static MountVehicleCommandDef GetMountVehicleCommandDef(uint id) => _mountVehicleCommandDef.GetValueOrDefault(id);
