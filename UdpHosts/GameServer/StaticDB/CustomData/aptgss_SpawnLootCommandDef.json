@@ -477,7 +477,9 @@
   },
   {
     "id": 491798,
-    "comment": ""
+    "comment": "Metallics Surface Deposit, death ability 34716",
+    "loot_table_id": 5256,
+    "loot_table2_id": 5238
   },
   {
     "id": 491846,
@@ -497,7 +499,9 @@
   },
   {
     "id": 491860,
-    "comment": ""
+    "comment": "Uranium Surface Deposit, death ability 34719",
+    "loot_table_id": 5259,
+    "loot_table2_id": 5241
   },
   {
     "id": 491862,
@@ -933,7 +937,9 @@
   },
   {
     "id": 652519,
-    "comment": ""
+    "comment": "Titanium Surface Deposit, death ability 34718",
+    "loot_table_id": 5258,
+    "loot_table2_id": 5240
   },
   {
     "id": 652529,
@@ -953,7 +959,9 @@
   },
   {
     "id": 652543,
-    "comment": ""
+    "comment": "Tungsten Surface Deposit, death ability 34717",
+    "loot_table_id": 5257,
+    "loot_table2_id": 5239
   },
   {
     "id": 653298,

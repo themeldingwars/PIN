@@ -414,8 +414,8 @@ public class Factory
             // case CommandType.RequireResourceFromTarget:
             //     has environment `server` but is in SDB
             //     return new RequireResourceFromTargetCommand(SDBInterface.GetRequireResourceFromTargetCommandDef(commandId));
-            // case CommandType.SpawnLoot:
-            //     return new SpawnLootCommand(CustomDBInterface.GetSpawnLootCommandDef(commandId));
+            case CommandType.SpawnLoot:
+                return new SpawnLootCommand(CustomDBInterface.GetSpawnLootCommandDef(commandId));
             // case CommandType.AbilitySlotted:
             //     return new AbilitySlottedCommand(CustomDBInterface.GetAbilitySlottedCommandDef(commandId));
             case CommandType.LoadRegisterFromResource:

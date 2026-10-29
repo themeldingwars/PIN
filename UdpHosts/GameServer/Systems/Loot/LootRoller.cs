@@ -20,6 +20,7 @@ public static class LootRoller
 
     private const int _chancePrecision = 10_000; // percentages are compared in basis points
     private const int _maxDepth = 8;
+    private const byte _retiredApprovalState = 4;
 
     private static readonly ILogger Logger = Log.ForContext(typeof(LootRoller));
     private static readonly ConcurrentDictionary<byte, byte> _simplifiedRollModes = [];
@@ -123,7 +124,8 @@ public static class LootRoller
                 continue;
             }
 
-            if (!PassesLevelBand(dist.LevelRange, dist.DistId, context) ||
+            if ((context.ExcludeRetired && item.ApprovalState == _retiredApprovalState) ||
+                !PassesLevelBand(dist.LevelRange, dist.DistId, context) ||
                 !PassesRequiredLevel(item, context) ||
                 !PassesRequirements(dist.DistId) ||
                 !PassesClassFilter(table, item.ClassCertId, context))

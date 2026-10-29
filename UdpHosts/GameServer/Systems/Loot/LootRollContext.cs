@@ -20,4 +20,10 @@ public sealed class LootRollContext
     /// Negative disables the filter.
     /// </summary>
     public int RequiredLevelWindow { get; init; } = 0;
+
+    /// <summary>
+    /// Leaves out items the SDB marks as retired (RootItem.approval_state 4) before anything is picked. The 1962 surface
+    /// deposits' tables pick between a retired ore and crystite, and the replays only ever show the crystite.
+    /// </summary>
+    public bool ExcludeRetired { get; init; }
 }

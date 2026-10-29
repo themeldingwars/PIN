@@ -750,7 +750,7 @@ public class CustomDBLoader
 
     public Dictionary<uint, SpawnLootCommandDef> LoadSpawnLootCommandDef()
     {
-        return LoadJSON<SpawnLootCommandDef>("./StaticDB/CustomData/Todo/aptgss_SpawnLootCommandDef.json")
+        return LoadJSON<SpawnLootCommandDef>("./StaticDB/CustomData/aptgss_SpawnLootCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 

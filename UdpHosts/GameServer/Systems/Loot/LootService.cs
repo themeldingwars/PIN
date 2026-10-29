@@ -96,9 +96,10 @@ public class LootService
     /// <param name="level">The level of the entity that died, matched against the tables' level_range gates.</param>
     /// <param name="origin">The world position to drop the loot at.</param>
     /// <param name="owner">The entity credited with the drop, or null.</param>
-    public void DropLoot(uint lootTableId, uint secondLootTableId, int level, Vector3 origin, IEntity owner = null)
+    /// <param name="excludeRetired">Leaves retired items out of the rolls, see <see cref="LootRollContext.ExcludeRetired" />.</param>
+    public void DropLoot(uint lootTableId, uint secondLootTableId, int level, Vector3 origin, IEntity owner = null, bool excludeRetired = false)
     {
-        var context = new LootRollContext { Level = level, RequiredLevelWindow = _rules.RequiredLevelWindow };
+        var context = new LootRollContext { Level = level, RequiredLevelWindow = _rules.RequiredLevelWindow, ExcludeRetired = excludeRetired };
         var results = new List<LootRollResult>();
 
         if (lootTableId != 0)
