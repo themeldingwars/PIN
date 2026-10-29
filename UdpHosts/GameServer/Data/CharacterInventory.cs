@@ -576,9 +576,11 @@ public class CharacterInventory
             switch (slot)
             {
                 case LoadoutSlotType.Glider:
+                    _character.CurrentLoadout.GliderID = equippedSdbId;
                     _character.SetStaticInfo(_character.StaticInfo with { LoadoutGlider = equippedSdbId });
                     break;
                 case LoadoutSlotType.Vehicle:
+                    _character.CurrentLoadout.VehicleID = equippedSdbId;
                     _character.SetStaticInfo(_character.StaticInfo with { LoadoutVehicle = equippedSdbId });
                     break;
             }
@@ -595,32 +597,49 @@ public class CharacterInventory
         return true;
     }
 
-    public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
+    /// <summary>
+    ///     Slots a glider or vehicle. 1962 loadouts keep them as visuals only, there's no item slot for them, and a
+    ///     one-use glider or vehicle is a stack (a resource) rather than an item.
+    /// </summary>
+    /// <returns>False when the request was refused and nothing changed.</returns>
+    public bool EquipVisualBySdbId(int loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdbId, uint configId = PveConfigId)
     {
-        // Unequip old item (if any)
-        if (_loadouts[loadoutId].LoadoutConfigs[0].Visuals.Any(i => i.VisualType == visual))
+        var configIndex = _loadouts.TryGetValue(loadoutId, out var loadout) ? GetLoadoutConfigIndex(loadout, configId) : -1;
+        if (configIndex < 0)
         {
-            // Update Visuals
-            _loadouts[loadoutId].LoadoutConfigs[0].Visuals = [.. _loadouts[loadoutId].LoadoutConfigs[0].Visuals.Where(e => e.VisualType != visual)];
+            _logger.Warning("Not slotting visual {ItemId} into loadout {LoadoutId} config {ConfigId}", sdbId, loadoutId, configId);
+            return false;
         }
 
-        // Equip new item (if any)
-        if (sdb_id != 0)
+        if (sdbId != 0 && !_resources.ContainsKey(sdbId) && !_items.Values.Any(e => e.SdbId == sdbId))
         {
-            // Update Visuals
-            _loadouts[loadoutId].LoadoutConfigs[0].Visuals =
-            [
-                .. _loadouts[loadoutId].LoadoutConfigs[0].Visuals,
-                new LoadoutConfig_Visual() { ItemSdbId = sdb_id, VisualType = visual, Data1 = 0, Data2 = 0, Transform = [] },
-            ];
-            _ = _items.First(e => e.Value.SdbId == sdb_id).Value;
+            _logger.Warning("Not slotting visual {ItemId}, which {CharacterId:X16} does not own", sdbId, _character.EntityId);
+            return false;
         }
 
-        var equippedGUID = (sdb_id != 0) ? _items.First(e => e.Value.SdbId == sdb_id).Value.GUID : 0;
+        var acceptedType = CharacterLoadout.GetAcceptedItemType(slot);
+        var itemType = (ItemType?)SDBInterface.GetRootItem(sdbId)?.Type;
+        if (sdbId != 0 && acceptedType.HasValue && itemType != acceptedType.Value)
+        {
+            _logger.Warning("Not slotting visual {ItemId} of type {ItemType} as {Slot}, which takes {AcceptedType}", sdbId, itemType, slot, acceptedType.Value);
+            return false;
+        }
 
-        PersistLoadoutVisuals(loadoutId, PveConfigId, _loadouts[loadoutId].LoadoutConfigs[0].Visuals);
+        if (loadoutId == _character.SelectedLoadout && configId == PveConfigId && _character.CurrentLoadout != null)
+        {
+            _character.CurrentLoadout.SlottedItems[slot] = sdbId;
+        }
 
-        EquipItemByGUID(loadoutId, slot, equippedGUID);
+        var visuals = loadout.LoadoutConfigs[configIndex].Visuals.Where(e => e.VisualType != visual).ToList();
+        if (sdbId != 0)
+        {
+            visuals.Add(new LoadoutConfig_Visual() { ItemSdbId = sdbId, VisualType = visual, Data1 = 0, Data2 = 0, Transform = [] });
+        }
+
+        loadout.LoadoutConfigs[configIndex].Visuals = [.. visuals];
+        SendLoadoutChanges();
+        PersistLoadoutVisuals(loadoutId, configId, loadout.LoadoutConfigs[configIndex].Visuals);
+        return true;
     }
 
     public bool SetLoadoutVisuals(int loadoutId, uint configId, IReadOnlyList<LoadoutConfig_Visual> visuals, out LoadoutConfig_Visual[] applied)

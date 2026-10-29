@@ -104,8 +104,6 @@ public class CharacterLoadout
         { AbilitySlotType.AbilityHKM, LoadoutSlotType.AbilityHKM },
         { AbilitySlotType.AbilityAux, LoadoutSlotType.GearAuxWeapon },
         { AbilitySlotType.AbilityMedical, LoadoutSlotType.GearMedicalSystem },
-        { AbilitySlotType.AbilityCalldownVehicle, LoadoutSlotType.Vehicle },
-        { AbilitySlotType.AbilityCalldownGlider, LoadoutSlotType.Glider }
     };
 
     public Dictionary<LoadoutSlotType, uint> SlottedItems = [];
@@ -270,6 +268,14 @@ public class CharacterLoadout
         {
             switch (visual.VisualType)
             {
+                case LoadoutVisualType.Vehicle:
+                    VehicleID = visual.ItemSdbId;
+                    break;
+
+                case LoadoutVisualType.Glider:
+                    GliderID = visual.ItemSdbId;
+                    break;
+
                 case LoadoutVisualType.Palette:
                     var palette = SDBInterface.GetWarpaintPalette(visual.ItemSdbId);
                     if (palette == null)
@@ -358,6 +364,18 @@ public class CharacterLoadout
     public uint GetAbilityModuleIdBySlotIndex(byte slotIndex)
     {
         var slotType = (AbilitySlotType)slotIndex;
+
+        // The same ids the static info sends, the client calls down what it shows there
+        if (slotType == AbilitySlotType.AbilityCalldownVehicle)
+        {
+            return VehicleID;
+        }
+
+        if (slotType == AbilitySlotType.AbilityCalldownGlider)
+        {
+            return GliderID;
+        }
+
         var loadoutSlot = AbilityToLoadoutSlotMap.GetValueOrDefault(slotType);
         if (loadoutSlot == 0)
         {

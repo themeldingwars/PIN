@@ -614,8 +614,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             Eyes = visuals.Eyes,
             VoiceSet = visuals.VoiceSet,
             HeadAccessories = visuals.HeadAccessories,
-            LoadoutVehicle = visuals.Vehicle,
-            LoadoutGlider = visuals.Glider,
+            LoadoutVehicle = CurrentLoadout?.VehicleID ?? visuals.Vehicle,
+            LoadoutGlider = CurrentLoadout?.GliderID ?? visuals.Glider,
             Visuals = new VisualsBlock
             {
                 Decals = [],
@@ -791,6 +791,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             AttributeCategories1 = loadout.GetItemModuleScalars(), // TODO: Compare with capture
             AttributeCategories2 = loadout.GetItemCharacterScalars()
         });
+
+        // The client calls down the vehicle and glider of the static info, with an item it doesn't own the
+        // calldown key does nothing and says nothing. Not IsPlayerControlled: on login the loadout is applied
+        // before the player takes control.
+        if (!IsNpc && (StaticInfo.LoadoutVehicle != loadout.VehicleID || StaticInfo.LoadoutGlider != loadout.GliderID))
+        {
+            SetStaticInfo(StaticInfo with { LoadoutVehicle = loadout.VehicleID, LoadoutGlider = loadout.GliderID });
+        }
 
         SelectedLoadout = loadout.LoadoutID;
 
@@ -1586,11 +1594,29 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return true;
     }
 
-    public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)
+    public bool EquipVisualBySdbId(int loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdbId, uint configId)
     {
-        Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdb_id);
-        Player.CharacterEntity.CurrentLoadout.GliderID = sdb_id;
+        if (!Player.Inventory.EquipVisualBySdbId(loadoutId, visualSlot, slot, sdbId, configId))
+        {
+            return false;
+        }
+
+        if (loadoutId != SelectedLoadout || configId != CharacterInventory.PveConfigId)
+        {
+            return true;
+        }
+
+        if (visualSlot == LoadoutVisualType.Vehicle)
+        {
+            CurrentLoadout.VehicleID = sdbId;
+        }
+        else if (visualSlot == LoadoutVisualType.Glider)
+        {
+            CurrentLoadout.GliderID = sdbId;
+        }
+
         ApplyLoadout(CurrentLoadout);
+        return true;
     }
 
     /// <summary>
@@ -3069,22 +3095,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private void ApplyLoadoutVisuals(IReadOnlyList<LoadoutConfig_Visual> visuals)
     {
         CurrentLoadout.ApplyVisuals(visuals);
-
-        foreach (var visual in visuals)
-        {
-            switch (visual.VisualType)
-            {
-                case LoadoutVisualType.Glider:
-                    CurrentLoadout.GliderID = visual.ItemSdbId;
-                    SetStaticInfo(StaticInfo with { LoadoutGlider = visual.ItemSdbId });
-                    break;
-
-                case LoadoutVisualType.Vehicle:
-                    CurrentLoadout.VehicleID = visual.ItemSdbId;
-                    SetStaticInfo(StaticInfo with { LoadoutVehicle = visual.ItemSdbId });
-                    break;
-            }
-        }
     }
 
     public record struct SelectedMonsterVisuals

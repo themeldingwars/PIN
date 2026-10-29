@@ -519,14 +519,23 @@ public static class Character_BaseController
     {
         var request = packet.Unpack<SlotVisualRequest>();
 
-        player.CharacterEntity.EquipVisualBySdbId(request.LoadoutId, (LoadoutVisualType)request.VisualType, (LoadoutSlotType)request.SlotTypeId, request.ItemSdbId);
+        var equipped = player.CharacterEntity.EquipVisualBySdbId(request.LoadoutId, (LoadoutVisualType)request.VisualType, (LoadoutSlotType)request.SlotTypeId, request.ItemSdbId, request.ConfigId);
+        _logger.Information(
+            "SlotVisual of {CharacterId:X}: loadout {LoadoutId} config {ConfigId} {VisualType} item {ItemId} {Result}",
+            player.CharacterId,
+            request.LoadoutId,
+            request.ConfigId,
+            (LoadoutVisualType)request.VisualType,
+            request.ItemSdbId,
+            equipped ? "slotted" : "refused");
 
         var response = new SlotVisualResponse()
                        {
-                           ConfigId = 1,
+                           ConfigId = request.ConfigId,
                            SlotIdx = request.SlotTypeId,
+                           VisualSdbId = request.ItemSdbId,
                            LoadoutId = request.LoadoutId,
-                           Result = 1,
+                           Result = (sbyte)(equipped ? 1 : 0),
                        };
 
         client.NetChannels[ChannelType.ReliableGss].SendMessage(response, entityId);
