@@ -14,5 +14,6 @@ public class RegisterClientProximityCommand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
+        result.SetPass();
     }
 }

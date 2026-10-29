@@ -558,8 +558,8 @@ public class Factory
             //     return new UpdateSpawnTableCommand(CustomDBInterface.GetUpdateSpawnTableCommandDef(commandId));
             // case CommandType.TargetByHostility:
             //     return new TargetByHostilityCommand(SDBInterface.GetTargetByHostilityCommandDef(commandId));
-            // case CommandType.RegisterClientProximity:
-            //     return new RegisterClientProximityCommand(SDBInterface.GetRegisterClientProximityCommandDef(commandId));
+            case CommandType.RegisterClientProximity:
+                return new RegisterClientProximityCommand(SDBInterface.GetRegisterClientProximityCommandDef(commandId));
             case CommandType.ApplySinCard:
                 return new ApplySinCardCommand(CustomDBInterface.GetApplySinCardCommandDef(commandId));
             // case CommandType.UnlockOrnaments:

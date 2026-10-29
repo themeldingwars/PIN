@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Aero.Protocol;
+using AeroMessages.Common;
 using AeroMessages.Control;
 using AeroMessages.GSS.Generic;
 using GameServer.Entities;
@@ -48,32 +49,15 @@ public static class GenericShard
     [MessageID(GssMessage.LocalProximityAbilitySuccess)]
     public static void LocalProximityAbilitySuccess(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
-        var abilities = shard.Abilities;
-
         var message = packet.Unpack<LocalProximityAbilitySuccess>();
-        shard.Entities.TryGetValue(message.Source.Backing & 0xffffffffffffff00, out IEntity sourceEntity);
-        var source = (IAptitudeTarget)sourceEntity;
-        var targets = message.Targets
-        .Where(entityId =>
-        {
-            try
-            {
-                return shard.Entities[entityId.Backing & 0xffffffffffffff00] != null;
-            }
-            catch
-            {
-                return false;
-            }
-        })
-        .Select(entityId => (IAptitudeTarget)shard.Entities[entityId.Backing & 0xffffffffffffff00])
-        .ToArray();
-
-        abilities.HandleLocalProximityAbilitySuccess(shard, source, message.ClientProximityCommandId, message.Time, new AptitudeTargets(targets));
+        HandleProximity(shard, message.Source, message.ClientProximityCommandId, message.Targets, message.Time, local: true);
     }
 
     [MessageID(GssMessage.RemoteProximityAbilitySuccess)]
     public static void RemoteProximityAbilitySuccess(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
+        var message = packet.Unpack<RemoteProximityAbilitySuccess>();
+        HandleProximity(shard, message.Source, message.ClientProximityCommandId, message.Targets, message.Time, local: false);
     }
 
     [MessageID(GssMessage.TrailRequest)]
@@ -129,5 +113,14 @@ public static class GenericShard
     [MessageID(GssMessage.VendorProductRequest)]
     public static void VendorProductRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
+    }
+
+    private static void HandleProximity(IShard shard, EntityId source, uint commandId, EntityId[] targets, uint time, bool local)
+    {
+        // Targets the client made up itself, e.g. its local effects, don't exist here
+        IAptitudeTarget Lookup(EntityId id) => shard.Entities.TryGetValue(id.Backing & 0xffffffffffffff00, out var entity) ? entity as IAptitudeTarget : null;
+
+        var found = targets.Select(Lookup).Where(target => target != null).ToArray();
+        shard.Abilities.HandleProximityAbilitySuccess(shard, Lookup(source), commandId, time, found, local);
     }
 }

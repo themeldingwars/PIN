@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -7,18 +8,24 @@ using AeroMessages.GSS.Character.Command;
 using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.StaticDB;
+using GameServer.StaticDB.Records.aptfs;
 using Serilog;
 
 namespace GameServer.Systems.Aptitude;
 
 public class AbilitySystem
 {
+    private const float _proximitySlack = 5f;
+    private const uint _proximityRetrySlackMs = 100;
+    private const int _proximityHitsKept = 1000;
+
     private static readonly ILogger _logger = Log.ForContext<AbilitySystem>();
     private readonly Shard _shard;
     private readonly ulong _updateIntervalMs = 20;
     private readonly Dictionary<ulong, VehicleCalldownRequest> _playerVehicleCalldownRequests;
     private readonly Dictionary<ulong, DeployableCalldownRequest> _playerDeployableCalldownRequests;
     private readonly Dictionary<ulong, ResourceNodeBeaconCalldownRequest> _playerThumperCalldownRequests;
+    private readonly ConcurrentDictionary<(ulong Source, uint Command, ulong Target), uint> _proximityHits = new();
     private ulong _lastUpdate;
 
     public AbilitySystem(Shard shard)
@@ -285,13 +292,42 @@ public class AbilitySystem
         _playerThumperCalldownRequests.Add(entityId, request);
     }
 
-    public void HandleLocalProximityAbilitySuccess(IShard shard, IAptitudeTarget source, uint commandId, uint time, AptitudeTargets targets, Guid? executionId = null)
+    public void HandleProximityAbilitySuccess(IShard shard, IAptitudeTarget source, uint commandId, uint time, IEnumerable<IAptitudeTarget> reported, bool local, Guid? executionId = null)
     {
         var execId = executionId ?? Guid.NewGuid();
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
-        _logger.Information("HandleLocalProximityAbilitySuccess Source {source}, Command {commandId}, Time {time}, TargetsCount {targetsCount}", source, commandId, time, targets.Count);
 
         var commandDef = SDBInterface.GetRegisterClientProximityCommandDef(commandId);
+        if (source == null || commandDef == null)
+        {
+            _logger.Debug("Proximity hit of command {CommandId} from {Source} ignored, the source or the command is unknown", commandId, source);
+            return;
+        }
+
+        var accepted = reported.Where(target => IsProximityHit(source, commandDef, target)).ToList();
+        if (commandDef.MaxTargets > 0)
+        {
+            accepted = accepted.Take((int)commandDef.MaxTargets).ToList();
+        }
+
+        _logger.Information(
+            "Proximity hit ({Kind}) Source {Source}, Command {CommandId}, Time {Time}, {Accepted} of the reported targets accepted",
+            local ? "local" : "remote",
+            source,
+            commandId,
+            time,
+            accepted.Count);
+        if (accepted.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var target in accepted)
+        {
+            _proximityHits[(source.EntityId, commandId, target.EntityId)] = _shard.CurrentTime;
+        }
+
+        var targets = new AptitudeTargets(accepted.ToArray());
 
         IAptitudeTarget triggerer = targets.OfType<CharacterEntity>().FirstOrDefault();
 
@@ -397,5 +433,29 @@ public class AbilitySystem
     public void HandleActivateConsumable()
     {
         throw new NotImplementedException();
+    }
+
+    private bool IsProximityHit(IAptitudeTarget source, RegisterClientProximityCommandDef commandDef, IAptitudeTarget target)
+    {
+        // With a radius regop the radius comes from a register this report doesn't carry
+        if (commandDef.RadiusRegop == 0 && Vector3.Distance(source.Position, target.Position) > commandDef.Radius + _proximitySlack)
+        {
+            return false;
+        }
+
+        if (_proximityHits.Count > _proximityHitsKept)
+        {
+            foreach (var (key, hitAt) in _proximityHits)
+            {
+                if (_shard.CurrentTime - hitAt > 60_000)
+                {
+                    _proximityHits.TryRemove(key, out _);
+                }
+            }
+        }
+
+        return commandDef.RetryInterval <= _proximityRetrySlackMs
+               || !_proximityHits.TryGetValue((source.EntityId, commandDef.Id, target.EntityId), out var lastHit)
+               || _shard.CurrentTime - lastHit >= commandDef.RetryInterval - _proximityRetrySlackMs;
     }
 }
