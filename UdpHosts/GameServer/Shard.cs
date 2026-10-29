@@ -88,9 +88,7 @@ public class Shard : IShard
             EventBus,
             Movement,
             debugCallbacks);
-        NavMesh = new NavMeshService(logger);
-        NavMesh.Load(zoneId, Settings.CachePath);
-        Crowd = new CrowdNavigationService(NavMesh, Settings);
+        Navigation = new ShardNavigation(zoneId, Settings, logger);
         Hostility = new HostilityResolver();
         AI = new AIEngine(this);
         Abilities = new AbilitySystem(this);
@@ -123,8 +121,7 @@ public class Shard : IShard
     public IReadOnlyDictionary<string, SpawnTable> SpawnTables => _content.SpawnTables;
     public EventBus EventBus { get; }
     public PhysicsEngine Physics { get; }
-    public NavMeshService NavMesh { get; }
-    public CrowdNavigationService Crowd { get; }
+    public ShardNavigation Navigation { get; }
     public AIEngine AI { get; }
     public MovementRelay Movement { get; }
     public EntityManager EntityMan { get; }
@@ -163,7 +160,7 @@ public class Shard : IShard
             // Build the one-shot navmesh overlay mesh (from the already-loaded DtNavMesh) before the
             // GL window thread starts rendering. Runs here, before the tick loop, so the GL thread
             // never races the extraction; the mesh cache lock serializes the upload with the GL thread.
-            Physics.DebugRenderExtractNavMesh(NavMesh);
+            Physics.DebugRenderExtractNavMesh(Navigation.Default.Mesh);
             SpawnDebugRenderer(ct);
         }
 

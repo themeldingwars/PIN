@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using Shared.Collision.Navigation;
 
@@ -29,7 +30,7 @@ public sealed record CacheManifest(
     {
         // Baking settings live in code, not on the command line, so they have to be part of the
         // manifest or a parameter change would leave a cached navmesh looking up to date.
-        var navMeshParamsHash = new NavMeshBuildParams().ComputeHash().ToString(CultureInfo.InvariantCulture);
+        var navMeshParamsHash = string.Join(',', NavMeshBuildParams.All.Select(p => p.ComputeHash().ToString(CultureInfo.InvariantCulture)));
 
         return new CacheManifest(
             _currentFormatVersion,

@@ -11,7 +11,7 @@ namespace Shared.Collision.Navigation;
 /// </summary>
 public sealed record NavMeshMetadata
 {
-    /// <summary>File name suffix appended to the zone id, e.g. <c>1003.nav.meta</c>.</summary>
+    /// <summary>File name suffix appended to the file stem, e.g. <c>1003.nav.meta</c> or <c>1003.large.nav.meta</c>.</summary>
     public const string Suffix = ".nav.meta";
 
     /// <summary>Bumped when the layout of the <c>.nav</c> itself changes, so older files are rejected.</summary>
@@ -34,20 +34,20 @@ public sealed record NavMeshMetadata
 
     public DateTime BuiltUtc { get; init; }
 
-    public static string PathFor(string navmeshDirectory, uint zoneId)
+    public static string PathFor(string navmeshDirectory, string fileStem)
     {
-        return Path.Combine(navmeshDirectory, $"{zoneId}{Suffix}");
+        return Path.Combine(navmeshDirectory, $"{fileStem}{Suffix}");
     }
 
-    public void Save(string navmeshDirectory, uint zoneId)
+    public void Save(string navmeshDirectory, string fileStem)
     {
-        File.WriteAllText(PathFor(navmeshDirectory, zoneId), JsonSerializer.Serialize(this, _serializerOptions));
+        File.WriteAllText(PathFor(navmeshDirectory, fileStem), JsonSerializer.Serialize(this, _serializerOptions));
     }
 
     /// <summary>Reads the sidecar, or null when it is missing or unreadable (an untracked bake).</summary>
-    public static NavMeshMetadata? Load(string navmeshDirectory, uint zoneId)
+    public static NavMeshMetadata? Load(string navmeshDirectory, string fileStem)
     {
-        var path = PathFor(navmeshDirectory, zoneId);
+        var path = PathFor(navmeshDirectory, fileStem);
         if (!File.Exists(path))
         {
             return null;

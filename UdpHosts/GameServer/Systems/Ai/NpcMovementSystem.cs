@@ -221,8 +221,7 @@ public sealed class NpcMovementSystem
 
         // Phase 2: one shared crowd step for the whole shard. This is the whole point of the crowd — planning
         // every agent in one pass is what lets each NPC account for the others.
-        _shard.Crowd.RemoveStaleAgents(_liveNpcIds);
-        _shard.Crowd.Update(dt);
+        _shard.Navigation.Update(dt, _liveNpcIds);
 
         // Phase 3: read back the planned velocities and run the motor, assists and broadcast state.
         foreach (var step in _movingSteps)
@@ -284,7 +283,7 @@ public sealed class NpcMovementSystem
     {
         if (npc.NpcMovement is { } comp && route is { Count: > 0 })
         {
-            comp.SetPatrol(SnapRouteToNavmesh(route));
+            comp.SetPatrol(SnapRouteToNavmesh(NavigationOf(npc, comp).Mesh, route));
         }
     }
 
@@ -680,8 +679,8 @@ public sealed class NpcMovementSystem
         var rotated = new Vector3((offset.X * cos) - (offset.Y * sin), (offset.X * sin) + (offset.Y * cos), 0f);
         var dest = new Vector3(targetPos.X + rotated.X, targetPos.Y + rotated.Y, npc.Position.Z);
 
-        var nav = _shard.NavMesh;
-        if (nav != null && nav.IsLoaded)
+        var nav = NavigationOf(npc, comp).Mesh;
+        if (nav.IsLoaded)
         {
             if (!nav.FindNearestPoly(dest, _maneuverSnapRadius, out _, out var snapped))
             {
@@ -740,10 +739,9 @@ public sealed class NpcMovementSystem
     /// </summary>
     /// <param name="route">The raw patrol waypoints to snap.</param>
     /// <returns>The waypoints snapped to the nearest walkable navmesh points, or the original route when no navmesh is loaded.</returns>
-    private IReadOnlyList<Vector3> SnapRouteToNavmesh(IReadOnlyList<Vector3> route)
+    private IReadOnlyList<Vector3> SnapRouteToNavmesh(NavMeshService nav, IReadOnlyList<Vector3> route)
     {
-        var nav = _shard.NavMesh;
-        if (nav == null || !nav.IsLoaded)
+        if (!nav.IsLoaded)
         {
             return route;
         }
@@ -834,8 +832,8 @@ public sealed class NpcMovementSystem
     /// <returns>True when a point was found; false when the wander area yielded none.</returns>
     private bool TryPickWanderPoint(CharacterEntity npc, NpcMovementComponent comp, out Vector3 point)
     {
-        var nav = _shard.NavMesh;
-        if (nav != null && nav.TryFindRandomPointWithinCircle(comp.WanderCenter, comp.WanderRadius, out point))
+        var nav = NavigationOf(npc, comp).Mesh;
+        if (nav.TryFindRandomPointWithinCircle(comp.WanderCenter, comp.WanderRadius, out point))
         {
             return true;
         }
@@ -868,7 +866,7 @@ public sealed class NpcMovementSystem
         {
             if (agent != null)
             {
-                _shard.Crowd.RequestGoal(agent, comp.Destination);
+                comp.Navigation!.Crowd.RequestGoal(agent, comp.Destination);
                 comp.NoteRequestedGoal(comp.Destination);
             }
             else
@@ -932,7 +930,7 @@ public sealed class NpcMovementSystem
         //     discarded (physics is authoritative) except for the bounded de-overlap share copied below.
         if (step.Agent is { } agent)
         {
-            if (_shard.Crowd.TryReadVelocity(agent, out var planned))
+            if (comp.Navigation!.Crowd.TryReadVelocity(agent, out var planned))
             {
                 desired = planned;
                 if (desired.LengthSquared() > 0.01f)
@@ -947,7 +945,7 @@ public sealed class NpcMovementSystem
                 desired = SteerDirectly(npc, comp, grounded);
             }
 
-            ApplyCrowdDeoverlap(npc, agent);
+            ApplyCrowdDeoverlap(npc, comp.Navigation!.Crowd, agent);
         }
 
         // 4b. Local avoidance: nudge the heading around nearby solid bodies (deployables, vehicles, players) so the NPC
@@ -1094,10 +1092,10 @@ public sealed class NpcMovementSystem
     /// </summary>
     /// <param name="npc">The NPC to correct.</param>
     /// <param name="agent">The NPC's crowd agent.</param>
-    private void ApplyCrowdDeoverlap(CharacterEntity npc, DtCrowdAgent agent)
+    private void ApplyCrowdDeoverlap(CharacterEntity npc, CrowdNavigationService crowd, DtCrowdAgent agent)
     {
         var limit = _shard.Settings.CrowdSeparationNudge;
-        if (limit <= 0f || !_shard.Crowd.TryGetDeoverlap(agent, out var delta))
+        if (limit <= 0f || !crowd.TryGetDeoverlap(agent, out var delta))
         {
             return;
         }
@@ -1184,6 +1182,24 @@ public sealed class NpcMovementSystem
         return result;
     }
 
+    private NavigationLayer NavigationOf(CharacterEntity npc, NpcMovementComponent comp)
+    {
+        if (comp.Navigation != null)
+        {
+            return comp.Navigation;
+        }
+
+        var layer = _shard.Navigation.For(npc.BodySize.Radius);
+        _logger.Debug("NPC {EntityId} with a body radius of {Radius:F1} uses the navmesh for radius {AgentRadius}", npc.EntityId, npc.BodySize.Radius, layer.Agent.AgentRadius);
+        comp.Navigation = layer;
+        if (comp.Strategy is NavMeshPathStrategy path)
+        {
+            path.NavMesh = layer.Mesh;
+        }
+
+        return layer;
+    }
+
     private static float GroundProbeRange(CharacterEntity npc) => MathF.Max(_groundProbeRange, npc.BodySize.Radius * _groundProbeRangePerBodyRadius);
 
     private void TickStoppedNpc(CharacterEntity npc, NpcMovementComponent comp, float dt)
@@ -1224,7 +1240,7 @@ public sealed class NpcMovementSystem
         // body against the brake. The agent itself stays registered so the others still walk around a standing NPC.
         if (comp.CrowdAgent is { } agent)
         {
-            _shard.Crowd.ResetGoal(agent);
+            comp.Navigation!.Crowd.ResetGoal(agent);
         }
 
         _shard.Physics.StopNpcSteering(npc, GetBrakeAcceleration(comp), npc.Orientation);
@@ -1254,7 +1270,7 @@ public sealed class NpcMovementSystem
         // How far the body sits from the walkable mesh. PIN's own pathfinding searches with a 200u extent, so an
         // NPC can path fine while standing nowhere near the mesh — and the crowd, which places agents with a
         // reach of about one agent radius, marks such an agent invalid and stops steering it entirely.
-        var meshGap = _shard.NavMesh.FindNearestPoly(npc.Position, 200f, out _, out var onMesh)
+        var meshGap = NavigationOf(npc, comp).Mesh.FindNearestPoly(npc.Position, 200f, out _, out var onMesh)
             ? (onMesh - npc.Position).Length()
             : float.NaN;
 
@@ -1281,11 +1297,14 @@ public sealed class NpcMovementSystem
     /// <param name="comp">The NPC's movement component (holds the agent and current gait).</param>
     private void SyncCrowdAgent(CharacterEntity npc, NpcMovementComponent comp)
     {
-        var crowd = _shard.Crowd;
-        if (!crowd.IsEnabled)
+        // Without a body there's no size to pick a crowd by yet
+        NavigationOf(npc, comp);
+        if (comp.Navigation is not { Crowd.IsEnabled: true } navigation)
         {
             return;
         }
+
+        var crowd = navigation.Crowd;
 
         comp.CrowdAgent ??= crowd.AcquireAgent(npc.EntityId, npc.Position, npc.BodySize, comp.TargetSpeed, GetMaxAcceleration(comp));
         if (comp.CrowdAgent is not { } agent)
@@ -1308,7 +1327,7 @@ public sealed class NpcMovementSystem
             return;
         }
 
-        _shard.Crowd.RemoveAgent(npc.EntityId);
+        comp.Navigation!.Crowd.RemoveAgent(npc.EntityId);
         comp.CrowdAgent = null;
     }
 

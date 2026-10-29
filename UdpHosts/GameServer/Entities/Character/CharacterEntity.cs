@@ -444,7 +444,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 monsterInfo.BehaviorDefensive,
                 monsterInfo.BehaviorDefensiveInstanceId);
             var speeds = NpcSpeedCalculator.Calculate(this);
-            var strategy = new NavMeshPathStrategy(Shard.NavMesh);
+            var strategy = new NavMeshPathStrategy(Shard.Navigation.Default.Mesh);
             NpcMovement = new NpcMovementComponent(this, strategy, behaviorConfig, speeds);
         }
     }

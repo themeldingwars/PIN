@@ -41,8 +41,7 @@ public interface IShard : IPacketSender
     IDictionary<ulong, IEncounter> Encounters { get; }
     IDictionary<uint, IDictionary<uint, OutpostEntity>> Outposts { get; }
     PhysicsEngine Physics { get; }
-    NavMeshService NavMesh { get; }
-    CrowdNavigationService Crowd { get; }
+    ShardNavigation Navigation { get; }
     AIEngine AI { get; }
     MovementRelay Movement { get; }
     EntityManager EntityMan { get; }

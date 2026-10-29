@@ -47,6 +47,7 @@ public sealed class CrowdNavigationService
     private const int _logCadenceTicks = 100;
 
     private readonly NavMeshService _navMesh;
+    private readonly NavMeshBuildParams _agent;
     private readonly GameServerSettings _settings;
     private readonly ILogger _logger;
     private readonly DtQueryDefaultFilter _queryFilter = new();
@@ -58,14 +59,13 @@ public sealed class CrowdNavigationService
     private Vector3[] _deoverlap = [];
 
     private DtCrowd? _crowd;
-    private float _agentRadius;
-    private float _agentHeight;
     private int _updateCount;
     private double _cadenceMs;
 
-    public CrowdNavigationService(NavMeshService navMesh, GameServerSettings settings)
+    public CrowdNavigationService(NavMeshService navMesh, NavMeshBuildParams agent, GameServerSettings settings)
     {
         _navMesh = navMesh;
+        _agent = agent;
         _settings = settings;
         _logger = Log.Logger.ForContext<CrowdNavigationService>();
     }
@@ -117,7 +117,7 @@ public sealed class CrowdNavigationService
             return null;
         }
 
-        var agent = _crowd!.AddAgent(NavMeshService.ToRc(onMesh), BuildParams(Math.Clamp(body.Radius, _agentRadius, _maxAgentRadius), Math.Max(body.Height, _agentHeight), maxSpeed, maxAcceleration));
+        var agent = _crowd!.AddAgent(NavMeshService.ToRc(onMesh), BuildParams(Math.Clamp(body.Radius, _agent.AgentRadius, _maxAgentRadius), Math.Max(body.Height, _agent.AgentHeight), maxSpeed, maxAcceleration));
         if (agent == null)
         {
             return null;
@@ -341,10 +341,6 @@ public sealed class CrowdNavigationService
             return false;
         }
 
-        var parameters = new NavMeshBuildParams();
-        _agentRadius = parameters.AgentRadius;
-        _agentHeight = parameters.AgentHeight;
-
         // The filter factory is indexed by queryFilterType; every agent uses type 0, and PIN has no custom
         // filtering, so the crowd pathfinds with the same stock filter NavMeshService uses.
         _crowd = new DtCrowd(
@@ -354,8 +350,8 @@ public sealed class CrowdNavigationService
 
         _logger.Information(
             "Crowd navigation enabled: agentRadius={Radius} agentHeight={Height} separationWeight={Separation}",
-            _agentRadius,
-            _agentHeight,
+            _agent.AgentRadius,
+            _agent.AgentHeight,
             _settings.CrowdSeparationWeight);
         return true;
     }

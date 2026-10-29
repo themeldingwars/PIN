@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Shared.Collision.Navigation;
 
 /// <summary>
@@ -7,6 +9,27 @@ namespace Shared.Collision.Navigation;
 /// </summary>
 public sealed record NavMeshBuildParams
 {
+    /// <summary>For agents up to about 1 m wide, the bake the server always had.</summary>
+    public static readonly NavMeshBuildParams Default = new();
+
+    /// <summary>
+    ///     Brontodons and other big creatures. Eroded by 2 m, so their paths keep clear of walls and gaps a body this wide
+    ///     doesn't fit through. The cells are twice the size, a large agent doesn't need the detail and the bake is 4x cheaper.
+    /// </summary>
+    public static readonly NavMeshBuildParams Large = new()
+    {
+        Name = "large",
+        CellSize = 0.5f,
+        AgentHeight = 4f,
+        AgentRadius = 2f,
+    };
+
+    /// <summary>Every agent size that gets baked, the default first.</summary>
+    public static readonly IReadOnlyList<NavMeshBuildParams> All = [Default, Large];
+
+    /// <summary>Goes into the file names, empty for the default so its files keep the zone id alone.</summary>
+    public string Name { get; init; } = string.Empty;
+
     /// <summary>Navmesh tile size in world units. Must divide the 512-unit chunk size evenly (16 sub-chunk tiles per chunk).</summary>
     public float TileSize { get; init; } = 128f;
 
@@ -59,6 +82,12 @@ public sealed record NavMeshBuildParams
     /// <summary>Radial segment count used when tessellating cylinder/capsule/sphere shapes.</summary>
     public int PrimitiveRadialSegments { get; init; } = 16;
 
+    /// <summary>The file name without extension, e.g. <c>448</c> or <c>448.large</c>.</summary>
+    public string FileStem(uint zoneId)
+    {
+        return Name.Length == 0 ? zoneId.ToString(CultureInfo.InvariantCulture) : FormattableString.Invariant($"{zoneId}.{Name}");
+    }
+
     /// <summary>
     ///     Builds a stable identity for the parameters. <see cref="NavMeshMetadata" /> stores it next
     ///     to each baked <c>.nav</c> so the game server can tell whether the file was produced by
@@ -86,6 +115,13 @@ public sealed record NavMeshBuildParams
             hash = (hash * 31) + MaxVertsPerPoly;
             hash = (hash * 31) + PrimitiveRadialSegments;
             hash = (hash * 31) + (BuildDetailMesh ? 1 : 0);
+
+            // Left out for the default, so meshes baked before there were several sizes stay valid
+            foreach (var c in Name)
+            {
+                hash = (hash * 31) + c;
+            }
+
             return hash;
         }
     }

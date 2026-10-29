@@ -329,7 +329,7 @@ public sealed class PopulationDirector
             }
 
             var candidate = new Vector3(point, height);
-            return _shard.NavMesh.FindNearestPoly(candidate, _polygonNavMeshSearch, out _, out var onMesh) ? onMesh : candidate;
+            return _shard.Navigation.Default.Mesh.FindNearestPoly(candidate, _polygonNavMeshSearch, out _, out var onMesh) ? onMesh : candidate;
         }
 
         return polygon.Middle;
@@ -343,7 +343,7 @@ public sealed class PopulationDirector
             return center;
         }
 
-        if (_shard.NavMesh.TryFindRandomPointWithinCircle(center, radius, out var point))
+        if (_shard.Navigation.Default.Mesh.TryFindRandomPointWithinCircle(center, radius, out var point))
         {
             onNavMesh = true;
             return point;

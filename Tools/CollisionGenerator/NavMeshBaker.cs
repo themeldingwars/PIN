@@ -22,8 +22,18 @@ public static class NavMeshBaker
 {
     private static readonly ILogger _logger = Log.ForContext(typeof(NavMeshBaker));
 
-    public static void Bake(uint zoneId, string mapsPath, string cachePath, bool objYUp = false, bool exportInputObj = false)
+    public static void Bake(uint zoneId, string mapsPath, string cachePath, bool force, bool objYUp = false, bool exportInputObj = false)
     {
+        var navmeshDir = Path.Combine(cachePath, "navmesh");
+        var agents = NavMeshBuildParams.All
+            .Where(agent => force || NavMeshMetadata.Load(navmeshDir, agent.FileStem(zoneId))?.IsCurrentFor(agent) != true)
+            .ToList();
+        if (agents.Count == 0)
+        {
+            _logger.Information("Every navmesh of zone {ZoneId} is current, nothing to bake", zoneId);
+            return;
+        }
+
         var zoneFilePath = Path.Combine(mapsPath, $"{zoneId}.zone");
         if (!File.Exists(zoneFilePath))
         {
@@ -42,12 +52,10 @@ public static class NavMeshBaker
         var chunkRefs = ChunkOriginCalculator.ExtractChunks(zone, zoneId);
         _logger.Information("Zone {ZoneId}: {Count} chunks", zoneId, chunkRefs.Length);
 
-        var navmeshDir = Path.Combine(cachePath, "navmesh");
         Directory.CreateDirectory(navmeshDir);
 
         var allTriangles = new List<NavTriangle>();
         var chunkTriangleRanges = new List<(string Name, int Start, int Count)>();
-        var builderParams = new NavMeshBuildParams();
         var audit = new Dictionary<int, WindingCounts>();
         var pool = new BufferPool();
         var disp = new ThreadDispatcher(1);
@@ -67,7 +75,7 @@ public static class NavMeshBaker
                 var statics = ChunkProcessor.ProcessChunk(gtchunkPath, cachePath, sim, pool, disp, true);
                 _logger.Information("Chunk {Name}: {Count} statics", chunkRef.Name, statics.Length);
 
-                var triangulator = new ShapeTriangulator(sim.Shapes, builderParams.PrimitiveRadialSegments);
+                var triangulator = new ShapeTriangulator(sim.Shapes, NavMeshBuildParams.Default.PrimitiveRadialSegments);
                 int startIdx = allTriangles.Count;
                 for (int i = 0; i < statics.Length; i++)
                 {
@@ -127,6 +135,25 @@ public static class NavMeshBaker
             }
         }
 
+        foreach (var agent in agents)
+        {
+            BakeAgent(zoneId, navmeshDir, allTriangles, audit, agent, objYUp);
+        }
+    }
+
+    public static void SelfTest(uint zoneId, string cachePath)
+    {
+        foreach (var agent in NavMeshBuildParams.All)
+        {
+            SelfTest(Path.Combine(cachePath, "navmesh", $"{agent.FileStem(zoneId)}.nav"));
+        }
+    }
+
+    private static void BakeAgent(uint zoneId, string navmeshDir, List<NavTriangle> allTriangles, Dictionary<int, WindingCounts> audit, NavMeshBuildParams builderParams, bool objYUp)
+    {
+        var stem = builderParams.FileStem(zoneId);
+        _logger.Information("Baking {Stem}.nav for agents of radius {Radius} and height {Height}", stem, builderParams.AgentRadius, builderParams.AgentHeight);
+
         var builder = new NavMeshTileBuilder(builderParams);
         var buildResult = builder.Build(allTriangles);
         var tiles = buildResult.Tiles;
@@ -150,8 +177,8 @@ public static class NavMeshBaker
         var meshParams = new DtNavMeshParams
         {
             orig = buildResult.GridOrigin,
-            tileWidth = 128f,
-            tileHeight = 128f,
+            tileWidth = builderParams.TileSize,
+            tileHeight = builderParams.TileSize,
             maxTiles = maxTiles,
             maxPolys = buildResult.MaxPolys,
         };
@@ -175,7 +202,7 @@ public static class NavMeshBaker
             _logger.Information("Tile ({Tx},{Tz}): {Polys} polys, {Verts} verts", tx, tz, data.header.polyCount, data.header.vertCount);
         }
 
-        var navPath = Path.Combine(navmeshDir, $"{zoneId}.nav");
+        var navPath = Path.Combine(navmeshDir, $"{stem}.nav");
         using (var fs = File.Create(navPath))
         using (var bw = new BinaryWriter(fs))
         {
@@ -194,15 +221,14 @@ public static class NavMeshBaker
             BuiltUtc = DateTime.UtcNow,
         };
 
-        metadata.Save(navmeshDir, zoneId);
-        _logger.Information("Navmesh metadata written: {Path} (params hash {Hash})", NavMeshMetadata.PathFor(navmeshDir, zoneId), metadata.ParamsHash);
+        metadata.Save(navmeshDir, stem);
+        _logger.Information("Navmesh metadata written: {Path} (params hash {Hash})", NavMeshMetadata.PathFor(navmeshDir, stem), metadata.ParamsHash);
 
-        ExportObj(tiles.ToList(), Path.Combine(navmeshDir, $"{zoneId}.obj"), objYUp);
+        ExportObj(tiles.ToList(), Path.Combine(navmeshDir, $"{stem}.obj"), objYUp);
     }
 
-    public static void SelfTest(uint zoneId, string cachePath)
+    private static void SelfTest(string navPath)
     {
-        var navPath = Path.Combine(cachePath, "navmesh", $"{zoneId}.nav");
         if (!File.Exists(navPath))
         {
             _logger.Error("Navmesh file not found: {Path}", navPath);

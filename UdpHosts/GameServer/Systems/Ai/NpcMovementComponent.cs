@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using DotRecast.Detour.Crowd;
 using GameServer.Entities.Character;
+using GameServer.Navigation;
 using GameServer.Systems.Ai.Behavior;
 
 namespace GameServer.Systems.Ai;
@@ -40,6 +41,8 @@ public sealed class NpcMovementComponent
     ///     crowd disabled, or the goal could not be placed on the mesh.
     /// </summary>
     public DtCrowdAgent? CrowdAgent { get; set; }
+
+    public NavigationLayer? Navigation { get; set; }
 
     public NpcBehaviorConfig Behavior { get; }
     public NpcSpeeds Speeds { get; }

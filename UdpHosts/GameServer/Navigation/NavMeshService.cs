@@ -48,10 +48,11 @@ public sealed class NavMeshService
         return new Vector3(v.X, v.Z, v.Y);
     }
 
-    public bool Load(uint zoneId, string cachePath)
+    public bool Load(uint zoneId, string cachePath, NavMeshBuildParams parameters)
     {
         var navmeshDir = Path.Combine(cachePath, "navmesh");
-        var navPath = Path.Combine(navmeshDir, $"{zoneId}.nav");
+        var stem = parameters.FileStem(zoneId);
+        var navPath = Path.Combine(navmeshDir, $"{stem}.nav");
         if (!File.Exists(navPath))
         {
             _logger.Information("Navmesh not found at {Path} — navmesh disabled", navPath);
@@ -60,10 +61,9 @@ public sealed class NavMeshService
 
         // A navmesh is only valid for the settings it was baked with. Without the sidecar there is no
         // way to know, and a stale mesh silently produces wrong navigation, so it is rejected.
-        var parameters = new NavMeshBuildParams();
         var rebakeHint = FormattableString.Invariant(
             $"CollisionGenerator -c {cachePath} -m <maps-path> -z {zoneId} --navmesh --force");
-        var metadata = NavMeshMetadata.Load(navmeshDir, zoneId);
+        var metadata = NavMeshMetadata.Load(navmeshDir, stem);
         if (metadata == null)
         {
             _logger.Error(
@@ -103,8 +103,9 @@ public sealed class NavMeshService
 
             IsLoaded = true;
             _logger.Information(
-                "NavMesh loaded: zone={ZoneId} tiles={Tiles} detailTris={DetailTris} from {Path}",
+                "NavMesh loaded: zone={ZoneId} agentRadius={Radius} tiles={Tiles} detailTris={DetailTris} from {Path}",
                 zoneId,
+                parameters.AgentRadius,
                 tileCount,
                 metadata.DetailTriCount,
                 navPath);

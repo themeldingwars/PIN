@@ -21,7 +21,6 @@ public sealed class NavMeshPathStrategy : INavigationStrategy
     private const float _decelerationRadius = 2.0f;
     private const float _minApproachSpeedFraction = 0.35f;
 
-    private readonly NavMeshService? _nav;
     private List<Vector3>? _waypoints;
     private int _waypointIndex;
     private Vector3 _destination;
@@ -29,8 +28,10 @@ public sealed class NavMeshPathStrategy : INavigationStrategy
 
     public NavMeshPathStrategy(NavMeshService? nav)
     {
-        _nav = nav;
+        NavMesh = nav;
     }
+
+    public NavMeshService? NavMesh { get; set; }
 
     public float Speed { get; set; }
     public float ArrivalRadius { get; set; } = 1.0f;
@@ -115,12 +116,12 @@ public sealed class NavMeshPathStrategy : INavigationStrategy
     private List<Vector3> BuildWaypoints(Vector3 currentPos)
     {
         // Agents without a usable navmesh steer straight at the destination.
-        if (_nav == null || !_nav.IsLoaded)
+        if (NavMesh == null || !NavMesh.IsLoaded)
         {
             return new List<Vector3> { _destination };
         }
 
-        var path = _nav.FindPath(currentPos, _destination);
+        var path = NavMesh.FindPath(currentPos, _destination);
         if (path != null && path.Count > 1)
         {
             return path;
