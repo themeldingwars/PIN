@@ -22,6 +22,8 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
     public CharacterEntity Owner { get; }
 
+    public Dictionary<ushort, float> NamedVariables { get; } = [];
+
     public List<EffectState> GetActiveEffects() => [.. ActiveEffects];
 
     public override string ToString()
