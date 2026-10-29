@@ -859,13 +859,13 @@
     {
         "id": 1147277,
         "comment": "Triggered by Ability 36017 - Adventurers' Gliderpad\u0000 ",
-        "deployable_type_id": 0,
+        "deployable_type_id": 289,
         "lifetime": 60000
     },
     {
         "id": 1147317,
         "comment": "Triggered by Ability 32755 - 1-Use Glider\u0000 ",
-        "deployable_type_id": 0,
+        "deployable_type_id": 289,
         "lifetime": 60000
     },
     {
@@ -937,7 +937,7 @@
     {
         "id": 1148306,
         "comment": "Triggered by Ability 39279 - Personal Gliderpad\u0000 ",
-        "deployable_type_id": 0,
+        "deployable_type_id": 289,
         "lifetime": 60000
     },
     {
