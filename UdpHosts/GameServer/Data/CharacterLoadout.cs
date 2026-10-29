@@ -212,9 +212,14 @@ public class CharacterLoadout
             return ItemType.Weapon;
         }
 
-        if (LoadoutAbilitySlots.Contains(slot) || slot is LoadoutSlotType.Vehicle or LoadoutSlotType.Glider)
+        if (LoadoutAbilitySlots.Contains(slot))
         {
             return ItemType.AbilityModule;
+        }
+
+        if (slot is LoadoutSlotType.Vehicle or LoadoutSlotType.Glider)
+        {
+            return ItemType.Consumable;
         }
 
         if (slot == LoadoutSlotType.Backpack)

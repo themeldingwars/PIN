@@ -519,68 +519,80 @@ public class CharacterInventory
     /// <param name="loadoutId">The loadout to slot the item into.</param>
     /// <param name="slot">The loadout slot to fill.</param>
     /// <param name="guid">The guid of the item to slot, 0 to empty the slot.</param>
-    public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
+    /// <param name="configId">The loadout config to change, <see cref="PveConfigId"/> or <see cref="PvpConfigId"/>.</param>
+    /// <returns>False when the request was refused and nothing changed.</returns>
+    public bool EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid, uint configId = PveConfigId)
     {
-        if (!Enum.IsDefined(slot))
+        if (!Enum.IsDefined(slot) || !_loadouts.TryGetValue(loadoutId, out var loadout))
         {
-            _logger.Warning(
-                "Not equipping item {ItemGuid} into loadout {LoadoutId} slot {Slot}",
-                guid,
-                loadoutId,
-                (byte)slot);
-
-            return;
+            _logger.Warning("Not equipping item {ItemGuid:X16} into loadout {LoadoutId} slot {Slot}", guid, loadoutId, (byte)slot);
+            return false;
         }
 
-        ulong changedOldItemGUID = 0;
-        ulong changedNewItemGUID = guid;
-
-        // Unequip old Item (if any)
-        if (_loadouts[loadoutId].LoadoutConfigs[0].Items.Any((e) => e.SlotIndex == (byte)slot))
+        var configIndex = GetLoadoutConfigIndex(loadout, configId);
+        if (configIndex < 0)
         {
-            // Set Item to unequipped
-            var oldItemGUID = _loadouts[loadoutId].LoadoutConfigs[0].Items.First((e) => e.SlotIndex == (byte)slot).ItemGUID;
-            changedOldItemGUID = oldItemGUID;
-            var oldItem = _items[oldItemGUID];
-            oldItem.DynamicFlags = (byte)(oldItem.DynamicFlags ^ (byte)ItemDynamicFlags.IsEquipped);
-            _items[oldItemGUID] = oldItem;
-
-            // Update CurrentLoadout
-            _character.CurrentLoadout.SlottedItems[slot] = 0;
-
-            // Update LoadoutConfigs
-            _loadouts[loadoutId].LoadoutConfigs[0].Items = [.. _loadouts[loadoutId].LoadoutConfigs[0].Items.Where(e => e.SlotIndex != (byte)slot)];
+            _logger.Warning("Loadout {LoadoutId} has no loadout config {ConfigId}", loadoutId, configId);
+            return false;
         }
 
-        // Equip new item (if any)
+        if (guid != 0 && !CanSlot(guid, slot))
+        {
+            return false;
+        }
+
+        var config = loadout.LoadoutConfigs[configIndex];
+        var oldGuid = config.Items.FirstOrDefault(e => e.SlotIndex == (byte)slot).ItemGUID;
+        if (oldGuid == guid)
+        {
+            return true;
+        }
+
+        // An item can only sit in one slot of a config, dragging it to another slot moves it
+        var movedFrom = config.Items.Where(e => guid != 0 && e.ItemGUID == guid).Select(e => (LoadoutSlotType)e.SlotIndex).ToList();
+
+        var items = config.Items.Where(e => e.SlotIndex != (byte)slot && (guid == 0 || e.ItemGUID != guid)).ToList();
         if (guid != 0)
         {
-            // Update Item to Equipped
-            var item = _items[guid];
-            item.DynamicFlags = (byte)(item.DynamicFlags | (byte)ItemDynamicFlags.IsEquipped);
-            _items[guid] = item;
-
-            // Update CurrentLoadout
-            _character.CurrentLoadout.SlottedItems[slot] = item.SdbId;
-
-            // Update LoadoutConfig
-            _loadouts[loadoutId].LoadoutConfigs[0].Items = [.. _loadouts[loadoutId].LoadoutConfigs[0].Items, new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot }];
+            items.Add(new LoadoutConfig_Item() { ItemGUID = guid, SlotIndex = (byte)slot });
         }
 
-        // Update StaticInfo when visuals are changed
-        var equippedSdbId = (guid != 0) ? _items[guid].SdbId : 0;
-        switch (slot)
+        loadout.LoadoutConfigs[configIndex].Items = [.. items];
+
+        UpdateEquippedFlag(oldGuid);
+        UpdateEquippedFlag(guid);
+
+        // The worn loadout is the PvE config of the selected loadout, other loadouts are only edited
+        if (loadoutId == _character.SelectedLoadout && configId == PveConfigId && _character.CurrentLoadout != null)
         {
-            case LoadoutSlotType.Glider:
-                _character.SetStaticInfo(_character.StaticInfo with { LoadoutGlider = equippedSdbId });
-                break;
-            case LoadoutSlotType.Vehicle:
-                _character.SetStaticInfo(_character.StaticInfo with { LoadoutVehicle = equippedSdbId });
-                break;
+            foreach (var from in movedFrom)
+            {
+                _character.CurrentLoadout.SlottedItems[from] = 0;
+            }
+
+            var equippedSdbId = guid != 0 ? _items[guid].SdbId : 0;
+            _character.CurrentLoadout.SlottedItems[slot] = equippedSdbId;
+
+            switch (slot)
+            {
+                case LoadoutSlotType.Glider:
+                    _character.SetStaticInfo(_character.StaticInfo with { LoadoutGlider = equippedSdbId });
+                    break;
+                case LoadoutSlotType.Vehicle:
+                    _character.SetStaticInfo(_character.StaticInfo with { LoadoutVehicle = equippedSdbId });
+                    break;
+            }
         }
 
-        SendEquipmentChanges(changedOldItemGUID, changedNewItemGUID);
-        PersistEquipmentChange(loadoutId, slot, changedOldItemGUID, guid);
+        SendEquipmentChanges(oldGuid, guid);
+
+        foreach (var from in movedFrom)
+        {
+            PersistEquipmentChange(loadoutId, configId, from, 0, 0);
+        }
+
+        PersistEquipmentChange(loadoutId, configId, slot, oldGuid, guid);
+        return true;
     }
 
     public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visual, LoadoutSlotType slot, uint sdb_id)
@@ -749,6 +761,39 @@ public class CharacterInventory
         return transform.Any(value => float.IsNaN(value) || float.IsInfinity(value));
     }
 
+    private bool CanSlot(ulong guid, LoadoutSlotType slot)
+    {
+        if (!_items.TryGetValue(guid, out var item))
+        {
+            _logger.Warning("Not equipping item {ItemGuid:X16}, which {CharacterId:X16} does not own", guid, _character.EntityId);
+            return false;
+        }
+
+        var acceptedType = CharacterLoadout.GetAcceptedItemType(slot);
+        var itemType = (ItemType?)SDBInterface.GetRootItem(item.SdbId)?.Type;
+        if (acceptedType.HasValue && itemType != acceptedType.Value)
+        {
+            _logger.Warning("Not equipping item {ItemId} of type {ItemType} into slot {Slot}, which takes {AcceptedType}", item.SdbId, itemType, slot, acceptedType.Value);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void UpdateEquippedFlag(ulong guid)
+    {
+        if (guid == 0 || !_items.TryGetValue(guid, out var item))
+        {
+            return;
+        }
+
+        var equipped = _loadouts.Values.Any(l => l.LoadoutConfigs.Any(c => c.Items.Any(i => i.ItemGUID == guid)));
+        item.DynamicFlags = equipped
+            ? (byte)(item.DynamicFlags | (byte)ItemDynamicFlags.IsEquipped)
+            : (byte)(item.DynamicFlags & ~(byte)ItemDynamicFlags.IsEquipped);
+        _items[guid] = item;
+    }
+
     private LoadoutConfig_Visual[] ReadStoredVisuals(
         IReadOnlyDictionary<(int LoadoutId, uint ConfigId), List<GrpcLoadoutVisual>> visualsByConfig,
         int loadoutId,
@@ -809,10 +854,11 @@ public class CharacterInventory
     /// Persist an equipment change: the slot assignment plus the IsEquipped flag on both items.
     /// </summary>
     /// <param name="loadoutId">The loadout that changed</param>
+    /// <param name="configId">The loadout config that changed</param>
     /// <param name="slot">The slot that changed</param>
     /// <param name="oldGuid">The item that was taken out of the slot, 0 when the slot was empty</param>
     /// <param name="newGuid">The item that went into the slot, 0 when the slot was cleared</param>
-    private void PersistEquipmentChange(int loadoutId, LoadoutSlotType slot, ulong oldGuid, ulong newGuid)
+    private void PersistEquipmentChange(int loadoutId, uint configId, LoadoutSlotType slot, ulong oldGuid, ulong newGuid)
     {
         if (!_persistChanges || !_loadouts.ContainsKey(loadoutId))
         {
@@ -821,14 +867,13 @@ public class CharacterInventory
 
         if (newGuid != 0)
         {
-            // Swapping the item in a slot is an upsert on (loadout_id, config_id, slot_index). PIN only ever edits
-            // the PvE config, so that is the one that goes back.
-            _ = GRPCService.SendCommandAsync(InventoryCommands.SaveLoadoutSlot(CharacterGuid, loadoutId, PveConfigId, (byte)slot, newGuid));
+            // Swapping the item in a slot is an upsert on (loadout_id, config_id, slot_index)
+            _ = GRPCService.SendCommandAsync(InventoryCommands.SaveLoadoutSlot(CharacterGuid, loadoutId, configId, (byte)slot, newGuid));
         }
         else
         {
             // Unequipping. The item itself stays in the inventory, it just stops being slotted.
-            _ = GRPCService.SendCommandAsync(InventoryCommands.DeleteLoadoutSlot(CharacterGuid, loadoutId, PveConfigId, (byte)slot));
+            _ = GRPCService.SendCommandAsync(InventoryCommands.DeleteLoadoutSlot(CharacterGuid, loadoutId, configId, (byte)slot));
         }
 
         // Both items changed their IsEquipped flag, and SaveInventoryItem is the only command that stores it

@@ -1564,15 +1564,26 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Character_CombatView.CombatFlagsProp = value;
     }
 
-    public void EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid)
+    public bool EquipItemByGUID(int loadoutId, LoadoutSlotType slot, ulong guid, uint configId)
     {
-        Player.Inventory.EquipItemByGUID(loadoutId, slot, guid);
+        if (!Player.Inventory.EquipItemByGUID(loadoutId, slot, guid, configId))
+        {
+            return false;
+        }
+
+        if (loadoutId != SelectedLoadout || configId != CharacterInventory.PveConfigId)
+        {
+            return true;
+        }
+
         ApplyLoadout(CurrentLoadout);
 
         if (CharacterLoadout.LoadoutWeaponSlots.Contains(slot))
         {
             Shard.WeaponSim.ResetAmmoState(this);
         }
+
+        return true;
     }
 
     public void EquipVisualBySdbId(int loadoutId, LoadoutVisualType visualSlot, LoadoutSlotType slot, uint sdb_id)

@@ -492,7 +492,15 @@ public static class Character_BaseController
     {
         var request = packet.Unpack<SlotGearRequest>();
 
-        player.CharacterEntity.EquipItemByGUID(request.LoadoutId, (LoadoutSlotType)request.SlotIdx, request.ItemGUID);
+        var equipped = player.CharacterEntity.EquipItemByGUID(request.LoadoutId, (LoadoutSlotType)request.SlotIdx, request.ItemGUID, request.ConfigId);
+        _logger.Information(
+            "SlotGear of {CharacterId:X}: loadout {LoadoutId} config {ConfigId} slot {Slot} item {ItemGuid:X16} {Result}",
+            player.CharacterId,
+            request.LoadoutId,
+            request.ConfigId,
+            (LoadoutSlotType)request.SlotIdx,
+            request.ItemGUID,
+            equipped ? "slotted" : "refused");
 
         var response = new SlotGearResponse()
                        {
@@ -500,7 +508,7 @@ public static class Character_BaseController
                            SlotIdx = request.SlotIdx,
                            LoadoutId = request.LoadoutId,
                            Unk1 = request.ConfigId,
-                           Result = 1,
+                           Result = (sbyte)(equipped ? 1 : 0),
                        };
 
         client.NetChannels[ChannelType.ReliableGss].SendMessage(response, entityId);
