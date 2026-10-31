@@ -8,6 +8,7 @@ namespace Shared.Content.Zones.Encounters;
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(ZoneLgvRace), "lgv-race")]
+[JsonDerivedType(typeof(ZoneKisutonLgvChallenge), "kisuton-lgv-challenge")]
 [JsonDerivedType(typeof(ZoneMeldingRepulsor), "melding-repulsor")]
 public abstract record ZoneEncounter : ContentEntry
 {

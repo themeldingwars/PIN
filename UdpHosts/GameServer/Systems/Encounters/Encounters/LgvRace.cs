@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using AeroMessages.Common;
 using AeroMessages.GSS.AreaVisualData;
 using AeroMessages.GSS.Character;
@@ -7,6 +8,7 @@ using AeroMessages.GSS.Character.Event;
 using AeroMessages.GSS.Generic.Event.EncounterView;
 using GameServer.Entities;
 using GameServer.Entities.AreaVisualData;
+using GameServer.Entities.Vehicle;
 using GameServer.GRPC;
 using GameServer.Protocol;
 using GameServer.StaticDB.Records.customdata.Encounters;
@@ -22,7 +24,6 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
     private const uint _crystite = 10;
     private const uint _mustangDoubloon = 77324;
     private const uint _lgvRace = 183671;
-    private const uint _finalTime = 152919;
     private const uint _pfxFinishLine = 212597;
     private const ushort _mapMarkerRace = 26;
 
@@ -30,6 +31,7 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
     private readonly uint _leaderboardId;
     private readonly uint _bonusTimeMs;
     private readonly AreaVisualDataEntity _finishLine;
+    private readonly VehicleEntity _vehicle;
 
     public LgvRace(IShard shard, ulong entityId, INetworkPlayer soloParticipant, LgvRaceDef data)
         : base(shard, entityId, soloParticipant)
@@ -39,13 +41,13 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
 
         _leaderboardId = data.LeaderboardId;
 
-        var vehicle = Shard.EntityMan.SpawnVehicle(
+        _vehicle = Shard.EntityMan.SpawnVehicle(
             _terromotoCobra,
             data.Start.Position,
             data.Start.Orientation,
             SoloParticipant.CharacterEntity,
             true);
-        vehicle.Encounter = new EncounterComponent()
+        _vehicle.Encounter = new EncounterComponent()
             {
                 EncounterId = entityId, Instance = this, Events = EncounterComponent.Event.ExitAttachment
             };
@@ -127,6 +129,8 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
 
     public void OnExitAttachment(BaseEntity targetEntity, INetworkPlayer player)
     {
+        RemoveVehicle(_vehicle);
+
         OnFailure();
     }
 
@@ -145,22 +149,53 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
         var dialogs = new uint[] { 11015, 11587, 19278 };
         PlayDialog(dialogs[Rng.Next(dialogs.Length)]);
 
+        DismountAndRemoveVehicle(_vehicle);
+
         OnFailure();
     }
 
     public override void OnSuccess()
     {
         RemoveEntities();
+        DismountAndRemoveVehicle(_vehicle);
 
         uint exp;
 
         var time = Shard.CurrentTimeLong - _startTime;
+        var crystite = (uint)Rng.Next(70, 90);
 
+        RewardWithResource(_crystite, crystite);
+
+        List<RewardInfoData> rewards =
+        [
+            new RewardInfoData()
+            {
+                Unk = 0,
+                Boosted = 0,
+                SdbId = _crystite,
+                Quantity = (ushort)crystite,
+                Quality = 0,
+                Module1 = 0,
+                Module2 = 0,
+            },
+        ];
+
+        // The doubloon is only earned by beating the bonus time, so it's only listed then.
         if (time < _bonusTimeMs)
         {
             exp = 5000;
             PlayDialog(11014);
             RewardWithResource(_mustangDoubloon, 1);
+            rewards.Add(new RewardInfoData()
+            {
+                Boosted = 0,
+                SdbId = _mustangDoubloon,
+                Quantity = 1,
+                Quality = 0,
+                Unk = 0,
+                Module1 = 0,
+                Module2 = 0,
+            });
         }
         else
         {
@@ -168,44 +203,18 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
             PlayDialog(11586);
         }
 
-        var crystite = (uint)Rng.Next(70, 90);
-
-        RewardWithResource(_crystite, crystite);
-
         var msg = new DisplayRewards()
                 {
                     ResourceTargetId = new EntityId() { Backing = 0 },
                     Experience = exp,
                     Reputations = [],
-                    Rewards1 =
-                               [
-                                   new RewardInfoData()
-                                   {
-                                       Unk = 0,
-                                       Boosted = 0,
-                                       SdbId = _crystite,
-                                       Quantity = (ushort)crystite,
-                                       Quality = 0,
-                                       Module1 = 0,
-                                       Module2 = 0,
-                                   },
-                                   new RewardInfoData()
-                                   {
-                                       Boosted = 0,
-                                       SdbId = _mustangDoubloon,
-                                       Quantity = 1,
-                                       Quality = 0,
-                                       Unk = 0,
-                                       Module1 = 0,
-                                       Module2 = 0
-                                   }
-                               ],
+                    Rewards1 = [.. rewards],
                     Rewards2 = [],
                     Stats =
                             [
                                 new StatInfo()
                                 {
-                                    NameId = _finalTime, Type = StatInfo.StatType.Time, Value = time / 1000f, StringValue = string.Empty,
+                                    NameId = RewardStatNames.FinalTime, Type = StatInfo.StatType.Time, Value = time / 1000f, StringValue = string.Empty,
                                 }
                             ],
                     EventId = 0,
@@ -240,6 +249,8 @@ public class LgvRace : BaseEncounter, IExitAttachmentHandler, IProximityHandler,
 
     private void RemoveEntities()
     {
+        // Taking the player off the vehicle here must not count as leaving the race.
+        _vehicle.Encounter.StopHandling(EncounterComponent.Event.ExitAttachment);
         Shard.EntityMan.Remove(_finishLine);
         SoloParticipant.CharacterEntity.RemoveEncounterMapMarkers(EntityId);
     }

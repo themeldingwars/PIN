@@ -13,7 +13,6 @@ using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Extensions;
 using GameServer.Protocol;
-using GameServer.StaticDB;
 using GameServer.StaticDB.Records.aptfs;
 using GameServer.Systems.Content;
 using GameServer.Systems.Encounters.Encounters;
@@ -99,6 +98,22 @@ public class EncounterManager
             var terminal = _shard.EntityMan.SpawnDeployable(820, def.Terminal.Position, def.Terminal.Orientation);
             terminal.Encounter = new EncounterComponent() { SpawnDef = def, Events = EncounterComponent.Event.Interaction };
         }
+
+        foreach (var challenge in content.Encounters.OfType<ZoneKisutonLgvChallenge>())
+        {
+            var def = challenge.ToRecord(zoneId);
+            var terminal = _shard.EntityMan.SpawnDeployable(KisutonLgvChallenge.TerminalTypeId, def.Terminal.Position, def.Terminal.Orientation);
+            terminal.Encounter = new EncounterComponent() { SpawnDef = def, Events = EncounterComponent.Event.Interaction };
+
+            var leaderboardTypeId = KisutonLgvChallenge.LeaderboardTypeId(zoneId);
+            if (leaderboardTypeId == 0)
+            {
+                continue;
+            }
+
+            var leaderboard = _shard.EntityMan.SpawnDeployable(leaderboardTypeId, def.LeaderboardTerminal.Position, def.LeaderboardTerminal.Orientation);
+            leaderboard.Interaction.LeaderboardId = def.LeaderboardId;
+        }
     }
 
     public void SetRemainingLifetime(ICanTimeout encounter, uint timeMs)
@@ -122,6 +137,11 @@ public class EncounterManager
     public void AddCheckingOfProximity(BaseEntity entity, IProximityHandler encounter)
     {
         _entitiesToCheckProximity.Add(entity, encounter);
+    }
+
+    public void RemoveCheckingOfProximity(BaseEntity entity)
+    {
+        _entitiesToCheckProximity.Remove(entity);
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
@@ -205,6 +225,27 @@ public class EncounterManager
         }
     }
 
+    public void FlushChanges(IEncounter encounter)
+    {
+        if (encounter.View == null || encounter.View.GetPackedChangesSize() == 0)
+        {
+            return;
+        }
+
+        var size = encounter.View.GetPackedChangesSize();
+        var serializedData = new Memory<byte>(new byte[size]);
+        encounter.View.PackChanges(serializedData.Span);
+
+        var msg = new EncounterUIUpdate(size)
+                  {
+                      EncounterId = encounter.AeroEntityId,
+                      ShadowFieldValues = serializedData.ToArray(),
+                      SinCardChanges = [],
+                  };
+
+        SendToParticipants(encounter, msg);
+    }
+
     private void ScopeIn(IEncounter encounter)
     {
         if (encounter.View == null || encounter.View.GetPackedChangesSize() == 0)
@@ -223,27 +264,6 @@ public class EncounterManager
                       SinCard = [],
                       SchemaVersion = 2,
                       ShadowFieldValues = serializedData.ToArray()
-                  };
-
-        SendToParticipants(encounter, msg);
-    }
-
-    private void FlushChanges(IEncounter encounter)
-    {
-        if (encounter.View == null || encounter.View.GetPackedChangesSize() == 0)
-        {
-            return;
-        }
-
-        var size = encounter.View.GetPackedChangesSize();
-        var serializedData = new Memory<byte>(new byte[size]);
-        encounter.View.PackChanges(serializedData.Span);
-
-        var msg = new EncounterUIUpdate(size)
-                  {
-                      EncounterId = encounter.AeroEntityId,
-                      ShadowFieldValues = serializedData.ToArray(),
-                      SinCardChanges = [],
                   };
 
         SendToParticipants(encounter, msg);

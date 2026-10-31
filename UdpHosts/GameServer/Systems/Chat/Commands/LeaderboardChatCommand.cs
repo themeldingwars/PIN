@@ -1,8 +1,8 @@
-using AeroMessages.GSS.Character.Controller;
+using System;
 
 namespace GameServer.Systems.Chat.Commands;
 
-[ChatCommand("Opens leaderboard", "leaderboard [id]", "leaderboard", "scoreboard")]
+[ChatCommand("Opens leaderboard", "leaderboard [<id> | list]", "leaderboard", "scoreboard")]
 public class LeaderboardChatCommand : ChatCommand
 {
     public override void Execute(string[] parameters, ChatCommandContext context)
@@ -13,10 +13,10 @@ public class LeaderboardChatCommand : ChatCommand
             return;
         }
 
-        context.SourcePlayer.CharacterEntity.SetAuthorizedTerminal(
-             new AuthorizedTerminalData
-             {
-                 TerminalId = ParseUIntParameter(parameters[0]), TerminalType = 14, TerminalEntityId = 0
-             });
+        uint terminalId = parameters[0].Equals("list", StringComparison.OrdinalIgnoreCase) || parameters[0] == "0"
+            ? int.MaxValue
+            : ParseUIntParameter(parameters[0]);
+
+        context.SourcePlayer.CharacterEntity.OpenLeaderboard(terminalId);
     }
 }

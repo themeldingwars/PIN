@@ -48,6 +48,11 @@ public class EndInteractionCommand : ICommand
             context.Shard.EncounterMan.Factory.SpawnEncounter(spawnData, character);
         }
 
+        if (interactionEntity.Interaction.LeaderboardId != 0)
+        {
+            character.OpenLeaderboard(interactionEntity.Interaction.LeaderboardId);
+        }
+
         var abilityId = interactionEntity.Interaction.CompletedAbilityId;
         if (abilityId != 0)
         {
