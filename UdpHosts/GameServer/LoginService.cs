@@ -71,6 +71,19 @@ public static class LoginService
         _ = Task.Run(() => LoginAsync(client, characterId, ticket));
     }
 
+    internal static async Task<CharacterData> RetrieveCharacterAsync(ulong characterId)
+    {
+        var (character, characterFailed) = await FetchAsync(() => GRPCService.GetCharacterAndBattleframeVisualsAsync((long)characterId), "character");
+        var (inventory, inventoryFailed) = await FetchAsync(() => GRPCService.GetCharacterInventoryAsync((long)characterId), "character inventory");
+        var (unlocks, unlocksFailed) = await FetchAsync(() => GRPCService.GetCharacterUnlocksAsync((long)characterId), "character unlocks");
+        var (battleframes, battleframesFailed) = await FetchAsync(() => GRPCService.GetBattleframeProgressionAsync((long)characterId), "character battleframe progression");
+
+        return new CharacterData(character, inventory, unlocks, battleframes)
+        {
+            FetchFailed = characterFailed || inventoryFailed || unlocksFailed || battleframesFailed,
+        };
+    }
+
     /// <summary>
     ///     The checks that can be made about the connection itself
     /// </summary>
@@ -256,19 +269,6 @@ public static class LoginService
         }
 
         return b is >= 0x20 and <= 0x7E ? "text" : "binary";
-    }
-
-    private static async Task<CharacterData> RetrieveCharacterAsync(ulong characterId)
-    {
-        var (character, characterFailed) = await FetchAsync(() => GRPCService.GetCharacterAndBattleframeVisualsAsync((long)characterId), "character");
-        var (inventory, inventoryFailed) = await FetchAsync(() => GRPCService.GetCharacterInventoryAsync((long)characterId), "character inventory");
-        var (unlocks, unlocksFailed) = await FetchAsync(() => GRPCService.GetCharacterUnlocksAsync((long)characterId), "character unlocks");
-        var (battleframes, battleframesFailed) = await FetchAsync(() => GRPCService.GetBattleframeProgressionAsync((long)characterId), "character battleframe progression");
-
-        return new CharacterData(character, inventory, unlocks, battleframes)
-        {
-            FetchFailed = characterFailed || inventoryFailed || unlocksFailed || battleframesFailed,
-        };
     }
 
     private static async Task<(T Value, bool Failed)> FetchAsync<T>(Func<Task<T>> fetch, string what)

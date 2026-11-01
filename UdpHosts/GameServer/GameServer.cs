@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FauFau.Formats;
@@ -24,6 +25,7 @@ internal class GameServer : PacketServer, IShardManager
 
     private readonly ConcurrentDictionary<uint, INetworkPlayer> _clientMap;
     private readonly ConcurrentDictionary<uint, IShard> _shardsByZone;
+    private readonly ConcurrentDictionary<IShard, CancellationTokenSource> _instances = new();
     private readonly Lock _shardCreationLock = new();
 
     private readonly ulong _serverId;
@@ -72,7 +74,7 @@ internal class GameServer : PacketServer, IShardManager
 
     public IShard DefaultShard => _shardsByZone[_settings.ZoneId];
 
-    public IEnumerable<IShard> Shards => _shardsByZone.Values;
+    public IEnumerable<IShard> Shards => _shardsByZone.Values.Concat(_instances.Keys);
 
     protected override bool IsReady => _isReady;
 
@@ -91,7 +93,7 @@ internal class GameServer : PacketServer, IShardManager
                 return shard;
             }
 
-            var shardId = _serverId | ((ulong)_nextShardIndex++ << 8) | (byte)GuidService.AdditionalTypes.Instance;
+            var shardId = NextShardId();
             Logger.Information("Creating shard {ShardId:X16} for zone {ZoneId}", shardId, zoneId);
 
             shard = new Shard(_gameTickRate, shardId, zoneId, _settings, _content, this, Logger);
@@ -102,10 +104,37 @@ internal class GameServer : PacketServer, IShardManager
         }
     }
 
+    public IShard CreateInstance(uint zoneId)
+    {
+        lock (_shardCreationLock)
+        {
+            var shardId = NextShardId();
+            Logger.Information("Creating instance {ShardId:X16} of zone {ZoneId}", shardId, zoneId);
+
+            var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_shardCancellation);
+            var shard = new Shard(_gameTickRate, shardId, zoneId, _settings, _content, this, Logger);
+            shard.Run(cancellation.Token);
+            _instances[shard] = cancellation;
+
+            return shard;
+        }
+    }
+
+    public void CloseInstance(IShard instance)
+    {
+        if (_instances.TryRemove(instance, out var cancellation))
+        {
+            Logger.Information("Closing instance {ShardId:X16} of zone {ZoneId}", instance.InstanceId, instance.ZoneId);
+            cancellation.Cancel();
+            cancellation.Dispose();
+        }
+    }
+
     protected override void Startup(CancellationToken ct)
     {
         DataUtils.Init();
         LoginService.Init(this);
+        InstanceTransfer.Init(this);
 
         _shardCancellation = ct;
 
@@ -174,6 +203,22 @@ internal class GameServer : PacketServer, IShardManager
                 Logger.Warning("Ignoring unknown preload zone {Zone}", part);
             }
         }
+    }
+
+    // The shard index is a byte of the id, so it's recycled once a closed instance freed it
+    private ulong NextShardId()
+    {
+        var used = Shards.Select(shard => (byte)(shard.InstanceId >> 8)).ToHashSet();
+        for (var attempt = 0; attempt < 255; attempt++)
+        {
+            var index = _nextShardIndex++;
+            if (index != 0 && !used.Contains(index))
+            {
+                return _serverId | ((ulong)index << 8) | (byte)GuidService.AdditionalTypes.Instance;
+            }
+        }
+
+        throw new InvalidOperationException("Every shard index is in use");
     }
 
     private INetworkClient RetrieveClient(Packet packet)

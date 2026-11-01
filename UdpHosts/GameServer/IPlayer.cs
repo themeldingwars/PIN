@@ -42,6 +42,9 @@ public interface IPlayer
     /// </summary>
     bool SessionSaved { get; set; }
 
+    /// <summary>Where the next respawn puts the character, set by a move between shards.</summary>
+    Vector3? ArrivalPosition { get; set; }
+
     /// <summary>
     ///     Wait for the client to request its own remote views
     /// </summary>
@@ -63,7 +66,7 @@ public interface IPlayer
     /// </summary>
     /// <param name="zone">The zone to enter</param>
     /// <param name="outpostId">The outpost to spawn at, 0 for the zone's spawn point</param>
-    void EnterZone(Zone zone, uint outpostId = 0);
+    void EnterZone(Zone zone, uint outpostId = 0, Vector3? position = null);
     void EnterZoneAck();
     void ExitZoneAck();
     void Ready();

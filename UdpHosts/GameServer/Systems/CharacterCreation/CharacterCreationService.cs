@@ -91,10 +91,22 @@ public class CharacterCreationService
 
         _rules.OnCharacterCreated((INetworkPlayer)player, player.CharacterEntity);
 
+        var zone = DataUtils.GetZone(_shard.ZoneId);
+
+        // Moved from another shard on the same connection, the client is past the login
+        if (evt.Arrival is { } arrival)
+        {
+            var networkPlayer = (INetworkPlayer)player;
+            networkPlayer.ArrivalPosition = arrival;
+            networkPlayer.FirstUpdateRequested = false;
+            networkPlayer.SessionSaved = false;
+            _logger.Information("Zone {ZoneId} at {Position}", zone.ID, arrival);
+            networkPlayer.EnterZone(zone, 0, arrival);
+            return;
+        }
+
         var wel = new WelcomeToTheMatrix { PlayerID = player.PlayerId, Unk1 = [], Unk2 = [] };
         client.NetChannels[ChannelType.Matrix].SendMessage(wel);
-
-        var zone = DataUtils.GetZone(_shard.ZoneId);
 
         uint outpostId;
         if (data.Character != null)

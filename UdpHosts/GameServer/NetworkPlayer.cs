@@ -51,6 +51,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public CharacterBattleframes Battleframes { get; set; }
     public uint ConnectedAt { get; }
     public bool SessionSaved { get; set; }
+    public InstanceTransfer.Pending PendingTransfer { get; set; }
+    public Vector3? ArrivalPosition { get; set; }
     public bool CanReceiveGSS => (Status.Equals(IPlayer.PlayerStatus.Playing) || Status.Equals(IPlayer.PlayerStatus.Loading)) && NetClientStatus.Equals(ClientStatus.Connected);
 
     public void Init(IShard shard)
@@ -68,7 +70,10 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
 
     public void ExitZoneAck()
     {
-        LeaveZone();
+        if (!InstanceTransfer.TryComplete(this))
+        {
+            LeaveZone();
+        }
     }
 
     public void Respawn()
@@ -77,6 +82,13 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         var spawnPoint = outpostId == 0 ?
                              new SpawnPoint { Position = CurrentZone.POIs["spawn"] }
                              : AssignedShard.Outposts[CurrentZone.ID][outpostId].RandomSpawnPoint;
+
+        // The first spawn after a move between shards is where the move put the character
+        if (ArrivalPosition is { } arrival)
+        {
+            spawnPoint = new SpawnPoint { Position = arrival };
+            ArrivalPosition = null;
+        }
 
         CharacterEntity.PositionAtSpawnPoint(spawnPoint);
         CharacterEntity.SetSpawnTime(AssignedShard.CurrentTime);
@@ -242,11 +254,13 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         return closestOutpostId;
     }
 
-    public void EnterZone(Zone zone, uint outpostId = 0)
+    public void EnterZone(Zone zone, uint outpostId = 0, Vector3? position = null)
     {
-        var spawnPoint = outpostId == 0
-                             ? new SpawnPoint { Position = zone.POIs["spawn"] }
-                             : AssignedShard.Outposts[zone.ID][outpostId].RandomSpawnPoint;
+        var spawnPoint = position is { } at
+                             ? new SpawnPoint { Position = at }
+                             : outpostId == 0
+                                 ? new SpawnPoint { Position = zone.POIs["spawn"] }
+                                 : AssignedShard.Outposts[zone.ID][outpostId].RandomSpawnPoint;
 
         // Ensure character entity is placed at the respawn point
         CharacterEntity.PositionAtSpawnPoint(spawnPoint);
