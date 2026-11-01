@@ -28,6 +28,9 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
     public NamedVar NamedVars { get; }
 
+    // Removed since the last ability tick, cancelled at the end of the next one
+    public List<EffectState> RemovedEffects { get; } = [];
+
     public List<EffectState> GetActiveEffects() => [.. ActiveEffects];
 
     public override string ToString()

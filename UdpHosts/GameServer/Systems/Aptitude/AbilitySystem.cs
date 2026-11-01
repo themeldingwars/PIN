@@ -115,6 +115,7 @@ public class AbilitySystem
                         var wasUpdate = activeEffect.Context.IsUpdate;
                         activeEffect.Context.IsUpdate = true;
                         activeEffect.Effect.UpdateChain.Execute(activeEffect.Context, ref updateResult);
+                        activeEffect.Context.ResetFlags |= ResetFlags.Update;
                         activeEffect.Context.IsUpdate = wasUpdate;
                     }
                 }
@@ -128,6 +129,7 @@ public class AbilitySystem
         if (entity is BaseAptitudeEntity aptitudeEntity)
         {
             aptitudeEntity.FlushUiNamedVariables();
+            CancelRemovedEffects(aptitudeEntity);
         }
     }
 
@@ -173,7 +175,11 @@ public class AbilitySystem
         var wasAlreadyActive = !ReferenceEquals(effectState.Context, applyContext);
 
         var applyResult = new CommandResult { Success = true };
-        effect.ApplyChain?.Execute(applyContext, ref applyResult);
+        if (effect.ApplyChain != null)
+        {
+            effect.ApplyChain.Execute(applyContext, ref applyResult);
+            applyContext.ResetFlags |= ResetFlags.Apply;
+        }
 
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", applyContext.ExecutionId);
         foreach (var pair in applyContext.Actives)
@@ -207,17 +213,28 @@ public class AbilitySystem
         activeEffect.Context.ExecutionHint = ExecutionHint.RemoveEffect;
         activeEffect.Context.CurrentTime = _shard.CurrentTime;
         activeEffect.Context.Self.ClearEffect(activeEffect);
+        var context = activeEffect.Context;
         var removeResult = new CommandResult { Success = true };
-        activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context, ref removeResult);
-        activeEffect.Effect.ApplyChain?.Reset(activeEffect.Context);
+
+        if (activeEffect.Effect.RemoveChain != null)
+        {
+            activeEffect.Effect.RemoveChain.Execute(context, ref removeResult);
+            context.ResetFlags |= ResetFlags.Remove;
+        }
+
+        if (activeEffect.Effect.ApplyChain != null)
+        {
+            activeEffect.Effect.ApplyChain.Reset(context);
+            context.ResetFlags &= ~ResetFlags.Apply;
+        }
 
         if (activeEffect.Effect.UpdateChain != null)
         {
-            var wasUpdate = activeEffect.Context.IsUpdate;
-            activeEffect.Context.IsUpdate = true;
-            activeEffect.Effect.UpdateChain.Reset(activeEffect.Context);
-            activeEffect.Context.IsUpdate = wasUpdate;
+            ResetUpdateChain(activeEffect);
+            context.ResetFlags &= ~ResetFlags.Update;
         }
+
+        (context.Self as BaseAptitudeEntity)?.RemovedEffects.Add(activeEffect);
 
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", activeEffect.Context.ExecutionId);
         foreach (var pair in activeEffect.Context.Actives)
@@ -496,5 +513,45 @@ public class AbilitySystem
         return commandDef.RetryInterval <= _proximityRetrySlackMs
                || !_proximityHits.TryGetValue((source.EntityId, commandDef.Id, target.EntityId), out var lastHit)
                || _shard.CurrentTime - lastHit >= commandDef.RetryInterval - _proximityRetrySlackMs;
+    }
+
+    private void CancelRemovedEffects(BaseAptitudeEntity entity)
+    {
+        if (entity.RemovedEffects.Count == 0)
+        {
+            return;
+        }
+
+        List<EffectState> removedEffects = [.. entity.RemovedEffects];
+        entity.RemovedEffects.Clear();
+
+        foreach (var removed in removedEffects)
+        {
+            var context = removed.Context;
+            if (removed.Effect.ApplyChain != null && context.ResetFlags.HasFlag(ResetFlags.Apply))
+            {
+                removed.Effect.ApplyChain.Reset(context);
+                context.ResetFlags &= ~ResetFlags.Apply;
+            }
+
+            if (removed.Effect.UpdateChain != null && context.ResetFlags.HasFlag(ResetFlags.Update))
+            {
+                ResetUpdateChain(removed);
+            }
+
+            if (removed.Effect.RemoveChain != null && context.ResetFlags.HasFlag(ResetFlags.Remove))
+            {
+                removed.Effect.RemoveChain.Reset(context);
+                context.ResetFlags &= ~ResetFlags.Remove;
+            }
+        }
+    }
+
+    private void ResetUpdateChain(EffectState state)
+    {
+        var wasUpdate = state.Context.IsUpdate;
+        state.Context.IsUpdate = true;
+        state.Effect.UpdateChain.Reset(state.Context);
+        state.Context.IsUpdate = wasUpdate;
     }
 }
