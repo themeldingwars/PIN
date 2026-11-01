@@ -34,51 +34,43 @@ public class Chain
             _logger.Debug("Executing Chain {ChainId} ({ExecutionHint}), Self: {Self}, Initiator: {Initiator}, Target: {Target}", Id, context.ExecutionHint, context.Self, context.Initiator, res?.ToString() ?? "none");
         }
 
-        if (method == ExecutionMethod.AndChain)
+        var resumeAt = 0;
+        if (context.IsUpdate && context.YieldStack.Count > 0)
         {
-            foreach (var command in Commands)
-            {
-                if (debug)
-                {
-                    var hasMoreInfo = command.ToString() != command.GetType().ToString();
-                    _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
-                }
-
-                result.SetPass();
-                command.Execute(context, ref result);
-                if (!result.Success || result.Yield || result.Halt)
-                {
-                    _logger.Debug("Chain {ChainId} Ends At Command {CommandId} due to Result Code {Code}", Id, command.Id, result);
-                    break;
-                }
-            }
-
-            return;
+            resumeAt = context.YieldStack[^1];
+            context.YieldStack.RemoveAt(context.YieldStack.Count - 1);
         }
 
-        if (method == ExecutionMethod.OrChain)
+        var index = 0;
+        for (; index < Commands.Count; index++)
         {
-            foreach (var command in Commands)
+            if (index < resumeAt)
             {
-                if (debug)
-                {
-                    var hasMoreInfo = command.ToString() != command.GetType().ToString();
-                    _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
-                }
-
-                result.SetPass();
-                command.Execute(context, ref result);
-                if (result.Success)
-                {
-                    _logger.Debug("Chain {ChainId} Ends At Command {CommandId} due to Result Code {Code}", Id, command.Id, result);
-                    break;  // Note: Should further research to confirm if this is correct
-                }
+                continue;
             }
 
-            return;
+            var command = Commands[index];
+            if (debug)
+            {
+                var hasMoreInfo = command.ToString() != command.GetType().ToString();
+                _logger.Debug("Chain {ChainId} Command {CommandId} - Executing {CommandName}", Id, command.Id, hasMoreInfo ? command : command.GetType().Name);
+            }
+
+            result.SetPass();
+            command.Execute(context, ref result);
+
+            var done = method == ExecutionMethod.OrChain ? result.Success : !result.Success;
+            if (done || result.Yield || result.Halt)
+            {
+                _logger.Debug("Chain {ChainId} Ends At Command {CommandId} due to Result Code {Code}", Id, command.Id, result);
+                break;
+            }
         }
 
-        return;
+        if (context.IsUpdate)
+        {
+            context.YieldStack.Add(result.Yield ? index : 0);
+        }
     }
 
     public void Reset(Context context)

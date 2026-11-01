@@ -86,6 +86,9 @@ public class Context
 
     public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = [];
 
+    public bool IsUpdate { get; set; }
+    public List<int> YieldStack { get; } = [];
+
     /// <summary>
     /// Ids of commands that already ran once inside this context, used by fire once commands such as
     /// UpdateWaitAndFireOnceCommand. Lives on the context because command instances are shared by every context.

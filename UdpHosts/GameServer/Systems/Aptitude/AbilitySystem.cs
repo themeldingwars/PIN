@@ -112,7 +112,10 @@ public class AbilitySystem
                     {
                         activeEffect.Context.ExecutionHint = ExecutionHint.UpdateEffect;
                         var updateResult = new CommandResult { Success = true };
+                        var wasUpdate = activeEffect.Context.IsUpdate;
+                        activeEffect.Context.IsUpdate = true;
                         activeEffect.Effect.UpdateChain.Execute(activeEffect.Context, ref updateResult);
+                        activeEffect.Context.IsUpdate = wasUpdate;
                     }
                 }
                 else
@@ -207,7 +210,14 @@ public class AbilitySystem
         var removeResult = new CommandResult { Success = true };
         activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context, ref removeResult);
         activeEffect.Effect.ApplyChain?.Reset(activeEffect.Context);
-        activeEffect.Effect.UpdateChain?.Reset(activeEffect.Context);
+
+        if (activeEffect.Effect.UpdateChain != null)
+        {
+            var wasUpdate = activeEffect.Context.IsUpdate;
+            activeEffect.Context.IsUpdate = true;
+            activeEffect.Effect.UpdateChain.Reset(activeEffect.Context);
+            activeEffect.Context.IsUpdate = wasUpdate;
+        }
 
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", activeEffect.Context.ExecutionId);
         foreach (var pair in activeEffect.Context.Actives)
