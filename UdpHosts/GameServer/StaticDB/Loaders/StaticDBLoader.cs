@@ -975,6 +975,18 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<ushort, NamedVarTypes> LoadNamedVarTypes()
+    {
+        return LoadStaticDB<NamedVarTypes>("apt::NamedVarTypes")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, NamedVarConstants> LoadNamedVarConstants()
+    {
+        return LoadStaticDB<NamedVarConstants>("apt::NamedVarConstants")
+        .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, InflictCooldownCommandDef> LoadInflictCooldownCommandDef()
     {
         return LoadStaticDB<InflictCooldownCommandDef>("apt::InflictCooldownCommandDef")

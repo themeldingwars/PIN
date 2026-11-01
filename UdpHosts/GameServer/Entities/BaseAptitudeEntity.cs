@@ -3,6 +3,7 @@ using System.Linq;
 using AeroMessages.GSS;
 using GameServer.Entities.Character;
 using GameServer.Systems.Aptitude;
+using GameServer.Systems.Aptitude.NamedVars;
 using Serilog.Events;
 
 namespace GameServer.Entities;
@@ -18,11 +19,12 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
     : base(shard, eid)
     {
         Owner = owner;
+        NamedVars = new NamedVar($"{GetType().Name} ({eid:X8})");
     }
 
     public CharacterEntity Owner { get; }
 
-    public Dictionary<ushort, float> NamedVariables { get; } = [];
+    public NamedVar NamedVars { get; }
 
     public List<EffectState> GetActiveEffects() => [.. ActiveEffects];
 

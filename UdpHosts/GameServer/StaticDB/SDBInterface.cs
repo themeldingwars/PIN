@@ -143,6 +143,8 @@ public class SDBInterface
     private static Dictionary<uint, RegisterRandomCommandDef> _registerRandomCommandDef;
     private static Dictionary<uint, SetRegisterCommandDef> _setRegisterCommandDef;
     private static Dictionary<uint, NamedVariableAssignCommandDef> _namedVariableAssignCommandDef;
+    private static Dictionary<ushort, NamedVarTypes> _namedVarTypes;
+    private static Dictionary<uint, NamedVarConstants> _namedVarConstants;
     private static Dictionary<uint, InflictCooldownCommandDef> _inflictCooldownCommandDef;
     private static Dictionary<uint, RequireDamageTypeCommandDef> _requireDamageTypeCommandDef;
     private static Dictionary<uint, TargetSingleCommandDef> _targetSingleCommandDef;
@@ -428,6 +430,8 @@ public class SDBInterface
         _registerRandomCommandDef = loader.LoadRegisterRandomCommandDef();
         _setRegisterCommandDef = loader.LoadSetRegisterCommandDef();
         _namedVariableAssignCommandDef = loader.LoadNamedVariableAssignCommandDef();
+        _namedVarTypes = loader.LoadNamedVarTypes();
+        _namedVarConstants = loader.LoadNamedVarConstants();
         _inflictCooldownCommandDef = loader.LoadInflictCooldownCommandDef();
         _requireDamageTypeCommandDef = loader.LoadRequireDamageTypeCommandDef();
         _targetSingleCommandDef = loader.LoadTargetSingleCommandDef();
@@ -732,6 +736,8 @@ public class SDBInterface
     public static RegisterRandomCommandDef GetRegisterRandomCommandDef(uint id) => _registerRandomCommandDef.GetValueOrDefault(id);
     public static SetRegisterCommandDef GetSetRegisterCommandDef(uint id) => _setRegisterCommandDef.GetValueOrDefault(id);
     public static NamedVariableAssignCommandDef GetNamedVariableAssignCommandDef(uint id) => _namedVariableAssignCommandDef.GetValueOrDefault(id);
+    public static NamedVarTypes GetNamedVarTypes(ushort id) => _namedVarTypes.GetValueOrDefault(id);
+    public static List<NamedVarConstants> GetNamedVarConstants() => [.. _namedVarConstants.Select(pair => pair.Value)];
     public static InflictCooldownCommandDef GetInflictCooldownCommandDef(uint id) => _inflictCooldownCommandDef.GetValueOrDefault(id);
     public static RequireDamageTypeCommandDef GetRequireDamageTypeCommandDef(uint id) => _requireDamageTypeCommandDef.GetValueOrDefault(id);
     public static TargetSingleCommandDef GetTargetSingleCommandDef(uint id) => _targetSingleCommandDef.GetValueOrDefault(id);

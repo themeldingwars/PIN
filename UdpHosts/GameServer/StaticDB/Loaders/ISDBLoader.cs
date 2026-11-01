@@ -131,6 +131,8 @@ public interface ISDBLoader
     Dictionary<uint, RegisterRandomCommandDef> LoadRegisterRandomCommandDef();
     Dictionary<uint, SetRegisterCommandDef> LoadSetRegisterCommandDef();
     Dictionary<uint, NamedVariableAssignCommandDef> LoadNamedVariableAssignCommandDef();
+    Dictionary<ushort, NamedVarTypes> LoadNamedVarTypes();
+    Dictionary<uint, NamedVarConstants> LoadNamedVarConstants();
     Dictionary<uint, InflictCooldownCommandDef> LoadInflictCooldownCommandDef();
     Dictionary<uint, RequireDamageTypeCommandDef> LoadRequireDamageTypeCommandDef();
     Dictionary<uint, TargetSingleCommandDef> LoadTargetSingleCommandDef();

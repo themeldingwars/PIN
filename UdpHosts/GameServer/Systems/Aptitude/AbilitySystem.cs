@@ -9,6 +9,7 @@ using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.StaticDB;
 using GameServer.StaticDB.Records.aptfs;
+using GameServer.Systems.Aptitude.NamedVars;
 using Serilog;
 
 namespace GameServer.Systems.Aptitude;
@@ -32,12 +33,14 @@ public class AbilitySystem
     {
         _shard = shard;
         Factory = new Factory(shard);
+        ConstantNamedVars = LoadConstantNamedVars();
         _playerVehicleCalldownRequests = [];
         _playerDeployableCalldownRequests = [];
         _playerThumperCalldownRequests = [];
     }
 
     public Factory Factory { get; }
+    public NamedVar ConstantNamedVars { get; }
 
     public static float RegistryOp(float first, float second, Operand op)
     {
@@ -457,5 +460,23 @@ public class AbilitySystem
         return commandDef.RetryInterval <= _proximityRetrySlackMs
                || !_proximityHits.TryGetValue((source.EntityId, commandDef.Id, target.EntityId), out var lastHit)
                || _shard.CurrentTime - lastHit >= commandDef.RetryInterval - _proximityRetrySlackMs;
+    }
+
+    private static NamedVar LoadConstantNamedVars()
+    {
+        var store = new Dictionary<uint, float>();
+        foreach (var constant in SDBInterface.GetNamedVarConstants())
+        {
+            var key = NamedVarKey.FromTypeId(constant.NamedvarType);
+            if (store.ContainsKey(key.ToStoreKey()))
+            {
+                _logger.Warning("Constant named var {Type} has more than one row, keeping {Value}", constant.NamedvarType, store[key.ToStoreKey()]);
+                continue;
+            }
+
+            store[key.ToStoreKey()] = constant.NamedvarValue;
+        }
+
+        return NamedVar.ReadOnly("apt::NamedVarConstants", store);
     }
 }

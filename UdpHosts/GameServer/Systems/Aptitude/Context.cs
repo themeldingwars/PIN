@@ -5,6 +5,7 @@ using BepuUtilities;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Enums;
+using GameServer.Systems.Aptitude.NamedVars;
 
 namespace GameServer.Systems.Aptitude;
 
@@ -16,6 +17,8 @@ public class Context
         Initiator = initiator;
         Self = self ?? initiator;
         Abilities = shard.Abilities;
+        ContextNamedVars = new NamedVar("context");
+        ConstantNamedVars = shard.Abilities.ConstantNamedVars;
         Targets = new AptitudeTargets();
         FormerTargets = new AptitudeTargets();
         CurrentTime = shard.CurrentTime;
@@ -37,6 +40,10 @@ public class Context
     public float Register { get; set; }
     public float FormerRegister { get; set; }
     public int Bonus { get; set; }
+
+    public NamedVar ContextNamedVars { get; }
+    public NamedVar ExternalNamedVars => (Initiator as BaseAptitudeEntity)?.NamedVars;
+    public NamedVar ConstantNamedVars { get; }
 
     /// <summary>
     ///     tfSetWeaponDamageCommand recomputes it from the weapon's damage curve
@@ -116,6 +123,19 @@ public class Context
         };
     }
 
+    public bool TryGetNamedVarStore(byte srctype, bool allowGlobal, out NamedVar store)
+    {
+        store = srctype switch
+        {
+            0 => ContextNamedVars,
+            1 => ExternalNamedVars,
+            2 => allowGlobal ? ConstantNamedVars : null,
+            _ => null,
+        };
+
+        return store != null;
+    }
+
     /// <summary>
     ///     Takes the pose snapshot the client's <c>apt_context_SetInitPos</c> takes when a context is initiated: the
     ///     body position, the aim/eye position and the aim direction, all read from <see cref="Self"/>, at the context's current time.
@@ -139,11 +159,4 @@ public class Context
             ? QuaternionEx.Transform(Vector3.UnitY, QuaternionEx.Inverse(entity.Orientation))
             : Vector3.UnitY;
     }
-
-    /*
-    public uint NamedVar;
-    public uint Interaction;
-    public uint SourceContext;
-    public uint SourceEffect;
-    */
 }
