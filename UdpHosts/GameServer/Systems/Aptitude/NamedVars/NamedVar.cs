@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Serilog;
 
@@ -8,6 +9,12 @@ public sealed class NamedVar
     private static readonly ILogger _logger = Log.ForContext<NamedVar>();
 
     private Dictionary<uint, float> _values;
+
+    // packed key -> number of UiNamedVariable commands watching it
+    private Dictionary<uint, int> _uiWatches;
+
+    // watched keys whose value hasn't been sent yet
+    private HashSet<uint> _uiDirty;
 
     public NamedVar(string owner)
     {
@@ -26,6 +33,8 @@ public sealed class NamedVar
     public bool IsReadOnly { get; }
 
     public int Count => _values?.Count ?? 0;
+
+    public bool HasUiChanges => _uiDirty?.Count > 0;
 
     public static NamedVar ReadOnly(string owner, Dictionary<uint, float> values)
     {
@@ -57,8 +66,62 @@ public sealed class NamedVar
         }
 
         _values ??= [];
-        _values[key.ToStoreKey()] = value;
+        var raw = key.ToStoreKey();
+        var changed = !_values.TryGetValue(raw, out var previous) || previous != value;
+        _values[raw] = value;
+
+        if (changed && _uiWatches?.ContainsKey(raw) == true)
+        {
+            (_uiDirty ??= []).Add(raw);
+        }
+
         return true;
+    }
+
+    public void Watch(NamedVarKey key)
+    {
+        _uiWatches ??= [];
+        var raw = key.ToStoreKey();
+        var count = _uiWatches.GetValueOrDefault(raw);
+        _uiWatches[raw] = count + 1;
+
+        if (count == 0 && _values?.ContainsKey(raw) == true)
+        {
+            (_uiDirty ??= []).Add(raw);
+        }
+    }
+
+    public void Unwatch(NamedVarKey key)
+    {
+        var raw = key.ToStoreKey();
+        if (_uiWatches is null || !_uiWatches.TryGetValue(raw, out var count))
+        {
+            return;
+        }
+
+        if (count > 1)
+        {
+            _uiWatches[raw] = count - 1;
+            return;
+        }
+
+        _uiWatches.Remove(raw);
+        _uiDirty?.Remove(raw);
+    }
+
+    public void FlushUi(Action<NamedVarKey, float> send)
+    {
+        if (!HasUiChanges)
+        {
+            return;
+        }
+
+        foreach (var raw in _uiDirty)
+        {
+            send(NamedVarKey.FromStoreKey(raw), _values[raw]);
+        }
+
+        _uiDirty.Clear();
     }
 
     public override string ToString()

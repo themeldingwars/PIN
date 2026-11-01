@@ -512,8 +512,8 @@ public class Factory
                 return new SetHoverParametersCommand(CustomDBInterface.GetSetHoverParametersCommandDef(commandId));
             // case CommandType.SetVisualInfoIndex:
             //     return new SetVisualInfoIndexCommand(CustomDBInterface.GetSetVisualInfoIndexCommandDef(commandId));
-            // case CommandType.UiNamedVariable:
-            //     return new UiNamedVariableCommand(SDBInterface.GetUiNamedVariableCommandDef(commandId));
+            case CommandType.UiNamedVariable:
+                return new UiNamedVariableCommand(SDBInterface.GetUiNamedVariableCommandDef(commandId));
             // case CommandType.SetRespawnFlags:
             //     return new SetRespawnFlagsCommand(CustomDBInterface.GetSetRespawnFlagsCommandDef(commandId));
             case CommandType.VehicleCalldown:

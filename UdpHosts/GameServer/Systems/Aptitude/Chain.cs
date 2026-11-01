@@ -81,6 +81,14 @@ public class Chain
         return;
     }
 
+    public void Reset(Context context)
+    {
+        foreach (var command in Commands)
+        {
+            command.Reset(context);
+        }
+    }
+
     public void DebugPrintCommands()
     {
         Log.Information("Chain {ChainId}", Id);

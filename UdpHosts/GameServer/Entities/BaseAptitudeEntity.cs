@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using AeroMessages.GSS;
+using AeroMessages.GSS.Character.Event;
 using GameServer.Entities.Character;
+using GameServer.Protocol;
 using GameServer.Systems.Aptitude;
 using GameServer.Systems.Aptitude.NamedVars;
 using Serilog.Events;
@@ -31,6 +33,23 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
     public override string ToString()
     {
         return $"{GetType().Name} ({EntityId:X8})";
+    }
+
+    public void FlushUiNamedVariables()
+    {
+        if (!NamedVars.HasUiChanges)
+        {
+            return;
+        }
+
+        if (this is not CharacterEntity { IsPlayerControlled: true } character)
+        {
+            NamedVars.FlushUi((key, value) => Logger.Debug("{Entity} has a watched named var {Key} = {Value} but no client of its own, not sending it", this, key, value));
+            return;
+        }
+
+        var channel = character.Player.NetChannels[ChannelType.ReliableGss];
+        NamedVars.FlushUi((key, value) => channel.SendMessage(new UiNamedVariableUpdate { VariableId = key.ToStoreKey(), Value = value }, character.EntityId));
     }
 
     public EffectState AddEffect(Effect effect, Context context)

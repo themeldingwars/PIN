@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using AeroMessages.GSS.Character.Command;
+using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.StaticDB;
@@ -120,6 +121,11 @@ public class AbilitySystem
                 }
             }
         }
+
+        if (entity is BaseAptitudeEntity aptitudeEntity)
+        {
+            aptitudeEntity.FlushUiNamedVariables();
+        }
     }
 
     public void DoApplyEffect(uint effectId, IAptitudeTarget target, Context context)
@@ -200,6 +206,8 @@ public class AbilitySystem
         activeEffect.Context.Self.ClearEffect(activeEffect);
         var removeResult = new CommandResult { Success = true };
         activeEffect.Effect.RemoveChain?.Execute(activeEffect.Context, ref removeResult);
+        activeEffect.Effect.ApplyChain?.Reset(activeEffect.Context);
+        activeEffect.Effect.UpdateChain?.Reset(activeEffect.Context);
 
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", activeEffect.Context.ExecutionId);
         foreach (var pair in activeEffect.Context.Actives)
@@ -438,6 +446,24 @@ public class AbilitySystem
         throw new NotImplementedException();
     }
 
+    private static NamedVar LoadConstantNamedVars()
+    {
+        var store = new Dictionary<uint, float>();
+        foreach (var constant in SDBInterface.GetNamedVarConstants())
+        {
+            var key = NamedVarKey.FromTypeId(constant.NamedvarType);
+            if (store.ContainsKey(key.ToStoreKey()))
+            {
+                _logger.Warning("Constant named var {Type} has more than one row, keeping {Value}", constant.NamedvarType, store[key.ToStoreKey()]);
+                continue;
+            }
+
+            store[key.ToStoreKey()] = constant.NamedvarValue;
+        }
+
+        return NamedVar.ReadOnly("apt::NamedVarConstants", store);
+    }
+
     private bool IsProximityHit(IAptitudeTarget source, RegisterClientProximityCommandDef commandDef, IAptitudeTarget target)
     {
         // With a radius regop the radius comes from a register this report doesn't carry
@@ -460,23 +486,5 @@ public class AbilitySystem
         return commandDef.RetryInterval <= _proximityRetrySlackMs
                || !_proximityHits.TryGetValue((source.EntityId, commandDef.Id, target.EntityId), out var lastHit)
                || _shard.CurrentTime - lastHit >= commandDef.RetryInterval - _proximityRetrySlackMs;
-    }
-
-    private static NamedVar LoadConstantNamedVars()
-    {
-        var store = new Dictionary<uint, float>();
-        foreach (var constant in SDBInterface.GetNamedVarConstants())
-        {
-            var key = NamedVarKey.FromTypeId(constant.NamedvarType);
-            if (store.ContainsKey(key.ToStoreKey()))
-            {
-                _logger.Warning("Constant named var {Type} has more than one row, keeping {Value}", constant.NamedvarType, store[key.ToStoreKey()]);
-                continue;
-            }
-
-            store[key.ToStoreKey()] = constant.NamedvarValue;
-        }
-
-        return NamedVar.ReadOnly("apt::NamedVarConstants", store);
     }
 }
