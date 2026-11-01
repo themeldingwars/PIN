@@ -94,35 +94,15 @@ public class AbilitySystem
 
     public void ProcessTarget(IAptitudeTarget entity, ulong currentTime)
     {
-        var activeEffects = entity.GetActiveEffects();
-        foreach (var activeEffect in activeEffects)
+        var now = unchecked((uint)currentTime);
+        foreach (var activeEffect in entity.GetActiveEffects())
         {
-            if (activeEffect?.Effect.DurationChain != null
-                && currentTime > activeEffect.LastUpdateTime + activeEffect.Effect.UpdateFrequency)
+            // Skips effects that an earlier effect of this pass removed
+            if (activeEffect != null
+                && (activeEffect.Effect.UpdateChain != null || activeEffect.Effect.DurationChain != null)
+                && ReferenceEquals(entity.GetActiveEffects()[activeEffect.Index], activeEffect))
             {
-                activeEffect.Context.ExecutionHint = ExecutionHint.DurationEffect;
-                activeEffect.Context.CurrentTime = _shard.CurrentTime;
-                var durationResult = new CommandResult { Success = true };
-                activeEffect.Effect.DurationChain.Execute(activeEffect.Context, ref durationResult);
-                activeEffect.LastUpdateTime = currentTime;
-
-                if (durationResult.Success)
-                {
-                    if (activeEffect.Effect.UpdateChain != null)
-                    {
-                        activeEffect.Context.ExecutionHint = ExecutionHint.UpdateEffect;
-                        var updateResult = new CommandResult { Success = true };
-                        var wasUpdate = activeEffect.Context.IsUpdate;
-                        activeEffect.Context.IsUpdate = true;
-                        activeEffect.Effect.UpdateChain.Execute(activeEffect.Context, ref updateResult);
-                        activeEffect.Context.ResetFlags |= ResetFlags.Update;
-                        activeEffect.Context.IsUpdate = wasUpdate;
-                    }
-                }
-                else
-                {
-                    DoRemoveEffect(activeEffect);
-                }
+                ProcessEffect(activeEffect, now);
             }
         }
 
@@ -179,6 +159,7 @@ public class AbilitySystem
         {
             effect.ApplyChain.Execute(applyContext, ref applyResult);
             applyContext.ResetFlags |= ResetFlags.Apply;
+            applyContext.PreviousResult = applyResult;
         }
 
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", applyContext.ExecutionId);
@@ -491,6 +472,16 @@ public class AbilitySystem
         return NamedVar.ReadOnly("apt::NamedVarConstants", store);
     }
 
+    private static uint FirstProcessBase(Context context, Effect effect, uint initTime, uint now)
+    {
+        var frequency = effect.UpdateFrequency;
+        var self = context.Self.AeroEntityId.Backing;
+        var seed = (uint)(self >> 32) ^ effect.Id ^ (uint)self;
+        var processBase = unchecked(initTime + (PRNG.PRNG.UInt(seed) % frequency) - frequency);
+        context.NextProcessTime = unchecked(now - ((now - processBase) % frequency) + frequency);
+        return processBase;
+    }
+
     private bool IsProximityHit(IAptitudeTarget source, RegisterClientProximityCommandDef commandDef, IAptitudeTarget target)
     {
         // With a radius regop the radius comes from a register this report doesn't carry
@@ -553,5 +544,64 @@ public class AbilitySystem
         state.Context.IsUpdate = true;
         state.Effect.UpdateChain.Reset(state.Context);
         state.Context.IsUpdate = wasUpdate;
+    }
+
+    private void ProcessEffect(EffectState state, uint now)
+    {
+        var effect = state.Effect;
+        var context = state.Context;
+        var initTime = context.InitTime ?? now;
+
+        var time = now;
+        var frequency = effect.UpdateFrequency;
+        if (frequency != 0)
+        {
+            context.ProcessBase ??= FirstProcessBase(context, effect, initTime, now);
+            if (unchecked((int)(now - context.NextProcessTime)) < 0)
+            {
+                return;
+            }
+
+            time = now - ((now - context.ProcessBase.Value) % frequency);
+            context.NextProcessTime = time + frequency;
+        }
+
+        context.CurrentTime = time;
+        if (unchecked((int)(time - initTime)) < 0)
+        {
+            return;
+        }
+
+        if (effect.UpdateChain != null)
+        {
+            context.ExecutionHint = ExecutionHint.UpdateEffect;
+            var updateResult = new CommandResult { Success = true };
+            var wasUpdate = context.IsUpdate;
+            context.IsUpdate = true;
+            effect.UpdateChain.Execute(context, ref updateResult);
+            context.ResetFlags |= ResetFlags.Update;
+            if (!updateResult.Yield)
+            {
+                context.FormerTargets = new AptitudeTargets(context.Targets);
+            }
+
+            context.PreviousResult = updateResult;
+            context.IsUpdate = wasUpdate;
+        }
+
+        var remove = context.PreviousResult.Halt;
+        if (!remove && effect.DurationChain != null && !context.PreviousResult.Yield)
+        {
+            context.ExecutionHint = ExecutionHint.DurationEffect;
+            var durationResult = new CommandResult { Success = true };
+            effect.DurationChain.Execute(context, ref durationResult);
+            context.PreviousResult = durationResult;
+            remove = !durationResult.Success;
+        }
+
+        if (remove)
+        {
+            DoRemoveEffect(state);
+        }
     }
 }

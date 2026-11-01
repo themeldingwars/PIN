@@ -87,6 +87,8 @@ public class Context
     public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = [];
 
     public ResetFlags ResetFlags { get; set; }
+    public uint? ProcessBase { get; set; }
+    public uint NextProcessTime { get; set; }
     public bool IsUpdate { get; set; }
     public List<int> YieldStack { get; } = [];
 
