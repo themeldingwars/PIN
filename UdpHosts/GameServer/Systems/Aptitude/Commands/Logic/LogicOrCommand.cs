@@ -30,4 +30,10 @@ public class LogicOrCommand : Command, ICommand
 
         return;
     }
+
+    public override void Reset(Context context)
+    {
+        ResetChain(context, Params.AChain);
+        ResetChain(context, Params.BChain);
+    }
 }

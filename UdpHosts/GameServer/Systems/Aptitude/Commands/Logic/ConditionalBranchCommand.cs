@@ -37,4 +37,11 @@ public class ConditionalBranchCommand : Command, ICommand
 
         return;
     }
+
+    public override void Reset(Context context)
+    {
+        ResetChain(context, Params.IfChain);
+        ResetChain(context, Params.ThenChain);
+        ResetChain(context, Params.ElseChain);
+    }
 }

@@ -27,4 +27,9 @@ public class LogicOrChainCommand : Command, ICommand
             return;
         }
     }
+
+    public override void Reset(Context context)
+    {
+        ResetChain(context, Params.OrChain);
+    }
 }

@@ -68,5 +68,6 @@ public class UpdateWaitAndFireOnceCommand : Command, ICommand
     public override void Reset(Context context)
     {
         context.FiredOnceCommandIds.Remove(Id);
+        ResetChain(context, Params.Chain);
     }
 }

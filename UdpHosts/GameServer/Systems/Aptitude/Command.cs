@@ -58,4 +58,17 @@ public abstract class Command : ICommand
     {
         return;
     }
+
+    /// <summary>
+    /// Resets a sub chain of the command
+    /// </summary>
+    /// <param name="context">apt::Context</param>
+    /// <param name="chainId">The sub chain</param>
+    protected static void ResetChain(Context context, uint chainId)
+    {
+        if (chainId != 0)
+        {
+            context.Abilities.Factory.LoadChain(chainId).Reset(context);
+        }
+    }
 }

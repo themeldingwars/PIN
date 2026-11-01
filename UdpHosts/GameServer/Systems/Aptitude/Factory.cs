@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using GameServer.StaticDB;
 using GameServer.Systems.Aptitude.Commands.Activation;
 using GameServer.Systems.Aptitude.Commands.Calldown;
@@ -29,6 +30,8 @@ public class Factory
 {
     private readonly Shard _shard;
     private readonly ILogger _logger;
+    private readonly ConcurrentDictionary<uint, Chain> _chains = new();
+    private readonly ConcurrentDictionary<uint, Effect> _effects = new();
 
     public Factory(Shard shard)
     {
@@ -38,58 +41,12 @@ public class Factory
 
     public Effect LoadEffect(uint effectId)
     {
-        var statusEffectData = SDBInterface.GetStatusEffectData(effectId);
-        var effect = new Effect()
-        {
-            Data = statusEffectData,
-        };
-
-        if (statusEffectData.ApplyChain != 0)
-        {
-            effect.ApplyChain = LoadChain(statusEffectData.ApplyChain);
-        }
-
-        if (statusEffectData.RemoveChain != 0)
-        {
-            effect.RemoveChain = LoadChain(statusEffectData.RemoveChain);
-        }
-
-        if (statusEffectData.UpdateChain != 0)
-        {
-            effect.UpdateChain = LoadChain(statusEffectData.UpdateChain);
-        }
-
-        if (statusEffectData.DurationChain != 0)
-        {
-            effect.DurationChain = LoadChain(statusEffectData.DurationChain);
-        }
-
-        return effect;
+        return _effects.GetOrAdd(effectId, CreateEffect);
     }
 
     public Chain LoadChain(uint chainId)
     {
-        var chain = new Chain
-        {
-            Id = chainId,
-            Commands = []
-        };
-
-        uint next = chainId;
-        while (next != 0)
-        {
-            var baseCommandDef = SDBInterface.GetBaseCommandDef(next);
-            var command = LoadCommand(baseCommandDef.Id, baseCommandDef.Subtype);
-            chain.Commands.Add(command);
-            next = baseCommandDef.Next;
-        }
-
-        if (chain.Commands.Count == 0)
-        {
-            _logger.Debug("Loaded empty chain {chainId}", chainId);
-        }
-
-        return chain;
+        return _chains.GetOrAdd(chainId, CreateChain);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1515:Single-line comment should be preceded by blank line", Justification = "Disregard here so we don't create unneccessary grouping")]
@@ -781,5 +738,61 @@ public class Factory
         }
 
         return new CustomPlaceholderCommand(commandType.ToString(), commandId);
+    }
+
+    private Effect CreateEffect(uint effectId)
+    {
+        var statusEffectData = SDBInterface.GetStatusEffectData(effectId);
+        var effect = new Effect()
+        {
+            Data = statusEffectData,
+        };
+
+        if (statusEffectData.ApplyChain != 0)
+        {
+            effect.ApplyChain = LoadChain(statusEffectData.ApplyChain);
+        }
+
+        if (statusEffectData.RemoveChain != 0)
+        {
+            effect.RemoveChain = LoadChain(statusEffectData.RemoveChain);
+        }
+
+        if (statusEffectData.UpdateChain != 0)
+        {
+            effect.UpdateChain = LoadChain(statusEffectData.UpdateChain);
+        }
+
+        if (statusEffectData.DurationChain != 0)
+        {
+            effect.DurationChain = LoadChain(statusEffectData.DurationChain);
+        }
+
+        return effect;
+    }
+
+    private Chain CreateChain(uint chainId)
+    {
+        var chain = new Chain
+        {
+            Id = chainId,
+            Commands = []
+        };
+
+        uint next = chainId;
+        while (next != 0)
+        {
+            var baseCommandDef = SDBInterface.GetBaseCommandDef(next);
+            var command = LoadCommand(baseCommandDef.Id, baseCommandDef.Subtype);
+            chain.Commands.Add(command);
+            next = baseCommandDef.Next;
+        }
+
+        if (chain.Commands.Count == 0)
+        {
+            _logger.Debug("Loaded empty chain {chainId}", chainId);
+        }
+
+        return chain;
     }
 }

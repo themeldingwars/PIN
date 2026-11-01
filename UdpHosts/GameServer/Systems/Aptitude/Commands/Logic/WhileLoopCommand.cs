@@ -61,4 +61,10 @@ public class WhileLoopCommand : Command, ICommand
         result.SetPass();
         return;
     }
+
+    public override void Reset(Context context)
+    {
+        ResetChain(context, Params.ConditionChain);
+        ResetChain(context, Params.BodyChain);
+    }
 }

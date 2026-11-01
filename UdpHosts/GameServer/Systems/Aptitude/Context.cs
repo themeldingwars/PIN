@@ -88,7 +88,7 @@ public class Context
 
     /// <summary>
     /// Ids of commands that already ran once inside this context, used by fire once commands such as
-    /// UpdateWaitAndFireOnceCommand. Lives on the context because command instances get rebuilt per chain load.
+    /// UpdateWaitAndFireOnceCommand. Lives on the context because command instances are shared by every context.
     /// </summary>
     public HashSet<uint> FiredOnceCommandIds { get; } = [];
 

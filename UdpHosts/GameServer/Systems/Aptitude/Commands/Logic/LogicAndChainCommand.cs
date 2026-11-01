@@ -41,4 +41,9 @@ public class LogicAndChainCommand : Command, ICommand
             }
         }
     }
+
+    public override void Reset(Context context)
+    {
+        ResetChain(context, Params.AndChain);
+    }
 }
