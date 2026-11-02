@@ -22,6 +22,7 @@ public enum ShardSystem
     Lifecycle,
     Respawn,
     Loot,
+    Borders,
     Events,
     All,
 }

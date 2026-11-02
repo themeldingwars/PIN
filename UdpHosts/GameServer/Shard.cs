@@ -30,6 +30,7 @@ using GameServer.Systems.ProjectileSim;
 using GameServer.Systems.SystemEvents;
 using GameServer.Systems.Turret;
 using GameServer.Systems.WeaponSim;
+using GameServer.Systems.ZoneBorders;
 using Shared.Common;
 using Shared.Content.Zones;
 using Shared.Udp;
@@ -107,6 +108,7 @@ public class Shard : IShard
         Loot = new LootService(this, EventBus, new StandardLootRules());
         Progression = new ProgressionService(this, EventBus, new StandardProgressionRules());
         CharacterCreation = new CharacterCreationService(this, EventBus, new StandardCharacterCreationRules());
+        ZoneBorders = new ZoneBorderService(this);
     }
 
     public DateTime StartTime => DateTimeExtensions.Epoch.AddSeconds(_startTime);
@@ -138,6 +140,7 @@ public class Shard : IShard
     public NpcDeathService NpcDeath { get; }
     public LootService Loot { get; }
     public ProgressionService Progression { get; }
+    public ZoneBorderService ZoneBorders { get; }
     public ulong InstanceId { get; }
     public uint ZoneId { get; }
     public ShardMetrics Metrics { get; }
@@ -258,6 +261,8 @@ public class Shard : IShard
         last = Metrics.Tick(ShardSystem.Respawn, last);
         Loot.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.Loot, last);
+        ZoneBorders.Tick(currentTime);
+        last = Metrics.Tick(ShardSystem.Borders, last);
         EventBus.Flush();
         Metrics.Tick(ShardSystem.Events, last);
         Metrics.Tick(ShardSystem.All, start);
