@@ -24,24 +24,9 @@ public static class ChunkOriginCalculator
             var refs = chunkInfo.FindAll<ZoneChunkRefLayer>().Where(l => l.Id == WorldLayerIds.ChunkRef);
             var refs2 = chunkInfo.FindAll<ZoneChunkRefLayer>().Where(l => l.Id == WorldLayerIds.ChunkRef2);
 
-            long minCoordX = range.MinX;
             long maxCoordX = range.MaxX;
-            long minCoordY = range.MinY;
             long maxCoordY = range.MaxY;
-
-            double centerIndexX = (maxCoordX - minCoordX) / 2.0;
-            double centerIndexY = (maxCoordY - minCoordY) / 2.0;
-
-            if (zoneId == _coralForestZoneId)
-            {
-                centerIndexX = 4;
-                centerIndexY = 3.5;
-            }
-            else if (zoneId == _sertaoZoneId)
-            {
-                centerIndexX = 9.5;
-                centerIndexY = 3;
-            }
+            var (centerIndexX, centerIndexY) = CenterIndex(range, zoneId);
 
             // The first range decides the cube face and the origins of every reference
             foreach (var reference in refs.Concat(refs2))
@@ -53,6 +38,35 @@ public static class ChunkOriginCalculator
         }
 
         return [.. chunkRefs];
+    }
+
+    /// <summary>
+    ///     Where the zone's frame sits on its cube face, null for a zone without chunks. Zones that share chunks, Coral
+    ///     Forest and Sertao, have different frames, positions convert through <see cref="ZoneFrame.Convert" />.
+    /// </summary>
+    public static ZoneFrame? Frame(Zone zone, uint zoneId)
+    {
+        var range = zone.Root.FindAll(WorldLayerIds.ChunkInfo).OfType<GtContainerLayer>()
+                        .Select(chunkInfo => chunkInfo.Find<ZoneChunkRangeLayer>())
+                        .FirstOrDefault(found => found != null);
+        if (range == null)
+        {
+            return null;
+        }
+
+        // A chunk's origin is (x - max + center) * 512, so the frame's origin is chunk (max - center) of the face
+        var (centerIndexX, centerIndexY) = CenterIndex(range, zoneId);
+        return new ZoneFrame(range.CubeFace, new Vector2((float)((range.MaxX - centerIndexX) * _chunkSize), (float)((range.MaxY - centerIndexY) * _chunkSize)));
+    }
+
+    private static (double X, double Y) CenterIndex(ZoneChunkRangeLayer range, uint zoneId)
+    {
+        return zoneId switch
+        {
+            _coralForestZoneId => (4, 3.5),
+            _sertaoZoneId => (9.5, 3),
+            _ => ((range.MaxX - range.MinX) / 2.0, (range.MaxY - range.MinY) / 2.0),
+        };
     }
 
     private static Vector3 CalculateOrigin(long maxCoordX, long maxCoordY, double centerIndexX, double centerIndexY, long x, long y)
