@@ -43,7 +43,7 @@ public class EntityManager
     private readonly ulong _updateFlushIntervalMs = 5;
     private readonly ulong _scopeInIntervalMs = 20;
     private readonly int _scopeInsPerInterval = 5;
-    private readonly ulong _scopeCheckIntervalMs = 5000;
+    private readonly ulong _scopeCheckIntervalMs = 1000;
     private readonly ulong _lifetimeCheckIntervalMs = 1000;
     private readonly ConcurrentDictionary<ulong, HashSet<INetworkPlayer>> _scopedPlayersByEntity = new();
     private readonly ConcurrentQueue<ScopeInRequest> _queuedScopeIn = new();
@@ -80,6 +80,13 @@ public class EntityManager
         characterEntity.SetHidden(hidden);
         characterEntity.LoadMonster(typeId, level);
         characterEntity.CanBleedout = canBleedout;
+
+        // Players see a monster from its CharInfo's scope range, 150 m for most of them, otherwise from the default 100 m
+        if (SDBInterface.GetCharInfo(characterEntity.StaticInfo.CharInfoId) is { ScopeRange: > 0f } charInfo)
+        {
+            characterEntity.Scoping = new ScopingComponent { Range = charInfo.ScopeRange };
+        }
+
         characterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Living, _shard.CurrentTime);
         characterEntity.SetPosition(position);
         characterEntity.SetSpawnPose();
