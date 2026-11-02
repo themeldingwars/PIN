@@ -68,7 +68,14 @@ public static class GenericShard
     [MessageID(GssMessage.RequestLeaveZone)]
     public static void RequestLeaveZone(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
-        _logger.Information("RequestLeaveZone from {CharacterId:X} in zone {ZoneId}", player.CharacterId, player.CurrentZone.ID);
+        // The client's /leavezone and "Leave Zone" in the Esc menu, only enabled outside the open world
+        if (player is INetworkPlayer networkPlayer && InstanceTransfer.TryReturnToOpenWorld(networkPlayer))
+        {
+            _logger.Information("{CharacterId:X} leaves zone {ZoneId} for the open world", player.CharacterId, player.CurrentZone.ID);
+            return;
+        }
+
+        _logger.Information("RequestLeaveZone from {CharacterId:X} in zone {ZoneId} ignored, not in an instance or already moving", player.CharacterId, player.CurrentZone.ID);
     }
 
     [MessageID(GssMessage.RequestLogout)]

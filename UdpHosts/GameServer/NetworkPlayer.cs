@@ -52,6 +52,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public uint ConnectedAt { get; }
     public bool SessionSaved { get; set; }
     public InstanceTransfer.Pending PendingTransfer { get; set; }
+    public InstanceTransfer.ReturnPoint ReturnPoint { get; set; }
     public Vector3? ArrivalPosition { get; set; }
     public bool CanReceiveGSS => (Status.Equals(IPlayer.PlayerStatus.Playing) || Status.Equals(IPlayer.PlayerStatus.Loading)) && NetClientStatus.Equals(ClientStatus.Connected);
 

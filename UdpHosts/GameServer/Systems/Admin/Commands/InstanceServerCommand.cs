@@ -1,11 +1,10 @@
-using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using GameServer.Test;
 
 namespace GameServer.Systems.Admin.Commands;
 
-[ServerCommand("Move into a new instance of a zone, or back to the open world zone with \"instance leave\"", "instance <zone id> | instance leave", "instance")]
+[ServerCommand("Move into a new instance of a zone, /leavezone goes back to the open world", "instance <zone id>", "instance")]
 public class InstanceServerCommand : ServerCommand
 {
     public override void Execute(string[] parameters, ServerCommandContext context)
@@ -13,22 +12,11 @@ public class InstanceServerCommand : ServerCommand
         var player = context.SourcePlayer;
         if (parameters.Length != 1 || player?.CharacterEntity == null)
         {
-            SourceFeedback("Usage: instance <zone id> | instance leave", context);
+            SourceFeedback("Usage: instance <zone id>", context);
             return;
         }
 
         var source = player.AssignedShard;
-        if (parameters[0] == "leave")
-        {
-            var home = InstanceTransfer.Shards.Shards.FirstOrDefault(shard => shard != source && DataUtils.TryGetZone(shard.ZoneId, out var zone) && zone.IsOpenWorld);
-            if (home == null || !InstanceTransfer.TryStart(player, home, DataUtils.GetZone(home.ZoneId).POIs["spawn"]))
-            {
-                SourceFeedback("There's no open world shard to go back to", context);
-            }
-
-            return;
-        }
-
         var zoneId = ParseUIntParameter(parameters[0]);
         if (!DataUtils.TryGetZone(zoneId, out var target))
         {

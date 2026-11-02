@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AeroMessages.Matrix;
 using GameServer.Protocol;
 using GameServer.Systems.CharacterCreation;
+using GameServer.Test;
 using Serilog;
 
 namespace GameServer;
@@ -31,6 +32,11 @@ public static class InstanceTransfer
         if (player is not NetworkPlayer networkPlayer || networkPlayer.PendingTransfer != null || networkPlayer.CharacterEntity == null)
         {
             return false;
+        }
+
+        if (IsOpenWorld(player.AssignedShard.ZoneId) && !IsOpenWorld(target.ZoneId))
+        {
+            networkPlayer.ReturnPoint = new ReturnPoint(player.AssignedShard.ZoneId, networkPlayer.CharacterEntity.Position);
         }
 
         // Only saves in the open world, so the character's zone in RIN stays the one it came from
@@ -73,5 +79,37 @@ public static class InstanceTransfer
         return true;
     }
 
+    /// <summary>
+    ///     Takes a player in an instance back to the open world spot they left it from, or to the spawn point of the
+    ///     server's zone when they didn't come from one, e.g. after logging in there. False in the open world, where the
+    ///     client's "Leave Zone" is disabled as well, and while a move is still going on.
+    /// </summary>
+    public static bool TryReturnToOpenWorld(INetworkPlayer player)
+    {
+        if (player is not NetworkPlayer networkPlayer || networkPlayer.CharacterEntity == null || networkPlayer.PendingTransfer != null
+            || IsOpenWorld(networkPlayer.AssignedShard.ZoneId))
+        {
+            return false;
+        }
+
+        var back = networkPlayer.ReturnPoint ?? new ReturnPoint(Shards.DefaultShard.ZoneId, DataUtils.GetZone(Shards.DefaultShard.ZoneId).POIs["spawn"]);
+        networkPlayer.ReturnPoint = null;
+
+        // The zone's shard may still have to load its collision, which takes a while, so not on this shard's thread
+        var source = networkPlayer.AssignedShard;
+        _ = Task.Run(() =>
+        {
+            var shard = Shards.GetOrCreateShard(back.ZoneId);
+            source.Post(() => TryStart(networkPlayer, shard, back.Position));
+        });
+
+        return true;
+    }
+
+    private static bool IsOpenWorld(uint zoneId) => DataUtils.TryGetZone(zoneId, out var zone) && zone.IsOpenWorld;
+
     public sealed record Pending(IShard Target, Vector3 Position);
+
+    /// <summary>The open world spot a player left for an instance, where leaving the instance takes them back.</summary>
+    public sealed record ReturnPoint(uint ZoneId, Vector3 Position);
 }
