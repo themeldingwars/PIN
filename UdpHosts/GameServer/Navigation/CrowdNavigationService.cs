@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Numerics;
 using DotRecast.Detour;
 using DotRecast.Detour.Crowd;
+using GameServer.Entities.Character;
 using Serilog;
 using Shared.Collision.Navigation;
 
@@ -38,8 +39,9 @@ public sealed class CrowdNavigationService
     // fight the snap the crowd just performed.
     private const float _poseResyncTolerance = 0.05f;
 
-    // The crowd sizes its agent-placement search from this
-    private const float _maxAgentRadiusFactor = 2f;
+    // The crowd sizes its neighbour grid from the largest agent. Large creatures are several meters wide, anything bigger
+    // than this steers as if it had this radius.
+    private const float _maxAgentRadius = 8f;
 
     // Crowd steps between Debug-level cadence logs
     private const int _logCadenceTicks = 100;
@@ -78,10 +80,11 @@ public sealed class CrowdNavigationService
     /// </summary>
     /// <param name="entityId">The NPC's entity id, the agent's identity in this service.</param>
     /// <param name="position">The NPC's current world position (the agent's start).</param>
+    /// <param name="body">The NPC's size, agents keep their radius from each other. The radius is clamped to the navmesh's agent radius and 8.</param>
     /// <param name="maxSpeed">The NPC's current target speed.</param>
     /// <param name="maxAcceleration">The NPC's maximum acceleration.</param>
     /// <returns>The agent, or null when the crowd is unavailable and the caller should steer itself.</returns>
-    public DtCrowdAgent? AcquireAgent(ulong entityId, Vector3 position, float maxSpeed, float maxAcceleration)
+    public DtCrowdAgent? AcquireAgent(ulong entityId, Vector3 position, BodySize body, float maxSpeed, float maxAcceleration)
     {
         if (!IsEnabled)
         {
@@ -114,7 +117,7 @@ public sealed class CrowdNavigationService
             return null;
         }
 
-        var agent = _crowd!.AddAgent(NavMeshService.ToRc(onMesh), BuildParams(maxSpeed, maxAcceleration));
+        var agent = _crowd!.AddAgent(NavMeshService.ToRc(onMesh), BuildParams(Math.Clamp(body.Radius, _agentRadius, _maxAgentRadius), Math.Max(body.Height, _agentHeight), maxSpeed, maxAcceleration));
         if (agent == null)
         {
             return null;
@@ -345,7 +348,7 @@ public sealed class CrowdNavigationService
         // The filter factory is indexed by queryFilterType; every agent uses type 0, and PIN has no custom
         // filtering, so the crowd pathfinds with the same stock filter NavMeshService uses.
         _crowd = new DtCrowd(
-            new DtCrowdConfig(_agentRadius * _maxAgentRadiusFactor),
+            new DtCrowdConfig(_maxAgentRadius),
             mesh,
             _ => _queryFilter);
 
@@ -357,7 +360,7 @@ public sealed class CrowdNavigationService
         return true;
     }
 
-    private DtCrowdAgentParams BuildParams(float maxSpeed, float maxAcceleration)
+    private DtCrowdAgentParams BuildParams(float radius, float height, float maxSpeed, float maxAcceleration)
     {
         // Obstacle avoidance and separation are independent: avoidance is "do not run into each other",
         // separation is "push apart even when not on a collision course".
@@ -374,12 +377,12 @@ public sealed class CrowdNavigationService
 
         return new DtCrowdAgentParams
         {
-            radius = _agentRadius,
-            height = _agentHeight,
+            radius = radius,
+            height = height,
             maxAcceleration = maxAcceleration,
             maxSpeed = maxSpeed,
-            collisionQueryRange = _agentRadius * _collisionQueryRangeFactor,
-            pathOptimizationRange = _agentRadius * _pathOptimizationRangeFactor,
+            collisionQueryRange = radius * _collisionQueryRangeFactor,
+            pathOptimizationRange = radius * _pathOptimizationRangeFactor,
             separationWeight = _settings.CrowdSeparationWeight,
             updateFlags = config.GetUpdateFlags(),
             obstacleAvoidanceType = _obstacleAvoidanceType,

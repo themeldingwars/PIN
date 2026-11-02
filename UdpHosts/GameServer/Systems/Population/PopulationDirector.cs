@@ -21,8 +21,8 @@ public sealed class PopulationDirector
 {
     private const ulong _tickIntervalMs = 1000;
 
-    // Bodies that start inside each other get thrown into the air by the physics, a Brontodon is several meters wide
-    private const float _memberSpacing = 7f;
+    // Room left between two bodies. Bodies that start inside each other get thrown into the air by the physics.
+    private const float _memberGap = 1f;
     private const int _placementAttempts = 10;
 
     // How far below and above a polygon's points the navmesh search reaches, hills inside the polygon included
@@ -224,13 +224,13 @@ public sealed class PopulationDirector
         var spot = GroupSpot(state.Region.Shape, rules.Spread);
 
         var spawned = new NpcGroup(spot, rules);
-        var placed = new List<Vector3>();
+        var placed = new List<(Vector3 Position, float Radius)>();
         foreach (var member in group.Members)
         {
             for (var count = member.Count.Pick(_random); count > 0; count--)
             {
                 var level = table.Level is { } levels ? (byte)levels.Pick(_random) : CharacterEntity.DefaultLevel;
-                var position = PlaceMember(spot, rules.Spread, placed);
+                var position = PlaceMember(spot, rules.Spread, BodySize.ForMonster(member.Monster).Radius, placed);
                 var npc = _shard.EntityMan.SpawnCharacter(member.Monster, position, level: level);
 
                 // A behavior that wanders on its own keeps this center, the AI only sets one when there's none yet
@@ -282,16 +282,16 @@ public sealed class PopulationDirector
         return table.Groups[^1];
     }
 
-    // Takes the candidate furthest from the members placed so far, if none keeps the spacing
-    private Vector3 PlaceMember(Vector3 spot, float spread, List<Vector3> placed)
+    // Takes the candidate with the most room to the members placed so far, if none leaves the gap
+    private Vector3 PlaceMember(Vector3 spot, float spread, float radius, List<(Vector3 Position, float Radius)> placed)
     {
         var best = spot;
         var bestOnNavMesh = false;
-        var bestGap = -1f;
-        for (var attempt = 0; attempt < _placementAttempts && bestGap < _memberSpacing; attempt++)
+        var bestGap = float.MinValue;
+        for (var attempt = 0; attempt < _placementAttempts && bestGap < _memberGap; attempt++)
         {
             var candidate = PointNear(spot, spread, out var onNavMesh);
-            var gap = placed.Count == 0 ? float.MaxValue : placed.Min(other => Vector3.Distance(other, candidate));
+            var gap = placed.Count == 0 ? float.MaxValue : placed.Min(other => Vector3.Distance(other.Position, candidate) - other.Radius - radius);
             if (gap > bestGap)
             {
                 best = candidate;
@@ -300,7 +300,7 @@ public sealed class PopulationDirector
             }
         }
 
-        placed.Add(best);
+        placed.Add((best, radius));
         return Ground(best, bestOnNavMesh);
     }
 

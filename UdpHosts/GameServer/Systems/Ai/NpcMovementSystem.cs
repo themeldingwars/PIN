@@ -36,6 +36,7 @@ public sealed class NpcMovementSystem
     private const float _timeToTopSpeed = 0.25f;
     private const float _brakeAccelerationMultiplier = 1.5f;
     private const float _groundProbeRange = 0.5f;
+    private const float _groundProbeRangePerBodyRadius = 0.4f;
     private const float _minStepLift = 0.1f;
 
     // Biped traverse assist: small ledges are climbed; gaps are left to the navmesh, which routes around them.
@@ -879,7 +880,7 @@ public sealed class NpcMovementSystem
         }
 
         // 2. Probe for ground. This drives air control.
-        var grounded = physics.TryGroundProbe(npc, _groundProbeRange, _bipedMinNormalZ, out _, out var groundNormal);
+        var grounded = physics.TryGroundProbe(npc, GroundProbeRange(npc), _bipedMinNormalZ, out _, out var groundNormal);
         comp.UpdateGrounded(grounded, groundNormal);
 
         // 3. Arrival check. The crowd path judges arrival against the live stored destination; the path strategy
@@ -1183,6 +1184,8 @@ public sealed class NpcMovementSystem
         return result;
     }
 
+    private static float GroundProbeRange(CharacterEntity npc) => MathF.Max(_groundProbeRange, npc.BodySize.Radius * _groundProbeRangePerBodyRadius);
+
     private void TickStoppedNpc(CharacterEntity npc, NpcMovementComponent comp, float dt)
     {
         TickStoppedBiped(npc, comp, dt);
@@ -1206,7 +1209,7 @@ public sealed class NpcMovementSystem
         // Always recompute the movement state so it keeps tracking the live condition once the brake expires (fixes the state
         // getting "stuck", e.g. in Falling, after arriving). Use the ground probe for Falling and the real (decaying) horizontal
         // velocity for the Running -> Walking -> Standing coast-out. No steering input here, so the Movement flag is off.
-        var grounded = _shard.Physics.TryGroundProbe(npc, _groundProbeRange, _bipedMinNormalZ, out _, out var groundNormal);
+        var grounded = _shard.Physics.TryGroundProbe(npc, GroundProbeRange(npc), _bipedMinNormalZ, out _, out var groundNormal);
         comp.UpdateGrounded(grounded, groundNormal);
         var bodyVel = _shard.Physics.GetNpcVelocity(npc);
         var horizontalSpeed = new Vector3(bodyVel.X, bodyVel.Y, 0f).Length();
@@ -1284,7 +1287,7 @@ public sealed class NpcMovementSystem
             return;
         }
 
-        comp.CrowdAgent ??= crowd.AcquireAgent(npc.EntityId, npc.Position, comp.TargetSpeed, GetMaxAcceleration(comp));
+        comp.CrowdAgent ??= crowd.AcquireAgent(npc.EntityId, npc.Position, npc.BodySize, comp.TargetSpeed, GetMaxAcceleration(comp));
         if (comp.CrowdAgent is not { } agent)
         {
             return;

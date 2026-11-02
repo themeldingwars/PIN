@@ -91,6 +91,10 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public bool IsTinyObjectActive => Character_TinyObjectView != null;
 
     public new CharacterCollisionComponent Collision { get; set; }
+
+    /// <summary>The size of the current battleframe, what navigation and spawning go by.</summary>
+    public BodySize BodySize { get; private set; } = BodySize.Biped;
+
     public INetworkPlayer Player { get; set; }
     public bool IsPlayerControlled => Player != null;
     public Vector3 Velocity { get; set; }
@@ -809,6 +813,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         if (chassis.SdbId != 0)
         {
+            BodySize = BodySize.ForChassis(chassis.SdbId);
             var gender = StaticInfo.Gender;
             var race = StaticInfo.Race;
             var charInfoId = StaticInfo.CharInfoId;
