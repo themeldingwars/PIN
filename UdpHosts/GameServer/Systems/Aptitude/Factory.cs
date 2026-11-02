@@ -106,8 +106,8 @@ public class Factory
                 return new StagedActivationCommand(SDBInterface.GetStagedActivationCommandDef(commandId));
             // case CommandType.ActivationDuration:
             //     return new ActivationDurationCommand(SDBInterface.GetActivationDurationCommandDef(commandId));
-            // case CommandType.TeleportInstance:
-            //     return new TeleportInstanceCommand(CustomDBInterface.GetTeleportInstanceCommandDef(commandId));
+            case CommandType.TeleportInstance:
+                return new TeleportInstanceCommand(CustomDBInterface.GetTeleportInstanceCommandDef(commandId));
             // case CommandType.ResetTrauma:
             //     return new ResetTraumaCommand(CustomDBInterface.GetResetTraumaCommandDef(commandId));
             case CommandType.TargetInitiator:

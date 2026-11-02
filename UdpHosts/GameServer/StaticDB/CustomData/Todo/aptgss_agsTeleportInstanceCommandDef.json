@@ -67,11 +67,13 @@
   },
   {
     "id": 1031292,
-    "comment": ""
+    "comment": "Effect 7212. Transferring to Coral Forest SIN, crossing the border from Sertao",
+    "zone_id": 448
   },
   {
     "id": 1031328,
-    "comment": ""
+    "comment": "Effect 7213. Transferring to Sertao SIN Network, crossing the border from Coral Forest",
+    "zone_id": 1030
   },
   {
     "id": 1031690,
