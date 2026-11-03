@@ -171,14 +171,14 @@ public class WeaponSim
     public void RestockAmmo(CharacterEntity entity)
     {
         var sim = GetOrCreatePlayerSim(entity.EntityId);
-
-        var active = entity.GetActiveWeaponDetails();
-        if (active?.Weapon != null)
+        foreach (var state in sim.AmmoStates)
         {
-            EnsureAmmoInitialized(sim, active.Weapon, active.WeaponProfile);
-            sim.ClipAmmo = sim.ClipMax;
-            sim.ReserveAmmo = sim.ReserveMax;
-            sim.ClipEmptyTriggered = false;
+            if (state != null)
+            {
+                state.Clip = state.ClipMax;
+                state.Reserve = state.ReserveMax;
+                state.ClipEmptyTriggered = false;
+            }
         }
 
         // Weapon slot 1 (primary) maps to ammo slot 0, weapon slot 2 (secondary) to ammo slot 1.
@@ -394,37 +394,71 @@ public class WeaponSim
             return;
         }
 
-        ushort clip = details.WeaponProfile.BaseClipSize;
-        ushort reserve = details.WeaponProfile.MaxAmmo;
-
-        var view = entity.Character_CombatView;
-        if (view != null)
+        WriteAmmo(entity, ammoSlot, false, details.WeaponProfile.BaseClipSize, details.WeaponProfile.MaxAmmo);
+        if (entity.GetWeaponDetails(weaponSlot, 1) is { Weapon: not null } alt)
         {
-            if (ammoSlot == 0)
-            {
-                view.Ammo_0Prop = clip;
-                view.AltAmmo_0Prop = reserve;
-            }
-            else
-            {
-                view.Ammo_1Prop = clip;
-                view.AltAmmo_1Prop = reserve;
-            }
+            WriteAmmo(entity, ammoSlot, true, alt.WeaponProfile.BaseClipSize, alt.WeaponProfile.MaxAmmo);
         }
+    }
 
+    private static void WriteAmmo(CharacterEntity entity, int ammoSlot, bool alt, ushort clip, ushort reserve)
+    {
+        var view = entity.Character_CombatView;
         var controller = entity.Character_CombatController;
-        if (controller != null)
+        switch ((ammoSlot, alt))
         {
-            if (ammoSlot == 0)
-            {
-                controller.Ammo_0Prop = clip;
-                controller.AltAmmo_0Prop = reserve;
-            }
-            else
-            {
-                controller.Ammo_1Prop = clip;
-                controller.AltAmmo_1Prop = reserve;
-            }
+            case (0, false):
+                if (view != null)
+                {
+                    view.Ammo_0Prop = reserve;
+                }
+
+                if (controller != null)
+                {
+                    controller.Clip_0Prop = clip;
+                    controller.Ammo_0Prop = reserve;
+                }
+
+                break;
+            case (1, false):
+                if (view != null)
+                {
+                    view.Ammo_1Prop = reserve;
+                }
+
+                if (controller != null)
+                {
+                    controller.Clip_1Prop = clip;
+                    controller.Ammo_1Prop = reserve;
+                }
+
+                break;
+            case (0, true):
+                if (view != null)
+                {
+                    view.AltAmmo_0Prop = reserve;
+                }
+
+                if (controller != null)
+                {
+                    controller.AltClip_0Prop = clip;
+                    controller.AltAmmo_0Prop = reserve;
+                }
+
+                break;
+            case (1, true):
+                if (view != null)
+                {
+                    view.AltAmmo_1Prop = reserve;
+                }
+
+                if (controller != null)
+                {
+                    controller.AltClip_1Prop = clip;
+                    controller.AltAmmo_1Prop = reserve;
+                }
+
+                break;
         }
     }
 
@@ -587,7 +621,6 @@ public class WeaponSim
             player.WeaponId = weaponId;
             player.Modes[0] = new WeaponModeState { WeaponId = weaponId };
             player.Modes[1] = new WeaponModeState { WeaponId = weaponId };
-            player.AmmoInitialized = false;
             player.Charge = 0;
             player.LastChargeTime = time;
             CaptureChargeupCaps(player, entity, activeWeaponDetails);
@@ -617,36 +650,8 @@ public class WeaponSim
             // Firing/reload state does not carry over a weapon or fire-mode switch
             player.Fire.Reset();
 
-            // Clip caps for the new mode. Linked modes share one clip (the client syncs the
-            // clip between linked modes), so a switch never clamps the shared clip down —
-            // the caps stay the main mode's. Non-linked modes are different weapon
-            // templates; their clip does not carry over, so clamp to the new caps.
             if (modeChanged && !weaponChanged)
             {
-                if (newLinked || otherLinked)
-                {
-                    var mainDetails = activeMode == 0 ? activeWeaponDetails : entity.GetWeaponDetails(0);
-                    if (mainDetails != null && mainDetails.Weapon != null)
-                    {
-                        player.ClipMax = mainDetails.WeaponProfile.BaseClipSize;
-                        player.ReserveMax = mainDetails.WeaponProfile.MaxAmmo;
-                    }
-                }
-                else
-                {
-                    player.ClipMax = activeWeaponDetails.WeaponProfile.BaseClipSize;
-                    player.ReserveMax = activeWeaponDetails.WeaponProfile.MaxAmmo;
-                    if (player.ClipAmmo > player.ClipMax)
-                    {
-                        player.ClipAmmo = player.ClipMax;
-                    }
-
-                    if (player.ReserveAmmo > player.ReserveMax)
-                    {
-                        player.ReserveAmmo = player.ReserveMax;
-                    }
-                }
-
                 // Chargeup: the charge is weapon-wide. Linked modes keep it across the
                 // switch (with the switch loss); non-linked modes are a different weapon
                 // template, so their charge does not carry over.
@@ -661,7 +666,40 @@ public class WeaponSim
             player.ActiveMode = activeMode;
         }
 
+        player.Ammo = AmmoFor(entity, player, activeWeaponDetails, activeMode);
         return player.Modes[activeMode];
+    }
+
+    // Each weapon slot keeps the ammo of each fire mode, so switching weapons or modes doesn't carry a clip over. Linked
+    // modes share the main mode's, the client syncs the clip between them. A different weapon in the slot starts full.
+    private AmmoState AmmoFor(CharacterEntity entity, WeaponPlayerSim player, CharacterEntity.ActiveWeaponDetails active, byte mode)
+    {
+        var other = entity.GetWeaponDetails((byte)(1 - mode));
+        var linked = (active.Weapon.WeaponFlags & 8) != 0 || (other?.Weapon != null && (other.Weapon.WeaponFlags & 8) != 0);
+        var stateMode = linked ? (byte)0 : mode;
+        var details = linked && mode != 0 && entity.GetWeaponDetails(0) is { Weapon: not null } main ? main : active;
+        var slot = entity.WeaponIndex.Index;
+        if (player.AmmoStates[slot, stateMode] is { } state && state.WeaponId == details.WeaponId)
+        {
+            return state;
+        }
+
+        state = new AmmoState
+        {
+            WeaponId = details.WeaponId,
+            Slot = slot,
+            Mode = stateMode,
+            Shared = linked,
+            HasAmmo = details.WeaponProfile.BaseClipSize > 0 && details.WeaponProfile.MaxAmmo > 0,
+            ClipMax = details.WeaponProfile.BaseClipSize,
+            ReserveMax = details.WeaponProfile.MaxAmmo,
+            Clip = details.WeaponProfile.BaseClipSize,
+            Reserve = details.WeaponProfile.MaxAmmo,
+            LastClipRegenTime = _shard.CurrentTime,
+        };
+        player.AmmoStates[slot, stateMode] = state;
+        _logger.Debug("[FireSim] Ammo initialized weapon={Weapon} slot={Slot} mode={Mode} clip={Clip} reserve={Reserve}", details.Weapon.DebugName, slot, stateMode, state.Clip, state.Reserve);
+        return state;
     }
 
     private void ProcessEntity(CharacterEntity entity)
@@ -707,7 +745,6 @@ public class WeaponSim
         var sim = _weaponSimState[entity.EntityId];
         var fire = sim.Fire;
 
-        EnsureAmmoInitialized(sim, weapon, weaponProfile);
         UpdateCharge(sim, weapon, time);
 
         // Reload completion (before the shot/event loop so a resumed press can fire this tick)
@@ -745,7 +782,7 @@ public class WeaponSim
             && fire.TriggerHeld
             && IsContinuousFireMode(weapon)
             && fire.TriggerHeldTime < fire.NextShotTime
-            && (!sim.HasAmmo || sim.ClipAmmo > 0)
+            && (!sim.Ammo.HasAmmo || sim.Ammo.Clip > 0)
             && fire.NextShotTime <= time)
         {
             _logger.Debug("[FireSim] Resuming fire at ready time (server={ServerTime} ready={ReadyTime} press={PressTime})", _shard.CurrentTime, fire.NextShotTime, fire.TriggerHeldTime);
@@ -779,13 +816,13 @@ public class WeaponSim
         }
 
         // Passive clip regen from reserve
-        if (sim.HasAmmo && fire.State == WeaponFireStateEnum.Idle && weapon.ClipRegenMs > 0 &&
-            sim.ClipAmmo < sim.ClipMax && sim.ReserveAmmo > 0 &&
-            time >= sim.LastClipRegenTime + weapon.ClipRegenMs)
+        if (sim.Ammo.HasAmmo && fire.State == WeaponFireStateEnum.Idle && weapon.ClipRegenMs > 0 &&
+            sim.Ammo.Clip < sim.Ammo.ClipMax && sim.Ammo.Reserve > 0 &&
+            time >= sim.Ammo.LastClipRegenTime + weapon.ClipRegenMs)
         {
-            sim.ClipAmmo++;
-            sim.ReserveAmmo--;
-            sim.LastClipRegenTime = time;
+            sim.Ammo.Clip++;
+            sim.Ammo.Reserve--;
+            sim.Ammo.LastClipRegenTime = time;
             SyncAmmoView(entity, sim);
         }
     }
@@ -849,9 +886,9 @@ public class WeaponSim
                     break;
                 }
 
-                if (sim.HasAmmo && sim.ClipAmmo <= 0)
+                if (sim.Ammo.HasAmmo && sim.Ammo.Clip <= 0)
                 {
-                    if (!sim.ClipEmptyTriggered)
+                    if (!sim.Ammo.ClipEmptyTriggered)
                     {
                         OnClipEmpty(entity, sim, weapon, evt.Time);
                     }
@@ -961,7 +998,7 @@ public class WeaponSim
             fire.State = WeaponFireStateEnum.Idle; // press complete (semi/burst)
         }
 
-        if (sim.HasAmmo && sim.ClipAmmo <= 0)
+        if (sim.Ammo.HasAmmo && sim.Ammo.Clip <= 0)
         {
             return false; // caller runs OnClipEmpty
         }
@@ -988,7 +1025,7 @@ public class WeaponSim
         }
         else if (weapon.RoundsPerBurst > 1)
         {
-            int rounds = Math.Min(weapon.RoundsPerBurst, sim.HasAmmo ? sim.ClipAmmo : int.MaxValue);
+            int rounds = Math.Min(weapon.RoundsPerBurst, sim.Ammo.HasAmmo ? sim.Ammo.Clip : int.MaxValue);
             rounds = Math.Max(rounds, 1);
             fire.ShotsRemainingInBurst = rounds;
             fire.TotalRoundsInPress = (uint)rounds;
@@ -998,7 +1035,7 @@ public class WeaponSim
         {
             fire.ShotsRemainingInBurst = -1; // full auto: unlimited while held
             fire.TotalRoundsInPress = 0;
-            roundsInPress = sim.HasAmmo ? Math.Max(1, sim.ClipAmmo) : 1;
+            roundsInPress = sim.Ammo.HasAmmo ? Math.Max(1, sim.Ammo.Clip) : 1;
         }
 
         if (weapon.BurstAbility != 0 && roundsInPress >= Math.Max(1, (int)weapon.MinRoundsPerBurst))
@@ -1009,7 +1046,7 @@ public class WeaponSim
 
     private void StartReload(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
     {
-        if (!sim.HasAmmo || sim.ReserveAmmo <= 0 || sim.ClipAmmo >= sim.ClipMax)
+        if (!sim.Ammo.HasAmmo || sim.Ammo.Reserve <= 0 || sim.Ammo.Clip >= sim.Ammo.ClipMax)
         {
             return;
         }
@@ -1025,24 +1062,24 @@ public class WeaponSim
 
     private void CompleteReload(WeaponPlayerSim sim)
     {
-        int rounds = Math.Min(sim.ClipMax - sim.ClipAmmo, sim.ReserveAmmo);
-        sim.ClipAmmo += rounds;
-        sim.ReserveAmmo -= rounds;
-        if (sim.ClipAmmo > 0)
+        int rounds = Math.Min(sim.Ammo.ClipMax - sim.Ammo.Clip, sim.Ammo.Reserve);
+        sim.Ammo.Clip += rounds;
+        sim.Ammo.Reserve -= rounds;
+        if (sim.Ammo.Clip > 0)
         {
-            sim.ClipEmptyTriggered = false;
+            sim.Ammo.ClipEmptyTriggered = false;
         }
     }
 
     private void OnClipEmpty(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
     {
-        sim.ClipEmptyTriggered = true;
+        sim.Ammo.ClipEmptyTriggered = true;
         sim.Fire.State = WeaponFireStateEnum.Idle;
         sim.Fire.ShotsRemainingInBurst = 0;
 
         sim.Fire.TriggerHeld = false;
 
-        _logger.Debug("[FireSim] Clip empty (server={ServerTime} client={ClientTime} reserve={Reserve} weapon={Weapon})", _shard.CurrentTime, time, sim.ReserveAmmo, weapon.DebugName);
+        _logger.Debug("[FireSim] Clip empty (server={ServerTime} client={ClientTime} reserve={Reserve} weapon={Weapon})", _shard.CurrentTime, time, sim.Ammo.Reserve, weapon.DebugName);
 
         ActivateWeaponAbility(entity, weapon.EmptyAbility, time);
 
@@ -1134,15 +1171,15 @@ public class WeaponSim
     {
         var weapon = details.Weapon;
 
-        if (sim.HasAmmo)
+        if (sim.Ammo.HasAmmo)
         {
             int perShot = Math.Max(1, (int)weapon.AmmoPerBurst);
-            if (sim.ClipAmmo < perShot)
+            if (sim.Ammo.Clip < perShot)
             {
                 return false;
             }
 
-            sim.ClipAmmo -= perShot;
+            sim.Ammo.Clip -= perShot;
         }
 
         // Aim resolution: 1) the client sample for this exact shot time, 2) the aim interpolated
@@ -1197,45 +1234,20 @@ public class WeaponSim
         return true;
     }
 
-    private void EnsureAmmoInitialized(WeaponPlayerSim sim, WeaponTemplateResult weapon, WeaponProfile weaponProfile)
-    {
-        if (sim.AmmoInitialized)
-        {
-            return;
-        }
-
-        sim.AmmoInitialized = true;
-        sim.HasAmmo = weaponProfile.BaseClipSize > 0 && weaponProfile.MaxAmmo > 0;
-        sim.ClipMax = weaponProfile.BaseClipSize;
-        sim.ReserveMax = weaponProfile.MaxAmmo;
-        sim.ClipAmmo = weaponProfile.BaseClipSize;
-        sim.ReserveAmmo = weaponProfile.MaxAmmo;
-        sim.ClipEmptyTriggered = false;
-        sim.LastClipRegenTime = _shard.CurrentTime;
-
-        _logger.Debug("[FireSim] Ammo initialized weapon={Weapon} clip={Clip}/{ClipMax} reserve={Reserve}/{ReserveMax} msPerBurst={MsPerBurst} clipRegenMs={ClipRegenMs}", weapon.DebugName, sim.ClipAmmo, sim.ClipMax, sim.ReserveAmmo, sim.ReserveMax, weaponProfile.MsPerBurst, weapon.ClipRegenMs);
-    }
-
     private void SyncAmmoView(CharacterEntity entity, WeaponPlayerSim sim)
     {
-        var view = entity.Character_CombatView;
-        if (view == null || !sim.HasAmmo)
+        var ammo = sim.Ammo;
+        if (!ammo.HasAmmo)
         {
             return;
         }
 
-        int slot = entity.WeaponIndex.Index >= 2 ? 1 : 0;
-        ushort clip = (ushort)Math.Max(0, sim.ClipAmmo);
-        ushort reserve = (ushort)Math.Max(0, sim.ReserveAmmo);
-        if (slot == 0)
+        var clip = (ushort)Math.Max(0, ammo.Clip);
+        var reserve = (ushort)Math.Max(0, ammo.Reserve);
+        WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, ammo.Mode == 1, clip, reserve);
+        if (ammo.Shared)
         {
-            view.Ammo_0Prop = clip;
-            view.AltAmmo_0Prop = reserve;
-        }
-        else
-        {
-            view.Ammo_1Prop = clip;
-            view.AltAmmo_1Prop = reserve;
+            WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, true, clip, reserve);
         }
     }
 
@@ -1332,6 +1344,21 @@ public class WeaponSim
                     (_weaponSimState.ContainsKey(character.EntityId) || character.HasPendingAbilityProjectiles))));
     }
 
+    private sealed class AmmoState
+    {
+        public uint WeaponId;
+        public byte Slot;
+        public byte Mode;
+        public bool Shared;
+        public bool HasAmmo;
+        public bool ClipEmptyTriggered;
+        public int Clip;
+        public int Reserve;
+        public int ClipMax;
+        public int ReserveMax;
+        public uint LastClipRegenTime;
+    }
+
     // Per-player weapon sim state
     private sealed class WeaponPlayerSim
     {
@@ -1340,14 +1367,10 @@ public class WeaponSim
         public WeaponModeState[] Modes = new WeaponModeState[2];
         public List<WeaponFireEvent> Events = [];
         public WeaponFireState Fire = new();
-        public bool AmmoInitialized;
-        public bool HasAmmo;
-        public bool ClipEmptyTriggered;
-        public int ClipAmmo;
-        public int ReserveAmmo;
-        public int ClipMax;
-        public int ReserveMax;
-        public uint LastClipRegenTime;
+        public AmmoState[,] AmmoStates = new AmmoState[3, 2];
+
+        // The active weapon and mode's, an empty one until it fires
+        public AmmoState Ammo = new();
 
         // Chargeup: weapon-wide (shared across the fire modes of this weapon), in ms
         public uint Charge;
