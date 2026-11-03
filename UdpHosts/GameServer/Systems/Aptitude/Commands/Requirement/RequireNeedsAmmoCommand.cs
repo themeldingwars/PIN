@@ -13,7 +13,6 @@ public class RequireNeedsAmmoCommand : Command, ICommand
         Params = par;
     }
 
-    // todo recheck controller props
     public override void Execute(Context context, ref CommandResult result)
     {
         bool cmdResult = false;
@@ -23,15 +22,8 @@ public class RequireNeedsAmmoCommand : Command, ICommand
 
         if (target is CharacterEntity character)
         {
-            if (Params.CheckPrimary == 1)
-            {
-                cmdResult = character.Character_CombatController.Ammo_0Prop == 0;
-            }
-
-            if (Params.CheckSecondary == 1)
-            {
-                cmdResult = cmdResult || character.Character_CombatController.AltAmmo_0Prop == 0;
-            }
+            cmdResult = (Params.CheckPrimary == 1 && context.Shard.WeaponSim.NeedsAmmo(character, 1))
+                || (Params.CheckSecondary == 1 && context.Shard.WeaponSim.NeedsAmmo(character, 2));
         }
 
         if (Params.Negate == 1)

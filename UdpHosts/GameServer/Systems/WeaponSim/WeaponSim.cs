@@ -186,6 +186,26 @@ public class WeaponSim
         RestockAmmoSlot(entity, 2, 1);
     }
 
+    public bool NeedsAmmo(CharacterEntity entity, byte weaponSlot)
+    {
+        if (!_weaponSimState.TryGetValue(entity.EntityId, out var sim) || weaponSlot >= sim.AmmoStates.GetLength(0))
+        {
+            return false;
+        }
+
+        for (var mode = 0; mode < sim.AmmoStates.GetLength(1); mode++)
+        {
+            if (sim.AmmoStates[weaponSlot, mode] is { HasAmmo: true } state && NeedsAmmo(state.Clip + state.Reserve, state.ClipMax + state.ReserveMax))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool NeedsAmmo(int ammo, int max) => ammo < max && (max < 10000 || ammo <= max / 2);
+
     public void ResetAmmoState(CharacterEntity entity)
     {
         _weaponSimState.Remove(entity.EntityId);
