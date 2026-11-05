@@ -19,10 +19,7 @@ namespace GameServer.Systems.WeaponSim;
 
 public class WeaponSim
 {
-    // Charge kept when switching between linked fire modes, unverified.
-    private const float _chargeSwitchKeepFraction = 1.0f;
-
-    private readonly Dictionary<ulong, WeaponPlayerSim> _weaponSimState;
+    private readonly Dictionary<ulong, CharacterWeapons> _weaponSimState;
     private readonly Shard _shard;
     private readonly ILogger _logger;
     private readonly ulong _updateIntervalMs = 50;
@@ -34,6 +31,10 @@ public class WeaponSim
         _weaponSimState = [];
         _logger = shard.Logger.ForContext<WeaponSim>();
     }
+
+    internal ILogger Logger => _logger;
+
+    internal uint CurrentTime => _shard.CurrentTime;
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
@@ -56,28 +57,15 @@ public class WeaponSim
     /// <param name="evt">The event with its client time</param>
     public void EnqueueFireEvent(CharacterEntity entity, WeaponFireEvent evt)
     {
-        var sim = GetOrCreatePlayerSim(entity.EntityId);
-        InsertEventSorted(sim.Events, evt);
-        if (evt.Time > sim.Fire.LatestClientTime)
-        {
-            sim.Fire.LatestClientTime = evt.Time;
-        }
+        InsertEventSorted(GetOrCreateWeapons(entity).Events, evt);
     }
 
-    /// <summary>
-    ///     Records a client FireWeaponProjectile as an aim/velocity sample for the fire state machine.
-    ///     The sim itself decides when shots fire; this only feeds their aim/origin data.
-    /// </summary>
-    /// <param name="entity">Character that fires</param>
-    /// <param name="time">Client time of the sample</param>
-    /// <param name="localAimDir">The aim direction at the time of the sample</param>
-    /// <param name="shooterVelocity">The shooter velocity at the time of the sample</param>
     public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir, Vector3? shooterVelocity = null)
     {
         EnqueueFireEvent(entity, new WeaponFireEvent
         {
             Time = time,
-            Type = WeaponFireEventType.FireAimSample,
+            Type = WeaponFireEventType.Shot,
             Aim = localAimDir,
             Velocity = shooterVelocity
         });
@@ -168,48 +156,74 @@ public class WeaponSim
         _logger.Debug("Fired ability projectile ammo={AmmoType} range={Range} burst={Burst} entity={Entity} exec={ExecId}", pending.AmmoType, pending.Range, roundsToFire, entity.EntityId, pending.ExecutionId);
     }
 
-    public void RestockAmmo(CharacterEntity entity)
-    {
-        var sim = GetOrCreatePlayerSim(entity.EntityId);
-        foreach (var state in sim.AmmoStates)
-        {
-            if (state != null)
-            {
-                state.Clip = state.ClipMax;
-                state.Reserve = state.ReserveMax;
-                state.ClipEmptyTriggered = false;
-            }
-        }
+    public void RestockAmmo(CharacterEntity entity) => GetOrCreateWeapons(entity).Ammo.Restock(entity);
 
-        // Weapon slot 1 (primary) maps to ammo slot 0, weapon slot 2 (secondary) to ammo slot 1.
-        RestockAmmoSlot(entity, 1, 0);
-        RestockAmmoSlot(entity, 2, 1);
-    }
-
-    public bool NeedsAmmo(CharacterEntity entity, byte weaponSlot)
-    {
-        if (!_weaponSimState.TryGetValue(entity.EntityId, out var sim) || weaponSlot >= sim.AmmoStates.GetLength(0))
-        {
-            return false;
-        }
-
-        for (var mode = 0; mode < sim.AmmoStates.GetLength(1); mode++)
-        {
-            if (sim.AmmoStates[weaponSlot, mode] is { HasAmmo: true } state && NeedsAmmo(state.Clip + state.Reserve, state.ClipMax + state.ReserveMax))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool NeedsAmmo(int ammo, int max) => ammo < max && (max < 10000 || ammo <= max / 2);
+    /// <summary>
+    ///     Takes the weapon slot, 1 or 2. False for a character without weapon state.
+    /// </summary>
+    public bool NeedsAmmo(CharacterEntity entity, byte weaponSlot) => _weaponSimState.TryGetValue(entity.EntityId, out var weapons) && weapons.Ammo.NeedsAmmo(weaponSlot);
 
     public void ResetAmmoState(CharacterEntity entity)
     {
         _weaponSimState.Remove(entity.EntityId);
         RestockAmmo(entity);
+    }
+
+    /// <summary>
+    ///     The caller has already taken the ammo for the shot.
+    /// </summary>
+    /// <param name="ctx">The firing weapon</param>
+    /// <param name="time">Client time of the shot, it also seeds the spread</param>
+    /// <param name="aim">Aim direction of the shot</param>
+    /// <param name="velocity">Shooter velocity, when the client sent one</param>
+    /// <param name="aimSource">Where the aim came from, for the log</param>
+    /// <param name="roundsInPress">Rounds of the current press for the spread heat, 0 for full auto</param>
+    internal void FireShot(in WeaponContext ctx, uint time, Vector3 aim, Vector3? velocity, string aimSource, uint roundsInPress)
+    {
+        var entity = ctx.Entity;
+        var details = ctx.Details;
+        var modeState = ctx.Mode;
+        var weapon = details.Weapon;
+        Vector3 origin = entity.GetProjectileOrigin(time, aim, velocity);
+
+        WeaponSpreadMath.UpdateMovementState(details.WeaponProfile, modeState, entity.MovementStateContainer.MovementStateValue, time);
+        WeaponSpreadMath.RecoilInterpUpdate(details.WeaponProfile, modeState, time, snapshot: true);
+        float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(details.WeaponProfile, modeState, time);
+
+        bool firedViaAbility = false;
+        if (weapon.AttackAbility != 0 && entity is IAptitudeTarget initiator)
+        {
+            Guid executionId = Guid.NewGuid();
+            _shard.Abilities.HandleActivateAbility(_shard, initiator, weapon.AttackAbility, time, new AptitudeTargets(), executionId: executionId, initPosition: origin);
+
+            var pending = entity.TryConsumeAbilityProjectileByExecId(executionId);
+            if (pending.HasValue)
+            {
+                OnFireAbilityProjectile(entity, pending.Value, time, aim, velocity);
+                firedViaAbility = true;
+            }
+        }
+
+        // Monster weapons attack through their burst ability, which StartPress already ran
+        if (!firedViaAbility && !entity.IsPlayerControlled && weapon.AttackAbility == 0 && weapon.BurstAbility != 0 && weapon.RoundsPerBurst <= 1)
+        {
+            firedViaAbility = true;
+        }
+
+        if (!firedViaAbility)
+        {
+            FireWeaponDirect(entity, details, modeState, time, aim, velocity, origin, spreadPct, aimSource, roundsInPress);
+        }
+    }
+
+    internal void ActivateWeaponAbility(CharacterEntity entity, uint abilityId, uint time)
+    {
+        if (abilityId == 0 || entity is not IAptitudeTarget initiator)
+        {
+            return;
+        }
+
+        _shard.Abilities.HandleActivateAbility(_shard, initiator, abilityId, time, new AptitudeTargets());
     }
 
     private static float ResolveWeaponDamage(WeaponTemplateResult weapon, IReadOnlyDictionary<ushort, float> attributes)
@@ -276,116 +290,6 @@ public class WeaponSim
         return true;
     }
 
-    /// <summary>
-    ///     True when the fire mode fires continuously while the trigger is held (resumes after a reload).
-    ///     M2 (bolt action / semi) and M4 (charge) need a fresh trigger press.
-    /// </summary>
-    /// <param name="weapon">The active weapon template.</param>
-    /// <returns>True when a held trigger fires continuously; false when each shot needs a fresh press.</returns>
-    private static bool IsContinuousFireMode(WeaponTemplateResult weapon)
-    {
-        // Bolt-action weapons (the BoltAction flag, which is independent of the low-bit burst mode) and the M2/M4 modes
-        // require a fresh trigger press per shot: a held trigger must not auto-repeat. This is the server-side guard that
-        // stops a held trigger (e.g. an NPC's) from firing a bolt-action weapon more than once per press.
-        if (((WeaponFlags)weapon.WeaponFlags).BoltAction)
-        {
-            return false;
-        }
-
-        byte burstMode = (byte)(weapon.WeaponFlags & 7u);
-        return burstMode != 2 && burstMode != 4;
-    }
-
-    /// <summary>
-    ///     True when the active mode is the M1 chargeup weapon: the first shot of a press is
-    ///     gated on the weapon charge reaching the armed threshold.
-    /// </summary>
-    /// <param name="weapon">The active weapon template.</param>
-    /// <returns>True when the mode is the M1 chargeup weapon.</returns>
-    private static bool IsM1Chargeup(WeaponTemplateResult weapon)
-    {
-        return (weapon.WeaponFlags & 7u) == 1u && weapon.MsChargeUp > 0;
-    }
-
-    /// <summary>
-    ///     True when the active mode can never fire (the "spin-up" alt fire): it has no clip
-    ///     ammo and no attack ability, so holding it only charges the weapon. The chargeup
-    ///     stats are not required on this template — the charge is weapon-wide (main mode's).
-    /// </summary>
-    /// <param name="weapon">The active weapon template.</param>
-    /// <param name="profile">The active weapon profile (clip/ammo capacities).</param>
-    /// <returns>True when the mode can never fire and only charges the weapon.</returns>
-    private static bool IsChargeOnlyMode(WeaponTemplateResult weapon, WeaponProfile profile)
-    {
-        bool canFire = (profile.BaseClipSize > 0 && profile.MaxAmmo > 0) || weapon.AttackAbility != 0;
-        return !canFire;
-    }
-
-    /// <summary>
-    ///     Captures the weapon-wide chargeup caps from the main (mode 0) template, falling back
-    ///     to the active mode when the main template has no chargeup (e.g. spin-up-only layouts).
-    /// </summary>
-    /// <param name="player">The player's weapon simulation to store the caps on.</param>
-    /// <param name="entity">The character whose weapon details provide the templates.</param>
-    /// <param name="activeDetails">The currently active weapon's details (fallback source).</param>
-    private static void CaptureChargeupCaps(WeaponPlayerSim player, CharacterEntity entity, CharacterEntity.ActiveWeaponDetails activeDetails)
-    {
-        WeaponProfile source;
-        var mainDetails = entity.GetWeaponDetails(0);
-        if (mainDetails != null && mainDetails.Weapon != null && mainDetails.WeaponProfile.MsChargeUp > 0)
-        {
-            source = mainDetails.WeaponProfile;
-        }
-        else if (activeDetails.WeaponProfile.MsChargeUp > 0)
-        {
-            source = activeDetails.WeaponProfile;
-        }
-        else
-        {
-            source = mainDetails != null && mainDetails.Weapon != null ? mainDetails.WeaponProfile : activeDetails.WeaponProfile;
-        }
-
-        player.ChargeCap = source.MsChargeUp;
-        player.ChargeMin = source.MsChargeUpMin;
-    }
-
-    /// <summary>
-    ///     The client aim/velocity sample for exactly the shot time; none when nothing matches.
-    ///     Exact-time matching is deliberate: the shot time also seeds the spread PRNG, so a sample
-    ///     from another time would desync both the aim and the spread.
-    /// </summary>
-    /// <param name="fire">Fire state holding the aim samples</param>
-    /// <param name="shotTime">Shot time to find a sample for</param>
-    /// <param name="sample">The sample for the shot time, when one exists</param>
-    /// <returns>True when a sample for the exact shot time exists</returns>
-    private static bool TryGetAimSample(WeaponFireState fire, uint shotTime, out FireAimSample sample)
-    {
-        foreach (var s in fire.AimSamples)
-        {
-            if (s.Time == shotTime)
-            {
-                sample = s;
-                return true;
-            }
-        }
-
-        sample = default;
-        return false;
-    }
-
-    private static void TrimAimSamples(WeaponFireState fire, uint time)
-    {
-        while (fire.AimSamples.Count > 0 && time - fire.AimSamples[0].Time > 1000)
-        {
-            fire.AimSamples.RemoveAt(0);
-        }
-
-        if (fire.AimSamples.Count > 32)
-        {
-            fire.AimSamples.RemoveRange(0, fire.AimSamples.Count - 32);
-        }
-    }
-
     private static void InsertEventSorted(List<WeaponFireEvent> events, WeaponFireEvent evt)
     {
         int lo = 0;
@@ -393,7 +297,9 @@ public class WeaponSim
         while (lo <= hi)
         {
             int mid = (lo + hi) / 2;
-            if (events[mid].Time < evt.Time)
+
+            // Equal times keep their arrival order, a press comes before the shot fired at the same time
+            if (events[mid].Time <= evt.Time)
             {
                 lo = mid + 1;
             }
@@ -406,87 +312,10 @@ public class WeaponSim
         events.Insert(lo, evt);
     }
 
-    private static void RestockAmmoSlot(CharacterEntity entity, byte weaponSlot, int ammoSlot)
-    {
-        var details = entity.GetWeaponDetails(weaponSlot, 0);
-        if (details?.Weapon == null)
-        {
-            return;
-        }
-
-        WriteAmmo(entity, ammoSlot, false, details.WeaponProfile.BaseClipSize, details.WeaponProfile.MaxAmmo);
-        if (entity.GetWeaponDetails(weaponSlot, 1) is { Weapon: not null } alt)
-        {
-            WriteAmmo(entity, ammoSlot, true, alt.WeaponProfile.BaseClipSize, alt.WeaponProfile.MaxAmmo);
-        }
-    }
-
-    private static void WriteAmmo(CharacterEntity entity, int ammoSlot, bool alt, ushort clip, ushort reserve)
-    {
-        var view = entity.Character_CombatView;
-        var controller = entity.Character_CombatController;
-        switch ((ammoSlot, alt))
-        {
-            case (0, false):
-                if (view != null)
-                {
-                    view.Ammo_0Prop = reserve;
-                }
-
-                if (controller != null)
-                {
-                    controller.Clip_0Prop = clip;
-                    controller.Ammo_0Prop = reserve;
-                }
-
-                break;
-            case (1, false):
-                if (view != null)
-                {
-                    view.Ammo_1Prop = reserve;
-                }
-
-                if (controller != null)
-                {
-                    controller.Clip_1Prop = clip;
-                    controller.Ammo_1Prop = reserve;
-                }
-
-                break;
-            case (0, true):
-                if (view != null)
-                {
-                    view.AltAmmo_0Prop = reserve;
-                }
-
-                if (controller != null)
-                {
-                    controller.AltClip_0Prop = clip;
-                    controller.AltAmmo_0Prop = reserve;
-                }
-
-                break;
-            case (1, true):
-                if (view != null)
-                {
-                    view.AltAmmo_1Prop = reserve;
-                }
-
-                if (controller != null)
-                {
-                    controller.AltClip_1Prop = clip;
-                    controller.AltAmmo_1Prop = reserve;
-                }
-
-                break;
-        }
-    }
-
     /// <summary>
     ///     Spawns a single weapon projectile directly from the weapon/ammo templates.
     /// </summary>
     /// <param name="entity">Character that fires</param>
-    /// <param name="sim">Per-player weapon sim state</param>
     /// <param name="details">Active weapon details (mode template + attributes)</param>
     /// <param name="modeState">Spread state of the active fire mode</param>
     /// <param name="time">Client time of the shot</param>
@@ -494,8 +323,9 @@ public class WeaponSim
     /// <param name="velocity">Shooter velocity at shot time</param>
     /// <param name="origin">Projectile origin at shot time</param>
     /// <param name="spreadPct">Spread percent at shot time</param>
-    /// <param name="aimSource">How the aim was resolved (sample/interpolated/pose)</param>
-    private void FireWeaponDirect(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, WeaponModeState modeState, uint time, Vector3 aim, Vector3? velocity, Vector3 origin, float spreadPct, string aimSource)
+    /// <param name="aimSource">Only for the log, client or pose</param>
+    /// <param name="roundsInPress">Rounds of the current press for the spread heat, 0 for full auto</param>
+    private void FireWeaponDirect(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, WeaponModeState modeState, uint time, Vector3 aim, Vector3? velocity, Vector3 origin, float spreadPct, string aimSource, uint roundsInPress)
     {
         var weapon = details.Weapon;
         var spreadProfile = details.WeaponProfile;
@@ -566,8 +396,7 @@ public class WeaponSim
         }
 
         // Add spread/heat for this round of the current press
-        uint totalPressRounds = sim.Fire.TotalRoundsInPress > 0 ? sim.Fire.TotalRoundsInPress : 1;
-        WeaponSpreadMath.ApplyBurstSpreadUpdate(spreadProfile, modeState, 1, totalPressRounds);
+        WeaponSpreadMath.ApplyBurstSpreadUpdate(spreadProfile, modeState, 1, Math.Max(1u, roundsInPress));
 
         modeState.LastBurstTime = time;
     }
@@ -616,21 +445,27 @@ public class WeaponSim
         _shard.EntityMan.SendToScopedReliable(entity, message);
     }
 
-    // Keeps one spread state per fire mode
-    private WeaponPlayerSim GetOrCreatePlayerSim(ulong entityId)
+    private WeaponFire NewFire(CharacterEntity entity) => entity.IsPlayerControlled ? new PlayerFire(this) : new NpcFire(this);
+
+    private CharacterWeapons GetOrCreateWeapons(CharacterEntity entity)
     {
-        if (!_weaponSimState.TryGetValue(entityId, out var player))
+        if (!_weaponSimState.TryGetValue(entity.EntityId, out var weapons))
         {
-            player = new WeaponPlayerSim();
-            _weaponSimState[entityId] = player;
+            weapons = new CharacterWeapons(NewFire(entity));
+            _weaponSimState[entity.EntityId] = weapons;
+        }
+        else if (weapons.Fire is PlayerFire != entity.IsPlayerControlled)
+        {
+            // The state can exist before a player takes control of the character
+            weapons.Fire = NewFire(entity);
         }
 
-        return player;
+        return weapons;
     }
 
     private WeaponModeState GetOrCreateState(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails activeWeaponDetails, uint time)
     {
-        var player = GetOrCreatePlayerSim(entity.EntityId);
+        var player = GetOrCreateWeapons(entity);
 
         uint weaponId = activeWeaponDetails.WeaponId;
         byte activeMode = entity.GetActiveFireModeIndex();
@@ -641,9 +476,6 @@ public class WeaponSim
             player.WeaponId = weaponId;
             player.Modes[0] = new WeaponModeState { WeaponId = weaponId };
             player.Modes[1] = new WeaponModeState { WeaponId = weaponId };
-            player.Charge = 0;
-            player.LastChargeTime = time;
-            CaptureChargeupCaps(player, entity, activeWeaponDetails);
         }
 
         bool modeChanged = player.ActiveMode != activeMode;
@@ -667,59 +499,12 @@ public class WeaponSim
                 otherLinked,
                 time);
 
-            // Firing/reload state does not carry over a weapon or fire-mode switch
-            player.Fire.Reset();
-
-            if (modeChanged && !weaponChanged)
-            {
-                // Chargeup: the charge is weapon-wide. Linked modes keep it across the
-                // switch (with the switch loss); non-linked modes are a different weapon
-                // template, so their charge does not carry over.
-                if (player.Charge > 0)
-                {
-                    player.Charge = (newLinked || otherLinked)
-                        ? (uint)(player.Charge * _chargeSwitchKeepFraction)
-                        : 0;
-                }
-            }
-
+            player.Fire.Switch(entity, activeWeaponDetails, weaponChanged, newLinked || otherLinked, time);
             player.ActiveMode = activeMode;
         }
 
-        player.Ammo = AmmoFor(entity, player, activeWeaponDetails, activeMode);
+        player.Ammo.Select(entity, activeWeaponDetails, activeMode, time, _logger);
         return player.Modes[activeMode];
-    }
-
-    // Each weapon slot keeps the ammo of each fire mode, so switching weapons or modes doesn't carry a clip over. Linked
-    // modes share the main mode's, the client syncs the clip between them. A different weapon in the slot starts full.
-    private AmmoState AmmoFor(CharacterEntity entity, WeaponPlayerSim player, CharacterEntity.ActiveWeaponDetails active, byte mode)
-    {
-        var other = entity.GetWeaponDetails((byte)(1 - mode));
-        var linked = (active.Weapon.WeaponFlags & 8) != 0 || (other?.Weapon != null && (other.Weapon.WeaponFlags & 8) != 0);
-        var stateMode = linked ? (byte)0 : mode;
-        var details = linked && mode != 0 && entity.GetWeaponDetails(0) is { Weapon: not null } main ? main : active;
-        var slot = entity.WeaponIndex.Index;
-        if (player.AmmoStates[slot, stateMode] is { } state && state.WeaponId == details.WeaponId)
-        {
-            return state;
-        }
-
-        state = new AmmoState
-        {
-            WeaponId = details.WeaponId,
-            Slot = slot,
-            Mode = stateMode,
-            Shared = linked,
-            HasAmmo = details.WeaponProfile.BaseClipSize > 0 && details.WeaponProfile.MaxAmmo > 0,
-            ClipMax = details.WeaponProfile.BaseClipSize,
-            ReserveMax = details.WeaponProfile.MaxAmmo,
-            Clip = details.WeaponProfile.BaseClipSize,
-            Reserve = details.WeaponProfile.MaxAmmo,
-            LastClipRegenTime = _shard.CurrentTime,
-        };
-        player.AmmoStates[slot, stateMode] = state;
-        _logger.Debug("[FireSim] Ammo initialized weapon={Weapon} slot={Slot} mode={Mode} clip={Clip} reserve={Reserve}", details.Weapon.DebugName, slot, stateMode, state.Clip, state.Reserve);
-        return state;
     }
 
     private void ProcessEntity(CharacterEntity entity)
@@ -745,11 +530,6 @@ public class WeaponSim
         WeaponSpreadMath.RecoilInterpUpdate(activeWeaponDetails.WeaponProfile, weaponSimState, currentTime, snapshot: false);
     }
 
-    /// <summary>
-    ///     Drives the per-weapon fire state machine: drains queued fire events in client-time
-    ///     order, fires scheduled shots, completes reloads and regens the clip.
-    /// </summary>
-    /// <param name="entity">Character with a weapon sim state</param>
     private void ProcessFire(CharacterEntity entity)
     {
         var activeWeaponDetails = entity.GetActiveWeaponDetails();
@@ -758,354 +538,13 @@ public class WeaponSim
             return;
         }
 
-        var weapon = activeWeaponDetails.Weapon;
-        var weaponProfile = activeWeaponDetails.WeaponProfile;
         uint time = _shard.CurrentTime;
         var modeState = GetOrCreateState(entity, activeWeaponDetails, time);
-        var sim = _weaponSimState[entity.EntityId];
-        var fire = sim.Fire;
-
-        UpdateCharge(sim, weapon, time);
-
-        // Reload completion (before the shot/event loop so a resumed press can fire this tick)
-        if (fire.State == WeaponFireStateEnum.Reloading && time >= fire.ReloadCompleteTime)
+        var weapons = _weaponSimState[entity.EntityId];
+        weapons.Fire.Process(new WeaponContext(entity, activeWeaponDetails, modeState, weapons.Ammo, weapons.Events), time);
+        if (!weapons.Fire.Busy)
         {
-            CompleteReload(sim);
-            fire.State = WeaponFireStateEnum.Idle;
-            SyncAmmoView(entity, sim);
-
-            if (fire.TriggerHeld && IsContinuousFireMode(weapon))
-            {
-                uint readyTime = Math.Max(fire.NextShotTime, fire.TriggerHeldTime);
-                readyTime = Math.Max(readyTime, fire.ReloadCompleteTime);
-                if (IsM1Chargeup(weapon) && sim.Charge < sim.ChargeMin)
-                {
-                    fire.NextShotTime = readyTime + (sim.ChargeMin - sim.Charge);
-                    _logger.Debug(
-                        "[FireSim] Reload ended uncharged (server={ServerTime} clientFireBurst={FireTime} charge={Charge}/{Cap} min={Min} ready={ReadyTime})",
-                        _shard.CurrentTime,
-                        fire.TriggerHeldTime,
-                        sim.Charge,
-                        sim.ChargeCap,
-                        sim.ChargeMin,
-                        fire.NextShotTime);
-                }
-                else
-                {
-                    _logger.Debug("[FireSim] Resuming fire after reload (server={ServerTime} clientFireBurst={FireTime} ready={ReadyTime})", _shard.CurrentTime, fire.TriggerHeldTime, readyTime);
-                    StartFiring(entity, sim, weapon, readyTime);
-                }
-            }
-        }
-
-        if (fire.State == WeaponFireStateEnum.Idle
-            && fire.TriggerHeld
-            && IsContinuousFireMode(weapon)
-            && fire.TriggerHeldTime < fire.NextShotTime
-            && (!sim.Ammo.HasAmmo || sim.Ammo.Clip > 0)
-            && fire.NextShotTime <= time)
-        {
-            _logger.Debug("[FireSim] Resuming fire at ready time (server={ServerTime} ready={ReadyTime} press={PressTime})", _shard.CurrentTime, fire.NextShotTime, fire.TriggerHeldTime);
-            StartFiring(entity, sim, weapon, Math.Max(fire.NextShotTime, fire.TriggerHeldTime));
-        }
-
-        while (true)
-        {
-            bool shotDue = fire.State == WeaponFireStateEnum.Firing && fire.NextShotTime <= time;
-            bool evtDue = sim.Events.Count > 0 && sim.Events[0].Time <= time;
-            if (!shotDue && !evtDue)
-            {
-                break;
-            }
-
-            var evt = evtDue ? sim.Events[0] : default;
-            bool eventFirst = evtDue && (!shotDue
-                || evt.Time < fire.NextShotTime
-                || (evt.Time == fire.NextShotTime && evt.Type == WeaponFireEventType.FireAimSample));
-
-            if (eventFirst)
-            {
-                sim.Events.RemoveAt(0);
-                HandleFireEvent(entity, sim, activeWeaponDetails, evt);
-            }
-            else if (!TryFireScheduledShot(entity, sim, activeWeaponDetails, modeState, fire))
-            {
-                OnClipEmpty(entity, sim, weapon, fire.NextShotTime);
-                break;
-            }
-        }
-
-        // Passive clip regen from reserve
-        if (sim.Ammo.HasAmmo && fire.State == WeaponFireStateEnum.Idle && weapon.ClipRegenMs > 0 &&
-            sim.Ammo.Clip < sim.Ammo.ClipMax && sim.Ammo.Reserve > 0 &&
-            time >= sim.Ammo.LastClipRegenTime + weapon.ClipRegenMs)
-        {
-            sim.Ammo.Clip++;
-            sim.Ammo.Reserve--;
-            sim.Ammo.LastClipRegenTime = time;
-            SyncAmmoView(entity, sim);
-        }
-    }
-
-    private void UpdateCharge(WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
-    {
-        var fire = sim.Fire;
-        uint dt = time - sim.LastChargeTime;
-        sim.LastChargeTime = time;
-        if (sim.ChargeCap == 0 || fire.State == WeaponFireStateEnum.Reloading)
-        {
-            return;
-        }
-
-        uint was = sim.Charge;
-        if (fire.State == WeaponFireStateEnum.Firing)
-        {
-            sim.Charge = sim.ChargeCap;
-        }
-        else if (fire.TriggerHeld)
-        {
-            sim.Charge = was + dt > sim.ChargeCap ? sim.ChargeCap : was + dt;
-        }
-        else
-        {
-            sim.Charge = was >= dt ? was - dt : 0;
-        }
-
-        if (sim.ChargeMin > 0 && fire.TriggerHeld && was < sim.ChargeMin && sim.Charge >= sim.ChargeMin)
-        {
-            _logger.Debug("[FireSim] Charge armed weapon={Weapon} charge={Charge}/{Cap} min={Min} server={ServerTime}", weapon.DebugName, sim.Charge, sim.ChargeCap, sim.ChargeMin, _shard.CurrentTime);
-        }
-    }
-
-    private void HandleFireEvent(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, WeaponFireEvent evt)
-    {
-        var weapon = details.Weapon;
-        var fire = sim.Fire;
-
-        switch (evt.Type)
-        {
-            case WeaponFireEventType.FireAimSample:
-                fire.AimSamples.Add(new FireAimSample { Time = evt.Time, Aim = evt.Aim, Velocity = evt.Velocity });
-                TrimAimSamples(fire, evt.Time);
-                break;
-
-            case WeaponFireEventType.FireBurst:
-                // Remember the press and its client time; a reload in progress resumes from it.
-                fire.TriggerHeld = true;
-                fire.TriggerHeldTime = evt.Time;
-
-                if (fire.State == WeaponFireStateEnum.Reloading)
-                {
-                    _logger.Debug("[FireSim] FireBurst held during reload (server={ServerTime} client={ClientTime}); will resume if continuous", _shard.CurrentTime, evt.Time);
-                    break; // resume at reload completion
-                }
-
-                if (IsChargeOnlyMode(weapon, details.WeaponProfile))
-                {
-                    _logger.Debug("[FireSim] FireBurst in spin-up mode (server={ServerTime} client={ClientTime} charge={Charge}/{Cap})", _shard.CurrentTime, evt.Time, sim.Charge, sim.ChargeCap);
-                    break;
-                }
-
-                if (sim.Ammo.HasAmmo && sim.Ammo.Clip <= 0)
-                {
-                    if (!sim.Ammo.ClipEmptyTriggered)
-                    {
-                        OnClipEmpty(entity, sim, weapon, evt.Time);
-                    }
-
-                    break;
-                }
-
-                if (IsM1Chargeup(weapon) && sim.Charge < sim.ChargeMin)
-                {
-                    fire.NextShotTime = evt.Time + (sim.ChargeMin - sim.Charge);
-                    _logger.Debug("[FireSim] FireBurst while charging (server={ServerTime} client={ClientTime} charge={Charge}/{Cap} min={Min} ready={ReadyTime})", _shard.CurrentTime, evt.Time, sim.Charge, sim.ChargeCap, sim.ChargeMin, fire.NextShotTime);
-                    break;
-                }
-
-                if (fire.NextShotTime > evt.Time)
-                {
-                    _logger.Debug("[FireSim] FireBurst during down period (server={ServerTime} client={ClientTime} ready={ReadyTime})", _shard.CurrentTime, evt.Time, fire.NextShotTime);
-                    break;
-                }
-
-                StartFiring(entity, sim, weapon, evt.Time);
-                break;
-
-            case WeaponFireEventType.FireEnd:
-            case WeaponFireEventType.FireCancel:
-                fire.TriggerHeld = false;
-                fire.ShotsRemainingInBurst = 0;
-                if (fire.State == WeaponFireStateEnum.Firing)
-                {
-                    fire.State = WeaponFireStateEnum.Idle; // leave Reloading untouched
-                }
-
-                break;
-
-            case WeaponFireEventType.FireInputIgnored:
-                if (evt.Value != 0)
-                {
-                    fire.TriggerHeld = false;
-                    fire.ShotsRemainingInBurst = 0;
-                    if (fire.State == WeaponFireStateEnum.Firing)
-                    {
-                        fire.State = WeaponFireStateEnum.Idle; // leave Reloading untouched
-                    }
-                }
-
-                _logger.Debug("[FireSim] FireInputIgnored (server={ServerTime} client={ClientTime} ignored={Ignored})", _shard.CurrentTime, evt.Time, evt.Value);
-                break;
-
-            case WeaponFireEventType.UseScope:
-                break;
-
-            case WeaponFireEventType.SelectWeapon:
-            case WeaponFireEventType.SelectFireMode:
-                fire.Reset();
-                break;
-
-            case WeaponFireEventType.ReloadWeapon:
-                if (fire.State != WeaponFireStateEnum.Reloading)
-                {
-                    StartReload(entity, sim, weapon, evt.Time);
-                }
-
-                break;
-
-            case WeaponFireEventType.CancelReload:
-                if (fire.State == WeaponFireStateEnum.Reloading)
-                {
-                    fire.State = WeaponFireStateEnum.Idle;
-                }
-
-                break;
-        }
-    }
-
-    /// <summary>
-    ///     Fires the next scheduled shot at its client time and advances the press schedule.
-    ///     Returns false when there is not enough ammo for a full shot.
-    /// </summary>
-    /// <param name="entity">The character firing.</param>
-    /// <param name="sim">The character's weapon simulation.</param>
-    /// <param name="details">The active weapon's details.</param>
-    /// <param name="modeState">The active fire-mode state (press schedule).</param>
-    /// <param name="fire">The fire state (ammo and shot bookkeeping).</param>
-    /// <returns>True when the shot was fired; false when there is not enough ammo for a full shot.</returns>
-    private bool TryFireScheduledShot(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, WeaponModeState modeState, WeaponFireState fire)
-    {
-        if (!FireShot(entity, sim, details, modeState, fire.NextShotTime))
-        {
-            return false;
-        }
-
-        fire.ShotIndexInPress++;
-
-        // Advance the schedule before any exit so NextShotTime always ends up holding the
-        // weapon's ready time (shot time + spacing) — even after the last shot of a press or
-        // the shot that emptied the clip. A press made during that down period must not
-        // masquerade as an immediate shot. Clamp to >= 1 so a zero MsPerBurst cannot stall
-        // the loop (client does the same).
-        uint spacing = Math.Max(1u, details.WeaponProfile.MsPerBurst);
-        fire.NextShotTime += spacing;
-        if (fire.ShotsRemainingInBurst > 1)
-        {
-            fire.ShotsRemainingInBurst--;
-        }
-        else if (fire.ShotsRemainingInBurst >= 0)
-        {
-            fire.State = WeaponFireStateEnum.Idle; // press complete (semi/burst)
-        }
-
-        if (sim.Ammo.HasAmmo && sim.Ammo.Clip <= 0)
-        {
-            return false; // caller runs OnClipEmpty
-        }
-
-        return true;
-    }
-
-    private void StartFiring(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
-    {
-        var fire = sim.Fire;
-        fire.State = WeaponFireStateEnum.Firing;
-        fire.FireStartTime = time;
-        fire.NextShotTime = time;
-        fire.ShotIndexInPress = 0;
-
-        byte burstMode = (byte)(weapon.WeaponFlags & 7u);
-        bool oneShotPerPress = ((WeaponFlags)weapon.WeaponFlags).BoltAction || burstMode == 2 || burstMode == 4;
-        int roundsInPress;
-        if (oneShotPerPress)
-        {
-            fire.ShotsRemainingInBurst = 1;
-            fire.TotalRoundsInPress = 1;
-            roundsInPress = 1;
-        }
-        else if (weapon.RoundsPerBurst > 1)
-        {
-            int rounds = Math.Min(weapon.RoundsPerBurst, sim.Ammo.HasAmmo ? sim.Ammo.Clip : int.MaxValue);
-            rounds = Math.Max(rounds, 1);
-            fire.ShotsRemainingInBurst = rounds;
-            fire.TotalRoundsInPress = (uint)rounds;
-            roundsInPress = rounds;
-        }
-        else
-        {
-            fire.ShotsRemainingInBurst = -1; // full auto: unlimited while held
-            fire.TotalRoundsInPress = 0;
-            roundsInPress = sim.Ammo.HasAmmo ? Math.Max(1, sim.Ammo.Clip) : 1;
-        }
-
-        if (weapon.BurstAbility != 0 && roundsInPress >= Math.Max(1, (int)weapon.MinRoundsPerBurst))
-        {
-            ActivateWeaponAbility(entity, weapon.BurstAbility, time);
-        }
-    }
-
-    private void StartReload(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
-    {
-        if (!sim.Ammo.HasAmmo || sim.Ammo.Reserve <= 0 || sim.Ammo.Clip >= sim.Ammo.ClipMax)
-        {
-            return;
-        }
-
-        sim.Fire.State = WeaponFireStateEnum.Reloading;
-        sim.Fire.ReloadCompleteTime = time + weapon.ReloadTime;
-        sim.Fire.ShotsRemainingInBurst = 0;
-        sim.Fire.TriggerHeld = false;
-        sim.Charge = 0;
-
-        ActivateWeaponAbility(entity, weapon.ReloadAbility, time);
-    }
-
-    private void CompleteReload(WeaponPlayerSim sim)
-    {
-        int rounds = Math.Min(sim.Ammo.ClipMax - sim.Ammo.Clip, sim.Ammo.Reserve);
-        sim.Ammo.Clip += rounds;
-        sim.Ammo.Reserve -= rounds;
-        if (sim.Ammo.Clip > 0)
-        {
-            sim.Ammo.ClipEmptyTriggered = false;
-        }
-    }
-
-    private void OnClipEmpty(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
-    {
-        sim.Ammo.ClipEmptyTriggered = true;
-        sim.Fire.State = WeaponFireStateEnum.Idle;
-        sim.Fire.ShotsRemainingInBurst = 0;
-
-        sim.Fire.TriggerHeld = false;
-
-        _logger.Debug("[FireSim] Clip empty (server={ServerTime} client={ClientTime} reserve={Reserve} weapon={Weapon})", _shard.CurrentTime, time, sim.Ammo.Reserve, weapon.DebugName);
-
-        ActivateWeaponAbility(entity, weapon.EmptyAbility, time);
-
-        if (!entity.IsPlayerControlled)
-        {
-            StartReload(entity, sim, weapon, time);
+            weapons.Ammo.Regen(entity, time, activeWeaponDetails.Weapon.ClipRegenMs);
         }
     }
 
@@ -1121,16 +560,6 @@ public class WeaponSim
             uint time = pending.QueueTime != 0 ? pending.QueueTime : pending.ActivationTime;
             OnFireAbilityProjectile(entity, pending, time, entity.AimDirection, null);
         }
-    }
-
-    private void ActivateWeaponAbility(CharacterEntity entity, uint abilityId, uint time)
-    {
-        if (abilityId == 0 || entity is not IAptitudeTarget initiator)
-        {
-            return;
-        }
-
-        _shard.Abilities.HandleActivateAbility(_shard, initiator, abilityId, time, new AptitudeTargets());
     }
 
     /// <summary>
@@ -1176,99 +605,6 @@ public class WeaponSim
         // Match NpcMovementSystem's combat aim height: muzzle-to-chest, with the target's chest as the impact point.
         target = new Vector3(targetChar.Position.X, targetChar.Position.Y, targetChar.Position.Z + 1.0f);
         return true;
-    }
-
-    /// <summary>
-    ///     Fires one simulated shot at the given client time: consumes ammo, resolves aim/origin activates the per-shot attack ability
-    /// </summary>
-    /// <param name="entity">Character that fires</param>
-    /// <param name="sim">Per-player weapon sim state</param>
-    /// <param name="details">Active weapon details</param>
-    /// <param name="modeState">Spread state of the active fire mode</param>
-    /// <param name="time">Client time of the shot</param>
-    /// <returns>True when the shot was fired, false when there is not enough ammo for a full shot</returns>
-    private bool FireShot(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, WeaponModeState modeState, uint time)
-    {
-        var weapon = details.Weapon;
-
-        if (sim.Ammo.HasAmmo)
-        {
-            int perShot = Math.Max(1, (int)weapon.AmmoPerBurst);
-            if (sim.Ammo.Clip < perShot)
-            {
-                return false;
-            }
-
-            sim.Ammo.Clip -= perShot;
-        }
-
-        // Aim resolution: 1) the client sample for this exact shot time, 2) the aim interpolated
-        // from the movement sample buffer at the shot time, 3) the last known pose.
-        Vector3 aim;
-        Vector3? velocity = null;
-        string aimSource;
-        if (TryGetAimSample(sim.Fire, time, out var sample))
-        {
-            aim = sample.Aim;
-            velocity = sample.Velocity;
-            aimSource = "sample";
-        }
-        else
-        {
-            aim = entity.AimDirection;
-            aimSource = "pose";
-        }
-
-        Vector3 origin = entity.GetProjectileOrigin(time, aim, velocity);
-
-        WeaponSpreadMath.UpdateMovementState(details.WeaponProfile, modeState, entity.MovementStateContainer.MovementStateValue, time);
-        WeaponSpreadMath.RecoilInterpUpdate(details.WeaponProfile, modeState, time, snapshot: true);
-        float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(details.WeaponProfile, modeState, time);
-
-        bool firedViaAbility = false;
-        if (weapon.AttackAbility != 0 && entity is IAptitudeTarget initiator)
-        {
-            Guid executionId = Guid.NewGuid();
-            _shard.Abilities.HandleActivateAbility(_shard, initiator, weapon.AttackAbility, time, new AptitudeTargets(), executionId: executionId, initPosition: origin);
-
-            var pending = entity.TryConsumeAbilityProjectileByExecId(executionId);
-            if (pending.HasValue)
-            {
-                OnFireAbilityProjectile(entity, pending.Value, time, aim, velocity);
-                firedViaAbility = true;
-            }
-        }
-
-        // Monster attack weapons
-        if (!firedViaAbility && !entity.IsPlayerControlled && weapon.AttackAbility == 0 && weapon.BurstAbility != 0 && weapon.RoundsPerBurst <= 1)
-        {
-            firedViaAbility = true;
-        }
-
-        if (!firedViaAbility)
-        {
-            FireWeaponDirect(entity, sim, details, modeState, time, aim, velocity, origin, spreadPct, aimSource);
-        }
-
-        SyncAmmoView(entity, sim);
-        return true;
-    }
-
-    private void SyncAmmoView(CharacterEntity entity, WeaponPlayerSim sim)
-    {
-        var ammo = sim.Ammo;
-        if (!ammo.HasAmmo)
-        {
-            return;
-        }
-
-        var clip = (ushort)Math.Max(0, ammo.Clip);
-        var reserve = (ushort)Math.Max(0, ammo.Reserve);
-        WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, ammo.Mode == 1, clip, reserve);
-        if (ammo.Shared)
-        {
-            WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, true, clip, reserve);
-        }
     }
 
     private void DebugWeaponSpread(CharacterEntity entity)
@@ -1364,39 +700,14 @@ public class WeaponSim
                     (_weaponSimState.ContainsKey(character.EntityId) || character.HasPendingAbilityProjectiles))));
     }
 
-    private sealed class AmmoState
-    {
-        public uint WeaponId;
-        public byte Slot;
-        public byte Mode;
-        public bool Shared;
-        public bool HasAmmo;
-        public bool ClipEmptyTriggered;
-        public int Clip;
-        public int Reserve;
-        public int ClipMax;
-        public int ReserveMax;
-        public uint LastClipRegenTime;
-    }
-
-    // Per-player weapon sim state
-    private sealed class WeaponPlayerSim
+    private sealed class CharacterWeapons(WeaponFire fire)
     {
         public uint WeaponId;
         public byte ActiveMode = 255;
         public WeaponModeState[] Modes = new WeaponModeState[2];
         public List<WeaponFireEvent> Events = [];
-        public WeaponFireState Fire = new();
-        public AmmoState[,] AmmoStates = new AmmoState[3, 2];
-
-        // The active weapon and mode's, an empty one until it fires
-        public AmmoState Ammo = new();
-
-        // Chargeup: weapon-wide (shared across the fire modes of this weapon), in ms
-        public uint Charge;
-        public uint LastChargeTime;
-        public uint ChargeCap;
-        public uint ChargeMin;
+        public WeaponAmmo Ammo = new();
+        public WeaponFire Fire = fire;
     }
 
     private record class DebugWeaponSimEventData
