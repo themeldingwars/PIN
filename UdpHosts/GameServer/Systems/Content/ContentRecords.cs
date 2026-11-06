@@ -52,6 +52,20 @@ public static class ContentRecords
         BonusTimeLimitMs = race.BonusTimeLimitMs,
     };
 
+    public static KisutonLgvChallengeDef ToRecord(this ZoneKisutonLgvChallenge challenge, uint zoneId) => new()
+    {
+        ZoneId = zoneId,
+        Type = challenge.RaceType,
+        ChallengeName = challenge.ChallengeNameTextId,
+        TrackName = challenge.TrackNameTextId,
+        Laps = challenge.Laps,
+        LeaderboardId = challenge.LeaderboardId,
+        Terminal = challenge.Terminal.ToRecord(),
+        StartPosition = challenge.Start.ToRecord(),
+        LeaderboardTerminal = challenge.LeaderboardTerminal.ToRecord(),
+        Waypoints = [.. challenge.Waypoints],
+    };
+
     private static Deployable ToRecord(this PlacedObject placed, uint zoneId) => new()
     {
         ZoneId = zoneId,

@@ -22,7 +22,7 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
     private const uint _effectCollapse = 5157;
 
     private const uint _maxMeldedCrystite = 4000;
-    private const uint _pushbackDurationMs = 1224_000;
+    private const uint _pushbackDurationMs = 1226_000;
 
     private readonly DeployableEntity _repulsor;
     private readonly DeployableEntity _terminal;

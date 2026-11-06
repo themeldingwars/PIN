@@ -15,9 +15,3 @@ public record LgvRaceDef : IEncounterDef
     public uint TimeLimitMs { get; set; }
     public uint BonusTimeLimitMs { get; set; }
 }
-
-public record SpawnPose
-{
-    public Vector3 Position { get; set; }
-    public Quaternion Orientation { get; set; }
-}

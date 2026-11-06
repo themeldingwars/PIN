@@ -15,6 +15,9 @@
             "$ref": "#/$defs/lgv_race"
           },
           {
+            "$ref": "#/$defs/kisuton_lgv_challenge"
+          },
+          {
             "$ref": "#/$defs/melding_repulsor"
           }
         ]
@@ -77,6 +80,70 @@
         "start",
         "finish",
         "terminal"
+      ],
+      "additionalProperties": false
+    },
+    "kisuton_lgv_challenge": {
+      "type": "object",
+      "description": "A Kisuton LGV challenge, driven through a list of waypoints against the clock",
+      "properties": {
+        "type": {
+          "const": "kisuton-lgv-challenge"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "race_type": {
+          "$ref": "common.schema.json#/$defs/uint32"
+        },
+        "challenge_name_text_id": {
+          "$ref": "common.schema.json#/$defs/uint32",
+          "description": "SDB text id of the challenge's name"
+        },
+        "track_name_text_id": {
+          "$ref": "common.schema.json#/$defs/uint32",
+          "description": "SDB text id of the track's name"
+        },
+        "laps": {
+          "$ref": "common.schema.json#/$defs/uint32"
+        },
+        "leaderboard_id": {
+          "$ref": "common.schema.json#/$defs/uint32"
+        },
+        "start": {
+          "$ref": "common.schema.json#/$defs/pose"
+        },
+        "terminal": {
+          "$ref": "common.schema.json#/$defs/pose"
+        },
+        "leaderboard_terminal": {
+          "$ref": "common.schema.json#/$defs/pose"
+        },
+        "waypoints": {
+          "type": "array",
+          "description": "The checkpoints in the order they're driven",
+          "items": {
+            "$ref": "common.schema.json#/$defs/vector3"
+          },
+          "minItems": 1
+        },
+        "source": {
+          "$ref": "common.schema.json#/$defs/source"
+        },
+        "edited": {
+          "$ref": "common.schema.json#/$defs/edited"
+        },
+        "notes": {
+          "$ref": "common.schema.json#/$defs/notes"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "start",
+        "terminal",
+        "leaderboard_terminal",
+        "waypoints"
       ],
       "additionalProperties": false
     },
