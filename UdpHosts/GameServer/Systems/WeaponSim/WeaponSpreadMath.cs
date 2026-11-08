@@ -18,7 +18,9 @@ public static class WeaponSpreadMath
             return 0;
         }
 
-        return (uint)Math.Round(ms * fraction, MidpointRounding.AwayFromZero);
+        // Like the client's ScaleTimeMs, the factor is rounded to 1/1000 and the result cut off
+        ulong permille = (ulong)Math.Floor((fraction * 1000f) + 0.5f);
+        return (uint)Math.Min(uint.MaxValue, (ulong)ms * permille / 1000);
     }
 
     // Fast power approximation: lerp between adjacent integer powers.

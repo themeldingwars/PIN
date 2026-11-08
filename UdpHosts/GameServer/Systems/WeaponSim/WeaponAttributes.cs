@@ -34,6 +34,35 @@ internal static class WeaponAttributes
         return (uint)(value * permille / 1000);
     }
 
+    /// <summary>
+    ///     Like the client's ScaleTimeMs, a weapon time runs 1/TimeDilation as long, with the factor rounded to 1/1000.
+    /// </summary>
+    public static uint ScaleTime(CharacterEntity entity, uint ms) => WeaponSpreadMath.ScaleMs(ms, TimeFactor(entity));
+
+    /// <summary>
+    ///     1/TimeDilation, 1 for a dilation of 0 or less like in the client.
+    /// </summary>
+    public static float TimeFactor(CharacterEntity entity)
+    {
+        float dilation = entity.Character_CombatController?.TimeDilationProp.Value ?? 1f;
+        return dilation > 0f ? 1f / dilation : 1f;
+    }
+
+    /// <summary>
+    ///     Multiplied by FireRateModifier, 0.8333 turns 111 ms into 92 ms in the 2016 capture.
+    /// </summary>
+    public static uint ShotTime(CharacterEntity entity, uint ms)
+    {
+        float modifier = entity.Character_CombatController?.FireRateModifierProp.Value ?? 1f;
+        if (modifier <= 0f)
+        {
+            return ScaleTime(entity, ms);
+        }
+
+        ulong permille = (ulong)Math.Floor((modifier * 1000f) + 0.5f);
+        return ScaleTime(entity, (uint)Math.Min(uint.MaxValue, (ulong)ms * permille / 1000));
+    }
+
     public static ushort ClipSize(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details)
     {
         return (ushort)Math.Min(ushort.MaxValue, Percent(details.WeaponProfile.BaseClipSize, Total(entity, details, ItemAttributeId.ClipSizeBonus)));

@@ -319,14 +319,15 @@ public sealed class WeaponAmmo
         }
 
         // All due rounds at once like the client, one per tick would fall behind its clip
+        uint interval = Math.Max(1u, WeaponAttributes.ScaleTime(entity, state.RegenMs));
         uint start = Math.Max(Math.Max(state.LastShotTime, state.ReloadTime) + _regenDelayMs, state.LastRegenTime);
-        if (time < start + state.RegenMs)
+        if (time < start + interval)
         {
             return;
         }
 
-        uint due = (time - start) / state.RegenMs;
-        state.LastRegenTime = start + (due * state.RegenMs);
+        uint due = (time - start) / interval;
+        state.LastRegenTime = start + (due * interval);
         int rounds = (int)Math.Min(due, (uint)Math.Min(state.ClipMax - state.Clip, state.Reserve));
         if (rounds <= 0)
         {

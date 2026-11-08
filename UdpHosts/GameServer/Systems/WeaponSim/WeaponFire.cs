@@ -31,9 +31,9 @@ internal abstract class WeaponFire
     {
         var profile = ctx.Details.WeaponProfile;
         var state = HeatState(ctx);
-        if (CanOverheat(ctx) && HeatAt(profile, state, time) >= profile.MsChargeUpMax)
+        if (CanOverheat(ctx) && HeatAt(ctx, state, time) >= profile.MsChargeUpMax)
         {
-            state.OverheatEnd = Math.Max(state.OverheatEnd, state.HeatTime + profile.MsOverchargeDelay);
+            state.OverheatEnd = Math.Max(state.OverheatEnd, state.HeatTime + WeaponAttributes.ScaleTime(ctx.Entity, profile.MsOverchargeDelay));
         }
     }
 
@@ -146,12 +146,13 @@ internal abstract class WeaponFire
         uint msPerBurst = Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst);
         if (!IsTimedBurst(weapon))
         {
-            return msPerBurst;
+            return WeaponAttributes.ShotTime(ctx.Entity, msPerBurst);
         }
 
         // The rounds of a burst are spread over its duration, the next burst starts MsPerBurst after this one did
         uint between = weapon.MsBurstDuration / (uint)(weapon.RoundsPerBurst - 1);
-        return shotInPress % weapon.RoundsPerBurst == 0 ? Math.Max(1u, msPerBurst - weapon.MsBurstDuration) : Math.Max(1u, between);
+        uint spacing = shotInPress % weapon.RoundsPerBurst == 0 ? Math.Max(1u, msPerBurst - weapon.MsBurstDuration) : Math.Max(1u, between);
+        return WeaponAttributes.ShotTime(ctx.Entity, spacing);
     }
 
     /// <summary>
@@ -176,8 +177,9 @@ internal abstract class WeaponFire
     {
         // After a shot the reload can't start before the penalty is over
         var weapon = ctx.Details.Weapon;
-        uint start = ctx.Ammo.LastShotTime == 0 ? time : Math.Max(time, ctx.Ammo.LastShotTime + weapon.ReloadPenalty + weapon.MsBurstDuration);
-        completeTime = start + WeaponAttributes.ReloadTime(ctx.Entity, ctx.Details);
+        uint penalty = WeaponAttributes.ScaleTime(ctx.Entity, weapon.ReloadPenalty + weapon.MsBurstDuration);
+        uint start = ctx.Ammo.LastShotTime == 0 ? time : Math.Max(time, ctx.Ammo.LastShotTime + penalty);
+        completeTime = start + WeaponAttributes.ScaleTime(ctx.Entity, WeaponAttributes.ReloadTime(ctx.Entity, ctx.Details));
         if (!ctx.Ammo.CanReload)
         {
             return false;
@@ -206,7 +208,7 @@ internal abstract class WeaponFire
         }
 
         var state = HeatState(ctx);
-        state.Heat = HeatAt(profile, state, time) + Math.Max(1u, profile.MsPerBurst);
+        state.Heat = HeatAt(ctx, state, time) + WeaponAttributes.ScaleTime(ctx.Entity, Math.Max(1u, profile.MsPerBurst));
         state.HeatTime = time;
 
         // Only above the max, a shot that lands exactly on it still lets the next one through
@@ -215,7 +217,7 @@ internal abstract class WeaponFire
             return false;
         }
 
-        state.OverheatEnd = time + profile.MsOverchargeDelay;
+        state.OverheatEnd = time + WeaponAttributes.ScaleTime(ctx.Entity, profile.MsOverchargeDelay);
         Sim.Logger.Debug("[FireSim] Overheated (server={ServerTime} client={ClientTime} heat={Heat}/{Max} until={End} weapon={Weapon})", Sim.CurrentTime, time, state.Heat, profile.MsChargeUpMax, state.OverheatEnd, ctx.Details.Weapon.DebugName);
         Sim.ActivateWeaponAbility(ctx.Entity, ctx.Details.Weapon.OverchargeAbility, time);
         return true;
@@ -243,16 +245,18 @@ internal abstract class WeaponFire
     }
 
     // The client cools the heat with the spread return fields, MsChargeUpMax per MsSpreadReturn
-    private static uint HeatAt(WeaponProfile profile, WeaponModeState state, uint time)
+    private static uint HeatAt(in WeaponContext ctx, WeaponModeState state, uint time)
     {
-        uint hold = Math.Max(1u, profile.MsPerBurst) + profile.MsSpreadReturnDelay;
+        var profile = ctx.Details.WeaponProfile;
+        uint hold = WeaponAttributes.ScaleTime(ctx.Entity, Math.Max(1u, profile.MsPerBurst) + profile.MsSpreadReturnDelay);
+        uint cooling = WeaponAttributes.ScaleTime(ctx.Entity, profile.MsSpreadReturn);
         uint elapsed = time - state.HeatTime;
-        if (state.Heat == 0 || elapsed <= hold || profile.MsSpreadReturn == 0)
+        if (state.Heat == 0 || elapsed <= hold || cooling == 0)
         {
             return state.Heat;
         }
 
-        ulong cooled = (ulong)profile.MsChargeUpMax * (elapsed - hold) / profile.MsSpreadReturn;
+        ulong cooled = (ulong)profile.MsChargeUpMax * (elapsed - hold) / cooling;
         return cooled >= state.Heat ? 0 : state.Heat - (uint)cooled;
     }
 

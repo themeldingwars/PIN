@@ -240,7 +240,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         bool overheated = AddHeat(ctx, _nextShotTime);
 
         // Also after the last shot, a press in the down time would otherwise fire right away
-        _nextShotTime += Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst);
+        _nextShotTime += WeaponAttributes.ShotTime(ctx.Entity, Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst));
         if (_shotsRemainingInBurst > 1)
         {
             _shotsRemainingInBurst--;

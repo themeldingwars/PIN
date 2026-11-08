@@ -186,9 +186,10 @@ public partial class WeaponSim
         var weapon = details.Weapon;
         Vector3 origin = entity.GetProjectileOrigin(time, aim, velocity);
 
-        WeaponSpreadMath.UpdateMovementState(details.WeaponProfile, modeState, entity.MovementStateContainer.MovementStateValue, time);
-        WeaponSpreadMath.RecoilInterpUpdate(details.WeaponProfile, modeState, time, snapshot: true);
-        float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(details.WeaponProfile, modeState, time);
+        var spreadProfile = SpreadProfile(entity, details);
+        WeaponSpreadMath.UpdateMovementState(spreadProfile, modeState, entity.MovementStateContainer.MovementStateValue, time);
+        WeaponSpreadMath.RecoilInterpUpdate(spreadProfile, modeState, time, snapshot: true);
+        float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(spreadProfile, modeState, time);
 
         bool firedViaAbility = false;
         if (weapon.AttackAbility != 0 && entity is IAptitudeTarget initiator)
@@ -328,7 +329,7 @@ public partial class WeaponSim
     private void FireWeaponDirect(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, WeaponModeState modeState, uint time, Vector3 aim, Vector3? velocity, Vector3 origin, float spreadPct, string aimSource, uint roundsInPress)
     {
         var weapon = details.Weapon;
-        var spreadProfile = details.WeaponProfile;
+        var spreadProfile = SpreadProfile(entity, details);
 
         // Resolve weapon attributes: stats from weapon override template defaults
         var attrsDict = details.Attributes;
@@ -466,6 +467,9 @@ public partial class WeaponSim
         return weapons;
     }
 
+    // The spread and recoil times run 1/TimeDilation as long, like every other weapon time
+    private WeaponProfile SpreadProfile(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details) => details.WeaponProfile with { ModeFraction = WeaponAttributes.TimeFactor(entity) };
+
     // The weapon the processed events have reached, the entity's fields already show the newest one
     private CharacterEntity.ActiveWeaponDetails SimWeapon(CharacterEntity entity)
     {
@@ -512,9 +516,9 @@ public partial class WeaponSim
             bool otherLinked = otherHasWeapon && otherDetails.Weapon!.Flags.LinkedModes;
 
             WeaponSpreadMath.SeedModeStateOnSwitch(
-                activeWeaponDetails.WeaponProfile,
+                SpreadProfile(entity, activeWeaponDetails),
                 player.Modes[slot, activeMode],
-                otherHasWeapon ? otherDetails.WeaponProfile : default,
+                otherHasWeapon ? SpreadProfile(entity, otherDetails) : default,
                 otherHasWeapon ? player.Modes[slot, otherMode] : null,
                 newHasScope,
                 newLinked,
@@ -550,8 +554,9 @@ public partial class WeaponSim
         uint currentTime = _shard.CurrentTime;
         var weaponSimState = weapons.Modes[weapons.ActiveSlot, weapons.ActiveMode];
 
-        WeaponSpreadMath.UpdateMovementState(activeWeaponDetails.WeaponProfile, weaponSimState, entity.MovementStateContainer.MovementStateValue, currentTime);
-        WeaponSpreadMath.RecoilInterpUpdate(activeWeaponDetails.WeaponProfile, weaponSimState, currentTime, snapshot: false);
+        var spreadProfile = SpreadProfile(entity, activeWeaponDetails);
+        WeaponSpreadMath.UpdateMovementState(spreadProfile, weaponSimState, entity.MovementStateContainer.MovementStateValue, currentTime);
+        WeaponSpreadMath.RecoilInterpUpdate(spreadProfile, weaponSimState, currentTime, snapshot: false);
     }
 
     /// <summary>
@@ -709,7 +714,7 @@ public partial class WeaponSim
         uint time = _shard.CurrentTime;
         var weaponSimState = weapons.Modes[weapons.ActiveSlot, weapons.ActiveMode];
 
-        float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(activeWeaponDetails.WeaponProfile, weaponSimState, time);
+        float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(SpreadProfile(entity, activeWeaponDetails), weaponSimState, time);
 
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId);
         var eventData = new DebugWeaponSimEventData()
