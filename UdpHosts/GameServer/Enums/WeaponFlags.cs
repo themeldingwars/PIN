@@ -74,9 +74,9 @@ public readonly record struct WeaponFlags(uint Raw)
     public bool MaybeChargeupHold => (Raw & (1u << 12)) != 0;
 
     /// <summary>
-    /// FUN_007bda90, looks like it has some interaction with weapons that shoot multiple rounds per burst ("ammo rate-limited continious fire).
+    /// The ammo per burst grows with the charge, from MinAmmoPerBurst uncharged to AmmoPerBurst fully charged (client 0x7AE300).
     /// </summary>
-    public bool Unk13 => (Raw & (1u << 13)) != 0;
+    public bool ChargeScalesAmmo => (Raw & (1u << 13)) != 0;
 
     /// <summary>
     /// ???
@@ -110,7 +110,7 @@ public readonly record struct WeaponFlags(uint Raw)
         CheckAndAdd(parts, "LaserMG", LaserMG);
         CheckAndAdd(parts, "PlasmaCannon", PlasmaCannon);
         CheckAndAdd(parts, "MaybeChargeupHold", MaybeChargeupHold);
-        CheckAndAdd(parts, "Unk13", Unk13);
+        CheckAndAdd(parts, "ChargeScalesAmmo", ChargeScalesAmmo);
         CheckAndAdd(parts, "Unk14", Unk14);
         CheckAndAdd(parts, "HealBeam", HealBeam);
         CheckAndAdd(parts, "SpecialStop", SpecialStop);

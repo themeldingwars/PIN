@@ -21,6 +21,9 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
     // 0 when there's no first shot left to check
     private uint _expectedFirstShot;
 
+    // A charged shot counts its charge from here, 0 without a press
+    private uint _pressTime;
+
     public override void AdvanceTo(in WeaponContext ctx, uint time) => FinishReload(ctx, time);
 
     // Holstering cancels the reload like in the client, a switch between linked modes keeps it
@@ -30,6 +33,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         _shotsInPress = 0;
         _roundsInPress = 0;
         _expectedFirstShot = 0;
+        _pressTime = 0;
     }
 
     public override void Handle(in WeaponContext ctx, WeaponFireEvent evt)
@@ -42,6 +46,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
             case WeaponFireEventType.FireBurst:
                 _shotsInPress = 0;
+                _pressTime = evt.Time;
                 _expectedFirstShot = ExpectedFirstShot(ctx, evt.Time);
                 if (!_reloading && !ctx.Ammo.Has(1) && !ctx.Ammo.EmptyHandled)
                 {
@@ -136,7 +141,8 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         }
 
         // The client caps the cost at the rounds left, one is enough to fire, a free shot needs none
-        int cost = ShotCost(ctx, _shotsInPress);
+        // Without a press the shot counts as fully charged
+        int cost = ShotCost(ctx, _shotsInPress, _pressTime != 0 ? time - _pressTime : uint.MaxValue);
         if (cost > 0 && !ammo.Has(1))
         {
             Sim.Logger.Debug("[FireCheck] Shot with {Clip} rounds in the clip (weapon={Weapon})", ammo.Clip, weapon.DebugName);

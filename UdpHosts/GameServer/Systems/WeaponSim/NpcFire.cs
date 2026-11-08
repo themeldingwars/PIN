@@ -230,7 +230,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
     {
         // An NPC shot is a whole burst, capped at the rounds left like a player's
         var ammo = ctx.Ammo;
-        int cost = BurstCost(ctx);
+        int cost = BurstCost(ctx, _charge);
         if ((cost > 0 && !ammo.Has(1)) || !ammo.TrySpend(ctx.Entity, ammo.HasAmmo ? Math.Min(cost, ammo.Clip) : 0, _nextShotTime))
         {
             return false;

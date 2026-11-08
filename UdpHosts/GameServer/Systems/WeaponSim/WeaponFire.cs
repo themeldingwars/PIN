@@ -114,10 +114,10 @@ internal abstract class WeaponFire
     ///     Rounds the shot at that index of the press takes, scaled by AmmoConsumption. A burst with a duration splits its
     ///     ammo between its shots, the first ones take the remainder.
     /// </summary>
-    protected static int ShotCost(in WeaponContext ctx, uint shotInPress)
+    protected static int ShotCost(in WeaponContext ctx, uint shotInPress, uint charge)
     {
         var weapon = ctx.Details.Weapon;
-        int ammo = BurstCost(ctx);
+        int ammo = BurstCost(ctx, charge);
         if (!IsTimedBurst(weapon))
         {
             return ammo;
@@ -128,11 +128,20 @@ internal abstract class WeaponFire
     }
 
     /// <summary>
-    ///     A whole burst's rounds, scaled by AmmoConsumption like in the client. 0 for a heal beam or a spin-up alt.
+    ///     Can be 0, e.g. for a heal beam. The charge in ms only matters for a weapon whose ammo grows with it.
     /// </summary>
-    protected static int BurstCost(in WeaponContext ctx)
+    protected static int BurstCost(in WeaponContext ctx, uint charge)
     {
-        int ammo = (int)ctx.Details.Weapon.AmmoPerBurst;
+        var weapon = ctx.Details.Weapon;
+        int ammo = weapon.AmmoPerBurst;
+        uint full = WeaponAttributes.ScaleTime(ctx.Entity, weapon.MsChargeUp);
+        if (weapon.Flags.ChargeScalesAmmo && weapon.MsChargeUp != 0 && full != 0)
+        {
+            float fraction = Math.Min(charge, full) / (float)full;
+            float lerped = (weapon.MinAmmoPerBurst * (1f - fraction)) + (weapon.AmmoPerBurst * fraction);
+            ammo = (int)(lerped < 0f ? lerped - 0.5f : lerped + 0.5f);
+        }
+
         float consumption = ctx.Entity.Character_CombatController?.AmmoConsumptionProp.Value ?? 1f;
         return Math.Abs(consumption - 1f) > 0.001f ? (int)(ammo * consumption) : ammo;
     }
