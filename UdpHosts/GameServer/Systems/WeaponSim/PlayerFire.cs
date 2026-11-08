@@ -27,8 +27,15 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         while (ctx.Events.Count > 0 && ctx.Events[0].Time <= time)
         {
             var evt = ctx.Events[0];
-            ctx.Events.RemoveAt(0);
             FinishReload(ctx, evt.Time);
+
+            // The sim switches the mode and calls again with the new one
+            if (evt.Type == WeaponFireEventType.SelectFireMode)
+            {
+                return;
+            }
+
+            ctx.Events.RemoveAt(0);
             Handle(ctx, evt);
         }
 
@@ -84,10 +91,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
             case WeaponFireEventType.SelectWeapon:
                 Reset(keepReload: false);
-                break;
-
-            case WeaponFireEventType.SelectFireMode:
-                Reset(keepReload: ctx.Ammo.SharedClip);
                 break;
 
             case WeaponFireEventType.ReloadWeapon:

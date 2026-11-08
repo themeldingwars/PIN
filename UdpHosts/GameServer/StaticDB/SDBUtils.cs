@@ -351,11 +351,14 @@ public class SDBUtils
 
         // Get main scope and underbarrel
         uint scopeStatusFx = 0;
+        bool hasZoom = false;
         WeaponUnderbarrel mainUnderbarrel = null;
-        if (main.ScopeId != 0)
+        if (main.ScopeId != 0 && SDBInterface.GetWeaponScope(main.ScopeId) is { } scope)
         {
-            var scope = SDBInterface.GetWeaponScope(main.ScopeId);
             scopeStatusFx = scope.Statusfx;
+
+            // The client doesn't let a scope without zoom scope in, e.g. on grenade launchers
+            hasZoom = scope.Minzoom != 0 && scope.Maxzoom != 0;
         }
 
         if (main.UnderbarrelId != 0)
@@ -369,7 +372,7 @@ public class SDBUtils
             alt = GetDetailedWeaponTemplateInfo(mainUnderbarrel.WeaponTypeId, main.UnderbarrelId, true);
         }
 
-        return new WeaponInfoResult() { Main = main, Alt = alt, ScopeStatusFx = scopeStatusFx };
+        return new WeaponInfoResult() { Main = main, Alt = alt, ScopeStatusFx = scopeStatusFx, HasZoom = hasZoom };
     }
 
     public static WeaponTemplateResult GetDetailedWeaponTemplateInfo(uint weaponTypeId, uint weaponSdbId, bool isUnderbarrel = false)
@@ -630,6 +633,7 @@ public class WeaponInfoResult
     public WeaponTemplateResult Main;
     public WeaponTemplateResult Alt;
     public uint ScopeStatusFx;
+    public bool HasZoom;
 }
 
 public class WeaponTemplateResult

@@ -27,6 +27,9 @@ public struct WeaponFireEvent
     // Weapon index, fire mode, in-scope flag or the client's ignored flag, depending on the type
     public byte Value;
 
+    // SelectFireMode only, the weapon slot whose mode changes
+    public byte Slot;
+
     // Shot only, the client's aim and velocity
     public Vector3 Aim;
     public Vector3? Velocity;

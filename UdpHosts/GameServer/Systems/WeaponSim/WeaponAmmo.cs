@@ -18,8 +18,6 @@ public sealed class WeaponAmmo
 
     public bool HasAmmo => _active.HasAmmo;
 
-    public bool SharedClip => _active.Shared;
-
     public int Clip => _active.Clip;
 
     public int ClipMax => _active.ClipMax;

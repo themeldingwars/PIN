@@ -194,6 +194,7 @@ public class CharacterLifecycleService
 
         character.SetCharacterState(CharacterStateData.CharacterStatus.Dead, character.Shard.CurrentTime);
         character.Alive = false;
+        character.RemoveScopeEffect();
 
         Logger.Information("{Name} died", character);
         _eventBus.Publish(new CharacterDiedEvent(character, source));

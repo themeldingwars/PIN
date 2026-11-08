@@ -452,6 +452,8 @@ public class WeaponSim
         if (!_weaponSimState.TryGetValue(entity.EntityId, out var weapons))
         {
             weapons = new CharacterWeapons(NewFire(entity));
+            weapons.SlotModes[1] = entity.GetFireMode(1);
+            weapons.SlotModes[2] = entity.GetFireMode(2);
             _weaponSimState[entity.EntityId] = weapons;
         }
         else if (weapons.Fire is PlayerFire != entity.IsPlayerControlled)
@@ -463,12 +465,19 @@ public class WeaponSim
         return weapons;
     }
 
-    private WeaponModeState GetOrCreateState(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails activeWeaponDetails, uint time)
+    // The entity's fields already have the newest mode, the queued shots before its switch still need the old one
+    private CharacterEntity.ActiveWeaponDetails ActiveDetails(CharacterEntity entity, CharacterWeapons weapons, out byte mode)
+    {
+        byte slot = entity.WeaponIndex.Index;
+        mode = (byte)(entity.HasAltMode(slot) && weapons.SlotModes[slot] == 1 ? 1 : 0);
+        return entity.GetWeaponDetails(slot, mode);
+    }
+
+    private WeaponModeState GetOrCreateState(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails activeWeaponDetails, byte activeMode, uint time)
     {
         var player = GetOrCreateWeapons(entity);
 
         uint weaponId = activeWeaponDetails.WeaponId;
-        byte activeMode = entity.GetActiveFireModeIndex();
 
         bool weaponChanged = player.WeaponId != weaponId;
         if (weaponChanged)
@@ -483,9 +492,11 @@ public class WeaponSim
         {
             byte otherMode = (byte)(1 - activeMode);
             var otherDetails = entity.GetWeaponDetails(otherMode);
-            bool otherHasWeapon = otherDetails != null && otherDetails.Weapon != null;
 
-            bool newHasScope = activeWeaponDetails.Weapon.ScopeId != 0;
+            // Without an alt the other mode is the main itself, the client carries nothing over then
+            bool otherHasWeapon = entity.HasAltMode(entity.WeaponIndex.Index) && otherDetails != null && otherDetails.Weapon != null;
+
+            bool newHasScope = activeWeaponDetails.HasZoom;
             bool newLinked = (activeWeaponDetails.Weapon.WeaponFlags & 8) != 0;
             bool otherLinked = otherHasWeapon && (otherDetails.Weapon!.WeaponFlags & 8) != 0;
 
@@ -517,14 +528,14 @@ public class WeaponSim
 
     private void ProcessWeaponSpread(CharacterEntity entity)
     {
-        var activeWeaponDetails = entity.GetActiveWeaponDetails();
+        var activeWeaponDetails = ActiveDetails(entity, GetOrCreateWeapons(entity), out byte mode);
         if (activeWeaponDetails == null || activeWeaponDetails.Weapon == null)
         {
             return;
         }
 
         uint currentTime = _shard.CurrentTime;
-        var weaponSimState = GetOrCreateState(entity, activeWeaponDetails, currentTime);
+        var weaponSimState = GetOrCreateState(entity, activeWeaponDetails, mode, currentTime);
 
         WeaponSpreadMath.UpdateMovementState(activeWeaponDetails.WeaponProfile, weaponSimState, entity.MovementStateContainer.MovementStateValue, currentTime);
         WeaponSpreadMath.RecoilInterpUpdate(activeWeaponDetails.WeaponProfile, weaponSimState, currentTime, snapshot: false);
@@ -532,16 +543,33 @@ public class WeaponSim
 
     private void ProcessFire(CharacterEntity entity)
     {
-        var activeWeaponDetails = entity.GetActiveWeaponDetails();
-        if (activeWeaponDetails == null || activeWeaponDetails.Weapon == null)
+        uint time = _shard.CurrentTime;
+        var weapons = GetOrCreateWeapons(entity);
+        while (true)
         {
-            return;
+            var activeWeaponDetails = ActiveDetails(entity, weapons, out byte mode);
+            if (activeWeaponDetails == null || activeWeaponDetails.Weapon == null)
+            {
+                return;
+            }
+
+            var modeState = GetOrCreateState(entity, activeWeaponDetails, mode, time);
+            weapons.Fire.Process(new WeaponContext(entity, activeWeaponDetails, modeState, weapons.Ammo, weapons.Events), time);
+
+            // Process stops at a mode switch, the events after it run with the new mode
+            if (weapons.Events.Count == 0 || weapons.Events[0].Time > time || weapons.Events[0].Type != WeaponFireEventType.SelectFireMode)
+            {
+                break;
+            }
+
+            var evt = weapons.Events[0];
+            weapons.Events.RemoveAt(0);
+            if (evt.Slot < weapons.SlotModes.Length)
+            {
+                weapons.SlotModes[evt.Slot] = evt.Value;
+            }
         }
 
-        uint time = _shard.CurrentTime;
-        var modeState = GetOrCreateState(entity, activeWeaponDetails, time);
-        var weapons = _weaponSimState[entity.EntityId];
-        weapons.Fire.Process(new WeaponContext(entity, activeWeaponDetails, modeState, weapons.Ammo, weapons.Events), time);
         weapons.Ammo.Regen(entity, time);
     }
 
@@ -624,7 +652,7 @@ public class WeaponSim
             return;
         }
 
-        var activeWeaponDetails = entity.GetActiveWeaponDetails();
+        var activeWeaponDetails = ActiveDetails(entity, GetOrCreateWeapons(entity), out byte mode);
         if (activeWeaponDetails == null || activeWeaponDetails.Weapon == null)
         {
             return;
@@ -633,7 +661,7 @@ public class WeaponSim
         var weapon = activeWeaponDetails.Weapon;
         var weaponId = activeWeaponDetails.WeaponId;
         uint time = _shard.CurrentTime;
-        var weaponSimState = GetOrCreateState(entity, activeWeaponDetails, time);
+        var weaponSimState = GetOrCreateState(entity, activeWeaponDetails, mode, time);
 
         float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(activeWeaponDetails.WeaponProfile, weaponSimState, time);
 
@@ -702,6 +730,9 @@ public class WeaponSim
         public uint WeaponId;
         public byte ActiveMode = 255;
         public WeaponModeState[] Modes = new WeaponModeState[2];
+
+        // By weapon slot, as far as the processed events got
+        public byte[] SlotModes = new byte[3];
         public List<WeaponFireEvent> Events = [];
         public WeaponAmmo Ammo = new();
         public WeaponFire Fire = fire;
