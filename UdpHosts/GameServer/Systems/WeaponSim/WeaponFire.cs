@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.StaticDB;
@@ -8,10 +7,10 @@ namespace GameServer.Systems.WeaponSim;
 
 internal readonly record struct WeaponContext(
     CharacterEntity Entity,
+    byte Slot,
     CharacterEntity.ActiveWeaponDetails Details,
     WeaponModeState Mode,
-    WeaponAmmo Ammo,
-    List<WeaponFireEvent> Events);
+    WeaponAmmo Ammo);
 
 internal abstract class WeaponFire
 {
@@ -25,14 +24,22 @@ internal abstract class WeaponFire
 
     protected uint OverheatEnd { get; private set; }
 
-    public abstract void Process(in WeaponContext ctx, uint time);
+    /// <summary>
+    ///     Runs what's due up to the time, the sim calls it before every event and at the end of a tick.
+    /// </summary>
+    public abstract void AdvanceTo(in WeaponContext ctx, uint time);
+
+    /// <summary>
+    ///     Weapon and mode switches never get here, the sim calls <see cref="Switch" /> for them.
+    /// </summary>
+    public abstract void Handle(in WeaponContext ctx, WeaponFireEvent evt);
 
     /// <summary>
     ///     A running press or reload doesn't carry over.
     /// </summary>
-    public virtual void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
+    public virtual void Switch(in WeaponContext ctx, bool weaponChanged, bool linkedModes, uint time)
     {
-        if (weaponChanged || !LinkedSameMode(entity))
+        if (weaponChanged || !LinkedSameMode(ctx.Entity, ctx.Slot))
         {
             _heat = 0;
             _heatTime = 0;
@@ -43,9 +50,8 @@ internal abstract class WeaponFire
     /// <summary>
     ///     Whether heat and spin-up carry across a mode switch, the client's IsLinkedSameMode.
     /// </summary>
-    protected static bool LinkedSameMode(CharacterEntity entity)
+    protected static bool LinkedSameMode(CharacterEntity entity, byte slot)
     {
-        byte slot = entity.WeaponIndex.Index;
         if (!entity.HasAltMode(slot) || entity.GetWeaponDetails(slot, 0)?.Weapon is not { } main || entity.GetWeaponDetails(slot, 1)?.Weapon is not { } alt)
         {
             return false;
@@ -61,9 +67,10 @@ internal abstract class WeaponFire
     /// <summary>
     ///     From the main mode's template, the active mode's only when it alone spins up.
     /// </summary>
-    protected static (uint Cap, uint Min) ChargeupCaps(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails active)
+    protected static (uint Cap, uint Min) ChargeupCaps(in WeaponContext ctx)
     {
-        var main = entity.GetWeaponDetails(0);
+        var active = ctx.Details;
+        var main = ctx.Entity.GetWeaponDetails(ctx.Slot, 0);
         WeaponProfile source;
         if (main?.Weapon != null && main.WeaponProfile.MsChargeUp > 0)
         {

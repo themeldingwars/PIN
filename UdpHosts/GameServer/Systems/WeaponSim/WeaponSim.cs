@@ -17,7 +17,7 @@ using Serilog;
 
 namespace GameServer.Systems.WeaponSim;
 
-public class WeaponSim
+public partial class WeaponSim
 {
     private readonly Dictionary<ulong, CharacterWeapons> _weaponSimState;
     private readonly Shard _shard;
@@ -91,7 +91,8 @@ public class WeaponSim
         }
 
         // TODO: Should we really load from weapon?
-        var attrsDict = entity.GetActiveWeaponDetails()?.Attributes;
+        var activeWeaponDetails = SimWeapon(entity);
+        var attrsDict = activeWeaponDetails?.Attributes;
 
         float projectileSpeed = ammo.ProjectileSpeed;
         if (ammo.ProjectileSpeedStat != 0 && attrsDict != null && attrsDict.TryGetValue(ammo.ProjectileSpeedStat, out var speedAttr))
@@ -118,7 +119,6 @@ public class WeaponSim
         // Stub: spawn from the weapon muzzle origin (body/hardpoint offset not implemented yet).
         var origin = entity.GetProjectileOrigin(pending.QueueTime, localAimDir, shooterVelocity);
 
-        var activeWeaponDetails = entity.GetActiveWeaponDetails();
         float damage = pending.UseWeaponDamage && activeWeaponDetails != null && activeWeaponDetails.Weapon != null
             ? ResolveWeaponDamage(activeWeaponDetails.Weapon, attrsDict)
             : pending.Damage;
@@ -452,6 +452,7 @@ public class WeaponSim
         if (!_weaponSimState.TryGetValue(entity.EntityId, out var weapons))
         {
             weapons = new CharacterWeapons(NewFire(entity));
+            weapons.Slot = entity.WeaponIndex.Index;
             weapons.SlotModes[1] = entity.GetFireMode(1);
             weapons.SlotModes[2] = entity.GetFireMode(2);
             _weaponSimState[entity.EntityId] = weapons;
@@ -465,21 +466,29 @@ public class WeaponSim
         return weapons;
     }
 
-    // The entity's fields already have the newest mode, the queued shots before its switch still need the old one
-    private CharacterEntity.ActiveWeaponDetails ActiveDetails(CharacterEntity entity, CharacterWeapons weapons, out byte mode)
+    // The weapon the processed events have reached, the entity's fields already show the newest one
+    private CharacterEntity.ActiveWeaponDetails SimWeapon(CharacterEntity entity)
     {
-        byte slot = entity.WeaponIndex.Index;
-        mode = (byte)(entity.HasAltMode(slot) && weapons.SlotModes[slot] == 1 ? 1 : 0);
-        return entity.GetWeaponDetails(slot, mode);
+        return _weaponSimState.TryGetValue(entity.EntityId, out var weapons) && weapons.ActiveDetails != null ? weapons.ActiveDetails : entity.GetActiveWeaponDetails();
     }
 
-    private WeaponModeState GetOrCreateState(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails activeWeaponDetails, byte activeMode, uint time)
+    /// <summary>
+    ///     Switches to the slot and mode the processed events have reached. False without a weapon there.
+    /// </summary>
+    private bool TrySelect(CharacterEntity entity, CharacterWeapons player, uint time, out WeaponContext ctx)
     {
-        var player = GetOrCreateWeapons(entity);
+        byte slot = player.Slot;
+        byte activeMode = (byte)(slot < player.SlotModes.Length && entity.HasAltMode(slot) && player.SlotModes[slot] == 1 ? 1 : 0);
+        var activeWeaponDetails = entity.GetWeaponDetails(slot, activeMode);
+        if (activeWeaponDetails?.Weapon == null)
+        {
+            player.ActiveDetails = null;
+            ctx = default;
+            return false;
+        }
 
         uint weaponId = activeWeaponDetails.WeaponId;
-
-        bool weaponChanged = player.WeaponId != weaponId;
+        bool weaponChanged = player.ActiveSlot != slot || player.WeaponId != weaponId;
         if (weaponChanged)
         {
             player.WeaponId = weaponId;
@@ -487,14 +496,15 @@ public class WeaponSim
             player.Modes[1] = new WeaponModeState { WeaponId = weaponId };
         }
 
+        ctx = new WeaponContext(entity, slot, activeWeaponDetails, player.Modes[activeMode], player.Ammo);
         bool modeChanged = player.ActiveMode != activeMode;
         if (weaponChanged || modeChanged)
         {
             byte otherMode = (byte)(1 - activeMode);
-            var otherDetails = entity.GetWeaponDetails(otherMode);
+            var otherDetails = entity.GetWeaponDetails(slot, otherMode);
 
             // Without an alt the other mode is the main itself, the client carries nothing over then
-            bool otherHasWeapon = entity.HasAltMode(entity.WeaponIndex.Index) && otherDetails != null && otherDetails.Weapon != null;
+            bool otherHasWeapon = entity.HasAltMode(slot) && otherDetails != null && otherDetails.Weapon != null;
 
             bool newHasScope = activeWeaponDetails.HasZoom;
             bool newLinked = activeWeaponDetails.Weapon.Flags.LinkedModes;
@@ -510,67 +520,91 @@ public class WeaponSim
                 otherLinked,
                 time);
 
-            player.Fire.Switch(entity, activeWeaponDetails, weaponChanged, newLinked || otherLinked, time);
+            player.Fire.Switch(ctx, weaponChanged, newLinked || otherLinked, time);
+            player.ActiveSlot = slot;
             player.ActiveMode = activeMode;
         }
 
-        player.Ammo.Select(entity, activeWeaponDetails, activeMode, time, _logger);
-        return player.Modes[activeMode];
+        player.ActiveDetails = activeWeaponDetails;
+        player.Ammo.Select(entity, slot, activeWeaponDetails, activeMode, time, _logger);
+        return true;
     }
 
     private void ProcessEntity(CharacterEntity entity)
     {
+        ProcessFire(entity);
         ProcessWeaponSpread(entity);
         DebugWeaponSpread(entity);
-        ProcessFire(entity);
         ProcessPendingAbilityProjectiles(entity);
     }
 
+    // After ProcessFire, it only follows the weapon the events have switched to
     private void ProcessWeaponSpread(CharacterEntity entity)
     {
-        var activeWeaponDetails = ActiveDetails(entity, GetOrCreateWeapons(entity), out byte mode);
-        if (activeWeaponDetails == null || activeWeaponDetails.Weapon == null)
+        if (!_weaponSimState.TryGetValue(entity.EntityId, out var weapons) || weapons.ActiveDetails is not { Weapon: not null } activeWeaponDetails)
         {
             return;
         }
 
         uint currentTime = _shard.CurrentTime;
-        var weaponSimState = GetOrCreateState(entity, activeWeaponDetails, mode, currentTime);
+        var weaponSimState = weapons.Modes[weapons.ActiveMode];
 
         WeaponSpreadMath.UpdateMovementState(activeWeaponDetails.WeaponProfile, weaponSimState, entity.MovementStateContainer.MovementStateValue, currentTime);
         WeaponSpreadMath.RecoilInterpUpdate(activeWeaponDetails.WeaponProfile, weaponSimState, currentTime, snapshot: false);
     }
 
+    /// <summary>
+    ///     Works through the due events in the client's time order. A weapon or mode switch takes effect at its event, so
+    ///     the shots queued before it still use the old weapon.
+    /// </summary>
     private void ProcessFire(CharacterEntity entity)
     {
-        uint time = _shard.CurrentTime;
+        uint now = _shard.CurrentTime;
         var weapons = GetOrCreateWeapons(entity);
-        while (true)
+        var events = weapons.Events;
+        bool armed = TrySelect(entity, weapons, now, out var ctx);
+        while (events.Count > 0 && events[0].Time <= now)
         {
-            var activeWeaponDetails = ActiveDetails(entity, weapons, out byte mode);
-            if (activeWeaponDetails == null || activeWeaponDetails.Weapon == null)
+            var evt = events[0];
+            events.RemoveAt(0);
+            if (armed)
             {
-                return;
+                weapons.Fire.AdvanceTo(ctx, evt.Time);
             }
 
-            var modeState = GetOrCreateState(entity, activeWeaponDetails, mode, time);
-            weapons.Fire.Process(new WeaponContext(entity, activeWeaponDetails, modeState, weapons.Ammo, weapons.Events), time);
-
-            // Process stops at a mode switch, the events after it run with the new mode
-            if (weapons.Events.Count == 0 || weapons.Events[0].Time > time || weapons.Events[0].Type != WeaponFireEventType.SelectFireMode)
+            switch (evt.Type)
             {
-                break;
-            }
+                case WeaponFireEventType.SelectWeapon:
+                    weapons.Slot = evt.Value;
+                    armed = TrySelect(entity, weapons, evt.Time, out ctx);
+                    break;
 
-            var evt = weapons.Events[0];
-            weapons.Events.RemoveAt(0);
-            if (evt.Slot < weapons.SlotModes.Length)
-            {
-                weapons.SlotModes[evt.Slot] = evt.Value;
+                case WeaponFireEventType.SelectFireMode:
+                    if (evt.Slot < weapons.SlotModes.Length)
+                    {
+                        weapons.SlotModes[evt.Slot] = evt.Value;
+                    }
+
+                    armed = TrySelect(entity, weapons, evt.Time, out ctx);
+                    break;
+
+                default:
+                    // Without a weapon there's nothing to check the event against
+                    if (armed)
+                    {
+                        weapons.Fire.Handle(ctx, evt);
+                    }
+
+                    break;
             }
         }
 
-        weapons.Ammo.Regen(entity, time);
+        if (armed)
+        {
+            weapons.Fire.AdvanceTo(ctx, now);
+        }
+
+        weapons.Ammo.Regen(entity, now);
     }
 
     private void ProcessPendingAbilityProjectiles(CharacterEntity entity)
@@ -652,8 +686,7 @@ public class WeaponSim
             return;
         }
 
-        var activeWeaponDetails = ActiveDetails(entity, GetOrCreateWeapons(entity), out byte mode);
-        if (activeWeaponDetails == null || activeWeaponDetails.Weapon == null)
+        if (!_weaponSimState.TryGetValue(entity.EntityId, out var weapons) || weapons.ActiveDetails is not { Weapon: not null } activeWeaponDetails)
         {
             return;
         }
@@ -661,7 +694,7 @@ public class WeaponSim
         var weapon = activeWeaponDetails.Weapon;
         var weaponId = activeWeaponDetails.WeaponId;
         uint time = _shard.CurrentTime;
-        var weaponSimState = GetOrCreateState(entity, activeWeaponDetails, mode, time);
+        var weaponSimState = weapons.Modes[weapons.ActiveMode];
 
         float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(activeWeaponDetails.WeaponProfile, weaponSimState, time);
 
@@ -728,7 +761,15 @@ public class WeaponSim
     private sealed class CharacterWeapons(WeaponFire fire)
     {
         public uint WeaponId;
+        public byte ActiveSlot = 255;
         public byte ActiveMode = 255;
+        public CharacterEntity.ActiveWeaponDetails ActiveDetails;
+
+        // The weapon slot as far as the processed events got
+        public byte Slot;
+
+        // The scope status effect on the character, 0 when unscoped
+        public uint ScopeEffect;
         public WeaponModeState[] Modes = new WeaponModeState[2];
 
         // By weapon slot, as far as the processed events got

@@ -22,43 +22,15 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
     // 0 when there's no first shot left to check
     private uint _expectedFirstShot;
 
-    public override void Process(in WeaponContext ctx, uint time)
+    public override void AdvanceTo(in WeaponContext ctx, uint time) => FinishReload(ctx, time);
+
+    public override void Switch(in WeaponContext ctx, bool weaponChanged, bool linkedModes, uint time)
     {
-        while (ctx.Events.Count > 0 && ctx.Events[0].Time <= time)
-        {
-            var evt = ctx.Events[0];
-            FinishReload(ctx, evt.Time);
-
-            // The sim switches the mode and calls again with the new one
-            if (evt.Type == WeaponFireEventType.SelectFireMode)
-            {
-                return;
-            }
-
-            ctx.Events.RemoveAt(0);
-            Handle(ctx, evt);
-        }
-
-        FinishReload(ctx, time);
-    }
-
-    public override void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
-    {
-        base.Switch(entity, details, weaponChanged, linkedModes, time);
+        base.Switch(ctx, weaponChanged, linkedModes, time);
         Reset(keepReload: !weaponChanged && linkedModes);
     }
 
-    // Linked modes share the clip, the client keeps reloading it across a mode switch
-    private void Reset(bool keepReload)
-    {
-        _reloading &= keepReload;
-        _lastShotTime = 0;
-        _shotsInPress = 0;
-        _roundsInPress = 0;
-        _expectedFirstShot = 0;
-    }
-
-    private void Handle(in WeaponContext ctx, WeaponFireEvent evt)
+    public override void Handle(in WeaponContext ctx, WeaponFireEvent evt)
     {
         switch (evt.Type)
         {
@@ -89,10 +61,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
                 break;
 
-            case WeaponFireEventType.SelectWeapon:
-                Reset(keepReload: false);
-                break;
-
             case WeaponFireEventType.ReloadWeapon:
                 if (_reloading)
                 {
@@ -115,6 +83,16 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
                 _reloading = false;
                 break;
         }
+    }
+
+    // Linked modes share the clip, the client keeps reloading it across a mode switch
+    private void Reset(bool keepReload)
+    {
+        _reloading &= keepReload;
+        _lastShotTime = 0;
+        _shotsInPress = 0;
+        _roundsInPress = 0;
+        _expectedFirstShot = 0;
     }
 
     private void Shoot(in WeaponContext ctx, WeaponFireEvent shot)
@@ -195,7 +173,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
     private uint ExpectedFirstShot(in WeaponContext ctx, uint press)
     {
-        uint expected = IsM1Chargeup(ctx.Details.Weapon) ? press + ChargeupCaps(ctx.Entity, ctx.Details).Min : press;
+        uint expected = IsM1Chargeup(ctx.Details.Weapon) ? press + ChargeupCaps(ctx).Min : press;
         if (_lastShotTime != 0)
         {
             expected = Math.Max(expected, _lastShotTime + ShotSpacing(ctx, 0));

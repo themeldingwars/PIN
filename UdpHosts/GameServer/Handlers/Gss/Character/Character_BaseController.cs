@@ -468,7 +468,7 @@ public static class Character_BaseController
 
             if (loadoutChanged)
             {
-                player.CharacterEntity.ResetFireModes(shard.CurrentTime);
+                shard.WeaponSim.ResetFireModes(player.CharacterEntity, shard.CurrentTime);
                 player.CharacterEntity.ResetCombatState($"switched to loadout {query.LoadoutId}");
                 SendFrameSwitch(client, shard, player, loadout.ChassisID);
             }

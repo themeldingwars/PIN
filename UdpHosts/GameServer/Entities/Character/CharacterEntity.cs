@@ -67,9 +67,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private int _aimSampleNewest;
     private ActiveWeaponDetails[,] _weaponDetailsCache;
 
-    // The scope status effect on the character, 0 when unscoped
-    private uint _scopeEffect;
-
     private uint _monsterTypeId;
 
     public CharacterEntity(IShard shard, ulong eid, CharacterEntity owner = null)
@@ -544,7 +541,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         var carriedEffects = ActiveEffects.Count(effect => effect != null);
 
         Shard.Abilities.RemoveAllActiveEffects(this);
-        _scopeEffect = 0;
         _abilityInputs.Clear();
         Shard.WeaponSim.ResetAmmoState(this);
 
@@ -1271,96 +1267,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     }
 
     /// <summary>
-    ///     Like the client, a weapon without a zoom ignores the scope, and only an alt mode flagged as the scope mode follows
-    ///     it.
-    /// </summary>
-    public void UseScope(bool inScope, uint time)
-    {
-        byte slot = WeaponIndex.Index;
-        if (GetWeaponDetails(slot, 0) is not { HasZoom: true } main)
-        {
-            return;
-        }
-
-        if (inScope)
-        {
-            ApplyScopeEffect(main.ScopeStatusFx, time);
-        }
-        else
-        {
-            RemoveScopeEffect();
-        }
-
-        if (HasAltMode(slot) && GetWeaponDetails(slot, 1).Weapon.Flags.AltIsScopeMode)
-        {
-            SelectFireMode(slot, (byte)(inScope ? 1 : 0), time);
-        }
-    }
-
-    /// <summary>
-    ///     Takes the weapon slot, 1 or 2, and 0 for the main mode or 1 for the alt.
-    /// </summary>
-    public void SelectFireMode(byte slot, byte mode, uint time)
-    {
-        if (slot is < 1 or > 2 || GetFireMode(slot) == mode)
-        {
-            return;
-        }
-
-        SetFireMode((byte)(slot - 1), new FireModeData { Mode = mode, Time = time });
-        Shard.WeaponSim.EnqueueFireEvent(this, new WeaponFireEvent
-        {
-            Time = time,
-            Type = WeaponFireEventType.SelectFireMode,
-            Slot = slot,
-            Value = mode,
-        });
-    }
-
-    /// <summary>
-    ///     The holstered weapon leaves its scope and a hold type alt like in the client, a spin-up or grenade alt stays
-    ///     selected.
-    /// </summary>
-    public void HolsterWeapon(byte slot, uint time)
-    {
-        if (GetWeaponDetails(slot, 0) is not { IsEmpty: false } main)
-        {
-            return;
-        }
-
-        RemoveScopeEffect();
-        bool holdAlt = HasAltMode(slot) && GetWeaponDetails(slot, 1).Weapon.Flags.Mode == WeaponFlags.BurstMode.Hold;
-        if (main.HasZoom || holdAlt)
-        {
-            SelectFireMode(slot, 0, time);
-        }
-    }
-
-    /// <summary>
-    ///     Leaves the fire mode alone, like the live servers at a death.
-    /// </summary>
-    public void RemoveScopeEffect()
-    {
-        if (_scopeEffect == 0)
-        {
-            return;
-        }
-
-        Shard.Abilities.DoRemoveEffect(this, _scopeEffect);
-        _scopeEffect = 0;
-    }
-
-    /// <summary>
-    ///     Like the client when it applies a different loadout, not on a respawn.
-    /// </summary>
-    public void ResetFireModes(uint time)
-    {
-        RemoveScopeEffect();
-        SetFireMode(0, new FireModeData { Mode = 0, Time = time });
-        SetFireMode(1, new FireModeData { Mode = 0, Time = time });
-    }
-
-    /// <summary>
     ///     Takes the weapon slot, 1 or 2, not the index of the FireMode field.
     /// </summary>
     public byte GetFireMode(byte slot) => slot switch
@@ -1489,8 +1395,18 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Character_ObserverView.NPCTypeProp = npcType;
     }
 
+    /// <summary>
+    ///     The weapon sim follows at the value's time, not right away.
+    /// </summary>
     public void SetWeaponIndex(WeaponIndexData value)
     {
+        Shard.WeaponSim.EnqueueFireEvent(this, new WeaponFireEvent
+        {
+            Time = value.Time,
+            Type = WeaponFireEventType.SelectWeapon,
+            Value = value.Index,
+        });
+
         WeaponIndex = value;
         Character_CombatView.WeaponIndexProp = WeaponIndex;
 
@@ -2479,20 +2395,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         {
             result[range.AttributeId] = result.GetValueOrDefault(range.AttributeId) + range.Base;
         }
-    }
-
-    // The live servers put the scope's effect on the character at the scope's time, melee abilities check its tag to scope out first
-    private void ApplyScopeEffect(uint effectId, uint time)
-    {
-        // A melee ability or a cleanse can have removed it in the meantime
-        if (effectId == 0 || ActiveEffects.Any(effect => effect?.Effect.Id == effectId))
-        {
-            return;
-        }
-
-        RemoveScopeEffect();
-        _scopeEffect = effectId;
-        Shard.Abilities.DoApplyEffect(effectId, this, new Context(Shard, this) { CurrentTime = time, InitTime = time });
     }
 
     private bool IsAltFireMode()

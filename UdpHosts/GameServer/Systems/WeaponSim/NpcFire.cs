@@ -40,9 +40,9 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         Reloading,
     }
 
-    public override void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
+    public override void Switch(in WeaponContext ctx, bool weaponChanged, bool linkedModes, uint time)
     {
-        base.Switch(entity, details, weaponChanged, linkedModes, time);
+        base.Switch(ctx, weaponChanged, linkedModes, time);
         _state = FireState.Idle;
         _nextShotTime = 0;
         _shotsRemainingInBurst = 0;
@@ -55,15 +55,15 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         {
             _charge = 0;
             _lastChargeTime = time;
-            (_chargeCap, _chargeMin) = ChargeupCaps(entity, details);
+            (_chargeCap, _chargeMin) = ChargeupCaps(ctx);
         }
         else if (_charge > 0)
         {
-            _charge = LinkedSameMode(entity) ? (uint)(_charge * _chargeSwitchKeepFraction) : 0;
+            _charge = LinkedSameMode(ctx.Entity, ctx.Slot) ? (uint)(_charge * _chargeSwitchKeepFraction) : 0;
         }
     }
 
-    public override void Process(in WeaponContext ctx, uint time)
+    public override void AdvanceTo(in WeaponContext ctx, uint time)
     {
         var weapon = ctx.Details.Weapon;
         UpdateCharge(weapon, time);
@@ -102,24 +102,10 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
             StartFiring(ctx, Math.Max(_nextShotTime, _triggerHeldTime));
         }
 
-        while (true)
+        // A shot due at the same time as the next event comes first
+        while (_state == FireState.Firing && _nextShotTime <= time)
         {
-            bool shotDue = _state == FireState.Firing && _nextShotTime <= time;
-            bool evtDue = ctx.Events.Count > 0 && ctx.Events[0].Time <= time;
-            if (!shotDue && !evtDue)
-            {
-                break;
-            }
-
-            var evt = evtDue ? ctx.Events[0] : default;
-            bool eventFirst = evtDue && (!shotDue || evt.Time < _nextShotTime);
-
-            if (eventFirst)
-            {
-                ctx.Events.RemoveAt(0);
-                Handle(ctx, evt);
-            }
-            else if (!TryFireScheduledShot(ctx))
+            if (!TryFireScheduledShot(ctx))
             {
                 OnClipEmpty(ctx, _nextShotTime);
                 break;
@@ -127,57 +113,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         }
     }
 
-    private static bool IsContinuousFireMode(WeaponTemplateResult weapon)
-    {
-        // BoltAction isn't part of the fire type bits
-        if (weapon.Flags.BoltAction)
-        {
-            return false;
-        }
-
-        var burstMode = weapon.Flags.Mode;
-        return burstMode != WeaponFlags.BurstMode.M2 && burstMode != WeaponFlags.BurstMode.Hold;
-    }
-
-    /// <summary>
-    ///     The spin-up alt fire, without clip or attack ability it only charges the weapon.
-    /// </summary>
-    private static bool IsChargeOnlyMode(WeaponTemplateResult weapon, WeaponProfile profile)
-    {
-        bool canFire = (profile.BaseClipSize > 0 && profile.MaxAmmo > 0) || weapon.AttackAbility != 0;
-        return !canFire;
-    }
-
-    private void UpdateCharge(WeaponTemplateResult weapon, uint time)
-    {
-        uint dt = time - _lastChargeTime;
-        _lastChargeTime = time;
-        if (_chargeCap == 0 || _state == FireState.Reloading)
-        {
-            return;
-        }
-
-        uint was = _charge;
-        if (_state == FireState.Firing)
-        {
-            _charge = _chargeCap;
-        }
-        else if (_triggerHeld)
-        {
-            _charge = was + dt > _chargeCap ? _chargeCap : was + dt;
-        }
-        else
-        {
-            _charge = was >= dt ? was - dt : 0;
-        }
-
-        if (_chargeMin > 0 && _triggerHeld && was < _chargeMin && _charge >= _chargeMin)
-        {
-            Sim.Logger.Debug("[FireSim] Charge armed weapon={Weapon} charge={Charge}/{Cap} min={Min} server={ServerTime}", weapon.DebugName, _charge, _chargeCap, _chargeMin, Sim.CurrentTime);
-        }
-    }
-
-    private void Handle(in WeaponContext ctx, WeaponFireEvent evt)
+    public override void Handle(in WeaponContext ctx, WeaponFireEvent evt)
     {
         var weapon = ctx.Details.Weapon;
         switch (evt.Type)
@@ -231,6 +167,62 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
                 }
 
                 break;
+        }
+    }
+
+    private static bool IsContinuousFireMode(WeaponTemplateResult weapon)
+    {
+        // BoltAction isn't part of the fire type bits
+        if (weapon.Flags.BoltAction)
+        {
+            return false;
+        }
+
+        var burstMode = weapon.Flags.Mode;
+        return burstMode != WeaponFlags.BurstMode.M2 && burstMode != WeaponFlags.BurstMode.Hold;
+    }
+
+    /// <summary>
+    ///     The spin-up alt fire, without clip or attack ability it only charges the weapon.
+    /// </summary>
+    private static bool IsChargeOnlyMode(WeaponTemplateResult weapon, WeaponProfile profile)
+    {
+        bool canFire = (profile.BaseClipSize > 0 && profile.MaxAmmo > 0) || weapon.AttackAbility != 0;
+        return !canFire;
+    }
+
+    private void UpdateCharge(WeaponTemplateResult weapon, uint time)
+    {
+        // A late event can be older than the last advance
+        if (time <= _lastChargeTime)
+        {
+            return;
+        }
+
+        uint dt = time - _lastChargeTime;
+        _lastChargeTime = time;
+        if (_chargeCap == 0 || _state == FireState.Reloading)
+        {
+            return;
+        }
+
+        uint was = _charge;
+        if (_state == FireState.Firing)
+        {
+            _charge = _chargeCap;
+        }
+        else if (_triggerHeld)
+        {
+            _charge = was + dt > _chargeCap ? _chargeCap : was + dt;
+        }
+        else
+        {
+            _charge = was >= dt ? was - dt : 0;
+        }
+
+        if (_chargeMin > 0 && _triggerHeld && was < _chargeMin && _charge >= _chargeMin)
+        {
+            Sim.Logger.Debug("[FireSim] Charge armed weapon={Weapon} charge={Charge}/{Cap} min={Min} server={ServerTime}", weapon.DebugName, _charge, _chargeCap, _chargeMin, Sim.CurrentTime);
         }
     }
 

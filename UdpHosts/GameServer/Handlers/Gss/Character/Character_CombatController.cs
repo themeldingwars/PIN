@@ -126,7 +126,7 @@ public static class Character_CombatController
 
         var serverTime = shard.CurrentTime;
         _logger.Debug("[UseScope] server={ServerTime} command={QueryTime} inscope={InScope}", serverTime, query.Time, query.InScope);
-        player.CharacterEntity.UseScope(query.InScope != 0, query.Time);
+        shard.WeaponSim.UseScope(player.CharacterEntity, query.InScope != 0, query.Time);
     }
 
     [MessageID(GssCharacterCommand.SelectWeapon)]
@@ -136,25 +136,7 @@ public static class Character_CombatController
 
         var serverTime = shard.CurrentTime;
         _logger.Debug("[SelectWeapon] server={ServerTime} command={QueryTime} index={SelectedWeaponIndex}, previous={PreviousWeaponIndex}", serverTime, query.Time, query.SelectedWeaponIndex, query.PreviousWeaponIndex);
-        var character = player.CharacterEntity;
-        if (query.SelectedWeaponIndex != character.WeaponIndex.Index)
-        {
-            character.HolsterWeapon(character.WeaponIndex.Index, query.Time);
-        }
-
-        character.SetWeaponIndex(new WeaponIndexData
-        {
-            Index = query.SelectedWeaponIndex,
-            PreviousIndex = query.PreviousWeaponIndex,
-            PlaySwapAnimation = 0,
-            Time = query.Time,
-        });
-        character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
-        {
-            Time = query.Time,
-            Type = WeaponFireEventType.SelectWeapon,
-            Value = query.SelectedWeaponIndex
-        });
+        shard.WeaponSim.SelectWeapon(player.CharacterEntity, query.SelectedWeaponIndex, query.PreviousWeaponIndex, query.Time);
     }
 
     [MessageID(GssCharacterCommand.SelectFireMode)]
@@ -165,10 +147,7 @@ public static class Character_CombatController
         _logger.Debug("[SelectFireMode] server={ServerTime} command={QueryTime} fireMode={FireMode}", serverTime, query.Time, query.FireMode);
 
         var character = player.CharacterEntity;
-        byte slot = character.WeaponIndex.Index;
-
-        // The client counts modulo the weapon's mode count
-        character.SelectFireMode(slot, character.HasAltMode(slot) ? (byte)(query.FireMode % 2) : (byte)0, query.Time);
+        shard.WeaponSim.SelectFireMode(character, character.WeaponIndex.Index, query.FireMode, query.Time);
     }
 
     [MessageID(GssCharacterCommand.ReloadWeapon)]

@@ -42,13 +42,12 @@ public sealed class WeaponAmmo
     /// <summary>
     ///     Linked modes share the main mode's clip, a different weapon in the slot starts full.
     /// </summary>
-    public void Select(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails active, byte mode, uint time, ILogger logger)
+    public void Select(CharacterEntity entity, byte slot, CharacterEntity.ActiveWeaponDetails active, byte mode, uint time, ILogger logger)
     {
-        var other = entity.GetWeaponDetails((byte)(1 - mode));
+        var other = entity.GetWeaponDetails(slot, (byte)(1 - mode));
         var linked = active.Weapon.Flags.LinkedModes || (other?.Weapon != null && other.Weapon.Flags.LinkedModes);
         var stateMode = linked ? (byte)0 : mode;
-        var details = linked && mode != 0 && entity.GetWeaponDetails(0) is { Weapon: not null } main ? main : active;
-        var slot = entity.WeaponIndex.Index;
+        var details = linked && mode != 0 && entity.GetWeaponDetails(slot, 0) is { Weapon: not null } main ? main : active;
         if (_states[slot, stateMode] is { } state && state.WeaponId == details.WeaponId)
         {
             _active = state;
