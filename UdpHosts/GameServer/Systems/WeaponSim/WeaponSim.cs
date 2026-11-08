@@ -156,7 +156,7 @@ public class WeaponSim
         _logger.Debug("Fired ability projectile ammo={AmmoType} range={Range} burst={Burst} entity={Entity} exec={ExecId}", pending.AmmoType, pending.Range, roundsToFire, entity.EntityId, pending.ExecutionId);
     }
 
-    public void RestockAmmo(CharacterEntity entity) => GetOrCreateWeapons(entity).Ammo.Restock(entity);
+    public void RestockAmmo(CharacterEntity entity, uint percent) => GetOrCreateWeapons(entity).Ammo.Restock(entity, percent);
 
     /// <summary>
     ///     Takes the weapon slot, 1 or 2. False for a character without weapon state.
@@ -166,7 +166,7 @@ public class WeaponSim
     public void ResetAmmoState(CharacterEntity entity)
     {
         _weaponSimState.Remove(entity.EntityId);
-        RestockAmmo(entity);
+        GetOrCreateWeapons(entity).Ammo.Reset(entity);
     }
 
     /// <summary>

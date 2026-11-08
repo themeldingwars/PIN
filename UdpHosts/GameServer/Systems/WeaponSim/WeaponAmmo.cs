@@ -130,23 +130,40 @@ public sealed class WeaponAmmo
     }
 
     /// <summary>
-    ///     Also writes full ammo for weapons that were never selected.
+    ///     Forgets every weapon and writes full clips and reserves.
     /// </summary>
-    public void Restock(CharacterEntity entity)
+    public void Reset(CharacterEntity entity)
     {
-        foreach (var state in _states)
-        {
-            if (state != null)
-            {
-                state.Clip = state.ClipMax;
-                state.Reserve = state.ReserveMax;
-                state.EmptyHandled = false;
-            }
-        }
+        Array.Clear(_states);
+        _active = new State();
 
         // Weapon slot 1 (primary) maps to ammo slot 0, weapon slot 2 (secondary) to ammo slot 1
-        RestockSlot(entity, 1, 0);
-        RestockSlot(entity, 2, 1);
+        ResetSlot(entity, 1, 0);
+        ResetSlot(entity, 2, 1);
+    }
+
+    /// <summary>
+    ///     Refills only the reserve, up to the capacity minus the clip, like the live servers. Takes the share of that room in
+    ///     percent, 100 for a full restock.
+    /// </summary>
+    public void Restock(CharacterEntity entity, uint percent)
+    {
+        // A weapon that was never selected still has the full ammo from Reset
+        foreach (var state in _states)
+        {
+            if (state is not { HasAmmo: true })
+            {
+                continue;
+            }
+
+            int room = Math.Max(0, state.ClipMax + state.ReserveMax - state.Clip);
+            int reserve = percent >= 100 ? room : Math.Min(room, state.Reserve + (int)((((long)room * percent) + 99) / 100));
+            if (reserve > state.Reserve)
+            {
+                state.Reserve = reserve;
+                Write(entity, state, reserveOnly: true);
+            }
+        }
     }
 
     /// <summary>
@@ -175,7 +192,7 @@ public sealed class WeaponAmmo
     // MaxAmmo includes the clip
     private static ushort FullReserve(ushort clip, ushort max) => (ushort)Math.Max(0, max - clip);
 
-    private static void RestockSlot(CharacterEntity entity, byte weaponSlot, int ammoSlot)
+    private static void ResetSlot(CharacterEntity entity, byte weaponSlot, int ammoSlot)
     {
         var details = entity.GetWeaponDetails(weaponSlot, 0);
         if (details?.Weapon == null)
@@ -184,15 +201,25 @@ public sealed class WeaponAmmo
         }
 
         var clip = WeaponAttributes.ClipSize(entity, details);
-        WriteFields(entity, ammoSlot, false, clip, FullReserve(clip, WeaponAttributes.MaxAmmo(entity, details)));
-        if (entity.GetWeaponDetails(weaponSlot, 1) is { Weapon: not null } alt)
+        var reserve = FullReserve(clip, WeaponAttributes.MaxAmmo(entity, details));
+        WriteFields(entity, ammoSlot, false, clip, reserve);
+        if (entity.GetWeaponDetails(weaponSlot, 1) is not { Weapon: not null } alt)
         {
-            var altClip = WeaponAttributes.ClipSize(entity, alt);
-            WriteFields(entity, ammoSlot, true, altClip, FullReserve(altClip, WeaponAttributes.MaxAmmo(entity, alt)));
+            return;
         }
+
+        // Linked modes share the main's clip
+        if (((details.Weapon.WeaponFlags | alt.Weapon.WeaponFlags) & 8) != 0)
+        {
+            WriteFields(entity, ammoSlot, true, clip, reserve);
+            return;
+        }
+
+        var altClip = WeaponAttributes.ClipSize(entity, alt);
+        WriteFields(entity, ammoSlot, true, altClip, FullReserve(altClip, WeaponAttributes.MaxAmmo(entity, alt)));
     }
 
-    private static void WriteFields(CharacterEntity entity, int ammoSlot, bool alt, ushort clip, ushort reserve)
+    private static void WriteFields(CharacterEntity entity, int ammoSlot, bool alt, ushort? clip, ushort reserve)
     {
         var view = entity.Character_CombatView;
         var controller = entity.Character_CombatController;
@@ -206,7 +233,11 @@ public sealed class WeaponAmmo
 
                 if (controller != null)
                 {
-                    controller.Clip_0Prop = clip;
+                    if (clip.HasValue)
+                    {
+                        controller.Clip_0Prop = clip.Value;
+                    }
+
                     controller.Ammo_0Prop = reserve;
                 }
 
@@ -219,7 +250,11 @@ public sealed class WeaponAmmo
 
                 if (controller != null)
                 {
-                    controller.Clip_1Prop = clip;
+                    if (clip.HasValue)
+                    {
+                        controller.Clip_1Prop = clip.Value;
+                    }
+
                     controller.Ammo_1Prop = reserve;
                 }
 
@@ -232,7 +267,11 @@ public sealed class WeaponAmmo
 
                 if (controller != null)
                 {
-                    controller.AltClip_0Prop = clip;
+                    if (clip.HasValue)
+                    {
+                        controller.AltClip_0Prop = clip.Value;
+                    }
+
                     controller.AltAmmo_0Prop = reserve;
                 }
 
@@ -245,7 +284,11 @@ public sealed class WeaponAmmo
 
                 if (controller != null)
                 {
-                    controller.AltClip_1Prop = clip;
+                    if (clip.HasValue)
+                    {
+                        controller.AltClip_1Prop = clip.Value;
+                    }
+
                     controller.AltAmmo_1Prop = reserve;
                 }
 
@@ -253,7 +296,8 @@ public sealed class WeaponAmmo
         }
     }
 
-    private static void Write(CharacterEntity entity, State state)
+    // A restock sends only the reserve, a clip would reset the client's prediction mid burst
+    private static void Write(CharacterEntity entity, State state, bool reserveOnly = false)
     {
         if (!state.HasAmmo)
         {
@@ -261,7 +305,7 @@ public sealed class WeaponAmmo
         }
 
         var ammoSlot = state.Slot >= 2 ? 1 : 0;
-        var clip = (ushort)Math.Max(0, state.Clip);
+        ushort? clip = reserveOnly ? null : (ushort)Math.Max(0, state.Clip);
         var reserve = (ushort)Math.Max(0, state.Reserve);
         WriteFields(entity, ammoSlot, state.Mode == 1, clip, reserve);
         if (state.Shared)

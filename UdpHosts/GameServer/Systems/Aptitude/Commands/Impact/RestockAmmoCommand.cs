@@ -27,7 +27,7 @@ public class RestockAmmoCommand : Command, ICommand
         {
             if (target is CharacterEntity character)
             {
-                context.Shard.WeaponSim.RestockAmmo(character);
+                context.Shard.WeaponSim.RestockAmmo(character, Params.Percent ?? 100);
             }
         }
 
