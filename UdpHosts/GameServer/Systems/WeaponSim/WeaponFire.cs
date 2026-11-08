@@ -99,11 +99,11 @@ internal abstract class WeaponFire
     }
 
     /// <summary>
-    ///     A whole burst's rounds, scaled by AmmoConsumption like in the client.
+    ///     A whole burst's rounds, scaled by AmmoConsumption like in the client. 0 for a heal beam or a spin-up alt.
     /// </summary>
     protected static int BurstCost(in WeaponContext ctx)
     {
-        int ammo = Math.Max(1, (int)ctx.Details.Weapon.AmmoPerBurst);
+        int ammo = (int)ctx.Details.Weapon.AmmoPerBurst;
         float consumption = ctx.Entity.Character_CombatController?.AmmoConsumptionProp.Value ?? 1f;
         return Math.Abs(consumption - 1f) > 0.001f ? (int)(ammo * consumption) : ammo;
     }

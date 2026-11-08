@@ -134,8 +134,9 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             }
         }
 
-        // The client caps the cost at the rounds left, one is enough to fire
-        if (!ammo.Has(1))
+        // The client caps the cost at the rounds left, one is enough to fire, a free shot needs none
+        int cost = ShotCost(ctx, _shotsInPress);
+        if (cost > 0 && !ammo.Has(1))
         {
             Sim.Logger.Debug("[FireCheck] Shot with {Clip} rounds in the clip (weapon={Weapon})", ammo.Clip, weapon.DebugName);
             return;
@@ -158,13 +159,13 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             _roundsInPress = fullAuto ? 0 : (uint)rounds;
         }
 
-        ammo.TrySpend(ctx.Entity, Math.Min(ShotCost(ctx, _shotsInPress), ammo.HasAmmo ? ammo.Clip : int.MaxValue), time);
+        ammo.TrySpend(ctx.Entity, Math.Min(cost, ammo.HasAmmo ? ammo.Clip : int.MaxValue), time);
         ctx.Mode.LastShotTime = time;
         _shotsInPress++;
         Sim.FireShot(ctx, time, shot.Aim, shot.Velocity, "client", _roundsInPress);
         AddHeat(ctx, time);
 
-        if (!ammo.Has(1))
+        if (cost > 0 && !ammo.Has(1))
         {
             ClipEmpty(ctx, time);
         }
