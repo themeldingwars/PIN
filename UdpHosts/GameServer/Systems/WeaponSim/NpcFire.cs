@@ -237,8 +237,9 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
     // False when the clip couldn't pay for the shot or is empty afterwards
     private bool TryFireScheduledShot(in WeaponContext ctx)
     {
-        int perShot = Math.Max(1, (int)ctx.Details.Weapon.AmmoPerBurst);
-        if (!ctx.Ammo.TrySpend(ctx.Entity, perShot, _nextShotTime))
+        // An NPC shot is a whole burst, capped at the rounds left like a player's
+        var ammo = ctx.Ammo;
+        if (!ammo.Has(1) || !ammo.TrySpend(ctx.Entity, ammo.HasAmmo ? Math.Min(BurstCost(ctx), ammo.Clip) : 0, _nextShotTime))
         {
             return false;
         }

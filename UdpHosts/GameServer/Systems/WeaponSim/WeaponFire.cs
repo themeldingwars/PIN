@@ -88,13 +88,7 @@ internal abstract class WeaponFire
     protected static int ShotCost(in WeaponContext ctx, uint shotInPress)
     {
         var weapon = ctx.Details.Weapon;
-        int ammo = Math.Max(1, (int)weapon.AmmoPerBurst);
-        float consumption = ctx.Entity.Character_CombatController?.AmmoConsumptionProp.Value ?? 1f;
-        if (Math.Abs(consumption - 1f) > 0.001f)
-        {
-            ammo = (int)(ammo * consumption);
-        }
-
+        int ammo = BurstCost(ctx);
         if (!IsTimedBurst(weapon))
         {
             return ammo;
@@ -102,6 +96,16 @@ internal abstract class WeaponFire
 
         int index = (int)(shotInPress % weapon.RoundsPerBurst);
         return (ammo / weapon.RoundsPerBurst) + (index < ammo % weapon.RoundsPerBurst ? 1 : 0);
+    }
+
+    /// <summary>
+    ///     A whole burst's rounds, scaled by AmmoConsumption like in the client.
+    /// </summary>
+    protected static int BurstCost(in WeaponContext ctx)
+    {
+        int ammo = Math.Max(1, (int)ctx.Details.Weapon.AmmoPerBurst);
+        float consumption = ctx.Entity.Character_CombatController?.AmmoConsumptionProp.Value ?? 1f;
+        return Math.Abs(consumption - 1f) > 0.001f ? (int)(ammo * consumption) : ammo;
     }
 
     /// <summary>
