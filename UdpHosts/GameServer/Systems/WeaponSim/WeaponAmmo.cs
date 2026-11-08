@@ -20,6 +20,8 @@ public sealed class WeaponAmmo
 
     public bool HasAmmo => _active.HasAmmo;
 
+    public bool SharedClip => _active.Shared;
+
     public int Clip => _active.Clip;
 
     public int ClipMax => _active.ClipMax;
@@ -30,6 +32,9 @@ public sealed class WeaponAmmo
     ///     The empty clip's ability already ran, false again once the clip has rounds.
     /// </summary>
     public bool EmptyHandled => _active.EmptyHandled;
+
+    // 0 before the first shot
+    public uint LastShotTime => _active.LastShotTime;
 
     public bool CanReload => _active.HasAmmo && _active.Reserve > 0 && _active.Clip < _active.ClipMax;
 

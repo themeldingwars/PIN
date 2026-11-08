@@ -87,7 +87,10 @@ internal abstract class WeaponFire
     /// </summary>
     protected bool StartReload(in WeaponContext ctx, uint time, out uint completeTime)
     {
-        completeTime = time + ctx.Details.Weapon.ReloadTime;
+        // After a shot the reload can't start before the penalty is over
+        var weapon = ctx.Details.Weapon;
+        uint start = ctx.Ammo.LastShotTime == 0 ? time : Math.Max(time, ctx.Ammo.LastShotTime + weapon.ReloadPenalty + weapon.MsBurstDuration);
+        completeTime = start + ReloadTime(ctx);
         if (!ctx.Ammo.CanReload)
         {
             return false;
@@ -128,6 +131,14 @@ internal abstract class WeaponFire
         Sim.Logger.Debug("[FireSim] Overheated (server={ServerTime} client={ClientTime} heat={Heat}/{Max} until={End} weapon={Weapon})", Sim.CurrentTime, time, _heat, profile.MsChargeUpMax, OverheatEnd, ctx.Details.Weapon.DebugName);
         Sim.ActivateWeaponAbility(ctx.Entity, ctx.Details.Weapon.OverchargeAbility, time);
         return true;
+    }
+
+    // A percentage, 100 from the chassis plus the gear, e.g. 88 reloads 12% faster
+    private static uint ReloadTime(in WeaponContext ctx)
+    {
+        uint reload = ctx.Details.Weapon.ReloadTime;
+        float bonus = ctx.Entity.CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)ItemAttributeId.ReloadTimeBonus) ?? 0f;
+        return bonus > 0f ? (uint)Math.Round(reload * bonus / 100f) : reload;
     }
 
     private static int RoundsInPress(WeaponTemplateResult weapon, WeaponAmmo ammo, out bool fullAuto)

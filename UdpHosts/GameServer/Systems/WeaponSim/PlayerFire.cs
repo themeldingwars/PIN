@@ -38,12 +38,13 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
     public override void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
     {
         base.Switch(entity, details, weaponChanged, linkedModes, time);
-        Reset();
+        Reset(keepReload: !weaponChanged && linkedModes);
     }
 
-    private void Reset()
+    // Linked modes share the clip, the client keeps reloading it across a mode switch
+    private void Reset(bool keepReload)
     {
-        _reloading = false;
+        _reloading &= keepReload;
         _lastShotTime = 0;
         _shotsInPress = 0;
         _roundsInPress = 0;
@@ -82,8 +83,11 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
                 break;
 
             case WeaponFireEventType.SelectWeapon:
+                Reset(keepReload: false);
+                break;
+
             case WeaponFireEventType.SelectFireMode:
-                Reset();
+                Reset(keepReload: ctx.Ammo.SharedClip);
                 break;
 
             case WeaponFireEventType.ReloadWeapon:
