@@ -68,6 +68,46 @@ internal abstract class WeaponFire
     }
 
     /// <summary>
+    ///     Rounds the shot at that index of the press takes, scaled by AmmoConsumption. A burst with a duration splits its
+    ///     ammo between its shots, the first ones take the remainder.
+    /// </summary>
+    protected static int ShotCost(in WeaponContext ctx, uint shotInPress)
+    {
+        var weapon = ctx.Details.Weapon;
+        int ammo = Math.Max(1, (int)weapon.AmmoPerBurst);
+        float consumption = ctx.Entity.Character_CombatController?.AmmoConsumptionProp.Value ?? 1f;
+        if (Math.Abs(consumption - 1f) > 0.001f)
+        {
+            ammo = (int)(ammo * consumption);
+        }
+
+        if (!IsTimedBurst(weapon))
+        {
+            return ammo;
+        }
+
+        int index = (int)(shotInPress % weapon.RoundsPerBurst);
+        return (ammo / weapon.RoundsPerBurst) + (index < ammo % weapon.RoundsPerBurst ? 1 : 0);
+    }
+
+    /// <summary>
+    ///     Time the shot at that index of the press comes after the previous one, in ms.
+    /// </summary>
+    protected static uint ShotSpacing(in WeaponContext ctx, uint shotInPress)
+    {
+        var weapon = ctx.Details.Weapon;
+        uint msPerBurst = Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst);
+        if (!IsTimedBurst(weapon))
+        {
+            return msPerBurst;
+        }
+
+        // The rounds of a burst are spread over its duration, the next burst starts MsPerBurst after this one did
+        uint between = weapon.MsBurstDuration / (uint)(weapon.RoundsPerBurst - 1);
+        return shotInPress % weapon.RoundsPerBurst == 0 ? Math.Max(1u, msPerBurst - weapon.MsBurstDuration) : Math.Max(1u, between);
+    }
+
+    /// <summary>
     ///     Returns the rounds of the press, the burst ability needs at least MinRoundsPerBurst of them.
     /// </summary>
     protected int StartPress(in WeaponContext ctx, uint time, out bool fullAuto)
@@ -132,6 +172,9 @@ internal abstract class WeaponFire
         Sim.ActivateWeaponAbility(ctx.Entity, ctx.Details.Weapon.OverchargeAbility, time);
         return true;
     }
+
+    // The client fires such a burst as one shot per round
+    private static bool IsTimedBurst(WeaponTemplateResult weapon) => weapon.MsBurstDuration > 0 && weapon.RoundsPerBurst >= 2;
 
     private static int RoundsInPress(WeaponTemplateResult weapon, WeaponAmmo ammo, out bool fullAuto)
     {

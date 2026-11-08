@@ -138,7 +138,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             return;
         }
 
-        int spacing = (int)Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst);
+        int spacing = (int)ShotSpacing(ctx, _shotsInPress);
         if (_lastShotTime != 0)
         {
             int since = unchecked((int)(time - _lastShotTime));
@@ -154,8 +154,8 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             }
         }
 
-        int perShot = Math.Max(1, (int)weapon.AmmoPerBurst);
-        if (!ammo.Has(perShot))
+        // The client caps the cost at the rounds left, one is enough to fire
+        if (!ammo.Has(1))
         {
             Sim.Logger.Debug("[FireCheck] Shot with {Clip} rounds in the clip (weapon={Weapon})", ammo.Clip, weapon.DebugName);
             return;
@@ -178,13 +178,13 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             _roundsInPress = fullAuto ? 0 : (uint)rounds;
         }
 
-        ammo.TrySpend(ctx.Entity, perShot, time);
+        ammo.TrySpend(ctx.Entity, Math.Min(ShotCost(ctx, _shotsInPress), ammo.HasAmmo ? ammo.Clip : int.MaxValue), time);
         _lastShotTime = time;
         _shotsInPress++;
         Sim.FireShot(ctx, time, shot.Aim, shot.Velocity, "client", _roundsInPress);
         AddHeat(ctx, time);
 
-        if (!ammo.Has(perShot))
+        if (!ammo.Has(1))
         {
             ClipEmpty(ctx, time);
         }
@@ -195,7 +195,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         uint expected = IsM1Chargeup(ctx.Details.Weapon) ? press + ChargeupCaps(ctx.Entity, ctx.Details).Min : press;
         if (_lastShotTime != 0)
         {
-            expected = Math.Max(expected, _lastShotTime + Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst));
+            expected = Math.Max(expected, _lastShotTime + ShotSpacing(ctx, 0));
         }
 
         if (_reloading)
