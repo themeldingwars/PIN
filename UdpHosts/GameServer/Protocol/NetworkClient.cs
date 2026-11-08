@@ -150,6 +150,7 @@ public class NetworkClient : INetworkClient
         {
             // A crash or a lost connection never sends RequestLogout, and the character has to be saved before it leaves
             player.SaveSession();
+            FriendsList.ReportOffline(player);
             AssignedShard?.MigrateOut(player);
         }
     }
@@ -269,6 +270,11 @@ public class NetworkClient : INetworkClient
         switch (messageId)
         {
             case ControlPacketType.CloseConnection:
+                if (this is INetworkPlayer player)
+                {
+                    player.LoggedOut = true;
+                }
+
                 Close("the client closed the connection");
                 break;
             case ControlPacketType.MatrixAck:

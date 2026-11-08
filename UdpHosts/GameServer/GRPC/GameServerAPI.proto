@@ -102,6 +102,17 @@ message CharacterAndBattleframeVisuals {
    CharacterVisuals CharacterVisuals = 2;
    PlayerBattleframeVisuals BattleframeVisuals = 3;
 }
+message CharacterFriendEntry {
+   uint64 CharacterGuid = 1;
+   string Name = 2;
+   string Note = 3;
+   int64 LastSeenAt = 4;
+   uint32 Status = 5;
+   bool IsOnline = 6;
+}
+message CharacterFriendsResponse {
+   repeated CharacterFriendEntry Friends = 1;
+}
 message CharacterID {
    int64 ID = 1;
 }
@@ -209,6 +220,7 @@ message Command {
       DeleteLoadoutPerk DeleteLoadoutPerk = 22;
       SaveBattleframeBandwidth SaveBattleframeBandwidth = 23;
       SaveLoadoutVisuals SaveLoadoutVisuals = 24;
+      SetFriendPresence SetFriendPresence = 25;
    }
 }
 message DeleteCharacterUnlock {
@@ -254,7 +266,25 @@ message Event {
       CharacterVisualsUpdated CharacterVisualsUpdated = 13;
       InventoryUpdated InventoryUpdated = 14;
       UnlocksUpdated UnlocksUpdated = 15;
+      FriendNotification FriendNotification = 16;
    }
+}
+message FriendNotification {
+   repeated uint64 TargetGuids = 1 [packed = false];
+   uint32 Kind = 2;
+   uint64 FromGuid = 3;
+   string FromName = 4;
+   FriendPresence FromPresence = 5;
+}
+message FriendPresence {
+   uint32 Gender = 1;
+   uint32 ChassisId = 2;
+   uint32 Level = 3;
+   uint32 EffectiveLevel = 4;
+   uint32 EliteRank = 5;
+   uint64 InstanceId = 6;
+   uint32 ZoneId = 7;
+   uint32 MaxHealth = 8;
 }
 message InventoryItemData {
    int64 ItemGuid = 1;
@@ -440,6 +470,14 @@ message SeedCharacterInventory {
    repeated InventoryLoadoutSlotData Slots = 5;
    repeated InventoryLoadoutVisualData Visuals = 6;
 }
+message SetFriendPresence {
+   uint64 CharacterGuid = 1;
+   string Name = 2;
+   FriendPresence Presence = 3;
+   bool SendFriends = 4;
+   bool Resync = 5;
+   bool MayReturn = 6;
+}
 message TransferCharacterReq {
    uint64 CharacterId = 1;
    uint32 ZoneId = 2;
@@ -451,6 +489,18 @@ message TransferCharacterResp {
 }
 message UnlocksUpdated {
    uint64 CharacterGuid = 1;
+}
+message UpdateCharacterFriendReq {
+   uint64 CharacterGuid = 1;
+   string FriendName = 2;
+   int32 Action = 3;
+   bool HasNote = 4;
+   string Note = 5;
+}
+message UpdateCharacterFriendResp {
+   string Reason = 1;
+   CharacterFriendEntry Friend = 2;
+   FriendPresence FriendPresence = 3;
 }
 message WebColor {
    uint32 color = 1;
@@ -479,9 +529,11 @@ service GameServerAPI {
    rpc AuthorizeLogin (LoginAuthorizationRequest) returns (LoginAuthorizationResponse);
    rpc GetBattleframeProgression (CharacterID) returns (BattleframeProgressionResponse);
    rpc GetCharacterAndBattleframeVisuals (CharacterID) returns (CharacterAndBattleframeVisuals);
+   rpc GetCharacterFriends (CharacterID) returns (CharacterFriendsResponse);
    rpc GetCharacterInventory (CharacterID) returns (CharacterInventoryResponse);
    rpc GetCharacterUnlocks (CharacterID) returns (CharacterUnlocksResponse);
    rpc Ping (PingReq) returns (PingResp);
    rpc Stream (stream Command) returns (stream Event);
    rpc TransferCharacter (TransferCharacterReq) returns (TransferCharacterResp);
+   rpc UpdateCharacterFriend (UpdateCharacterFriendReq) returns (UpdateCharacterFriendResp);
 }

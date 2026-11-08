@@ -84,6 +84,7 @@ public static class GenericShard
         var resp = new CloseConnection { ShutdownCode = 0 };
         client.NetChannels[ChannelType.Control].SendMessage(resp);
 
+        player.LoggedOut = true;
         player.SaveSession();
     }
 

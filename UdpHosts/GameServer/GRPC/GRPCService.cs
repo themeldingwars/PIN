@@ -51,6 +51,28 @@ public static class GRPCService
         return await _client.GetCharacterAndBattleframeVisualsAsync(new CharacterID { ID = characterId });
     }
 
+    public static async Task<CharacterFriendsResponse> GetCharacterFriendsAsync(long characterId)
+    {
+        return await _client.GetCharacterFriendsAsync(new CharacterID { ID = characterId });
+    }
+
+    /// <summary>
+    ///     Adds a friend, which sends a friend request or accepts one, removes one, which ends a friendship, takes
+    ///     back a request or declines one, or sets the note on one. Returns once RIN has written the friends lists.
+    /// </summary>
+    /// <param name="characterGuid">The full character guid, with the character type in its last byte</param>
+    /// <param name="friendName">The name of the friend, matched without case</param>
+    /// <param name="action">What to do</param>
+    /// <param name="note">The note to keep with the friend, or null to keep the one it has</param>
+    /// <returns>RIN's answer, its Reason says which of those happened or why nothing did. A failed rpc throws</returns>
+    public static async Task<UpdateCharacterFriendResp> UpdateCharacterFriendAsync(ulong characterGuid, string friendName, FriendAction action, string note)
+    {
+        return await _client.UpdateCharacterFriendAsync(new UpdateCharacterFriendReq
+        {
+            CharacterGuid = characterGuid, FriendName = friendName, Action = (int)action, HasNote = note != null, Note = note ?? string.Empty
+        });
+    }
+
     public static async Task<CharacterInventoryResponse> GetCharacterInventoryAsync(long characterId)
     {
         return await _client.GetCharacterInventoryAsync(new CharacterID { ID = characterId });
@@ -125,6 +147,9 @@ public static class GRPCService
     {
         _stream = _client.Stream(cancellationToken: ct);
 
+        // RIN forgets the presence a stream reported when it ends, this one has to report it again
+        FriendsList.ReportAllOnline(shards);
+
         try
         {
             await foreach (var evt in _stream.ResponseStream.ReadAllAsync(ct))
@@ -194,6 +219,9 @@ public static class GRPCService
                 break;
             case Event.SubtypeOneofCase.UnlocksUpdated:
                 UnlockEventHandler.HandleEvent(evt.UnlocksUpdated, clients);
+                break;
+            case Event.SubtypeOneofCase.FriendNotification:
+                FriendsList.HandleNotification(evt.FriendNotification, clients);
                 break;
             case Event.SubtypeOneofCase.None:
             default:

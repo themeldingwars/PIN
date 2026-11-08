@@ -51,6 +51,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public CharacterBattleframes Battleframes { get; set; }
     public uint ConnectedAt { get; }
     public bool SessionSaved { get; set; }
+    public bool TransferringZone { get; set; }
+    public bool LoggedOut { get; set; }
     public InstanceTransfer.Pending PendingTransfer { get; set; }
     public InstanceTransfer.ReturnPoint ReturnPoint { get; set; }
     public Vector3? ArrivalPosition { get; set; }

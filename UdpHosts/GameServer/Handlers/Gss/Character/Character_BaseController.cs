@@ -128,6 +128,8 @@ public static class Character_BaseController
     public static void PlayerReady(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
         player.Ready();
+
+        FriendsList.ReportOnline((INetworkPlayer)client);
     }
 
     [MessageID(GssCharacterCommand.MovementInput)]
@@ -300,33 +302,15 @@ public static class Character_BaseController
     [MessageID(GssCharacterCommand.FriendsListRequest)]
     public static void FriendsListRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
-        var friendsListResponse = new FriendsListResponse
-        {
-            Friends =
-            [
-                new FriendsListData
-                {
-                    CharacterGuid = 9162788533740412926,
-                    Name = "TestUser1",
-                    Note = string.Empty,
-                    StatusType = FriendStatusType.Friend,
-                    LastSeenAt = 1427570048,
-                    IsOnline = 1
-                },
-                new FriendsListData
-                {
-                    CharacterGuid = 9153042507174448638,
-                    Name = "TestUser2",
-                    Note = string.Empty,
-                    StatusType = FriendStatusType.Friend,
-                    LastSeenAt = 1471686583,
-                    IsOnline = 1
-                }
-            ],
-            Page = 0
-        };
+        var request = packet.Unpack<FriendsListRequest>();
+        FriendsList.SendPage((INetworkPlayer)client, request.Page);
+    }
 
-        client.NetChannels[ChannelType.ReliableGss].SendMessage(friendsListResponse, player.CharacterEntity.EntityId);
+    [MessageID(GssCharacterCommand.UpdateFriendStatus)]
+    public static void UpdateFriendStatus(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<UpdateFriendStatus>();
+        FriendsList.Update((INetworkPlayer)client, request);
     }
 
     [MessageID(GssCharacterCommand.MapOpened)]
