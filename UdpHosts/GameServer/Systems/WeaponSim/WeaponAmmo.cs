@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using GameServer.Entities.Character;
-using GameServer.Enums;
 using Serilog;
 
 namespace GameServer.Systems.WeaponSim;
@@ -59,19 +57,20 @@ public sealed class WeaponAmmo
             return;
         }
 
-        var profile = details.WeaponProfile;
+        var clip = WeaponAttributes.ClipSize(entity, details);
+        var max = WeaponAttributes.MaxAmmo(entity, details);
         state = new State
         {
             WeaponId = details.WeaponId,
             Slot = slot,
             Mode = stateMode,
             Shared = linked,
-            HasAmmo = profile.BaseClipSize > 0 && profile.MaxAmmo > 0,
-            ClipMax = profile.BaseClipSize,
-            ReserveMax = FullReserve(profile),
-            Clip = profile.BaseClipSize,
-            Reserve = FullReserve(profile),
-            RegenMs = RegenInterval(entity, details),
+            HasAmmo = clip > 0 && max > 0,
+            ClipMax = clip,
+            ReserveMax = FullReserve(clip, max),
+            Clip = clip,
+            Reserve = FullReserve(clip, max),
+            RegenMs = WeaponAttributes.RegenInterval(entity, details),
             LastRegenTime = time,
         };
         _states[slot, stateMode] = state;
@@ -173,21 +172,8 @@ public sealed class WeaponAmmo
 
     private static bool NeedsAmmo(int ammo, int max) => ammo < max && (max < 10000 || ammo <= max / 2);
 
-    // One round per interval, the item's Ammo Regeneration in rounds per second where it has one
-    private static uint RegenInterval(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details)
-    {
-        if (details.Weapon.ClipRegenMs == 0)
-        {
-            return 0;
-        }
-
-        float rate = details.Attributes.GetValueOrDefault((ushort)ItemAttributeId.AmmoRegeneration)
-                     + (entity.CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)ItemAttributeId.AmmoRegeneration) ?? 0f);
-        return rate > 0f ? (uint)Math.Max(1, Math.Round(1000f / rate)) : details.Weapon.ClipRegenMs;
-    }
-
     // MaxAmmo includes the clip
-    private static ushort FullReserve(WeaponProfile profile) => (ushort)Math.Max(0, profile.MaxAmmo - profile.BaseClipSize);
+    private static ushort FullReserve(ushort clip, ushort max) => (ushort)Math.Max(0, max - clip);
 
     private static void RestockSlot(CharacterEntity entity, byte weaponSlot, int ammoSlot)
     {
@@ -197,10 +183,12 @@ public sealed class WeaponAmmo
             return;
         }
 
-        WriteFields(entity, ammoSlot, false, details.WeaponProfile.BaseClipSize, FullReserve(details.WeaponProfile));
+        var clip = WeaponAttributes.ClipSize(entity, details);
+        WriteFields(entity, ammoSlot, false, clip, FullReserve(clip, WeaponAttributes.MaxAmmo(entity, details)));
         if (entity.GetWeaponDetails(weaponSlot, 1) is { Weapon: not null } alt)
         {
-            WriteFields(entity, ammoSlot, true, alt.WeaponProfile.BaseClipSize, FullReserve(alt.WeaponProfile));
+            var altClip = WeaponAttributes.ClipSize(entity, alt);
+            WriteFields(entity, ammoSlot, true, altClip, FullReserve(altClip, WeaponAttributes.MaxAmmo(entity, alt)));
         }
     }
 
