@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using GameServer.Entities.Character;
+using GameServer.Enums;
 using Serilog;
 
 namespace GameServer.Systems.WeaponSim;
@@ -9,6 +11,8 @@ namespace GameServer.Systems.WeaponSim;
 /// </summary>
 public sealed class WeaponAmmo
 {
+    private const uint _regenDelayMs = 500;
+
     private readonly State[,] _states = new State[3, 2];
 
     // Acts as a weapon without ammo until the first Select
@@ -62,6 +66,7 @@ public sealed class WeaponAmmo
             ReserveMax = FullReserve(profile),
             Clip = profile.BaseClipSize,
             Reserve = FullReserve(profile),
+            RegenMs = RegenInterval(entity, details),
             LastRegenTime = time,
         };
         _states[slot, stateMode] = state;
@@ -72,7 +77,7 @@ public sealed class WeaponAmmo
     /// <summary>
     ///     Takes nothing when the clip is short. Always true for a weapon without ammo.
     /// </summary>
-    public bool TrySpend(CharacterEntity entity, int rounds)
+    public bool TrySpend(CharacterEntity entity, int rounds, uint time)
     {
         if (!_active.HasAmmo)
         {
@@ -85,39 +90,39 @@ public sealed class WeaponAmmo
         }
 
         _active.Clip -= rounds;
-        Write(entity);
+        _active.LastShotTime = time;
+        Write(entity, _active);
         return true;
     }
 
     public void MarkEmpty() => _active.EmptyHandled = true;
 
-    public void Reload(CharacterEntity entity)
+    public void Reload(CharacterEntity entity, uint time)
     {
         int rounds = Math.Min(_active.ClipMax - _active.Clip, _active.Reserve);
         _active.Clip += rounds;
         _active.Reserve -= rounds;
+        _active.ReloadTime = time;
         if (_active.Clip > 0)
         {
             _active.EmptyHandled = false;
         }
 
-        Write(entity);
+        Write(entity, _active);
     }
 
     /// <summary>
-    ///     One round per regenMs from the reserve, 0 turns it off.
+    ///     Every weapon used so far regenerates, also the holstered one, like in the client.
     /// </summary>
-    public void Regen(CharacterEntity entity, uint time, uint regenMs)
+    public void Regen(CharacterEntity entity, uint time)
     {
-        if (!_active.HasAmmo || regenMs == 0 || _active.Clip >= _active.ClipMax || _active.Reserve <= 0 || time < _active.LastRegenTime + regenMs)
+        foreach (var state in _states)
         {
-            return;
+            if (state != null)
+            {
+                Regen(entity, state, time);
+            }
         }
-
-        _active.Clip++;
-        _active.Reserve--;
-        _active.LastRegenTime = time;
-        Write(entity);
     }
 
     /// <summary>
@@ -162,6 +167,19 @@ public sealed class WeaponAmmo
     }
 
     private static bool NeedsAmmo(int ammo, int max) => ammo < max && (max < 10000 || ammo <= max / 2);
+
+    // One round per interval, the item's Ammo Regeneration in rounds per second where it has one
+    private static uint RegenInterval(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details)
+    {
+        if (details.Weapon.ClipRegenMs == 0)
+        {
+            return 0;
+        }
+
+        float rate = details.Attributes.GetValueOrDefault((ushort)ItemAttributeId.AmmoRegeneration)
+                     + (entity.CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)ItemAttributeId.AmmoRegeneration) ?? 0f);
+        return rate > 0f ? (uint)Math.Max(1, Math.Round(1000f / rate)) : details.Weapon.ClipRegenMs;
+    }
 
     // MaxAmmo includes the clip
     private static ushort FullReserve(WeaponProfile profile) => (ushort)Math.Max(0, profile.MaxAmmo - profile.BaseClipSize);
@@ -242,21 +260,48 @@ public sealed class WeaponAmmo
         }
     }
 
-    private void Write(CharacterEntity entity)
+    private static void Write(CharacterEntity entity, State state)
     {
-        if (!_active.HasAmmo)
+        if (!state.HasAmmo)
         {
             return;
         }
 
-        var ammoSlot = _active.Slot >= 2 ? 1 : 0;
-        var clip = (ushort)Math.Max(0, _active.Clip);
-        var reserve = (ushort)Math.Max(0, _active.Reserve);
-        WriteFields(entity, ammoSlot, _active.Mode == 1, clip, reserve);
-        if (_active.Shared)
+        var ammoSlot = state.Slot >= 2 ? 1 : 0;
+        var clip = (ushort)Math.Max(0, state.Clip);
+        var reserve = (ushort)Math.Max(0, state.Reserve);
+        WriteFields(entity, ammoSlot, state.Mode == 1, clip, reserve);
+        if (state.Shared)
         {
             WriteFields(entity, ammoSlot, true, clip, reserve);
         }
+    }
+
+    private static void Regen(CharacterEntity entity, State state, uint time)
+    {
+        if (!state.HasAmmo || state.RegenMs == 0 || state.Clip >= state.ClipMax)
+        {
+            return;
+        }
+
+        // All due rounds at once like the client, one per tick would fall behind its clip
+        uint start = Math.Max(Math.Max(state.LastShotTime, state.ReloadTime) + _regenDelayMs, state.LastRegenTime);
+        if (time < start + state.RegenMs)
+        {
+            return;
+        }
+
+        uint due = (time - start) / state.RegenMs;
+        state.LastRegenTime = start + (due * state.RegenMs);
+        int rounds = (int)Math.Min(due, (uint)Math.Min(state.ClipMax - state.Clip, state.Reserve));
+        if (rounds <= 0)
+        {
+            return;
+        }
+
+        state.Clip += rounds;
+        state.Reserve -= rounds;
+        Write(entity, state);
     }
 
     private sealed class State
@@ -272,5 +317,8 @@ public sealed class WeaponAmmo
         public int ClipMax;
         public int ReserveMax;
         public uint LastRegenTime;
+        public uint LastShotTime;
+        public uint ReloadTime;
+        public uint RegenMs;
     }
 }

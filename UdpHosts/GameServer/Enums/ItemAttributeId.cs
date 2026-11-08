@@ -18,5 +18,6 @@ public enum ItemAttributeId : ushort
     CreatureDamageModifier = 1144,
     CreatureWeaponDamageModifier = 1145,
     PowerRating = 1451,
+    AmmoRegeneration = 1762,
     SprintSpeed = 1377
 }

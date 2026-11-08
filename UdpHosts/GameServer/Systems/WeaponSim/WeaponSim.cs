@@ -542,10 +542,7 @@ public class WeaponSim
         var modeState = GetOrCreateState(entity, activeWeaponDetails, time);
         var weapons = _weaponSimState[entity.EntityId];
         weapons.Fire.Process(new WeaponContext(entity, activeWeaponDetails, modeState, weapons.Ammo, weapons.Events), time);
-        if (!weapons.Fire.Busy)
-        {
-            weapons.Ammo.Regen(entity, time, activeWeaponDetails.Weapon.ClipRegenMs);
-        }
+        weapons.Ammo.Regen(entity, time);
     }
 
     private void ProcessPendingAbilityProjectiles(CharacterEntity entity)

@@ -17,11 +17,6 @@ internal abstract class WeaponFire
 {
     protected WeaponFire(WeaponSim sim) => Sim = sim;
 
-    /// <summary>
-    ///     The clip doesn't regenerate while this is true.
-    /// </summary>
-    public abstract bool Busy { get; }
-
     protected WeaponSim Sim { get; }
 
     public abstract void Process(in WeaponContext ctx, uint time);

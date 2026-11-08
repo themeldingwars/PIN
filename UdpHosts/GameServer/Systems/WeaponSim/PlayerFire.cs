@@ -11,7 +11,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
     // Slack before a shot is logged, or dropped during a reload
     private const int _toleranceMs = 10;
 
-    private bool _triggerHeld;
     private bool _reloading;
     private uint _reloadCompleteTime;
     private uint _lastShotTime;
@@ -22,8 +21,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
     // 0 when there's no first shot left to check
     private uint _expectedFirstShot;
-
-    public override bool Busy => _triggerHeld || _reloading;
 
     public override void Process(in WeaponContext ctx, uint time)
     {
@@ -42,7 +39,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
     private void Reset()
     {
-        _triggerHeld = false;
         _reloading = false;
         _lastShotTime = 0;
         _shotsInPress = 0;
@@ -59,7 +55,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
                 break;
 
             case WeaponFireEventType.FireBurst:
-                _triggerHeld = true;
                 _shotsInPress = 0;
                 _expectedFirstShot = ExpectedFirstShot(ctx, evt.Time);
                 if (!_reloading && !ctx.Ammo.Has(1) && !ctx.Ammo.EmptyHandled)
@@ -71,14 +66,12 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
             case WeaponFireEventType.FireEnd:
             case WeaponFireEventType.FireCancel:
-                _triggerHeld = false;
                 _expectedFirstShot = 0;
                 break;
 
             case WeaponFireEventType.FireInputIgnored:
                 if (evt.Value != 0)
                 {
-                    _triggerHeld = false;
                     _expectedFirstShot = 0;
                 }
 
@@ -171,7 +164,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             _roundsInPress = fullAuto ? 0 : (uint)rounds;
         }
 
-        ammo.TrySpend(ctx.Entity, perShot);
+        ammo.TrySpend(ctx.Entity, perShot, time);
         _lastShotTime = time;
         _shotsInPress++;
         Sim.FireShot(ctx, time, shot.Aim, shot.Velocity, "client", _roundsInPress);
@@ -179,7 +172,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         if (!ammo.Has(perShot))
         {
             ClipEmpty(ctx, time);
-            _triggerHeld = false;
         }
     }
 
@@ -204,7 +196,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         if (_reloading && time >= _reloadCompleteTime)
         {
             _reloading = false;
-            ctx.Ammo.Reload(ctx.Entity);
+            ctx.Ammo.Reload(ctx.Entity, _reloadCompleteTime);
         }
     }
 }

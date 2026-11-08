@@ -40,8 +40,6 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         Reloading,
     }
 
-    public override bool Busy => _state != FireState.Idle || _triggerHeld;
-
     public override void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
     {
         _state = FireState.Idle;
@@ -73,7 +71,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         // Before the loop, so a press held through the reload fires this tick
         if (_state == FireState.Reloading && time >= _reloadCompleteTime)
         {
-            ctx.Ammo.Reload(ctx.Entity);
+            ctx.Ammo.Reload(ctx.Entity, _reloadCompleteTime);
             _state = FireState.Idle;
 
             if (_triggerHeld && IsContinuousFireMode(weapon))
@@ -240,7 +238,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
     private bool TryFireScheduledShot(in WeaponContext ctx)
     {
         int perShot = Math.Max(1, (int)ctx.Details.Weapon.AmmoPerBurst);
-        if (!ctx.Ammo.TrySpend(ctx.Entity, perShot))
+        if (!ctx.Ammo.TrySpend(ctx.Entity, perShot, _nextShotTime))
         {
             return false;
         }
