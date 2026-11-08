@@ -40,4 +40,7 @@ public class WeaponModeState
 
     // 0 before the first shot
     public uint LastShotTime;
+
+    // Set by a burst of the other linked mode, a burst of this one can't start earlier
+    public uint NextBurstTime;
 }

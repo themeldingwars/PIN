@@ -66,9 +66,9 @@ internal abstract class WeaponFire
     }
 
     /// <summary>
-    ///     Like the client, a burst of one linked mode also holds back the other one.
+    ///     Call it after AddHeat, the other linked mode takes over the next burst time with an overheat lock.
     /// </summary>
-    protected static void RecordShot(in WeaponContext ctx, uint time)
+    protected static void RecordShot(in WeaponContext ctx, uint time, uint burstStart)
     {
         ctx.Mode.LastShotTime = time;
         var main = ctx.Entity.GetWeaponDetails(ctx.Slot, 0)?.Weapon;
@@ -76,9 +76,12 @@ internal abstract class WeaponFire
         if (ctx.Entity.HasAltMode(ctx.Slot) && main != null && alt != null && (main.Flags.LinkedModes || alt.Flags.LinkedModes))
         {
             var other = ReferenceEquals(ctx.Mode, ctx.Main) ? ctx.Alt : ctx.Main;
-            other.LastShotTime = Math.Max(other.LastShotTime, time);
+            uint next = Math.Max(burstStart + WeaponAttributes.ShotTime(ctx.Entity, Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst)), OverheatEnd(ctx));
+            other.NextBurstTime = Math.Max(other.NextBurstTime, next);
         }
     }
+
+    protected static bool StartsBurst(WeaponTemplateResult weapon, uint shotInPress) => !IsTimedBurst(weapon) || shotInPress % weapon.RoundsPerBurst == 0;
 
     protected static uint OverheatEnd(in WeaponContext ctx) => HeatState(ctx).OverheatEnd;
 

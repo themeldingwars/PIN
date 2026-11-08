@@ -24,6 +24,8 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
     // A charged shot counts its charge from here, 0 without a press
     private uint _pressTime;
 
+    private uint _burstStart;
+
     public override void AdvanceTo(in WeaponContext ctx, uint time) => FinishReload(ctx, time);
 
     // Holstering cancels the reload like in the client, a switch between linked modes keeps it
@@ -124,23 +126,25 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         }
 
         int spacing = (int)ShotSpacing(ctx, _shotsInPress);
-        uint lastShot = ctx.Mode.LastShotTime;
-        if (lastShot != 0)
+        bool startsBurst = StartsBurst(weapon, _shotsInPress);
+        uint ready = ctx.Mode.LastShotTime != 0 ? ctx.Mode.LastShotTime + (uint)spacing : 0;
+        if (startsBurst)
         {
-            int since = unchecked((int)(time - lastShot));
-            if (since < spacing - _toleranceMs)
-            {
-                Sim.Logger.Debug("[FireCheck] Shot {Since} ms after the last one, the weapon needs {Spacing} ms (weapon={Weapon})", since, spacing, weapon.DebugName);
+            ready = Math.Max(ready, ctx.Mode.NextBurstTime);
+        }
 
-                // Too fast for timing jitter
-                if (since < spacing / 2)
-                {
-                    return;
-                }
+        int ahead = ready == 0 ? 0 : unchecked((int)(ready - time));
+        if (ahead > _toleranceMs)
+        {
+            Sim.Logger.Debug("[FireCheck] Shot {Early} ms before the weapon is ready, it needs {Spacing} ms between shots (weapon={Weapon})", ahead, spacing, weapon.DebugName);
+
+            // Too early for timing jitter
+            if (ahead > spacing / 2)
+            {
+                return;
             }
         }
 
-        // The client caps the cost at the rounds left, one is enough to fire, a free shot needs none
         // Without a press the shot counts as fully charged
         int cost = ShotCost(ctx, _shotsInPress, _pressTime != 0 ? time - _pressTime : uint.MaxValue);
         if (cost > 0 && !ammo.Has(1))
@@ -166,11 +170,16 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             _roundsInPress = fullAuto ? 0 : (uint)rounds;
         }
 
+        if (startsBurst)
+        {
+            _burstStart = time;
+        }
+
         ammo.TrySpend(ctx.Entity, Math.Min(cost, ammo.HasAmmo ? ammo.Clip : int.MaxValue), time);
-        RecordShot(ctx, time);
         _shotsInPress++;
         Sim.FireShot(ctx, time, shot.Aim, shot.Velocity, "client", _roundsInPress);
         AddHeat(ctx, time);
+        RecordShot(ctx, time, _burstStart);
 
         if (cost > 0 && !ammo.Has(1))
         {
@@ -185,6 +194,8 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         {
             expected = Math.Max(expected, ctx.Mode.LastShotTime + ShotSpacing(ctx, 0));
         }
+
+        expected = Math.Max(expected, ctx.Mode.NextBurstTime);
 
         if (_reloading)
         {
