@@ -6,7 +6,7 @@ using GameServer.StaticDB;
 namespace GameServer.Systems.WeaponSim;
 
 /// <summary>
-///     Main is the slot's main mode, the same as Mode when that's active.
+///     Main and Alt are the slot's two modes, Mode is the active one of them.
 /// </summary>
 internal readonly record struct WeaponContext(
     CharacterEntity Entity,
@@ -14,6 +14,7 @@ internal readonly record struct WeaponContext(
     CharacterEntity.ActiveWeaponDetails Details,
     WeaponModeState Mode,
     WeaponModeState Main,
+    WeaponModeState Alt,
     WeaponAmmo Ammo,
     uint SwapReady);
 
@@ -49,6 +50,21 @@ internal abstract class WeaponFire
         }
 
         return (main.Flags.LinkedModes || alt.Flags.LinkedModes) && main.Flags.Mode == alt.Flags.Mode;
+    }
+
+    /// <summary>
+    ///     Like the client, a burst of one linked mode also holds back the other one.
+    /// </summary>
+    protected static void RecordShot(in WeaponContext ctx, uint time)
+    {
+        ctx.Mode.LastShotTime = time;
+        var main = ctx.Entity.GetWeaponDetails(ctx.Slot, 0)?.Weapon;
+        var alt = ctx.Entity.GetWeaponDetails(ctx.Slot, 1)?.Weapon;
+        if (ctx.Entity.HasAltMode(ctx.Slot) && main != null && alt != null && (main.Flags.LinkedModes || alt.Flags.LinkedModes))
+        {
+            var other = ReferenceEquals(ctx.Mode, ctx.Main) ? ctx.Alt : ctx.Main;
+            other.LastShotTime = Math.Max(other.LastShotTime, time);
+        }
     }
 
     protected static uint OverheatEnd(in WeaponContext ctx) => HeatState(ctx).OverheatEnd;

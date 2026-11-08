@@ -497,7 +497,7 @@ public partial class WeaponSim
         }
 
         bool weaponChanged = replaced || player.ActiveSlot != slot;
-        ctx = new WeaponContext(entity, slot, activeWeaponDetails, player.Modes[slot, activeMode], player.Modes[slot, 0], player.Ammo, player.SwapReady);
+        ctx = new WeaponContext(entity, slot, activeWeaponDetails, player.Modes[slot, activeMode], player.Modes[slot, 0], player.Modes[slot, 1], player.Ammo, player.SwapReady);
         bool modeChanged = player.ActiveMode != activeMode;
         if (weaponChanged || modeChanged)
         {

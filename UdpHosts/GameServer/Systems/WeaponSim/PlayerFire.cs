@@ -160,7 +160,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         }
 
         ammo.TrySpend(ctx.Entity, Math.Min(cost, ammo.HasAmmo ? ammo.Clip : int.MaxValue), time);
-        ctx.Mode.LastShotTime = time;
+        RecordShot(ctx, time);
         _shotsInPress++;
         Sim.FireShot(ctx, time, shot.Aim, shot.Velocity, "client", _roundsInPress);
         AddHeat(ctx, time);
