@@ -470,6 +470,19 @@ public partial class WeaponSim
     // The spread and recoil times run 1/TimeDilation as long, like every other weapon time
     private WeaponProfile SpreadProfile(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details) => details.WeaponProfile with { ModeFraction = WeaponAttributes.TimeFactor(entity) };
 
+    // The weapon's swap time bonus shortens it like the other percent bonuses
+    private uint SwapTime(CharacterEntity entity, byte slot, bool exit)
+    {
+        // The replays' swaps from an empty slot took 700 ms, the client's default for it isn't known
+        if (entity.GetWeaponDetails(slot, 0) is not { Weapon: not null } details)
+        {
+            return WeaponAttributes.ScaleTime(entity, 300);
+        }
+
+        uint ms = WeaponAttributes.Percent(exit ? details.Weapon.EquipExitMs : details.Weapon.EquipEnterMs, WeaponAttributes.Total(entity, details, ItemAttributeId.WeaponSwapTimeBonus));
+        return WeaponAttributes.ScaleTime(entity, ms);
+    }
+
     // The weapon the processed events have reached, the entity's fields already show the newest one
     private CharacterEntity.ActiveWeaponDetails SimWeapon(CharacterEntity entity)
     {
@@ -588,9 +601,7 @@ public partial class WeaponSim
                             WeaponFire.Holster(ctx, evt.Time);
                         }
 
-                        uint exit = entity.GetWeaponDetails(weapons.Slot, 0)?.Weapon?.EquipExitMs ?? 0;
-                        uint enter = entity.GetWeaponDetails(evt.Value, 0)?.Weapon?.EquipEnterMs ?? 0;
-                        weapons.SwapReady = evt.Time + exit + enter;
+                        weapons.SwapReady = evt.Time + SwapTime(entity, weapons.Slot, exit: true) + SwapTime(entity, evt.Value, exit: false);
                     }
 
                     weapons.Slot = evt.Value;

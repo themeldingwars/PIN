@@ -105,10 +105,11 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             FinishReload(ctx, _reloadCompleteTime);
         }
 
-        // Only logged, the client scales the swap by a factor we don't know yet: a 700 ms swap fired after 658 ms
+        // The client holds a shot back until the swap is over
         if (time + _toleranceMs < ctx.SwapReady)
         {
             Sim.Logger.Debug("[FireCheck] Shot {Early} ms before the weapon swap ends (weapon={Weapon})", ctx.SwapReady - time, weapon.DebugName);
+            return;
         }
 
         if (time + _toleranceMs < OverheatEnd(ctx))
