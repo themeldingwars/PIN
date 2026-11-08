@@ -8,7 +8,7 @@ namespace GameServer.Systems.WeaponSim;
 /// </summary>
 internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 {
-    // Slack before a shot is logged, or dropped during a reload
+    // Clock jitter a shot may have before it counts as early
     private const int _toleranceMs = 10;
 
     private bool _reloading;
@@ -35,7 +35,11 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         FinishReload(ctx, time);
     }
 
-    public override void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time) => Reset();
+    public override void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
+    {
+        base.Switch(entity, details, weaponChanged, linkedModes, time);
+        Reset();
+    }
 
     private void Reset()
     {
@@ -124,6 +128,12 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             FinishReload(ctx, _reloadCompleteTime);
         }
 
+        if (time + _toleranceMs < OverheatEnd)
+        {
+            Sim.Logger.Debug("[FireCheck] Shot {Early} ms before the overheat ends (weapon={Weapon})", OverheatEnd - time, weapon.DebugName);
+            return;
+        }
+
         int spacing = (int)Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst);
         if (_lastShotTime != 0)
         {
@@ -168,6 +178,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         _lastShotTime = time;
         _shotsInPress++;
         Sim.FireShot(ctx, time, shot.Aim, shot.Velocity, "client", _roundsInPress);
+        AddHeat(ctx, time);
 
         if (!ammo.Has(perShot))
         {
@@ -188,7 +199,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             expected = Math.Max(expected, _reloadCompleteTime);
         }
 
-        return expected;
+        return Math.Max(expected, OverheatEnd);
     }
 
     private void FinishReload(in WeaponContext ctx, uint time)

@@ -15,18 +15,34 @@ internal readonly record struct WeaponContext(
 
 internal abstract class WeaponFire
 {
+    // Survives a switch between linked modes, they share the heat
+    private uint _heat;
+    private uint _heatTime;
+
     protected WeaponFire(WeaponSim sim) => Sim = sim;
 
     protected WeaponSim Sim { get; }
+
+    protected uint OverheatEnd { get; private set; }
 
     public abstract void Process(in WeaponContext ctx, uint time);
 
     /// <summary>
     ///     A running press or reload doesn't carry over.
     /// </summary>
-    public abstract void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time);
+    public virtual void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
+    {
+        if (weaponChanged || !linkedModes)
+        {
+            _heat = 0;
+            _heatTime = 0;
+            OverheatEnd = 0;
+        }
+    }
 
     protected static bool IsM1Chargeup(WeaponTemplateResult weapon) => (weapon.WeaponFlags & 7u) == 1u && weapon.MsChargeUp > 0;
+
+    protected static bool CanOverheat(in WeaponContext ctx) => (ctx.Details.Weapon.WeaponFlags & 7u) == 5u && ctx.Details.WeaponProfile.MsChargeUpMax > 0;
 
     /// <summary>
     ///     From the main mode's template, the active mode's only when it alone spins up.
@@ -88,6 +104,32 @@ internal abstract class WeaponFire
         Sim.ActivateWeaponAbility(ctx.Entity, ctx.Details.Weapon.EmptyAbility, time);
     }
 
+    /// <summary>
+    ///     True when the shot overheats the weapon, it's locked until OverheatEnd then.
+    /// </summary>
+    protected bool AddHeat(in WeaponContext ctx, uint time)
+    {
+        var profile = ctx.Details.WeaponProfile;
+        if (!CanOverheat(ctx))
+        {
+            return false;
+        }
+
+        _heat = HeatAt(profile, time) + Math.Max(1u, profile.MsPerBurst);
+        _heatTime = time;
+
+        // Only above the max, a shot that lands exactly on it still lets the next one through
+        if (_heat <= profile.MsChargeUpMax)
+        {
+            return false;
+        }
+
+        OverheatEnd = time + profile.MsOverchargeDelay;
+        Sim.Logger.Debug("[FireSim] Overheated (server={ServerTime} client={ClientTime} heat={Heat}/{Max} until={End} weapon={Weapon})", Sim.CurrentTime, time, _heat, profile.MsChargeUpMax, OverheatEnd, ctx.Details.Weapon.DebugName);
+        Sim.ActivateWeaponAbility(ctx.Entity, ctx.Details.Weapon.OverchargeAbility, time);
+        return true;
+    }
+
     private static int RoundsInPress(WeaponTemplateResult weapon, WeaponAmmo ammo, out bool fullAuto)
     {
         fullAuto = false;
@@ -104,5 +146,19 @@ internal abstract class WeaponFire
 
         fullAuto = true;
         return ammo.HasAmmo ? Math.Max(1, ammo.Clip) : 1;
+    }
+
+    // The client cools the heat with the spread return fields, MsChargeUpMax per MsSpreadReturn
+    private uint HeatAt(WeaponProfile profile, uint time)
+    {
+        uint hold = Math.Max(1u, profile.MsPerBurst) + profile.MsSpreadReturnDelay;
+        uint elapsed = time - _heatTime;
+        if (_heat == 0 || elapsed <= hold || profile.MsSpreadReturn == 0)
+        {
+            return _heat;
+        }
+
+        ulong cooled = (ulong)profile.MsChargeUpMax * (elapsed - hold) / profile.MsSpreadReturn;
+        return cooled >= _heat ? 0 : _heat - (uint)cooled;
     }
 }

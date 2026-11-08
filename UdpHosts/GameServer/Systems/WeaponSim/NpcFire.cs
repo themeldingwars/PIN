@@ -42,6 +42,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
 
     public override void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
     {
+        base.Switch(entity, details, weaponChanged, linkedModes, time);
         _state = FireState.Idle;
         _nextShotTime = 0;
         _shotsRemainingInBurst = 0;
@@ -244,6 +245,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         }
 
         Sim.FireShot(ctx, _nextShotTime, ctx.Entity.AimDirection, null, "pose", _totalRoundsInPress);
+        bool overheated = AddHeat(ctx, _nextShotTime);
 
         // Also after the last shot, a press in the down time would otherwise fire right away
         _nextShotTime += Math.Max(1u, ctx.Details.WeaponProfile.MsPerBurst);
@@ -254,6 +256,12 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         else if (_shotsRemainingInBurst >= 0)
         {
             _state = FireState.Idle;
+        }
+
+        if (overheated)
+        {
+            _state = FireState.Idle;
+            _nextShotTime = Math.Max(_nextShotTime, OverheatEnd);
         }
 
         return ctx.Ammo.Has(1);
