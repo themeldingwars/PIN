@@ -25,6 +25,19 @@ internal abstract class WeaponFire
     protected WeaponSim Sim { get; }
 
     /// <summary>
+    ///     Reaching the heat limit is enough to lock the weapon here, a shot has to go over it.
+    /// </summary>
+    public static void Holster(in WeaponContext ctx, uint time)
+    {
+        var profile = ctx.Details.WeaponProfile;
+        var state = HeatState(ctx);
+        if (CanOverheat(ctx) && HeatAt(profile, state, time) >= profile.MsChargeUpMax)
+        {
+            state.OverheatEnd = Math.Max(state.OverheatEnd, state.HeatTime + profile.MsOverchargeDelay);
+        }
+    }
+
+    /// <summary>
     ///     Runs what's due up to the time, the sim calls it before every event and at the end of a tick.
     /// </summary>
     public abstract void AdvanceTo(in WeaponContext ctx, uint time);

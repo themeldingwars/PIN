@@ -578,6 +578,11 @@ public partial class WeaponSim
                 case WeaponFireEventType.SelectWeapon:
                     if (evt.Value != weapons.Slot)
                     {
+                        if (armed)
+                        {
+                            WeaponFire.Holster(ctx, evt.Time);
+                        }
+
                         uint exit = entity.GetWeaponDetails(weapons.Slot, 0)?.Weapon?.EquipExitMs ?? 0;
                         uint enter = entity.GetWeaponDetails(evt.Value, 0)?.Weapon?.EquipEnterMs ?? 0;
                         weapons.SwapReady = evt.Time + exit + enter;
