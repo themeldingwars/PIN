@@ -30,4 +30,14 @@ public class WeaponModeState
     public byte OldSpreadMovementState;
     public uint SpreadStateLastTime;
     public float PreviousSpreadFloor;
+
+    // Linked modes of the same fire type keep their heat on the main mode
+    public uint Heat;
+    public uint HeatTime;
+
+    // End of the overheat lock
+    public uint OverheatEnd;
+
+    // 0 before the first shot
+    public uint LastShotTime;
 }

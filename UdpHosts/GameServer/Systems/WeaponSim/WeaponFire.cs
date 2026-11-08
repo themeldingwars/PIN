@@ -5,24 +5,23 @@ using GameServer.StaticDB;
 
 namespace GameServer.Systems.WeaponSim;
 
+/// <summary>
+///     Main is the slot's main mode, the same as Mode when that's active.
+/// </summary>
 internal readonly record struct WeaponContext(
     CharacterEntity Entity,
     byte Slot,
     CharacterEntity.ActiveWeaponDetails Details,
     WeaponModeState Mode,
-    WeaponAmmo Ammo);
+    WeaponModeState Main,
+    WeaponAmmo Ammo,
+    uint SwapReady);
 
 internal abstract class WeaponFire
 {
-    // Survives a switch between linked modes, they share the heat
-    private uint _heat;
-    private uint _heatTime;
-
     protected WeaponFire(WeaponSim sim) => Sim = sim;
 
     protected WeaponSim Sim { get; }
-
-    protected uint OverheatEnd { get; private set; }
 
     /// <summary>
     ///     Runs what's due up to the time, the sim calls it before every event and at the end of a tick.
@@ -35,17 +34,9 @@ internal abstract class WeaponFire
     public abstract void Handle(in WeaponContext ctx, WeaponFireEvent evt);
 
     /// <summary>
-    ///     A running press or reload doesn't carry over.
+    ///     A running press or reload doesn't carry over, the heat and the last shot stay with their mode.
     /// </summary>
-    public virtual void Switch(in WeaponContext ctx, bool weaponChanged, bool linkedModes, uint time)
-    {
-        if (weaponChanged || !LinkedSameMode(ctx.Entity, ctx.Slot))
-        {
-            _heat = 0;
-            _heatTime = 0;
-            OverheatEnd = 0;
-        }
-    }
+    public abstract void Switch(in WeaponContext ctx, bool weaponChanged, bool linkedModes, uint time);
 
     /// <summary>
     ///     Whether heat and spin-up carry across a mode switch, the client's IsLinkedSameMode.
@@ -59,6 +50,8 @@ internal abstract class WeaponFire
 
         return (main.Flags.LinkedModes || alt.Flags.LinkedModes) && main.Flags.Mode == alt.Flags.Mode;
     }
+
+    protected static uint OverheatEnd(in WeaponContext ctx) => HeatState(ctx).OverheatEnd;
 
     protected static bool IsM1Chargeup(WeaponTemplateResult weapon) => weapon.Flags.Mode == WeaponFlags.BurstMode.Chargeup && weapon.MsChargeUp > 0;
 
@@ -183,17 +176,18 @@ internal abstract class WeaponFire
             return false;
         }
 
-        _heat = HeatAt(profile, time) + Math.Max(1u, profile.MsPerBurst);
-        _heatTime = time;
+        var state = HeatState(ctx);
+        state.Heat = HeatAt(profile, state, time) + Math.Max(1u, profile.MsPerBurst);
+        state.HeatTime = time;
 
         // Only above the max, a shot that lands exactly on it still lets the next one through
-        if (_heat <= profile.MsChargeUpMax)
+        if (state.Heat <= profile.MsChargeUpMax)
         {
             return false;
         }
 
-        OverheatEnd = time + profile.MsOverchargeDelay;
-        Sim.Logger.Debug("[FireSim] Overheated (server={ServerTime} client={ClientTime} heat={Heat}/{Max} until={End} weapon={Weapon})", Sim.CurrentTime, time, _heat, profile.MsChargeUpMax, OverheatEnd, ctx.Details.Weapon.DebugName);
+        state.OverheatEnd = time + profile.MsOverchargeDelay;
+        Sim.Logger.Debug("[FireSim] Overheated (server={ServerTime} client={ClientTime} heat={Heat}/{Max} until={End} weapon={Weapon})", Sim.CurrentTime, time, state.Heat, profile.MsChargeUpMax, state.OverheatEnd, ctx.Details.Weapon.DebugName);
         Sim.ActivateWeaponAbility(ctx.Entity, ctx.Details.Weapon.OverchargeAbility, time);
         return true;
     }
@@ -220,16 +214,18 @@ internal abstract class WeaponFire
     }
 
     // The client cools the heat with the spread return fields, MsChargeUpMax per MsSpreadReturn
-    private uint HeatAt(WeaponProfile profile, uint time)
+    private static uint HeatAt(WeaponProfile profile, WeaponModeState state, uint time)
     {
         uint hold = Math.Max(1u, profile.MsPerBurst) + profile.MsSpreadReturnDelay;
-        uint elapsed = time - _heatTime;
-        if (_heat == 0 || elapsed <= hold || profile.MsSpreadReturn == 0)
+        uint elapsed = time - state.HeatTime;
+        if (state.Heat == 0 || elapsed <= hold || profile.MsSpreadReturn == 0)
         {
-            return _heat;
+            return state.Heat;
         }
 
         ulong cooled = (ulong)profile.MsChargeUpMax * (elapsed - hold) / profile.MsSpreadReturn;
-        return cooled >= _heat ? 0 : _heat - (uint)cooled;
+        return cooled >= state.Heat ? 0 : state.Heat - (uint)cooled;
     }
+
+    private static WeaponModeState HeatState(in WeaponContext ctx) => LinkedSameMode(ctx.Entity, ctx.Slot) ? ctx.Main : ctx.Mode;
 }

@@ -487,16 +487,17 @@ public partial class WeaponSim
             return false;
         }
 
+        // Like the client's weapon objects, a slot keeps its state while holstered until a different weapon goes in
         uint weaponId = activeWeaponDetails.WeaponId;
-        bool weaponChanged = player.ActiveSlot != slot || player.WeaponId != weaponId;
-        if (weaponChanged)
+        bool replaced = player.Modes[slot, 0]?.WeaponId != weaponId;
+        if (replaced)
         {
-            player.WeaponId = weaponId;
-            player.Modes[0] = new WeaponModeState { WeaponId = weaponId };
-            player.Modes[1] = new WeaponModeState { WeaponId = weaponId };
+            player.Modes[slot, 0] = new WeaponModeState { WeaponId = weaponId };
+            player.Modes[slot, 1] = new WeaponModeState { WeaponId = weaponId };
         }
 
-        ctx = new WeaponContext(entity, slot, activeWeaponDetails, player.Modes[activeMode], player.Ammo);
+        bool weaponChanged = replaced || player.ActiveSlot != slot;
+        ctx = new WeaponContext(entity, slot, activeWeaponDetails, player.Modes[slot, activeMode], player.Modes[slot, 0], player.Ammo, player.SwapReady);
         bool modeChanged = player.ActiveMode != activeMode;
         if (weaponChanged || modeChanged)
         {
@@ -512,9 +513,9 @@ public partial class WeaponSim
 
             WeaponSpreadMath.SeedModeStateOnSwitch(
                 activeWeaponDetails.WeaponProfile,
-                player.Modes[activeMode],
+                player.Modes[slot, activeMode],
                 otherHasWeapon ? otherDetails.WeaponProfile : default,
-                otherHasWeapon ? player.Modes[otherMode] : null,
+                otherHasWeapon ? player.Modes[slot, otherMode] : null,
                 newHasScope,
                 newLinked,
                 otherLinked,
@@ -547,7 +548,7 @@ public partial class WeaponSim
         }
 
         uint currentTime = _shard.CurrentTime;
-        var weaponSimState = weapons.Modes[weapons.ActiveMode];
+        var weaponSimState = weapons.Modes[weapons.ActiveSlot, weapons.ActiveMode];
 
         WeaponSpreadMath.UpdateMovementState(activeWeaponDetails.WeaponProfile, weaponSimState, entity.MovementStateContainer.MovementStateValue, currentTime);
         WeaponSpreadMath.RecoilInterpUpdate(activeWeaponDetails.WeaponProfile, weaponSimState, currentTime, snapshot: false);
@@ -575,6 +576,13 @@ public partial class WeaponSim
             switch (evt.Type)
             {
                 case WeaponFireEventType.SelectWeapon:
+                    if (evt.Value != weapons.Slot)
+                    {
+                        uint exit = entity.GetWeaponDetails(weapons.Slot, 0)?.Weapon?.EquipExitMs ?? 0;
+                        uint enter = entity.GetWeaponDetails(evt.Value, 0)?.Weapon?.EquipEnterMs ?? 0;
+                        weapons.SwapReady = evt.Time + exit + enter;
+                    }
+
                     weapons.Slot = evt.Value;
                     armed = TrySelect(entity, weapons, evt.Time, out ctx);
                     break;
@@ -694,7 +702,7 @@ public partial class WeaponSim
         var weapon = activeWeaponDetails.Weapon;
         var weaponId = activeWeaponDetails.WeaponId;
         uint time = _shard.CurrentTime;
-        var weaponSimState = weapons.Modes[weapons.ActiveMode];
+        var weaponSimState = weapons.Modes[weapons.ActiveSlot, weapons.ActiveMode];
 
         float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(activeWeaponDetails.WeaponProfile, weaponSimState, time);
 
@@ -760,7 +768,6 @@ public partial class WeaponSim
 
     private sealed class CharacterWeapons(WeaponFire fire)
     {
-        public uint WeaponId;
         public byte ActiveSlot = 255;
         public byte ActiveMode = 255;
         public CharacterEntity.ActiveWeaponDetails ActiveDetails;
@@ -770,7 +777,12 @@ public partial class WeaponSim
 
         // The scope status effect on the character, 0 when unscoped
         public uint ScopeEffect;
-        public WeaponModeState[] Modes = new WeaponModeState[2];
+
+        // The end of the last weapon swap
+        public uint SwapReady;
+
+        // By weapon slot and mode
+        public WeaponModeState[,] Modes = new WeaponModeState[3, 2];
 
         // By weapon slot, as far as the processed events got
         public byte[] SlotModes = new byte[3];

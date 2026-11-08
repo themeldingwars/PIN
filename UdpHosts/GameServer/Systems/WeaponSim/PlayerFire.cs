@@ -13,7 +13,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
     private bool _reloading;
     private uint _reloadCompleteTime;
-    private uint _lastShotTime;
     private uint _shotsInPress;
 
     // For the spread heat, 0 for full auto
@@ -24,10 +23,13 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
 
     public override void AdvanceTo(in WeaponContext ctx, uint time) => FinishReload(ctx, time);
 
+    // Holstering cancels the reload like in the client, a switch between linked modes keeps it
     public override void Switch(in WeaponContext ctx, bool weaponChanged, bool linkedModes, uint time)
     {
-        base.Switch(ctx, weaponChanged, linkedModes, time);
-        Reset(keepReload: !weaponChanged && linkedModes);
+        _reloading &= !weaponChanged && linkedModes;
+        _shotsInPress = 0;
+        _roundsInPress = 0;
+        _expectedFirstShot = 0;
     }
 
     public override void Handle(in WeaponContext ctx, WeaponFireEvent evt)
@@ -85,16 +87,6 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         }
     }
 
-    // Linked modes share the clip, the client keeps reloading it across a mode switch
-    private void Reset(bool keepReload)
-    {
-        _reloading &= keepReload;
-        _lastShotTime = 0;
-        _shotsInPress = 0;
-        _roundsInPress = 0;
-        _expectedFirstShot = 0;
-    }
-
     private void Shoot(in WeaponContext ctx, WeaponFireEvent shot)
     {
         var weapon = ctx.Details.Weapon;
@@ -113,16 +105,23 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             FinishReload(ctx, _reloadCompleteTime);
         }
 
-        if (time + _toleranceMs < OverheatEnd)
+        // Only logged, the client scales the swap by a factor we don't know yet: a 700 ms swap fired after 658 ms
+        if (time + _toleranceMs < ctx.SwapReady)
         {
-            Sim.Logger.Debug("[FireCheck] Shot {Early} ms before the overheat ends (weapon={Weapon})", OverheatEnd - time, weapon.DebugName);
+            Sim.Logger.Debug("[FireCheck] Shot {Early} ms before the weapon swap ends (weapon={Weapon})", ctx.SwapReady - time, weapon.DebugName);
+        }
+
+        if (time + _toleranceMs < OverheatEnd(ctx))
+        {
+            Sim.Logger.Debug("[FireCheck] Shot {Early} ms before the overheat ends (weapon={Weapon})", OverheatEnd(ctx) - time, weapon.DebugName);
             return;
         }
 
         int spacing = (int)ShotSpacing(ctx, _shotsInPress);
-        if (_lastShotTime != 0)
+        uint lastShot = ctx.Mode.LastShotTime;
+        if (lastShot != 0)
         {
-            int since = unchecked((int)(time - _lastShotTime));
+            int since = unchecked((int)(time - lastShot));
             if (since < spacing - _toleranceMs)
             {
                 Sim.Logger.Debug("[FireCheck] Shot {Since} ms after the last one, the weapon needs {Spacing} ms (weapon={Weapon})", since, spacing, weapon.DebugName);
@@ -160,7 +159,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
         }
 
         ammo.TrySpend(ctx.Entity, Math.Min(ShotCost(ctx, _shotsInPress), ammo.HasAmmo ? ammo.Clip : int.MaxValue), time);
-        _lastShotTime = time;
+        ctx.Mode.LastShotTime = time;
         _shotsInPress++;
         Sim.FireShot(ctx, time, shot.Aim, shot.Velocity, "client", _roundsInPress);
         AddHeat(ctx, time);
@@ -174,9 +173,9 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
     private uint ExpectedFirstShot(in WeaponContext ctx, uint press)
     {
         uint expected = IsM1Chargeup(ctx.Details.Weapon) ? press + ChargeupCaps(ctx).Min : press;
-        if (_lastShotTime != 0)
+        if (ctx.Mode.LastShotTime != 0)
         {
-            expected = Math.Max(expected, _lastShotTime + ShotSpacing(ctx, 0));
+            expected = Math.Max(expected, ctx.Mode.LastShotTime + ShotSpacing(ctx, 0));
         }
 
         if (_reloading)
@@ -184,7 +183,7 @@ internal sealed class PlayerFire(WeaponSim sim) : WeaponFire(sim)
             expected = Math.Max(expected, _reloadCompleteTime);
         }
 
-        return Math.Max(expected, OverheatEnd);
+        return Math.Max(expected, OverheatEnd(ctx));
     }
 
     private void FinishReload(in WeaponContext ctx, uint time)

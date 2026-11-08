@@ -42,7 +42,6 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
 
     public override void Switch(in WeaponContext ctx, bool weaponChanged, bool linkedModes, uint time)
     {
-        base.Switch(ctx, weaponChanged, linkedModes, time);
         _state = FireState.Idle;
         _nextShotTime = 0;
         _shotsRemainingInBurst = 0;
@@ -253,7 +252,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         if (overheated)
         {
             _state = FireState.Idle;
-            _nextShotTime = Math.Max(_nextShotTime, OverheatEnd);
+            _nextShotTime = Math.Max(_nextShotTime, OverheatEnd(ctx));
         }
 
         return ctx.Ammo.Has(1);
