@@ -45,7 +45,7 @@ public sealed class WeaponAmmo
     public void Select(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails active, byte mode, uint time, ILogger logger)
     {
         var other = entity.GetWeaponDetails((byte)(1 - mode));
-        var linked = (active.Weapon.WeaponFlags & 8) != 0 || (other?.Weapon != null && (other.Weapon.WeaponFlags & 8) != 0);
+        var linked = active.Weapon.Flags.LinkedModes || (other?.Weapon != null && other.Weapon.Flags.LinkedModes);
         var stateMode = linked ? (byte)0 : mode;
         var details = linked && mode != 0 && entity.GetWeaponDetails(0) is { Weapon: not null } main ? main : active;
         var slot = entity.WeaponIndex.Index;
@@ -207,7 +207,7 @@ public sealed class WeaponAmmo
         }
 
         // Linked modes share the main's clip
-        if (((details.Weapon.WeaponFlags | alt.Weapon.WeaponFlags) & 8) != 0)
+        if (details.Weapon.Flags.LinkedModes || alt.Weapon.Flags.LinkedModes)
         {
             WriteFields(entity, ammoSlot, true, clip, reserve);
             return;

@@ -32,7 +32,7 @@ internal abstract class WeaponFire
     /// </summary>
     public virtual void Switch(CharacterEntity entity, CharacterEntity.ActiveWeaponDetails details, bool weaponChanged, bool linkedModes, uint time)
     {
-        if (weaponChanged || !linkedModes)
+        if (weaponChanged || !LinkedSameMode(entity))
         {
             _heat = 0;
             _heatTime = 0;
@@ -40,9 +40,23 @@ internal abstract class WeaponFire
         }
     }
 
-    protected static bool IsM1Chargeup(WeaponTemplateResult weapon) => (weapon.WeaponFlags & 7u) == 1u && weapon.MsChargeUp > 0;
+    /// <summary>
+    ///     Whether heat and spin-up carry across a mode switch, the client's IsLinkedSameMode.
+    /// </summary>
+    protected static bool LinkedSameMode(CharacterEntity entity)
+    {
+        byte slot = entity.WeaponIndex.Index;
+        if (!entity.HasAltMode(slot) || entity.GetWeaponDetails(slot, 0)?.Weapon is not { } main || entity.GetWeaponDetails(slot, 1)?.Weapon is not { } alt)
+        {
+            return false;
+        }
 
-    protected static bool CanOverheat(in WeaponContext ctx) => (ctx.Details.Weapon.WeaponFlags & 7u) == 5u && ctx.Details.WeaponProfile.MsChargeUpMax > 0;
+        return (main.Flags.LinkedModes || alt.Flags.LinkedModes) && main.Flags.Mode == alt.Flags.Mode;
+    }
+
+    protected static bool IsM1Chargeup(WeaponTemplateResult weapon) => weapon.Flags.Mode == WeaponFlags.BurstMode.Chargeup && weapon.MsChargeUp > 0;
+
+    protected static bool CanOverheat(in WeaponContext ctx) => ctx.Details.Weapon.Flags.Mode == WeaponFlags.BurstMode.Overheat && ctx.Details.WeaponProfile.MsChargeUpMax > 0;
 
     /// <summary>
     ///     From the main mode's template, the active mode's only when it alone spins up.
@@ -179,8 +193,8 @@ internal abstract class WeaponFire
     private static int RoundsInPress(WeaponTemplateResult weapon, WeaponAmmo ammo, out bool fullAuto)
     {
         fullAuto = false;
-        byte burstMode = (byte)(weapon.WeaponFlags & 7u);
-        if (((WeaponFlags)weapon.WeaponFlags).BoltAction || burstMode == 2 || burstMode == 4)
+        var burstMode = weapon.Flags.Mode;
+        if (weapon.Flags.BoltAction || burstMode == WeaponFlags.BurstMode.M2 || burstMode == WeaponFlags.BurstMode.Hold)
         {
             return 1;
         }

@@ -8,11 +8,11 @@ public readonly record struct WeaponFlags(uint Raw)
     public enum BurstMode : byte
     {
         M0 = 0, // Standard?
-        M1 = 1, // HMG?
+        Chargeup = 1, // Spins up before the first shot, e.g. the HMG
         M2 = 2, // Bolt Action?
         M3 = 3,
-        M4 = 4, // ?
-        M5 = 5, // gets double recoil alt fire?
+        Hold = 4, // The alt fire key is held, e.g. the heal beam
+        Overheat = 5, // Each shot adds heat, too much locks the weapon
         M6 = 6, // Rated limited
         M7 = 7 // Similar to M1
     }
@@ -34,9 +34,9 @@ public readonly record struct WeaponFlags(uint Raw)
     public bool BoltAction => (Raw & (1u << 4)) != 0; // I think this is related to having to click for every shot
 
     /// <summary>
-    /// Set on some primaries, couple of cases where its set on the alt-fire but not the main-fire "alt-fire availability". "Alternate fire can be selected while primary is firing / not in chargeup state"
+    /// Set on the alt template, scoping in on a weapon with a zoom selects this alt.
     /// </summary>
-    public bool AltFireAvailable => (Raw & (1u << 5)) != 0;
+    public bool AltIsScopeMode => (Raw & (1u << 5)) != 0;
 
     /// <summary>
     /// ???
@@ -102,7 +102,7 @@ public readonly record struct WeaponFlags(uint Raw)
 
         CheckAndAdd(parts, "LinkedModes", LinkedModes);
         CheckAndAdd(parts, "BoltAction", BoltAction);
-        CheckAndAdd(parts, "AltFireAvailable", AltFireAvailable);
+        CheckAndAdd(parts, "AltIsScopeMode", AltIsScopeMode);
         CheckAndAdd(parts, "Unk6", Unk6);
         CheckAndAdd(parts, "Unk7ExtraParam", Unk7ExtraParam);
         CheckAndAdd(parts, "Unk8TargetList", Unk8TargetList);

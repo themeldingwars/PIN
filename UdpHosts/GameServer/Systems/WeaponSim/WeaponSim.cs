@@ -497,8 +497,8 @@ public class WeaponSim
             bool otherHasWeapon = entity.HasAltMode(entity.WeaponIndex.Index) && otherDetails != null && otherDetails.Weapon != null;
 
             bool newHasScope = activeWeaponDetails.HasZoom;
-            bool newLinked = (activeWeaponDetails.Weapon.WeaponFlags & 8) != 0;
-            bool otherLinked = otherHasWeapon && (otherDetails.Weapon!.WeaponFlags & 8) != 0;
+            bool newLinked = activeWeaponDetails.Weapon.Flags.LinkedModes;
+            bool otherLinked = otherHasWeapon && otherDetails.Weapon!.Flags.LinkedModes;
 
             WeaponSpreadMath.SeedModeStateOnSwitch(
                 activeWeaponDetails.WeaponProfile,

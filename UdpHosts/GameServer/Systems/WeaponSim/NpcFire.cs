@@ -59,8 +59,7 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
         }
         else if (_charge > 0)
         {
-            // Unlinked modes are separate weapon templates with their own spin-up
-            _charge = linkedModes ? (uint)(_charge * _chargeSwitchKeepFraction) : 0;
+            _charge = LinkedSameMode(entity) ? (uint)(_charge * _chargeSwitchKeepFraction) : 0;
         }
     }
 
@@ -131,13 +130,13 @@ internal sealed class NpcFire(WeaponSim sim) : WeaponFire(sim)
     private static bool IsContinuousFireMode(WeaponTemplateResult weapon)
     {
         // BoltAction isn't part of the fire type bits
-        if (((WeaponFlags)weapon.WeaponFlags).BoltAction)
+        if (weapon.Flags.BoltAction)
         {
             return false;
         }
 
-        byte burstMode = (byte)(weapon.WeaponFlags & 7u);
-        return burstMode != 2 && burstMode != 4;
+        var burstMode = weapon.Flags.Mode;
+        return burstMode != WeaponFlags.BurstMode.M2 && burstMode != WeaponFlags.BurstMode.Hold;
     }
 
     /// <summary>

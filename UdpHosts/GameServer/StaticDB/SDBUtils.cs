@@ -725,6 +725,8 @@ public class WeaponTemplateResult
 
     // ?
     public uint MsReturn;
+
+    public global::GameServer.Enums.WeaponFlags Flags => WeaponFlags;
 }
 
 public class VehicleInfoResult

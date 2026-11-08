@@ -696,6 +696,15 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         CurrentLoadout = loadout;
         RebuildWeaponDetailsCache(loadout);
         RecalculateHealthAndWeaponDamage();
+        if (IsNpc)
+        {
+            // The live servers sent 255 for an NPC's empty weapon slot
+            for (byte slot = 1; slot <= 2; slot++)
+            {
+                byte mode = _weaponDetailsCache[slot, 0].IsEmpty ? (byte)255 : (byte)0;
+                SetFireMode((byte)(slot - 1), new FireModeData { Mode = mode, Time = Shard.CurrentTime });
+            }
+        }
 
         var emptyVisuals = new VisualsBlock
         {
@@ -1282,7 +1291,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             RemoveScopeEffect();
         }
 
-        if (HasAltMode(slot) && (GetWeaponDetails(slot, 1).Weapon.WeaponFlags & 0x20) != 0)
+        if (HasAltMode(slot) && GetWeaponDetails(slot, 1).Weapon.Flags.AltIsScopeMode)
         {
             SelectFireMode(slot, (byte)(inScope ? 1 : 0), time);
         }
@@ -1320,7 +1329,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         RemoveScopeEffect();
-        bool holdAlt = HasAltMode(slot) && (GetWeaponDetails(slot, 1).Weapon.WeaponFlags & 7) == 4;
+        bool holdAlt = HasAltMode(slot) && GetWeaponDetails(slot, 1).Weapon.Flags.Mode == WeaponFlags.BurstMode.Hold;
         if (main.HasZoom || holdAlt)
         {
             SelectFireMode(slot, 0, time);
