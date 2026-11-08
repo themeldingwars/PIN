@@ -92,6 +92,9 @@ public static class ZoneTransfer
             // RIN has the new zone now, the disconnect that follows mustn't save the old one over it
             player.SessionSaved = true;
 
+            // Friends and army aren't told about a logout that is only the relog of a zone transfer
+            player.TransferringZone = true;
+
             _logger.Information("Transferring {CharacterId:X} to zone {ZoneId}", player.CharacterId, zone.ID);
             var close = new AeroMessages.Control.CloseConnection { ShutdownCode = 0 };
             player.NetChannels[ChannelType.Control].SendMessage(close);

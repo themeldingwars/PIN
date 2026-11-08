@@ -171,6 +171,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public sbyte ArmyIsOfficer { get; set; }
     public CharacterStateData CharacterState { get; set; }
     public int TimePlayed { get; set; }
+    public ushort FriendCount { get; private set; }
     public MaxVital MaxShields { get; private set; }
     public MaxVital MaxHealth { get; private set; }
     public int CurrentHealth { get; private set; }
@@ -1215,6 +1216,16 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         EffectsFlags = value;
         Character_ObserverView.EffectsFlagsProp = EffectsFlags;
+    }
+
+    public void SetFriendCount(ushort value)
+    {
+        FriendCount = value;
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.FriendCountProp = FriendCount;
+        }
     }
 
     public void SetEmote(EmoteData value)
@@ -2733,7 +2744,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             SinCardFields_21Prop = null,
             SinCardFields_22Prop = null,
             AssetOverridesProp = AssetOverrides,
-            FriendCountProp = 0, // :'(
+            FriendCountProp = FriendCount,
             CAISStatusProp = new CAISStatusData { State = CAISStatusData.CAISState.None, Elapsed = 0 },
             ScalingLevelProp = 0,
             PvPRankProp = 0,

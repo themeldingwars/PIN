@@ -42,6 +42,17 @@ public interface IPlayer
     /// </summary>
     bool SessionSaved { get; set; }
 
+    /// <summary>
+    ///     Set when the server closes the connection for a zone transfer, after which the client logs in again
+    /// </summary>
+    bool TransferringZone { get; set; }
+
+    /// <summary>
+    ///     Set when the player asked to log out or the client closed the connection itself. Any other disconnect, a
+    ///     timeout or a crash, may be one the player comes straight back from
+    /// </summary>
+    bool LoggedOut { get; set; }
+
     /// <summary>Where the next respawn puts the character, set by a move between shards.</summary>
     Vector3? ArrivalPosition { get; set; }
 
