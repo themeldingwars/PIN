@@ -11,6 +11,7 @@ using DotRecast.Core;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 using DotRecast.Detour.Io;
+using DotRecast.Recast.Geom;
 using FauFau.Formats;
 using Serilog;
 using Shared.Collision.Navigation;
@@ -22,7 +23,7 @@ public static class NavMeshBaker
 {
     private static readonly ILogger _logger = Log.ForContext(typeof(NavMeshBaker));
 
-    public static void Bake(uint zoneId, string mapsPath, string cachePath, bool force, bool objYUp = false, bool exportInputObj = false)
+    public static void Bake(uint zoneId, string mapsPath, string cachePath, bool force, int jobs, bool objYUp = false, bool exportInputObj = false)
     {
         var navmeshDir = Path.Combine(cachePath, "navmesh");
         var agents = NavMeshBuildParams.All
@@ -135,9 +136,11 @@ public static class NavMeshBaker
             }
         }
 
+        var geom = NavMeshTileBuilder.CreateGeometry([NavMeshTileBuilder.ToRecastVertices(allTriangles)])!;
+        allTriangles = null;
         foreach (var agent in agents)
         {
-            BakeAgent(zoneId, navmeshDir, allTriangles, audit, agent, objYUp);
+            BakeAgent(zoneId, navmeshDir, geom, audit, agent, jobs, objYUp);
         }
     }
 
@@ -149,13 +152,13 @@ public static class NavMeshBaker
         }
     }
 
-    private static void BakeAgent(uint zoneId, string navmeshDir, List<NavTriangle> allTriangles, Dictionary<int, WindingCounts> audit, NavMeshBuildParams builderParams, bool objYUp)
+    private static void BakeAgent(uint zoneId, string navmeshDir, IRcInputGeomProvider geom, Dictionary<int, WindingCounts> audit, NavMeshBuildParams builderParams, int jobs, bool objYUp)
     {
         var stem = builderParams.FileStem(zoneId);
         _logger.Information("Baking {Stem}.nav for agents of radius {Radius} and height {Height}", stem, builderParams.AgentRadius, builderParams.AgentHeight);
 
         var builder = new NavMeshTileBuilder(builderParams);
-        var buildResult = builder.Build(allTriangles);
+        var buildResult = builder.Build(geom, jobs);
         var tiles = buildResult.Tiles;
         _logger.Information("Built {Count} navmesh tiles (grid: {Gw}x{Gh})", tiles.Count, buildResult.GridWidth, buildResult.GridHeight);
 
@@ -164,7 +167,7 @@ public static class NavMeshBaker
         {
             _logger.Error(
                 "No navmesh tiles produced from {Triangles} triangles ({Walkable} walkable, {UpRejected} rejected for winding, {Steep} steep) - aborting.",
-                allTriangles.Count,
+                geom.GetMesh().GetTris().Length / 3,
                 buildResult.WalkableTriangles,
                 buildResult.UpFacingRejectedTriangles,
                 buildResult.SteepTriangles);

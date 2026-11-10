@@ -54,14 +54,95 @@ public sealed class NavMeshTileBuilder
     }
 
     /// <summary>
-    ///     Builds all navmesh tiles from the given world-space triangles (Z-up).
+    ///     Converts world-space (Z-up) triangles into Recast's vertex layout (Y-up), three vertices per
+    ///     triangle. Several blocks of them make up the input of <see cref="CreateGeometry" />.
+    /// </summary>
+    /// <param name="triangles">The world-space source triangles (Z-up).</param>
+    /// <returns>The triangle corners in Recast space, nine floats per triangle.</returns>
+    public static float[] ToRecastVertices(IReadOnlyList<NavTriangle> triangles)
+    {
+        var verts = new float[triangles.Count * 9];
+        for (int i = 0; i < triangles.Count; i++)
+        {
+            var tri = triangles[i];
+            int v = i * 9;
+
+            // World Z-up → Recast Y-up: (x, y, z) → (x, z, y)
+            // NOTE: this swap is a reflection (determinant -1), so it flips triangle winding. Recast
+            // derives the normal from winding alone and requires normal.Y > cos(walkableSlope), which
+            // means a surface an agent can walk on must arrive here with its world-space normal
+            // pointing DOWN (-Z). Getting this backwards produces a heightfield full of spans and
+            // zero polygons with no error, so Build counts how Recast classifies them.
+            verts[v] = tri.A.X;
+            verts[v + 1] = tri.A.Z;
+            verts[v + 2] = tri.A.Y;
+            verts[v + 3] = tri.B.X;
+            verts[v + 4] = tri.B.Z;
+            verts[v + 5] = tri.B.Y;
+            verts[v + 6] = tri.C.X;
+            verts[v + 7] = tri.C.Z;
+            verts[v + 8] = tri.C.Y;
+        }
+
+        return verts;
+    }
+
+    /// <summary>
+    ///     Joins blocks of <see cref="ToRecastVertices" /> into Recast's input geometry, in the given
+    ///     order. Building its spatial index is expensive, so one geometry is shared by every agent size.
+    /// </summary>
+    /// <param name="vertexBlocks">The vertex blocks, released one by one while they are copied.</param>
+    /// <returns>The input geometry, or null when there are no triangles.</returns>
+    public static IRcInputGeomProvider? CreateGeometry(float[]?[] vertexBlocks)
+    {
+        long vertexCount = 0;
+        foreach (var block in vertexBlocks)
+        {
+            vertexCount += block?.Length ?? 0;
+        }
+
+        if (vertexCount == 0)
+        {
+            return null;
+        }
+
+        var verts = new float[vertexCount];
+        int offset = 0;
+        for (int i = 0; i < vertexBlocks.Length; i++)
+        {
+            var block = vertexBlocks[i];
+            if (block == null)
+            {
+                continue;
+            }
+
+            block.CopyTo(verts, offset);
+            offset += block.Length;
+            vertexBlocks[i] = null;
+        }
+
+        // Face order is what sets the normal, so it must follow the vertex order.
+        var faces = new int[verts.Length / 3];
+        for (int i = 0; i < faces.Length; i++)
+        {
+            faces[i] = i;
+        }
+
+        return new RcSampleInputGeomProvider(verts, faces);
+    }
+
+    /// <summary>
+    ///     Builds all navmesh tiles from the given input geometry.
     ///     Uses Recast's native tiled pipeline for correct border connectivity.
     /// </summary>
-    /// <param name="triangles">The world-space source triangles (Z-up) to bake into the navmesh.</param>
+    /// <param name="geom">The input geometry from <see cref="CreateGeometry" />.</param>
+    /// <param name="maxDegreeOfParallelism">How many tiles to build at once.</param>
     /// <returns>The built navmesh tiles together with the tile-grid origin and dimensions.</returns>
-    public NavMeshBuildResult Build(IReadOnlyList<NavTriangle> triangles)
+    public NavMeshBuildResult Build(IRcInputGeomProvider geom, int maxDegreeOfParallelism)
     {
-        var (verts, faces, walkable, upFacingRejected, steep) = BuildVertexFaceArrays(triangles, _params.WalkableSlopeAngle);
+        var mesh = geom.GetMesh();
+        var faces = mesh.GetTris();
+        var (walkable, upFacingRejected, steep) = CountWalkability(mesh.GetVerts(), faces.Length / 3, _params.WalkableSlopeAngle);
         if (faces.Length == 0)
         {
             return new NavMeshBuildResult
@@ -74,9 +155,8 @@ public sealed class NavMeshTileBuilder
             };
         }
 
-        var geom = new RcSampleInputGeomProvider(verts, faces);
         var cfg = CreateRcConfig();
-        var results = _builder.BuildTiles(geom, cfg, false, true, Environment.ProcessorCount);
+        var results = _builder.BuildTiles(geom, cfg, false, true, maxDegreeOfParallelism);
 
         var tiles = new List<(int, int, DtMeshData)>();
         int maxPolys = 0;
@@ -146,19 +226,12 @@ public sealed class NavMeshTileBuilder
     }
 
     /// <summary>
-    ///     Converts world-space (Z-up) triangles into Recast's vertex/face arrays (Y-up), and counts
-    ///     how Recast's own walkability test classifies each triangle.
+    ///     Counts how Recast's own walkability test classifies each triangle.
     ///     Recast derives the triangle normal from winding alone - <c>normalize(cross(v1-v0, v2-v0))</c> -
     ///     and requires <c>normal.Y &gt; cos(walkableSlope)</c>, so the input winding convention matters.
     /// </summary>
-    private static (float[] Verts, int[] Faces, int Walkable, int UpFacingRejected, int Steep) BuildVertexFaceArrays(
-        IReadOnlyList<NavTriangle> triangles,
-        float walkableSlopeAngle)
+    private static (int Walkable, int UpFacingRejected, int Steep) CountWalkability(float[] verts, int triCount, float walkableSlopeAngle)
     {
-        int triCount = triangles.Count;
-        var verts = new float[triCount * 9];
-        var faces = new int[triCount * 3];
-
         // Same threshold RcRecast.MarkWalkableTriangles uses.
         var slopeThreshold = MathF.Cos(walkableSlopeAngle * MathF.PI / 180f);
         int walkable = 0;
@@ -167,32 +240,7 @@ public sealed class NavMeshTileBuilder
 
         for (int i = 0; i < triCount; i++)
         {
-            var tri = triangles[i];
-            int v = i * 9;
-            int f = i * 3;
-
-            // World Z-up → Recast Y-up: (x, y, z) → (x, z, y)
-            // NOTE: this swap is a reflection (determinant -1), so it flips triangle winding. Recast
-            // derives the normal from winding alone and requires normal.Y > cos(walkableSlope), which
-            // means a surface an agent can walk on must arrive here with its world-space normal
-            // pointing DOWN (-Z). Getting this backwards produces a heightfield full of spans and
-            // zero polygons with no error, so the counts below are checked and logged by the baker.
-            verts[v] = tri.A.X;
-            verts[v + 1] = tri.A.Z;
-            verts[v + 2] = tri.A.Y;
-            verts[v + 3] = tri.B.X;
-            verts[v + 4] = tri.B.Z;
-            verts[v + 5] = tri.B.Y;
-            verts[v + 6] = tri.C.X;
-            verts[v + 7] = tri.C.Z;
-            verts[v + 8] = tri.C.Y;
-
-            // Face order is what sets the normal, so it must be emitted after the vertices.
-            faces[f] = i * 3;
-            faces[f + 1] = (i * 3) + 1;
-            faces[f + 2] = (i * 3) + 2;
-
-            var normalY = RecastNormalY(verts, v);
+            var normalY = RecastNormalY(verts, i * 9);
             if (normalY > slopeThreshold)
             {
                 walkable++;
@@ -207,7 +255,7 @@ public sealed class NavMeshTileBuilder
             }
         }
 
-        return (verts, faces, walkable, upFacingRejected, steep);
+        return (walkable, upFacingRejected, steep);
     }
 
     /// <summary>
