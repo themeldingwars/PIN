@@ -449,6 +449,9 @@ public class WeaponSim
 
     private static bool IsLinked(WeaponTemplateResult weapon) => (weapon.WeaponFlags & 8) != 0;
 
+    // An AmmoPerBurst of 0 fires for free, e.g. the Bio Rifle's heal beam (client 0x7AE300)
+    private static bool HasRoundsFor(AmmoState ammo, WeaponTemplateResult weapon) => !ammo.HasAmmo || weapon.AmmoPerBurst <= 0 || ammo.Clip > 0;
+
     private static void WriteAmmo(CharacterEntity entity, int ammoSlot, bool alt, ushort? clip, ushort reserve)
     {
         var view = entity.Character_CombatView;
@@ -848,7 +851,7 @@ public class WeaponSim
             && fire.TriggerHeld
             && IsContinuousFireMode(weapon)
             && fire.TriggerHeldTime < fire.NextShotTime
-            && (!sim.Ammo.HasAmmo || sim.Ammo.Clip > 0)
+            && HasRoundsFor(sim.Ammo, weapon)
             && fire.NextShotTime <= time)
         {
             _logger.Debug("[FireSim] Resuming fire at ready time (server={ServerTime} ready={ReadyTime} press={PressTime})", _shard.CurrentTime, fire.NextShotTime, fire.TriggerHeldTime);
@@ -983,7 +986,7 @@ public class WeaponSim
                     break;
                 }
 
-                if (sim.Ammo.HasAmmo && sim.Ammo.Clip <= 0)
+                if (!HasRoundsFor(sim.Ammo, weapon))
                 {
                     if (!sim.Ammo.ClipEmptyTriggered)
                     {
@@ -1095,7 +1098,7 @@ public class WeaponSim
             fire.State = WeaponFireStateEnum.Idle; // press complete (semi/burst)
         }
 
-        if (sim.Ammo.HasAmmo && sim.Ammo.Clip <= 0)
+        if (!HasRoundsFor(sim.Ammo, details.Weapon))
         {
             return false; // caller runs OnClipEmpty
         }
@@ -1271,7 +1274,7 @@ public class WeaponSim
 
         if (sim.Ammo.HasAmmo)
         {
-            int perShot = Math.Max(1, (int)weapon.AmmoPerBurst);
+            int perShot = Math.Max(0, (int)weapon.AmmoPerBurst);
             if (sim.Ammo.Clip < perShot)
             {
                 return false;
