@@ -1,8 +1,10 @@
 using System.Numerics;
+using DotRecast.Core;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 using DotRecast.Recast;
 using DotRecast.Recast.Geom;
+using Serilog;
 
 namespace Shared.Collision.Navigation;
 
@@ -42,6 +44,8 @@ public sealed record NavMeshBuildResult
 /// </summary>
 public sealed class NavMeshTileBuilder
 {
+    private static readonly ILogger _logger = Log.ForContext<NavMeshTileBuilder>();
+
     private readonly NavMeshBuildParams _params;
     private readonly RcBuilder _builder;
     private readonly RcAreaModification _walkableArea;
@@ -148,65 +152,49 @@ public sealed class NavMeshTileBuilder
         }
 
         var cfg = CreateRcConfig();
-        var results = _builder.BuildTiles(geom, cfg, false, true, maxDegreeOfParallelism);
+        var bmin = geom.GetMeshBoundsMin();
+        var bmax = geom.GetMeshBoundsMax();
+        RcRecast.CalcTileCount(bmin, bmax, cfg.Cs, cfg.TileSizeX, cfg.TileSizeZ, out int gw, out int gh);
+
+        // Tiles are independent, so they are built in parallel, Detour's tile data included, and kept in grid order
+        // so the tiles land in the navmesh in the same order on every bake.
+        var tileData = new DtMeshData?[gw * gh];
+        var tileDetailTris = new int[gw * gh];
+        var progress = new RcAtomicInteger(0);
+        Parallel.For(0, gw * gh, new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism }, index =>
+        {
+            int tx = index % gw;
+            int tz = index / gw;
+            try
+            {
+                var result = _builder.BuildTile(geom, cfg, bmin, bmax, tx, tz, progress, gw * gh, false);
+                tileData[index] = CreateTileData(result, out tileDetailTris[index]);
+            }
+            catch (Exception e)
+            {
+                // Recast's own tile loop skips a tile that fails as well
+                _logger.Error(e, "Failed to build navmesh tile ({Tx},{Tz})", tx, tz);
+            }
+        });
 
         var tiles = new List<(int, int, DtMeshData)>();
         int maxPolys = 0;
         int detailTris = 0;
-
-        foreach (var result in results)
+        for (int index = 0; index < tileData.Length; index++)
         {
-            var pmesh = result.Mesh;
-            if (pmesh.npolys == 0)
-            {
-                continue;
-            }
-
-            for (int i = 0; i < pmesh.npolys; i++)
-            {
-                pmesh.flags[i] = 1;
-            }
-
-            var createParams = new DtNavMeshCreateParams
-            {
-                verts = pmesh.verts,
-                vertCount = pmesh.nverts,
-                polys = pmesh.polys,
-                polyFlags = pmesh.flags,
-                polyAreas = pmesh.areas,
-                polyCount = pmesh.npolys,
-                nvp = pmesh.nvp,
-                bmin = pmesh.bmin,
-                bmax = pmesh.bmax,
-                cs = pmesh.cs,
-                ch = pmesh.ch,
-                walkableHeight = _params.AgentHeight,
-                walkableRadius = _params.AgentRadius,
-                walkableClimb = _params.AgentMaxClimb,
-                tileX = result.TileX,
-                tileZ = result.TileZ,
-                tileLayer = 0,
-                userId = 0,
-                buildBvTree = true,
-            };
-
-            ApplyDetailMesh(result.MeshDetail, createParams);
-
-            var data = DtNavMeshBuilder.CreateNavMeshData(createParams);
+            var data = tileData[index];
             if (data != null)
             {
-                tiles.Add((result.TileX, result.TileZ, data));
+                tiles.Add((data.header.x, data.header.y, data));
                 maxPolys = Math.Max(maxPolys, data.header.polyCount);
-                detailTris += createParams.detailTriCount;
+                detailTris += tileDetailTris[index];
             }
         }
-
-        RcRecast.CalcTileCount(geom.GetMeshBoundsMin(), geom.GetMeshBoundsMax(), cfg.Cs, cfg.TileSizeX, cfg.TileSizeZ, out int gw, out int gh);
 
         return new NavMeshBuildResult
         {
             Tiles = tiles,
-            GridOrigin = geom.GetMeshBoundsMin(),
+            GridOrigin = bmin,
             GridWidth = gw,
             GridHeight = gh,
             MaxPolys = maxPolys,
@@ -306,6 +294,54 @@ public sealed class NavMeshTileBuilder
         createParams.detailTris = new int[triCount * 4];
         Array.Copy(detail.tris, 0, createParams.detailTris, 0, triCount * 4);
         createParams.detailTriCount = triCount;
+    }
+
+    private DtMeshData? CreateTileData(RcBuilderResult result, out int detailTriCount)
+    {
+        detailTriCount = 0;
+        var pmesh = result.Mesh;
+        if (pmesh.npolys == 0)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < pmesh.npolys; i++)
+        {
+            pmesh.flags[i] = 1;
+        }
+
+        var createParams = new DtNavMeshCreateParams
+        {
+            verts = pmesh.verts,
+            vertCount = pmesh.nverts,
+            polys = pmesh.polys,
+            polyFlags = pmesh.flags,
+            polyAreas = pmesh.areas,
+            polyCount = pmesh.npolys,
+            nvp = pmesh.nvp,
+            bmin = pmesh.bmin,
+            bmax = pmesh.bmax,
+            cs = pmesh.cs,
+            ch = pmesh.ch,
+            walkableHeight = _params.AgentHeight,
+            walkableRadius = _params.AgentRadius,
+            walkableClimb = _params.AgentMaxClimb,
+            tileX = result.TileX,
+            tileZ = result.TileZ,
+            tileLayer = 0,
+            userId = 0,
+            buildBvTree = true,
+        };
+
+        ApplyDetailMesh(result.MeshDetail, createParams);
+
+        var data = DtNavMeshBuilder.CreateNavMeshData(createParams);
+        if (data != null)
+        {
+            detailTriCount = createParams.detailTriCount;
+        }
+
+        return data;
     }
 
     private RcConfig CreateRcConfig()
