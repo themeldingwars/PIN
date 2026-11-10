@@ -414,12 +414,28 @@ public class WeaponSim
             return;
         }
 
-        WriteAmmo(entity, ammoSlot, false, details.WeaponProfile.BaseClipSize, details.WeaponProfile.MaxAmmo);
-        if (entity.GetWeaponDetails(weaponSlot, 1) is { Weapon: not null } alt)
+        var clip = details.WeaponProfile.BaseClipSize;
+        var reserve = FullReserve(details.WeaponProfile);
+        WriteAmmo(entity, ammoSlot, false, clip, reserve);
+        if (entity.GetWeaponDetails(weaponSlot, 1) is not { Weapon: not null } alt)
         {
-            WriteAmmo(entity, ammoSlot, true, alt.WeaponProfile.BaseClipSize, alt.WeaponProfile.MaxAmmo);
+            return;
         }
+
+        // Linked modes share the main's clip, the live servers sent it in the alt fields too
+        if (IsLinked(details.Weapon) || IsLinked(alt.Weapon))
+        {
+            WriteAmmo(entity, ammoSlot, true, clip, reserve);
+            return;
+        }
+
+        WriteAmmo(entity, ammoSlot, true, alt.WeaponProfile.BaseClipSize, FullReserve(alt.WeaponProfile));
     }
+
+    // MaxAmmo includes the clip, the live servers sent 316 + 1'084 for a capacity of 1'400
+    private static ushort FullReserve(WeaponProfile profile) => (ushort)Math.Max(0, profile.MaxAmmo - profile.BaseClipSize);
+
+    private static bool IsLinked(WeaponTemplateResult weapon) => (weapon.WeaponFlags & 8) != 0;
 
     private static void WriteAmmo(CharacterEntity entity, int ammoSlot, bool alt, ushort clip, ushort reserve)
     {
@@ -695,7 +711,7 @@ public class WeaponSim
     private AmmoState AmmoFor(CharacterEntity entity, WeaponPlayerSim player, CharacterEntity.ActiveWeaponDetails active, byte mode)
     {
         var other = entity.GetWeaponDetails((byte)(1 - mode));
-        var linked = (active.Weapon.WeaponFlags & 8) != 0 || (other?.Weapon != null && (other.Weapon.WeaponFlags & 8) != 0);
+        var linked = IsLinked(active.Weapon) || (other?.Weapon != null && IsLinked(other.Weapon));
         var stateMode = linked ? (byte)0 : mode;
         var details = linked && mode != 0 && entity.GetWeaponDetails(0) is { Weapon: not null } main ? main : active;
         var slot = entity.WeaponIndex.Index;
@@ -712,9 +728,9 @@ public class WeaponSim
             Shared = linked,
             HasAmmo = details.WeaponProfile.BaseClipSize > 0 && details.WeaponProfile.MaxAmmo > 0,
             ClipMax = details.WeaponProfile.BaseClipSize,
-            ReserveMax = details.WeaponProfile.MaxAmmo,
+            ReserveMax = FullReserve(details.WeaponProfile),
             Clip = details.WeaponProfile.BaseClipSize,
-            Reserve = details.WeaponProfile.MaxAmmo,
+            Reserve = FullReserve(details.WeaponProfile),
             LastClipRegenTime = _shard.CurrentTime,
         };
         player.AmmoStates[slot, stateMode] = state;
