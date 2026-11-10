@@ -92,8 +92,9 @@ public sealed class NavMeshTileBuilder
     ///     order. Building its spatial index is expensive, so one geometry is shared by every agent size.
     /// </summary>
     /// <param name="vertexBlocks">The vertex blocks, released one by one while they are copied.</param>
+    /// <param name="maxDegreeOfParallelism">How many threads build the spatial index.</param>
     /// <returns>The input geometry, or null when there are no triangles.</returns>
-    public static IRcInputGeomProvider? CreateGeometry(float[]?[] vertexBlocks)
+    public static NavMeshInputGeometry? CreateGeometry(float[]?[] vertexBlocks, int maxDegreeOfParallelism)
     {
         long vertexCount = 0;
         foreach (var block in vertexBlocks)
@@ -121,14 +122,7 @@ public sealed class NavMeshTileBuilder
             vertexBlocks[i] = null;
         }
 
-        // Face order is what sets the normal, so it must follow the vertex order.
-        var faces = new int[verts.Length / 3];
-        for (int i = 0; i < faces.Length; i++)
-        {
-            faces[i] = i;
-        }
-
-        return new RcSampleInputGeomProvider(verts, faces);
+        return new NavMeshInputGeometry(verts, maxDegreeOfParallelism);
     }
 
     /// <summary>
@@ -138,12 +132,10 @@ public sealed class NavMeshTileBuilder
     /// <param name="geom">The input geometry from <see cref="CreateGeometry" />.</param>
     /// <param name="maxDegreeOfParallelism">How many tiles to build at once.</param>
     /// <returns>The built navmesh tiles together with the tile-grid origin and dimensions.</returns>
-    public NavMeshBuildResult Build(IRcInputGeomProvider geom, int maxDegreeOfParallelism)
+    public NavMeshBuildResult Build(NavMeshInputGeometry geom, int maxDegreeOfParallelism)
     {
-        var mesh = geom.GetMesh();
-        var faces = mesh.GetTris();
-        var (walkable, upFacingRejected, steep) = CountWalkability(mesh.GetVerts(), faces.Length / 3, _params.WalkableSlopeAngle);
-        if (faces.Length == 0)
+        var (walkable, upFacingRejected, steep) = CountWalkability(geom.Vertices, geom.TriangleCount, _params.WalkableSlopeAngle);
+        if (geom.TriangleCount == 0)
         {
             return new NavMeshBuildResult
             {

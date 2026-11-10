@@ -12,7 +12,6 @@ using DotRecast.Core;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 using DotRecast.Detour.Io;
-using DotRecast.Recast.Geom;
 using FauFau.Formats;
 using Serilog;
 using Shared.Collision.Navigation;
@@ -117,8 +116,8 @@ public static class NavMeshBaker
         });
 
         var audit = MergeWindingAudits(chunkAudits);
-        var geom = NavMeshTileBuilder.CreateGeometry(chunkVertices);
-        _logger.Information("Total triangles: {Count}", geom == null ? 0 : geom.GetMesh().GetTris().Length / 3);
+        var geom = NavMeshTileBuilder.CreateGeometry(chunkVertices, jobs);
+        _logger.Information("Total triangles: {Count}", geom?.TriangleCount ?? 0);
         if (geom == null)
         {
             _logger.Warning("No triangles to bake — aborting.");
@@ -151,7 +150,7 @@ public static class NavMeshBaker
         }
     }
 
-    private static void BakeAgent(uint zoneId, string navmeshDir, IRcInputGeomProvider geom, Dictionary<int, WindingCounts> audit, NavMeshBuildParams builderParams, int jobs, bool objYUp)
+    private static void BakeAgent(uint zoneId, string navmeshDir, NavMeshInputGeometry geom, Dictionary<int, WindingCounts> audit, NavMeshBuildParams builderParams, int jobs, bool objYUp)
     {
         var stem = builderParams.FileStem(zoneId);
         _logger.Information("Baking {Stem}.nav for agents of radius {Radius} and height {Height}", stem, builderParams.AgentRadius, builderParams.AgentHeight);
@@ -166,7 +165,7 @@ public static class NavMeshBaker
         {
             _logger.Error(
                 "No navmesh tiles produced from {Triangles} triangles ({Walkable} walkable, {UpRejected} rejected for winding, {Steep} steep) - aborting.",
-                geom.GetMesh().GetTris().Length / 3,
+                geom.TriangleCount,
                 buildResult.WalkableTriangles,
                 buildResult.UpFacingRejectedTriangles,
                 buildResult.SteepTriangles);
