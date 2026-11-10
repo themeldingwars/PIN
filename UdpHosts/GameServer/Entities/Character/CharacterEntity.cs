@@ -2360,9 +2360,19 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    /// <summary>
+    ///     FireMode_0 belongs to weapon slot 1 and FireMode_1 to slot 2 (client 0xC94F20), other slots return 0.
+    /// </summary>
+    public byte GetFireMode(byte weaponSlot) => weaponSlot switch
+    {
+        1 => FireMode_0.Mode,
+        2 => FireMode_1.Mode,
+        _ => 0,
+    };
+
     private bool IsAltFireMode()
     {
-        return FireMode_0.Mode != 0 || FireMode_1.Mode != 0;
+        return GetFireMode(WeaponIndex.Index) != 0;
     }
 
     private void RebuildWeaponDetailsCache(CharacterLoadout loadout)

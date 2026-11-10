@@ -127,11 +127,20 @@ public static class Character_CombatController
         var serverTime = shard.CurrentTime;
         _logger.Debug("[UseScope] server={ServerTime} command={QueryTime} inscope={InScope}", serverTime, query.Time, query.InScope);
         var character = player.CharacterEntity;
-        character.SetFireMode(1, new FireModeData
+
+        // A scope out can arrive after the swap that caused it, so it applies to both slots
+        for (byte slot = 1; slot <= 2; slot++)
         {
-           Mode = (byte)query.InScope,
-           Time = query.Time,
-        });
+            if ((query.InScope == 0 || slot == character.WeaponIndex.Index) && ScopeSelectsAlt(character, slot) && character.GetFireMode(slot) != query.InScope)
+            {
+                character.SetFireMode((byte)(slot - 1), new FireModeData
+                {
+                    Mode = (byte)query.InScope,
+                    Time = query.Time,
+                });
+            }
+        }
+
         character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
         {
             Time = query.Time,
@@ -171,11 +180,16 @@ public static class Character_CombatController
         _logger.Debug("[SelectFireMode] server={ServerTime} command={QueryTime} fireMode={FireMode}", serverTime, query.Time, query.FireMode);
 
         var character = player.CharacterEntity;
-        character.SetFireMode(0, new FireModeData
+        byte slot = character.WeaponIndex.Index;
+        if (slot is 1 or 2)
         {
-           Mode = query.FireMode,
-           Time = query.Time,
-        });
+            character.SetFireMode((byte)(slot - 1), new FireModeData
+            {
+                Mode = query.FireMode,
+                Time = query.Time,
+            });
+        }
+
         character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
         {
             Time = query.Time,
@@ -424,5 +438,18 @@ public static class Character_CombatController
         }
 
         return abilityId;
+    }
+
+    // Only a zoom scope with an 0x20 alt switches the fire mode, any other scope just zooms (client 0x7AF0F0)
+    private static bool ScopeSelectsAlt(CharacterEntity character, byte slot)
+    {
+        if (character.GetWeaponDetails(slot, 0)?.Weapon is not { ScopeId: not 0 } main
+            || character.GetWeaponDetails(slot, 1)?.Weapon is not { } alt
+            || SDBInterface.GetWeaponScope(main.ScopeId) is not { } scope)
+        {
+            return false;
+        }
+
+        return scope.Minzoom != 0f && scope.Maxzoom != 0f && (alt.WeaponFlags & 0x20) != 0;
     }
 }
