@@ -760,6 +760,7 @@ public class WeaponSim
             Clip = details.WeaponProfile.BaseClipSize,
             Reserve = FullReserve(details.WeaponProfile),
             LastClipRegenTime = _shard.CurrentTime,
+            RegenMs = details.Weapon.ClipRegenMs,
         };
         player.AmmoStates[slot, stateMode] = state;
         _logger.Debug("[FireSim] Ammo initialized weapon={Weapon} slot={Slot} mode={Mode} clip={Clip} reserve={Reserve}", details.Weapon.DebugName, slot, stateMode, state.Clip, state.Reserve);
@@ -771,6 +772,7 @@ public class WeaponSim
         ProcessWeaponSpread(entity);
         DebugWeaponSpread(entity);
         ProcessFire(entity);
+        RegenClips(entity);
         ProcessPendingAbilityProjectiles(entity);
     }
 
@@ -878,17 +880,48 @@ public class WeaponSim
                 break;
             }
         }
+    }
 
-        // Passive clip regen from reserve
-        if (sim.Ammo.HasAmmo && fire.State == WeaponFireStateEnum.Idle && weapon.ClipRegenMs > 0 &&
-            sim.Ammo.Clip < sim.Ammo.ClipMax && sim.Ammo.Reserve > 0 &&
-            time >= sim.Ammo.LastClipRegenTime + weapon.ClipRegenMs)
+    /// <summary>
+    ///     Holstered weapons and the inactive fire mode regenerate too, as in the client (0x7B16D0).
+    /// </summary>
+    private void RegenClips(CharacterEntity entity)
+    {
+        if (!_weaponSimState.TryGetValue(entity.EntityId, out var sim))
         {
-            sim.Ammo.Clip++;
-            sim.Ammo.Reserve--;
-            sim.Ammo.LastClipRegenTime = time;
-            SyncAmmoView(entity, sim);
+            return;
         }
+
+        foreach (var state in sim.AmmoStates)
+        {
+            // No regen during a reload, the delay restarts at its end
+            if (state != null && !(state == sim.Ammo && sim.Fire.State == WeaponFireStateEnum.Reloading))
+            {
+                RegenClip(entity, state, _shard.CurrentTime);
+            }
+        }
+    }
+
+    // Starts 500 ms after the last shot or reload and adds every due round at once, as in the client (0x7ACE70)
+    private static void RegenClip(CharacterEntity entity, AmmoState state, uint time)
+    {
+        if (!state.HasAmmo || state.RegenMs == 0 || state.Clip >= state.ClipMax || state.Reserve <= 0)
+        {
+            return;
+        }
+
+        uint start = Math.Max(Math.Max(state.LastShotTime, state.ReloadTime) + 500, state.LastClipRegenTime);
+        if (time < start + state.RegenMs)
+        {
+            return;
+        }
+
+        uint due = (time - start) / state.RegenMs;
+        state.LastClipRegenTime = start + (due * state.RegenMs);
+        int rounds = (int)Math.Min(due, (uint)Math.Min(state.ClipMax - state.Clip, state.Reserve));
+        state.Clip += rounds;
+        state.Reserve -= rounds;
+        SyncAmmoView(entity, state);
     }
 
     private void UpdateCharge(WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
@@ -1129,6 +1162,7 @@ public class WeaponSim
         int rounds = Math.Min(sim.Ammo.ClipMax - sim.Ammo.Clip, sim.Ammo.Reserve);
         sim.Ammo.Clip += rounds;
         sim.Ammo.Reserve -= rounds;
+        sim.Ammo.ReloadTime = sim.Fire.ReloadCompleteTime;
         if (sim.Ammo.Clip > 0)
         {
             sim.Ammo.ClipEmptyTriggered = false;
@@ -1244,6 +1278,7 @@ public class WeaponSim
             }
 
             sim.Ammo.Clip -= perShot;
+            sim.Ammo.LastShotTime = time;
         }
 
         // Aim resolution: 1) the client sample for this exact shot time, 2) the aim interpolated
@@ -1423,6 +1458,9 @@ public class WeaponSim
         public int ClipMax;
         public int ReserveMax;
         public uint LastClipRegenTime;
+        public uint LastShotTime;
+        public uint ReloadTime;
+        public uint RegenMs;
     }
 
     // Per-player weapon sim state
