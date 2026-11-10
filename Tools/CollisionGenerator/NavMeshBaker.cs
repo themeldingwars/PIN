@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities;
@@ -55,89 +56,87 @@ public static class NavMeshBaker
 
         Directory.CreateDirectory(navmeshDir);
 
-        var allTriangles = new List<NavTriangle>();
-        var chunkTriangleRanges = new List<(string Name, int Start, int Count)>();
-        var audit = new Dictionary<int, WindingCounts>();
-        var pool = new BufferPool();
-        var disp = new ThreadDispatcher(1);
-        var sim = Simulation.Create(pool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new Vector3(0, 0, -8)), new SolveDescription(8, 1));
-
-        try
+        var inputDir = Path.Combine(navmeshDir, "input");
+        if (exportInputObj)
         {
-            foreach (var chunkRef in chunkRefs)
-            {
-                var gtchunkPath = Path.Combine(mapsPath, "chunks", $"{chunkRef.Name}.gtchunk");
-                if (!File.Exists(gtchunkPath))
-                {
-                    _logger.Warning("Chunk file not found: {Path}", gtchunkPath);
-                    continue;
-                }
+            Directory.CreateDirectory(inputDir);
+        }
 
+        // Chunks are independent, so they are triangulated in parallel and joined in zone order, which keeps the input
+        // of the bake the same as when they were done one by one.
+        var chunkVertices = new float[chunkRefs.Length][];
+        var chunkAudits = new Dictionary<int, WindingCounts>[chunkRefs.Length];
+        Parallel.For(0, chunkRefs.Length, new ParallelOptions { MaxDegreeOfParallelism = jobs }, chunkIndex =>
+        {
+            var chunkRef = chunkRefs[chunkIndex];
+            var gtchunkPath = Path.Combine(mapsPath, "chunks", $"{chunkRef.Name}.gtchunk");
+            if (!File.Exists(gtchunkPath))
+            {
+                _logger.Warning("Chunk file not found: {Path}", gtchunkPath);
+                return;
+            }
+
+            var pool = new BufferPool();
+            var disp = new ThreadDispatcher(1);
+            var sim = Simulation.Create(pool, new NarrowPhaseCallbacks(), new PoseIntegratorCallbacks(new Vector3(0, 0, -8)), new SolveDescription(8, 1));
+
+            try
+            {
                 var statics = ChunkProcessor.ProcessChunk(gtchunkPath, cachePath, sim, pool, disp, true);
                 _logger.Information("Chunk {Name}: {Count} statics", chunkRef.Name, statics.Length);
 
                 var triangulator = new ShapeTriangulator(sim.Shapes, NavMeshBuildParams.Default.PrimitiveRadialSegments);
-                int startIdx = allTriangles.Count;
+                var triangles = new List<NavTriangle>();
+                var audit = new Dictionary<int, WindingCounts>();
                 for (int i = 0; i < statics.Length; i++)
                 {
                     var s = statics[i];
                     s.Pose.Position += chunkRef.Origin;
-                    var before = allTriangles.Count;
-                    triangulator.Triangulate(in s, allTriangles);
-                    AccumulateWindingAudit(audit, s.Shape.Type, allTriangles, before, allTriangles.Count);
+                    var before = triangles.Count;
+                    triangulator.Triangulate(in s, triangles);
+                    AccumulateWindingAudit(audit, s.Shape.Type, triangles, before, triangles.Count);
                 }
 
-                int count = allTriangles.Count - startIdx;
-                if (count > 0)
+                chunkAudits[chunkIndex] = audit;
+                if (triangles.Count > 0)
                 {
-                    chunkTriangleRanges.Add((chunkRef.Name, startIdx, count));
+                    if (exportInputObj)
+                    {
+                        ExportInputObj(triangles, Path.Combine(inputDir, $"{chunkRef.Name}.obj"), objYUp);
+                    }
+
+                    chunkVertices[chunkIndex] = NavMeshTileBuilder.ToRecastVertices(triangles);
                 }
             }
-        }
-        finally
-        {
-            sim.Dispose();
-            pool.Clear();
-            disp.Dispose();
-        }
+            finally
+            {
+                sim.Dispose();
+                pool.Clear();
+                disp.Dispose();
+            }
+        });
 
-        _logger.Information("Total triangles: {Count}", allTriangles.Count);
-        if (allTriangles.Count == 0)
+        var audit = MergeWindingAudits(chunkAudits);
+        var geom = NavMeshTileBuilder.CreateGeometry(chunkVertices);
+        _logger.Information("Total triangles: {Count}", geom == null ? 0 : geom.GetMesh().GetTris().Length / 3);
+        if (geom == null)
         {
             _logger.Warning("No triangles to bake — aborting.");
             return;
         }
 
-        var worldMin = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-        var worldMax = new Vector3(float.MinValue, float.MinValue, float.MinValue);
-        for (int i = 0; i < allTriangles.Count; i++)
-        {
-            worldMin = Vector3.Min(worldMin, allTriangles[i].Min);
-            worldMax = Vector3.Max(worldMax, allTriangles[i].Max);
-        }
-
+        // Recast's bounds are in Y-up, swapped back to world Z-up
+        var worldMin = geom.GetMeshBoundsMin();
+        var worldMax = geom.GetMeshBoundsMax();
         _logger.Information(
             "World bounds: Min=({Mnx},{Mny},{Mnz}) Max=({Mxx},{Mxy},{Mxz})",
             worldMin.X,
-            worldMin.Y,
             worldMin.Z,
+            worldMin.Y,
             worldMax.X,
-            worldMax.Y,
-            worldMax.Z);
+            worldMax.Z,
+            worldMax.Y);
 
-        if (exportInputObj)
-        {
-            var inputDir = Path.Combine(navmeshDir, "input");
-            Directory.CreateDirectory(inputDir);
-            foreach (var (name, start, count) in chunkTriangleRanges)
-            {
-                var slice = allTriangles.GetRange(start, count);
-                ExportInputObj(slice, Path.Combine(inputDir, $"{name}.obj"), objYUp);
-            }
-        }
-
-        var geom = NavMeshTileBuilder.CreateGeometry([NavMeshTileBuilder.ToRecastVertices(allTriangles)])!;
-        allTriangles = null;
         foreach (var agent in agents)
         {
             BakeAgent(zoneId, navmeshDir, geom, audit, agent, jobs, objYUp);
@@ -484,6 +483,34 @@ public static class NavMeshBaker
                 counts.FacingDown++;
             }
         }
+    }
+
+    private static Dictionary<int, WindingCounts> MergeWindingAudits(Dictionary<int, WindingCounts>[] chunkAudits)
+    {
+        var merged = new Dictionary<int, WindingCounts>();
+        foreach (var chunkAudit in chunkAudits)
+        {
+            if (chunkAudit == null)
+            {
+                continue;
+            }
+
+            foreach (var (typeId, counts) in chunkAudit)
+            {
+                if (!merged.TryGetValue(typeId, out var total))
+                {
+                    total = new WindingCounts();
+                    merged[typeId] = total;
+                }
+
+                total.Total += counts.Total;
+                total.FacingUp += counts.FacingUp;
+                total.FacingDown += counts.FacingDown;
+                total.Steep += counts.Steep;
+            }
+        }
+
+        return merged;
     }
 
     private static void LogWindingAudit(Dictionary<int, WindingCounts> audit, float slopeThreshold, NavMeshBuildResult result)
