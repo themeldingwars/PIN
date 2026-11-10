@@ -168,22 +168,31 @@ public class WeaponSim
         _logger.Debug("Fired ability projectile ammo={AmmoType} range={Range} burst={Burst} entity={Entity} exec={ExecId}", pending.AmmoType, pending.Range, roundsToFire, entity.EntityId, pending.ExecutionId);
     }
 
+    /// <summary>
+    ///     Tops the reserve up to the capacity minus the clip, the clip itself stays untouched.
+    /// </summary>
     public void RestockAmmo(CharacterEntity entity)
     {
-        var sim = GetOrCreatePlayerSim(entity.EntityId);
-        foreach (var state in sim.AmmoStates)
+        // A weapon without a state was never drawn and still has the full ammo of the last reset
+        if (!_weaponSimState.TryGetValue(entity.EntityId, out var sim))
         {
-            if (state != null)
-            {
-                state.Clip = state.ClipMax;
-                state.Reserve = state.ReserveMax;
-                state.ClipEmptyTriggered = false;
-            }
+            return;
         }
 
-        // Weapon slot 1 (primary) maps to ammo slot 0, weapon slot 2 (secondary) to ammo slot 1.
-        RestockAmmoSlot(entity, 1, 0);
-        RestockAmmoSlot(entity, 2, 1);
+        foreach (var state in sim.AmmoStates)
+        {
+            if (state is not { HasAmmo: true })
+            {
+                continue;
+            }
+
+            int reserve = Math.Max(0, state.ClipMax + state.ReserveMax - state.Clip);
+            if (reserve > state.Reserve)
+            {
+                state.Reserve = reserve;
+                SyncAmmoView(entity, state, reserveOnly: true);
+            }
+        }
     }
 
     public bool NeedsAmmo(CharacterEntity entity, byte weaponSlot)
@@ -209,7 +218,10 @@ public class WeaponSim
     public void ResetAmmoState(CharacterEntity entity)
     {
         _weaponSimState.Remove(entity.EntityId);
-        RestockAmmo(entity);
+
+        // Weapon slot 1 (primary) maps to ammo slot 0, weapon slot 2 (secondary) to ammo slot 1.
+        RestockAmmoSlot(entity, 1, 0);
+        RestockAmmoSlot(entity, 2, 1);
     }
 
     private static float ResolveWeaponDamage(WeaponTemplateResult weapon, IReadOnlyDictionary<ushort, float> attributes)
@@ -437,7 +449,7 @@ public class WeaponSim
 
     private static bool IsLinked(WeaponTemplateResult weapon) => (weapon.WeaponFlags & 8) != 0;
 
-    private static void WriteAmmo(CharacterEntity entity, int ammoSlot, bool alt, ushort clip, ushort reserve)
+    private static void WriteAmmo(CharacterEntity entity, int ammoSlot, bool alt, ushort? clip, ushort reserve)
     {
         var view = entity.Character_CombatView;
         var controller = entity.Character_CombatController;
@@ -451,7 +463,11 @@ public class WeaponSim
 
                 if (controller != null)
                 {
-                    controller.Clip_0Prop = clip;
+                    if (clip.HasValue)
+                    {
+                        controller.Clip_0Prop = clip.Value;
+                    }
+
                     controller.Ammo_0Prop = reserve;
                 }
 
@@ -464,7 +480,11 @@ public class WeaponSim
 
                 if (controller != null)
                 {
-                    controller.Clip_1Prop = clip;
+                    if (clip.HasValue)
+                    {
+                        controller.Clip_1Prop = clip.Value;
+                    }
+
                     controller.Ammo_1Prop = reserve;
                 }
 
@@ -477,7 +497,11 @@ public class WeaponSim
 
                 if (controller != null)
                 {
-                    controller.AltClip_0Prop = clip;
+                    if (clip.HasValue)
+                    {
+                        controller.AltClip_0Prop = clip.Value;
+                    }
+
                     controller.AltAmmo_0Prop = reserve;
                 }
 
@@ -490,7 +514,11 @@ public class WeaponSim
 
                 if (controller != null)
                 {
-                    controller.AltClip_1Prop = clip;
+                    if (clip.HasValue)
+                    {
+                        controller.AltClip_1Prop = clip.Value;
+                    }
+
                     controller.AltAmmo_1Prop = reserve;
                 }
 
@@ -1270,15 +1298,17 @@ public class WeaponSim
         return true;
     }
 
-    private void SyncAmmoView(CharacterEntity entity, WeaponPlayerSim sim)
+    private static void SyncAmmoView(CharacterEntity entity, WeaponPlayerSim sim) => SyncAmmoView(entity, sim.Ammo);
+
+    // A reserve change alone leaves the clip out, a sent clip would replace the client's prediction mid burst
+    private static void SyncAmmoView(CharacterEntity entity, AmmoState ammo, bool reserveOnly = false)
     {
-        var ammo = sim.Ammo;
         if (!ammo.HasAmmo)
         {
             return;
         }
 
-        var clip = (ushort)Math.Max(0, ammo.Clip);
+        ushort? clip = reserveOnly ? null : (ushort)Math.Max(0, ammo.Clip);
         var reserve = (ushort)Math.Max(0, ammo.Reserve);
         WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, ammo.Mode == 1, clip, reserve);
         if (ammo.Shared)
