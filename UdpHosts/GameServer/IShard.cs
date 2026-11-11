@@ -11,6 +11,7 @@ using GameServer.Systems.CharacterCreation;
 using GameServer.Systems.CharacterLifecycle;
 using GameServer.Systems.Chat;
 using GameServer.Systems.Combat;
+using GameServer.Systems.Duels;
 using GameServer.Systems.Encounters;
 using GameServer.Systems.EntityManager;
 using GameServer.Systems.Loot;
@@ -59,6 +60,7 @@ public interface IShard : IPacketSender
     PlayerRespawnService PlayerRespawn { get; }
     LootService Loot { get; }
     ProgressionService Progression { get; }
+    DuelService Duels { get; }
     uint ZoneId { get; }
     ShardMetrics Metrics { get; }
     ILogger Logger { get; }

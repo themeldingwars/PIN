@@ -19,6 +19,7 @@ using GameServer.Systems.CharacterLifecycle;
 using GameServer.Systems.Chat;
 using GameServer.Systems.Combat;
 using GameServer.Systems.Content;
+using GameServer.Systems.Duels;
 using GameServer.Systems.Encounters;
 using GameServer.Systems.EntityManager;
 using GameServer.Systems.Loot;
@@ -108,6 +109,7 @@ public class Shard : IShard
         NpcDeath = new NpcDeathService(this, EventBus, npcDeathRules);
         Loot = new LootService(this, EventBus, new StandardLootRules());
         Progression = new ProgressionService(this, EventBus, new StandardProgressionRules());
+        Duels = new DuelService(this, EventBus, new StandardDuelRules());
         CharacterCreation = new CharacterCreationService(this, EventBus, new StandardCharacterCreationRules());
         ZoneBorders = new ZoneBorderService(this);
     }
@@ -142,6 +144,7 @@ public class Shard : IShard
     public NpcDeathService NpcDeath { get; }
     public LootService Loot { get; }
     public ProgressionService Progression { get; }
+    public DuelService Duels { get; }
     public ZoneBorderService ZoneBorders { get; }
     public ulong InstanceId { get; }
     public uint ZoneId { get; }

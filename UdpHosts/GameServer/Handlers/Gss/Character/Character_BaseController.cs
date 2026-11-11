@@ -623,6 +623,14 @@ public static class Character_BaseController
         shard.EncounterMan.HandleUiQueryResponse(response, (INetworkPlayer)player);
     }
 
+    [MessageID(GssCharacterCommand.DuelRequest)]
+    public static void DuelRequest(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<DuelRequest>();
+
+        shard.Duels.HandleRequest((INetworkPlayer)player, request);
+    }
+
     // TODO: Implement purchases
     private static bool TryMakePurchases(IPlayer player, VisualPurchaseData[] purchases)
     {

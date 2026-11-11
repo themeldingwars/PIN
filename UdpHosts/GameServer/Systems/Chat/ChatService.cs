@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using AeroMessages.Common;
 using AeroMessages.GSS;
 using AeroMessages.GSS.Character.Command;
@@ -80,14 +81,27 @@ public class ChatService
     {
         var response = PrepareSingleMessage(message, channel, sender);
 
-        if (!WireIds.TryGetGssWireIds(typeof(ChatMessageList), _shard.Settings.GssProtocolVersion, out var typecode, out var messageId))
-        {
-            _logger.Error("Could not resolve GSS wire id for {Type} in protocol version {Version}", typeof(ChatMessageList).FullName, _shard.Settings.GssProtocolVersion);
-            return;
-        }
+        Broadcast(response);
+    }
 
-        response.SerializeToMemory(out var messageData);
-        _shard.BroadcastGssMessage(_shard.InstanceId, messageId, typecode, messageData.Span, ChannelType.UnreliableGss, static player => player.Status.Equals(IPlayer.PlayerStatus.Playing));
+    public void SendDuelResult(string winnerName, string loserName)
+    {
+        var response = PrepareSingleMessage(string.Empty, ChatChannel.Zone, null);
+
+        response.Messages[0].AltData = new ChatMessageAlternateData
+        {
+            AlternateType = ChatMessageAlternateData.ChatMessageAlternateType.ChatDuelResult,
+            HaveAltData = 1,
+            AltData_ChatDuelResult = new ChatAltData_ChatDuelResult
+            {
+                // The bytes after the length: both names, each ending in a 0
+                DataLength = (ushort)(Encoding.UTF8.GetByteCount(winnerName) + 1 + Encoding.UTF8.GetByteCount(loserName) + 1),
+                CDR_WinnerName = winnerName,
+                CDR_LoserName = loserName,
+            },
+        };
+
+        Broadcast(response);
     }
 
     public string GetCommandList()
@@ -123,6 +137,18 @@ public class ChatService
             ],
         };
         return response;
+    }
+
+    private void Broadcast(ChatMessageList response)
+    {
+        if (!WireIds.TryGetGssWireIds(typeof(ChatMessageList), _shard.Settings.GssProtocolVersion, out var typecode, out var messageId))
+        {
+            _logger.Error("Could not resolve GSS wire id for {Type} in protocol version {Version}", typeof(ChatMessageList).FullName, _shard.Settings.GssProtocolVersion);
+            return;
+        }
+
+        response.SerializeToMemory(out var messageData);
+        _shard.BroadcastGssMessage(_shard.InstanceId, messageId, typecode, messageData.Span, ChannelType.UnreliableGss, static player => player.Status.Equals(IPlayer.PlayerStatus.Playing));
     }
 
     private void OnDebugChatDirectMessage(DebugChatDirectMessageEvent evt)
