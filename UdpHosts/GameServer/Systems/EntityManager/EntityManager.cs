@@ -681,6 +681,7 @@ public class EntityManager
             if (entity is CharacterEntity characterEntity)
             {
                 _shard.CharacterLifecycle.OnCharacterRemoved(characterEntity);
+                _shard.Duels.OnCharacterRemoved(characterEntity);
                 if (characterEntity.IsNpc)
                 {
                     _shard.Physics.UnregisterNpcEntity(characterEntity.EntityId);
