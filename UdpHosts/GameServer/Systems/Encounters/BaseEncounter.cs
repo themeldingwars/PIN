@@ -84,10 +84,6 @@ public abstract class BaseEncounter : IEncounter
         }
     }
 
-    /// <summary>
-    ///     Takes the solo participant off a vehicle the encounter gave them, then removes the vehicle.
-    /// </summary>
-    /// <param name="vehicle">The vehicle the participant is riding.</param>
     protected void DismountAndRemoveVehicle(VehicleEntity vehicle)
     {
         var character = SoloParticipant.CharacterEntity;
@@ -101,10 +97,6 @@ public abstract class BaseEncounter : IEncounter
         RemoveVehicle(vehicle);
     }
 
-    /// <summary>
-    ///     Removes a vehicle the encounter spawned, once nobody needs to be taken off it anymore.
-    /// </summary>
-    /// <param name="vehicle">The vehicle to remove.</param>
     protected void RemoveVehicle(VehicleEntity vehicle)
     {
         // Give the cleared attachment time to reach the client before the vehicle it was attached to scopes out.

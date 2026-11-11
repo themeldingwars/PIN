@@ -43,8 +43,7 @@
           "$ref": "common.schema.json#/$defs/uint32"
         },
         "label_text_id": {
-          "$ref": "common.schema.json#/$defs/uint32",
-          "description": "SDB text id of the race's name"
+          "$ref": "common.schema.json#/$defs/uint32"
         },
         "start_dialog": {
           "$ref": "common.schema.json#/$defs/uint32"
@@ -97,12 +96,10 @@
           "$ref": "common.schema.json#/$defs/uint32"
         },
         "challenge_name_text_id": {
-          "$ref": "common.schema.json#/$defs/uint32",
-          "description": "SDB text id of the challenge's name"
+          "$ref": "common.schema.json#/$defs/uint32"
         },
         "track_name_text_id": {
-          "$ref": "common.schema.json#/$defs/uint32",
-          "description": "SDB text id of the track's name"
+          "$ref": "common.schema.json#/$defs/uint32"
         },
         "laps": {
           "$ref": "common.schema.json#/$defs/uint32"
@@ -121,7 +118,6 @@
         },
         "waypoints": {
           "type": "array",
-          "description": "The checkpoints in the order they're driven",
           "items": {
             "$ref": "common.schema.json#/$defs/vector3"
           },
