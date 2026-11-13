@@ -219,8 +219,11 @@ public class KisutonLgvChallenge : BaseEncounter, IExitAttachmentHandler, IProxi
         RemoveEntities();
         DismountAndRemoveVehicle(_vehicle);
 
-        var time = Shard.CurrentTimeLong - _raceStartTime;
-        GiveRewards(time);
+        var now = Shard.CurrentTimeLong;
+        var time = now - _raceStartTime;
+
+        // The challenge is scored by the time left on the objective timer, not by the elapsed time.
+        GiveRewards(Math.Max(_expireAt, now) - now);
 
         _ = GRPCService.SendCommandAsync(new Command()
             {
@@ -384,9 +387,9 @@ public class KisutonLgvChallenge : BaseEncounter, IExitAttachmentHandler, IProxi
         }
     }
 
-    private void GiveRewards(ulong timeMs)
+    private void GiveRewards(ulong remainingMs)
     {
-        var isGold = timeMs <= _goldTimeMs;
+        var isGold = remainingMs >= _goldTimeMs;
         var bonusVouchers = isGold ? _goldBonusVouchers : 0;
         var vouchers = _rewardVouchers + bonusVouchers;
 
@@ -400,8 +403,8 @@ public class KisutonLgvChallenge : BaseEncounter, IExitAttachmentHandler, IProxi
             EventId = 0,
             Stats =
             [
-                new StatInfo() { NameId = RewardStatNames.GoldTime, Type = StatInfo.StatType.Time, Value = _goldTimeMs / 1000f, StringValue = string.Empty },
-                new StatInfo() { NameId = RewardStatNames.Time, Type = StatInfo.StatType.Time, Value = timeMs / 1000f, StringValue = string.Empty },
+                new StatInfo() { NameId = RewardStatNames.GoldTime, Type = StatInfo.StatType.NumericValue, Value = MathF.Floor(_goldTimeMs / 1000f), StringValue = string.Empty },
+                new StatInfo() { NameId = RewardStatNames.Time, Type = StatInfo.StatType.NumericValue, Value = MathF.Floor(remainingMs / 1000f), StringValue = string.Empty },
                 new StatInfo() { NameId = RewardStatNames.ExperiencePoints, Type = StatInfo.StatType.NumericValue, Value = _rewardExperience, StringValue = string.Empty },
             ],
             Rewards1 =
