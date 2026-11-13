@@ -1,7 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "schedule:weekly"
   ],
   "enabledManagers": ["nuget"],
   "dependencyDashboard": false,
@@ -22,7 +23,8 @@
         "ImTool",
         "TMW.Bitter"
       ],
-      "minimumReleaseAge": "0 days"
+      "minimumReleaseAge": "0 days",
+      "schedule": ["at any time"]
     }
   ]
 }
