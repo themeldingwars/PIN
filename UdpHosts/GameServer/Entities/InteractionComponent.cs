@@ -9,4 +9,5 @@ public class InteractionComponent
     public uint DurationMs { get; set; }
     public InteractionType Type { get; set; }
     public uint VendorId { get; set; }
+    public uint LeaderboardId { get; set; }
 }

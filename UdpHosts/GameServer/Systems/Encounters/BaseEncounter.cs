@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Aero.Gen;
 using AeroMessages.Common;
+using AeroMessages.GSS.Character.Event;
 using AeroMessages.GSS.Generic;
+using GameServer.Entities.Vehicle;
 using GameServer.Extensions;
 using GameServer.Protocol;
 
@@ -12,6 +15,8 @@ namespace GameServer.Systems.Encounters;
 public abstract class BaseEncounter : IEncounter
 {
     protected static readonly Random Rng = new();
+
+    private const ulong _vehicleRemovalDelayMs = 100;
 
     protected BaseEncounter(IShard shard, ulong entityId, HashSet<INetworkPlayer> participants)
     {
@@ -77,5 +82,24 @@ public abstract class BaseEncounter : IEncounter
         {
             p.Inventory.AddResource(resourceId, quantity);
         }
+    }
+
+    protected void DismountAndRemoveVehicle(VehicleEntity vehicle)
+    {
+        var character = SoloParticipant.CharacterEntity;
+
+        vehicle.RemoveOccupant(character);
+        character.ClearAttachedTo();
+
+        var msg = new ExitingAttachment() { ExitPosition = new Vector3(-0.5f, -0.5f, -0.47f) };
+        SoloParticipant.NetChannels[ChannelType.ReliableGss].SendMessage(msg, character.EntityId);
+
+        RemoveVehicle(vehicle);
+    }
+
+    protected void RemoveVehicle(VehicleEntity vehicle)
+    {
+        // Give the cleared attachment time to reach the client before the vehicle it was attached to scopes out.
+        Shard.Post(() => Shard.EntityMan.Remove(vehicle), _vehicleRemovalDelayMs);
     }
 }

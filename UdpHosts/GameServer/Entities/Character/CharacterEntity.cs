@@ -1430,6 +1430,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    public void OpenLeaderboard(uint leaderboardId)
+    {
+        SetAuthorizedTerminal(new AuthorizedTerminalData { TerminalId = leaderboardId, TerminalType = 14, TerminalEntityId = 0 });
+    }
+
     public void SetVisualOverrides(VisualOverridesField data)
     {
         VisualOverrides = data;
@@ -1564,6 +1569,18 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         _mapMarkers[firstFreeIndex] = state;
 
         SetMapMarker(firstFreeIndex, data);
+    }
+
+    public void UpdateEncounterMapMarker(ulong encounterId, PersonalMapMarkerData data)
+    {
+        for (byte i = 0; i < _mapMarkers.Length; i++)
+        {
+            if (_mapMarkers[i]?.EncounterId.Backing == encounterId)
+            {
+                SetMapMarker(i, data);
+                return;
+            }
+        }
     }
 
     public void RemoveEncounterMapMarkers(ulong encounterId)

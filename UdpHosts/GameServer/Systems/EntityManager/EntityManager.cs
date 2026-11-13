@@ -1339,6 +1339,11 @@ public class EntityManager
         }
     }
 
+    public void QueueScopeIn(INetworkPlayer player, IEntity entity)
+    {
+        _queuedScopeIn.Enqueue(new ScopeInRequest { Player = player, Entity = entity });
+    }
+
     public void ScopeIn(INetworkPlayer player, IEntity entity)
     {
         // Avoid sending messages if player is not in the appropriate state
