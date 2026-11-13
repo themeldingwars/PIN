@@ -268,7 +268,7 @@ internal static class Program
             if (opts.NavMesh)
             {
                 Logger.Information("=== NAVMESH PHASE: Baking zone {ZoneId} ===", opts.ZoneId.Value);
-                NavMeshBaker.Bake(opts.ZoneId.Value, opts.MapsPath!, opts.CachePath, opts.Force, opts.ObjYUp, opts.InputObj);
+                NavMeshBaker.Bake(opts.ZoneId.Value, opts.MapsPath!, opts.CachePath, opts.Force, jobs, opts.ObjYUp, opts.InputObj);
             }
 
             if (opts.SelfTest)
