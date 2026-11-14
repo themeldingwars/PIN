@@ -1,6 +1,7 @@
 using GrpcCharacter = GrpcGameServerAPIClient.CharacterAndBattleframeVisuals;
 using GrpcInventoryResponse = GrpcGameServerAPIClient.CharacterInventoryResponse;
 using GrpcProgressionResponse = GrpcGameServerAPIClient.BattleframeProgressionResponse;
+using GrpcRedBeanBalanceResponse = GrpcGameServerAPIClient.RedBeanBalanceResponse;
 using GrpcUnlocksResponse = GrpcGameServerAPIClient.CharacterUnlocksResponse;
 
 namespace GameServer.Data;
@@ -9,7 +10,8 @@ public sealed record CharacterData(
     GrpcCharacter Character,
     GrpcInventoryResponse Inventory,
     GrpcUnlocksResponse Unlocks,
-    GrpcProgressionResponse Battleframes)
+    GrpcProgressionResponse Battleframes,
+    GrpcRedBeanBalanceResponse RedBeans)
 {
     public bool FetchFailed { get; init; }
 

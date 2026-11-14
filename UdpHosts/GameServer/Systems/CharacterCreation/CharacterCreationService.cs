@@ -2,6 +2,7 @@ using AeroMessages.GSS.Character;
 using AeroMessages.Matrix;
 using GameServer.Data;
 using GameServer.Entities.Character;
+using GameServer.GRPC.EventHandlers;
 using GameServer.Protocol;
 using GameServer.Systems.SystemEvents;
 using GameServer.Test;
@@ -44,6 +45,10 @@ public class CharacterCreationService
         player.PlayerId = (ulong)evt.AccountId;
 
         player.CharacterEntity = new CharacterEntity(_shard, guid);
+        if (data.RedBeans is { Found: true } redBeans)
+        {
+            player.CharacterEntity.SetRedBeans(redBeans.Balance);
+        }
 
         player.Inventory = new CharacterInventory(_shard, client, player.CharacterEntity);
         if (!player.Inventory.LoadRemote(data.Inventory))
@@ -88,6 +93,9 @@ public class CharacterCreationService
         _shard.CharacterLifecycle.OnCharacterCreated(player.CharacterEntity);
         player.CharacterEntity.SetCharacterState(CharacterStateData.CharacterStatus.Spawning, _shard.CurrentTime);
         player.Status = IPlayer.PlayerStatus.LoggedIn;
+
+        // Currency owed while the character was away, such as red bean sale proceeds
+        _ = WalletEventHandler.ClaimDeliveriesAsync((INetworkPlayer)player);
 
         _rules.OnCharacterCreated((INetworkPlayer)player, player.CharacterEntity);
 
