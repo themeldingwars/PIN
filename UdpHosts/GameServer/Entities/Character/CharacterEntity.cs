@@ -1157,6 +1157,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    public void SetPingTime(uint value)
+    {
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.PingTimeProp = value;
+        }
+    }
+
     public void SetArmyGUID(ulong value)
     {
         ArmyGUID = value;
