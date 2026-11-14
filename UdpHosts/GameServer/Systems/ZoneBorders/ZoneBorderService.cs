@@ -66,7 +66,7 @@ public sealed class ZoneBorderService
             }
             else if (!inside && effect != null)
             {
-                _shard.Abilities.DoRemoveEffect(effect);
+                _shard.Abilities.DoRemoveEffect(effect, _shard.CurrentTime);
             }
         }
 

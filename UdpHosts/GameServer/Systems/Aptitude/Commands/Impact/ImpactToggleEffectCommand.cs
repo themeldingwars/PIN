@@ -47,7 +47,7 @@ public class ImpactToggleEffectCommand : Command, ICommand
                 {
                     targetHasEffect = true;
                     effectContext.ExecutionHint = ExecutionHint.RemoveEffect;
-                    effectContext.Abilities.DoRemoveEffect(active);
+                    effectContext.Abilities.DoRemoveEffect(active, effectContext.CurrentTime);
                     break;
                 }
             }

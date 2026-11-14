@@ -133,7 +133,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
     public void ClearEffect(EffectState state)
     {
         ActiveEffects[state.Index] = null;
-        var time = unchecked((ushort)state.Context.Shard.CurrentTime);
+        var time = unchecked((ushort)state.Context.CurrentTime);
         ClearStatusEffect(state.Index, time, state.Effect.Id);
         Shard.EntityMan.FlushChanges(this); // Force flush so that we communicate every change
 

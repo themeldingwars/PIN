@@ -709,7 +709,7 @@ public class EntityManager
             return;
         }
 
-        _shard.Abilities.DoRemoveEffect(gunner, TurretEntity.TurretControlEffectId);
+        _shard.Abilities.DoRemoveEffect(gunner, TurretEntity.TurretControlEffectId, _shard.CurrentTime);
         Remove(gunner.EntityId);
     }
 
