@@ -166,8 +166,8 @@ public class Factory
             //     return new SetTargetOffsetCommand(SDBInterface.GetSetTargetOffsetCommandDef(commandId));
             // case CommandType.RequireEnergy:
             //     return new RequireEnergyCommand(SDBInterface.GetRequireEnergyCommandDef(commandId));
-            // case CommandType.HealDamage:
-            //     return new HealDamageCommand(SDBInterface.GetHealDamageCommandDef(commandId));
+            case CommandType.HealDamage:
+                return new HealDamageCommand(SDBInterface.GetHealDamageCommandDef(commandId));
             // case CommandType.Bullrush:
             //     return new BullrushCommand(SDBInterface.GetBullrushCommandDef(commandId));
             // case CommandType.EnergyToDamage:
