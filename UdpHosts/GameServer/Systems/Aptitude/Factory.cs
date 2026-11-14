@@ -212,8 +212,8 @@ public class Factory
             //     return new RequireWeaponTemplateCommand(SDBInterface.GetRequireWeaponTemplateCommandDef(commandId));
             // case CommandType.SwitchWeapon:
             //     return new SwitchWeaponCommand(SDBInterface.GetSwitchWeaponCommandDef(commandId));
-            // case CommandType.StatRequirement:
-            //     return new StatRequirementCommand(SDBInterface.GetStatRequirementCommandDef(commandId));
+            case CommandType.StatRequirement:
+                return new StatRequirementCommand(SDBInterface.GetStatRequirementCommandDef(commandId));
             // case CommandType.ConsumeEnergy:
             //     return new ConsumeEnergyCommand(SDBInterface.GetConsumeEnergyCommandDef(commandId));
             // case CommandType.TargetClassType:
@@ -387,8 +387,8 @@ public class Factory
             //     return new ActivateMissionCommand(CustomDBInterface.GetActivateMissionCommandDef(commandId));
             // case CommandType.UpdateWait:
             //     return new UpdateWaitCommand(SDBInterface.GetUpdateWaitCommandDef(commandId));
-            // case CommandType.LoadRegisterFromStat:
-            //     return new LoadRegisterFromStatCommand(SDBInterface.GetLoadRegisterFromStatCommandDef(commandId));
+            case CommandType.LoadRegisterFromStat:
+                return new LoadRegisterFromStatCommand(SDBInterface.GetLoadRegisterFromStatCommandDef(commandId));
             // case CommandType.PushRegister:
             //     return new PushRegisterCommand(SDBInterface.GetPushRegisterCommandDef(commandId));
             // case CommandType.PopRegister:
