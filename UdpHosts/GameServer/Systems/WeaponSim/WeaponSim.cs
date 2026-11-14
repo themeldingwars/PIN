@@ -26,6 +26,7 @@ public class WeaponSim
     private readonly Shard _shard;
     private readonly ILogger _logger;
     private readonly ulong _updateIntervalMs = 50;
+    private bool _firingAttackAbility;
     private ulong _lastUpdate;
 
     public WeaponSim(Shard shard)
@@ -72,6 +73,17 @@ public class WeaponSim
     /// <param name="time">Client time of the sample</param>
     /// <param name="localAimDir">The aim direction at the time of the sample</param>
     /// <param name="shooterVelocity">The shooter velocity at the time of the sample</param>
+    public void QueueAbilityProjectile(CharacterEntity entity, PendingAbilityProjectile pending)
+    {
+        if (entity.IsPlayerControlled && !_firingAttackAbility && entity.TryGetHeldFire(pending.FireTime, _shard.CurrentTime, out var aim, out var velocity))
+        {
+            OnFireAbilityProjectile(entity, pending, pending.FireTime, aim, velocity);
+            return;
+        }
+
+        entity.EnqueueAbilityProjectile(pending);
+    }
+
     public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir, Vector3? shooterVelocity = null)
     {
         EnqueueFireEvent(entity, new WeaponFireEvent
@@ -124,11 +136,11 @@ public class WeaponSim
         }
 
         // Parabolic monster ammo needs a ballistic firing solution; a flat muzzle-to-chest aim drops into the ground.
-        var preliminaryOrigin = entity.GetProjectileOrigin(pending.QueueTime, localAimDir, shooterVelocity);
+        var preliminaryOrigin = entity.GetProjectileOrigin(time, localAimDir, shooterVelocity);
         localAimDir = ResolveBallisticAim(entity, preliminaryOrigin, localAimDir, ammo, projectileSpeed);
 
         // Stub: spawn from the weapon muzzle origin (body/hardpoint offset not implemented yet).
-        var origin = entity.GetProjectileOrigin(pending.QueueTime, localAimDir, shooterVelocity);
+        var origin = entity.GetProjectileOrigin(time, localAimDir, shooterVelocity);
 
         var activeWeaponDetails = entity.GetActiveWeaponDetails();
         float damage = pending.UseWeaponDamage && activeWeaponDetails != null && activeWeaponDetails.Weapon != null
@@ -1194,13 +1206,18 @@ public class WeaponSim
     {
         if (entity.IsPlayerControlled)
         {
+            foreach (var pending in entity.TakeOverdueAbilityProjectiles(_shard.CurrentTime))
+            {
+                var aim = entity.TryGetAimSample(pending.FireTime, out var sampled) ? sampled : entity.AimDirection;
+                OnFireAbilityProjectile(entity, pending, pending.FireTime, aim, null);
+            }
+
             return;
         }
 
-        while (entity.TryConsumeNextAbilityProjectile() is { } pending)
+        foreach (var pending in entity.TakeDueAbilityProjectiles(_shard.CurrentTime))
         {
-            uint time = pending.QueueTime != 0 ? pending.QueueTime : pending.ActivationTime;
-            OnFireAbilityProjectile(entity, pending, time, entity.AimDirection, null);
+            OnFireAbilityProjectile(entity, pending, pending.FireTime, entity.AimDirection, null);
         }
     }
 
@@ -1311,7 +1328,15 @@ public class WeaponSim
         if (weapon.AttackAbility != 0 && entity is IAptitudeTarget initiator)
         {
             Guid executionId = Guid.NewGuid();
-            _shard.Abilities.HandleActivateAbility(_shard, initiator, weapon.AttackAbility, time, new AptitudeTargets(), executionId: executionId, initPosition: origin);
+            _firingAttackAbility = true;
+            try
+            {
+                _shard.Abilities.HandleActivateAbility(_shard, initiator, weapon.AttackAbility, time, new AptitudeTargets(), executionId: executionId, initPosition: origin);
+            }
+            finally
+            {
+                _firingAttackAbility = false;
+            }
 
             var pending = entity.TryConsumeAbilityProjectileByExecId(executionId);
             if (pending.HasValue)

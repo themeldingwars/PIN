@@ -78,13 +78,17 @@ public static class Character_CombatController
         // The WeaponSim owns projectile spawning and broadcasts WeaponProjectileFired / AbilityProjectileFired to every
         // player who has the shooter scoped in (WeaponSim.Broadcast*ProjectileFired), including the firing client, so
         // the controller does not need an echo of its own.
-        var pendingAbility = character.TryConsumeAbilityProjectile(query.Time);
-        if (pendingAbility.HasValue)
+        var abilityProjectiles = character.TakeAbilityProjectiles(query.Time);
+        if (abilityProjectiles.Count > 0)
         {
-            character.Shard.WeaponSim.OnFireAbilityProjectile(character, pendingAbility.Value, query.Time, query.AimDirection, shooterVelocity);
+            foreach (var pending in abilityProjectiles)
+            {
+                character.Shard.WeaponSim.OnFireAbilityProjectile(character, pending, query.Time, query.AimDirection, shooterVelocity);
+            }
         }
         else
         {
+            character.HoldFire(query.Time, query.AimDirection, shooterVelocity, shard.CurrentTime);
             character.Shard.WeaponSim.OnFireWeaponProjectile(character, query.Time, query.AimDirection, shooterVelocity);
         }
     }

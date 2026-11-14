@@ -53,13 +53,16 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const float _fallbackSprintSpeed = 7.0f; // TODO: Derive from SDB/character stats
     private const float _fallbackCrouchSpeed = 2.5f; // TODO: Derive from SDB/character stats
     private const int _maxAbilityProjectilePending = 8; // safety cap for queued ability projectiles
-    private const uint _abilityProjectileStaleMs = 1000; // a queued ability projectile older than this is dropped
+    private const uint _abilityFireWaitMs = 500;
+    private const uint _heldFireMs = 100;
+    private const int _maxHeldFires = 8;
     private const float _baseEnergyRechargeDelayMs = 500f;
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
     private readonly AimSample[] _aimSamples = new AimSample[_maxAimSamples];
     private readonly Dictionary<AptitudeStat, ActiveStatModifier> _statOverrides = new();
     private readonly Queue<PendingAbilityProjectile> _pendingAbilityProjectiles = new();
+    private readonly List<(uint Time, Vector3 Aim, Vector3? Velocity)> _heldFires = [];
     private readonly HashSet<uint> _activatedDefaultAbilities = new();
     private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
     private int _movementSampleCount;
@@ -1828,29 +1831,43 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         _pendingAbilityProjectiles.Enqueue(projectile);
     }
 
-    /// <summary>
-    ///     Consumes the oldest pending ability projectile that is still valid for the given fire time,
-    ///     returning null when none is pending.
-    /// </summary>
-    /// <param name="fireTime">Gametime</param>
-    /// <returns>PendingAbilityProjectile or null if none can be consumed</returns>
-    public PendingAbilityProjectile? TryConsumeAbilityProjectile(uint fireTime)
+    public List<PendingAbilityProjectile> TakeAbilityProjectiles(uint fireTime)
     {
-        while (_pendingAbilityProjectiles.Count > 0)
-        {
-            var front = _pendingAbilityProjectiles.Peek();
-            int age = (int)(fireTime - front.ActivationTime);
-            if (age < -(_abilityProjectileStaleMs / 2) || age > (int)_abilityProjectileStaleMs)
-            {
-                _pendingAbilityProjectiles.Dequeue();
-                continue;
-            }
+        return TakeAbilityProjectiles(pending => pending.FireTime == fireTime);
+    }
 
-            _pendingAbilityProjectiles.Dequeue();
-            return front;
+    public List<PendingAbilityProjectile> TakeOverdueAbilityProjectiles(uint currentTime)
+    {
+        return TakeAbilityProjectiles(pending => (int)(currentTime - pending.FireTime) >= (int)_abilityFireWaitMs);
+    }
+
+    public void HoldFire(uint time, Vector3 aim, Vector3? velocity, uint currentTime)
+    {
+        DropHeldFires(currentTime);
+        if (_heldFires.Count >= _maxHeldFires)
+        {
+            _heldFires.RemoveAt(0);
         }
 
-        return null;
+        _heldFires.Add((time, aim, velocity));
+    }
+
+    public bool TryGetHeldFire(uint fireTime, uint currentTime, out Vector3 aim, out Vector3? velocity)
+    {
+        DropHeldFires(currentTime);
+        foreach (var held in _heldFires)
+        {
+            if (held.Time == fireTime)
+            {
+                aim = held.Aim;
+                velocity = held.Velocity;
+                return true;
+            }
+        }
+
+        aim = Vector3.Zero;
+        velocity = null;
+        return false;
     }
 
     /// <summary>
@@ -1883,39 +1900,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return found;
     }
 
-    /// <summary>
-    ///     Consumes the next pending ability projectile without the client-fire-time staleness filter.
-    ///     Used for server-driven NPCs, which have no client FireWeaponProjectile to correlate against.
-    /// </summary>
-    /// <returns>PendingAbilityProjectile or null if none was queued</returns>
-    public PendingAbilityProjectile? TryConsumeNextAbilityProjectile()
+    public List<PendingAbilityProjectile> TakeDueAbilityProjectiles(uint currentTime)
     {
-        if (_pendingAbilityProjectiles.Count == 0)
-        {
-            return null;
-        }
-
-        return _pendingAbilityProjectiles.Dequeue();
-    }
-
-    /// <summary>
-    ///     Drops any pending ability projectiles that are too old relative to the given time.
-    /// </summary>
-    /// <param name="currentTime">Gametime</param>
-    public void ExpireAbilityProjectiles(uint currentTime)
-    {
-        while (_pendingAbilityProjectiles.Count > 0)
-        {
-            var front = _pendingAbilityProjectiles.Peek();
-            int age = (int)(currentTime - front.ActivationTime);
-            if (age < -(_abilityProjectileStaleMs / 2) || age > (int)_abilityProjectileStaleMs)
-            {
-                _pendingAbilityProjectiles.Dequeue();
-                continue;
-            }
-
-            break;
-        }
+        return TakeAbilityProjectiles(pending => (int)(currentTime - pending.FireTime) >= 0);
     }
 
     /// <summary>
@@ -3211,6 +3198,31 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private void ApplyLoadoutVisuals(IReadOnlyList<LoadoutConfig_Visual> visuals)
     {
         CurrentLoadout.ApplyVisuals(visuals);
+    }
+
+    private List<PendingAbilityProjectile> TakeAbilityProjectiles(Func<PendingAbilityProjectile, bool> match)
+    {
+        var taken = new List<PendingAbilityProjectile>();
+        var count = _pendingAbilityProjectiles.Count;
+        for (var i = 0; i < count; i++)
+        {
+            var pending = _pendingAbilityProjectiles.Dequeue();
+            if (match(pending))
+            {
+                taken.Add(pending);
+            }
+            else
+            {
+                _pendingAbilityProjectiles.Enqueue(pending);
+            }
+        }
+
+        return taken;
+    }
+
+    private void DropHeldFires(uint currentTime)
+    {
+        _heldFires.RemoveAll(held => (int)(currentTime - held.Time) > (int)_heldFireMs);
     }
 
     public record struct SelectedMonsterVisuals
