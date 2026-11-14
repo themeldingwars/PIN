@@ -54,6 +54,11 @@ public class CharacterInventory
     }
 
     public bool EnablePartialUpdates { get; set; }
+
+    /// <summary>
+    ///     Whether changes are written back to RIN: true for an inventory loaded from RIN, false for the hardcoded fallback
+    /// </summary>
+    public bool IsPersisted => _persistChanges;
     public ulong CharacterGuid => _character.EntityId + (byte)GuidService.AdditionalTypes.Character;
 
     public static bool IsUsable(GrpcInventoryResponse response) => response is { Loadouts.Count: > 0 };

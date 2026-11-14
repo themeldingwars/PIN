@@ -171,6 +171,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public sbyte ArmyIsOfficer { get; set; }
     public CharacterStateData CharacterState { get; set; }
     public int TimePlayed { get; set; }
+
+    public WalletData Wallet { get; private set; }
     public ushort FriendCount { get; private set; }
     public MaxVital MaxShields { get; private set; }
     public MaxVital MaxHealth { get; private set; }
@@ -1151,6 +1153,20 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         if (Character_BaseController != null)
         {
             Character_BaseController.TimePlayedProp = TimePlayed;
+        }
+    }
+
+    public void SetRedBeans(long balance)
+    {
+        Wallet = new WalletData
+        {
+            Beans = (uint)Math.Clamp(balance, 0, uint.MaxValue),
+            Epoch = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+        };
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.WalletProp = Wallet;
         }
     }
 
@@ -2717,7 +2733,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             ReputationZoneModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
             ReputationVipModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
             ReputationEventModifierProp = new StatModifierData { ModifierId = 0, StatValue = 0.0f },
-            WalletProp = new WalletData { Beans = 999, Epoch = 1462889864 },
+            WalletProp = Wallet,
             LoyaltyProp = new LoyaltyData { Current = 0, Lifetime = 0, Tier = 0 },
             LevelProp = Level,
             EffectiveLevelProp = EffectiveLevel,

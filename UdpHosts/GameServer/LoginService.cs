@@ -77,8 +77,9 @@ public static class LoginService
         var (inventory, inventoryFailed) = await FetchAsync(() => GRPCService.GetCharacterInventoryAsync((long)characterId), "character inventory");
         var (unlocks, unlocksFailed) = await FetchAsync(() => GRPCService.GetCharacterUnlocksAsync((long)characterId), "character unlocks");
         var (battleframes, battleframesFailed) = await FetchAsync(() => GRPCService.GetBattleframeProgressionAsync((long)characterId), "character battleframe progression");
+        var (redBeans, _) = await FetchAsync(() => GRPCService.GetRedBeanBalanceAsync((long)characterId), "account red beans");
 
-        return new CharacterData(character, inventory, unlocks, battleframes)
+        return new CharacterData(character, inventory, unlocks, battleframes, redBeans)
         {
             FetchFailed = characterFailed || inventoryFailed || unlocksFailed || battleframesFailed,
         };
