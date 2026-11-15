@@ -25,7 +25,8 @@ public static class Character_CombatController
     {
         var query = packet.Unpack<FireInputIgnored>();
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[FireInputIgnored] server={ServerTime} command={QueryTime} ignored={QueryValue}", serverTime, query.Time, query.Ignored);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[FireInputIgnored] server={ServerTime} command={QueryTime} diff={DiffTime} ignored={QueryValue}", serverTime, query.Time, diffTime, query.Ignored);
         var character = player.CharacterEntity;
         character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
         {
@@ -40,7 +41,8 @@ public static class Character_CombatController
     {
         var query = packet.Unpack<FireBurst>();
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[FireBurst] server={ServerTime} command={QueryTime}", serverTime, query.Time);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[FireBurst] server={ServerTime} command={QueryTime} diff={DiffTime}", serverTime, query.Time, diffTime);
         var character = player.CharacterEntity;
         character.SetFireBurst(query.Time);
         character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
@@ -56,7 +58,8 @@ public static class Character_CombatController
         var query = packet.Unpack<FireWeaponProjectile>();
 
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[FireWeaponProjectile] server={ServerTime} command={QueryTime}", serverTime, query.Time);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[FireWeaponProjectile] server={ServerTime} command={QueryTime} diff={DiffTime}", serverTime, query.Time, diffTime);
 
         var character = player.CharacterEntity;
 
@@ -98,7 +101,8 @@ public static class Character_CombatController
     {
         var query = packet.Unpack<FireEnd>();
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[FireEnd] server={ServerTime} command={QueryTime}", serverTime, query.Time);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[FireEnd] server={ServerTime} command={QueryTime} diff={DiffTime}", serverTime, query.Time, diffTime);
         var character = player.CharacterEntity;
         character.SetFireEnd(query.Time);
         character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
@@ -113,7 +117,8 @@ public static class Character_CombatController
     {
         var query = packet.Unpack<FireCancel>();
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[FireCancel] server={ServerTime} command={QueryTime}", serverTime, query.Time);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[FireCancel] server={ServerTime} command={QueryTime} diff={DiffTime}", serverTime, query.Time, diffTime);
         var character = player.CharacterEntity;
         character.SetFireCancel(query.Time);
         character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
@@ -129,7 +134,8 @@ public static class Character_CombatController
         var query = packet.Unpack<UseScope>();
 
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[UseScope] server={ServerTime} command={QueryTime} inscope={InScope}", serverTime, query.Time, query.InScope);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[UseScope] server={ServerTime} command={QueryTime} diff={DiffTime} inscope={InScope}", serverTime, query.Time, diffTime, query.InScope);
         var character = player.CharacterEntity;
 
         // A scope out can arrive after the swap that caused it, so it applies to both slots
@@ -159,7 +165,8 @@ public static class Character_CombatController
         var query = packet.Unpack<SelectWeapon>();
 
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[SelectWeapon] server={ServerTime} command={QueryTime} index={SelectedWeaponIndex}, previous={PreviousWeaponIndex}", serverTime, query.Time, query.SelectedWeaponIndex, query.PreviousWeaponIndex);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[SelectWeapon] server={ServerTime} command={QueryTime} diff={DiffTime} index={SelectedWeaponIndex}, previous={PreviousWeaponIndex}", serverTime, query.Time, diffTime, query.SelectedWeaponIndex, query.PreviousWeaponIndex);
         var character = player.CharacterEntity;
         character.SetWeaponIndex(new WeaponIndexData
         {
@@ -181,7 +188,8 @@ public static class Character_CombatController
     {
         var query = packet.Unpack<SelectFireMode>();
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[SelectFireMode] server={ServerTime} command={QueryTime} fireMode={FireMode}", serverTime, query.Time, query.FireMode);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[SelectFireMode] server={ServerTime} command={QueryTime} diff={DiffTime} fireMode={FireMode}", serverTime, query.Time, diffTime, query.FireMode);
 
         var character = player.CharacterEntity;
         byte slot = character.WeaponIndex.Index;
@@ -207,7 +215,8 @@ public static class Character_CombatController
     {
         var query = packet.Unpack<ReloadWeapon>();
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[ReloadWeapon] server={ServerTime} command={QueryTime}", serverTime, query.Time);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[ReloadWeapon] server={ServerTime} command={QueryTime} diff={DiffTime}", serverTime, query.Time, diffTime);
         var character = player.CharacterEntity;
         character.SetWeaponReloaded(query.Time);
         character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
@@ -222,7 +231,8 @@ public static class Character_CombatController
     {
         var query = packet.Unpack<CancelReload>();
         var serverTime = shard.CurrentTime;
-        _logger.Debug("[CancelReload] server={ServerTime} command={QueryTime}", serverTime, query.Time);
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[CancelReload] server={ServerTime} command={QueryTime} diff={DiffTime}", serverTime, query.Time, diffTime);
         var character = player.CharacterEntity;
         character.SetWeaponReloadCancelled(query.Time);
         character.Shard.WeaponSim.EnqueueFireEvent(character, new WeaponFireEvent
@@ -236,7 +246,9 @@ public static class Character_CombatController
     public static void ActivateConsumable(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
         var query = packet.Unpack<ActivateConsumable>();
-        _logger.Information("ActivateConsumable {ItemSdbId}", query?.ItemSdbId);
+        var serverTime = shard.CurrentTime;
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[ActivateConsumable] server={ServerTime} command={QueryTime} diff={DiffTime} itemSdbId={ItemSdbId}", serverTime, query.Time, diffTime, query?.ItemSdbId);
         if (query == null)
         {
             return;
@@ -282,15 +294,17 @@ public static class Character_CombatController
     [MessageID(GssCharacterCommand.ActivateAbility)]
     public static void ActivateAbility(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
-        var activateAbility = packet.Unpack<ActivateAbility>();
-        _logger.Information("ActivateAbility Slot {AbilitySlotIndex}", activateAbility?.AbilitySlotIndex);
-        if (activateAbility == null)
+        var query = packet.Unpack<ActivateAbility>();
+        var serverTime = shard.CurrentTime;
+        int diffTime = (int)(query.Time - serverTime);
+        _logger.Debug("[ActivateAbility] server={ServerTime} command={QueryTime} diff={DiffTime} AbilitySlotIndex={AbilitySlotIndex}", serverTime, query.Time, diffTime, query?.AbilitySlotIndex);
+        if (query == null)
         {
             return;
         }
 
         // Get the ability id based on the slotted ability
-        var abilitySlot = activateAbility.AbilitySlotIndex;
+        var abilitySlot = query.AbilitySlotIndex;
         var character = player.CharacterEntity;
         uint abilityId = ResolveAbilityIdBySlot(character, abilitySlot);
 
@@ -301,7 +315,7 @@ public static class Character_CombatController
                 shard.SuperCharge.OnAbilityActivated(character);
             }
 
-            var activationTime = activateAbility.Time;
+            var activationTime = query.Time;
             if (character.IsPlayerControlled)
             {
                 var message = new AbilityActivated
@@ -323,7 +337,7 @@ public static class Character_CombatController
             }
 
             var initiator = character as IAptitudeTarget;
-            var targets = activateAbility.Targets
+            var targets = query.Targets
             .Where(entityId =>
             {
                 try
@@ -349,6 +363,7 @@ public static class Character_CombatController
     {
         var query = packet.Unpack<DeactivateAbility>();
         var serverTime = shard.CurrentTime;
+        int diffTime = (int)(query.Time - serverTime);
         var character = player.CharacterEntity;
 
         // The release only carries the slot; resolve it to the same ability id the activation stored its input
@@ -357,11 +372,11 @@ public static class Character_CombatController
         var input = character.ClearAbilityInput(abilityId);
         if (input == null)
         {
-            _logger.Debug("[DeactivateAbility] server={ServerTime} slot={Slot} ability={AbilityId} had no matching active input", serverTime, query.AbilitySlotIndex, abilityId);
+            _logger.Debug("[DeactivateAbility] server={ServerTime} command={QueryTime} diff={DiffTime} slot={Slot} ability={AbilityId} had no matching active input", serverTime, query.Time, diffTime, query.AbilitySlotIndex, abilityId);
             return;
         }
 
-        _logger.Debug("[DeactivateAbility] server={ServerTime} slot={Slot} ability={AbilityId} exec={ExecId}", serverTime, query.AbilitySlotIndex, input.AbilityId, input.ExecutionId);
+        _logger.Debug("[DeactivateAbility] server={ServerTime} command={QueryTime} diff={DiffTime} slot={Slot} ability={AbilityId} exec={ExecId}", serverTime, query.Time, diffTime, query.AbilitySlotIndex, input.AbilityId, input.ExecutionId);
         character.Shard.Abilities.HandleDeactivateAbility(character, input.ExecutionId);
     }
 
