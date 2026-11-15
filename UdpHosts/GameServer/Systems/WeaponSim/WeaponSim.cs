@@ -701,9 +701,10 @@ public class WeaponSim
             player.WeaponId = weaponId;
             player.Modes[0] = new WeaponModeState { WeaponId = weaponId };
             player.Modes[1] = new WeaponModeState { WeaponId = weaponId };
-            player.Charge = 0;
-            player.LastChargeTime = time;
             CaptureChargeupCaps(player, entity, activeWeaponDetails);
+            player.Charge = 0;
+            player.ChargeTime = time;
+            player.ChargeRising = false;
         }
 
         bool modeChanged = player.ActiveMode != activeMode;
@@ -735,12 +736,11 @@ public class WeaponSim
                 // Chargeup: the charge is weapon-wide. Linked modes keep it across the
                 // switch (with the switch loss); non-linked modes are a different weapon
                 // template, so their charge does not carry over.
-                if (player.Charge > 0)
-                {
-                    player.Charge = (newLinked || otherLinked)
-                        ? (uint)(player.Charge * _chargeSwitchKeepFraction)
-                        : 0;
-                }
+                uint charge = player.ChargeAt(time);
+                player.SetCharge(
+                    time,
+                    (newLinked || otherLinked) ? (uint)(charge * _chargeSwitchKeepFraction) : 0,
+                    false);
             }
 
             player.ActiveMode = activeMode;
@@ -851,27 +851,27 @@ public class WeaponSim
         var sim = _weaponSimState[entity.EntityId];
         var fire = sim.Fire;
 
-        UpdateCharge(sim, weapon, time);
-
         // Reload completion (before the shot/event loop so a resumed press can fire this tick)
         if (fire.State == WeaponFireStateEnum.Reloading && time >= fire.ReloadCompleteTime)
         {
             CompleteReload(sim);
             fire.State = WeaponFireStateEnum.Idle;
+            sim.SetChargeDirection(fire.ReloadCompleteTime, fire.TriggerHeld);
             SyncAmmoView(entity, sim);
 
             if (fire.TriggerHeld && IsContinuousFireMode(weapon))
             {
                 uint readyTime = Math.Max(fire.NextShotTime, fire.TriggerHeldTime);
                 readyTime = Math.Max(readyTime, fire.ReloadCompleteTime);
-                if (IsM1Chargeup(weapon) && sim.Charge < sim.ChargeMin)
+                uint readyCharge = sim.ChargeAt(readyTime);
+                if (IsM1Chargeup(weapon) && readyCharge < sim.ChargeMin)
                 {
-                    fire.NextShotTime = readyTime + (sim.ChargeMin - sim.Charge);
+                    fire.NextShotTime = readyTime + (sim.ChargeMin - readyCharge);
                     _logger.Debug(
                         "[FireSim] Reload ended uncharged (server={ServerTime} clientFireBurst={FireTime} charge={Charge}/{Cap} min={Min} ready={ReadyTime})",
                         _shard.CurrentTime,
                         fire.TriggerHeldTime,
-                        sim.Charge,
+                        readyCharge,
                         sim.ChargeCap,
                         sim.ChargeMin,
                         fire.NextShotTime);
@@ -981,36 +981,6 @@ public class WeaponSim
         SyncAmmoView(entity, state);
     }
 
-    private void UpdateCharge(WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
-    {
-        var fire = sim.Fire;
-        uint dt = time - sim.LastChargeTime;
-        sim.LastChargeTime = time;
-        if (sim.ChargeCap == 0 || fire.State == WeaponFireStateEnum.Reloading)
-        {
-            return;
-        }
-
-        uint was = sim.Charge;
-        if (fire.State == WeaponFireStateEnum.Firing)
-        {
-            sim.Charge = sim.ChargeCap;
-        }
-        else if (fire.TriggerHeld)
-        {
-            sim.Charge = was + dt > sim.ChargeCap ? sim.ChargeCap : was + dt;
-        }
-        else
-        {
-            sim.Charge = was >= dt ? was - dt : 0;
-        }
-
-        if (sim.ChargeMin > 0 && fire.TriggerHeld && was < sim.ChargeMin && sim.Charge >= sim.ChargeMin)
-        {
-            _logger.Debug("[FireSim] Charge armed weapon={Weapon} charge={Charge}/{Cap} min={Min} server={ServerTime}", weapon.DebugName, sim.Charge, sim.ChargeCap, sim.ChargeMin, _shard.CurrentTime);
-        }
-    }
-
     private void HandleFireEvent(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, WeaponFireEvent evt)
     {
         var weapon = details.Weapon;
@@ -1033,6 +1003,8 @@ public class WeaponSim
                     _logger.Debug("[FireSim] FireBurst held during reload (server={ServerTime} client={ClientTime}); will resume if continuous", _shard.CurrentTime, evt.Time);
                     break; // resume at reload completion
                 }
+
+                sim.SetChargeDirection(evt.Time, true);
 
                 if (IsChargeOnlyMode(weapon, details.WeaponProfile))
                 {
@@ -1068,6 +1040,11 @@ public class WeaponSim
 
             case WeaponFireEventType.FireEnd:
             case WeaponFireEventType.FireCancel:
+                if (fire.State != WeaponFireStateEnum.Reloading)
+                {
+                    sim.SetChargeDirection(evt.Time, false);
+                }
+
                 fire.TriggerHeld = false;
                 fire.ShotsRemainingInBurst = 0;
                 if (fire.State == WeaponFireStateEnum.Firing)
@@ -1080,6 +1057,11 @@ public class WeaponSim
             case WeaponFireEventType.FireInputIgnored:
                 if (evt.Value != 0)
                 {
+                    if (fire.State != WeaponFireStateEnum.Reloading)
+                    {
+                        sim.SetChargeDirection(evt.Time, false);
+                    }
+
                     fire.TriggerHeld = false;
                     fire.ShotsRemainingInBurst = 0;
                     if (fire.State == WeaponFireStateEnum.Firing)
@@ -1096,6 +1078,7 @@ public class WeaponSim
 
             case WeaponFireEventType.SelectWeapon:
             case WeaponFireEventType.SelectFireMode:
+                sim.SetChargeDirection(evt.Time, false);
                 fire.Reset();
                 break;
 
@@ -1217,6 +1200,11 @@ public class WeaponSim
     private void StartFiring(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
     {
         var fire = sim.Fire;
+        if (sim.ChargeCap > 0)
+        {
+            sim.SetCharge(time, sim.ChargeCap, true);
+        }
+
         fire.State = WeaponFireStateEnum.Firing;
         fire.FireStartTime = time;
         fire.NextShotTime = time;
@@ -1263,7 +1251,7 @@ public class WeaponSim
         sim.Fire.ReloadCompleteTime = time + weapon.ReloadTime;
         sim.Fire.ShotsRemainingInBurst = 0;
         sim.Fire.TriggerHeld = false;
-        sim.Charge = 0;
+        sim.SetCharge(time, 0, false);
 
         ActivateWeaponAbility(entity, weapon.ReloadAbility, time);
     }
@@ -1603,10 +1591,39 @@ public class WeaponSim
 
         // Chargeup: weapon-wide (shared across the fire modes of this weapon), in ms
         public uint Charge;
-        public uint LastChargeTime;
+        public uint ChargeTime;
+        public bool ChargeRising;
         public uint MovementAppliedTime;
         public uint ChargeCap;
         public uint ChargeMin;
+
+        public uint ChargeAt(uint time)
+        {
+            if (time <= ChargeTime)
+            {
+                return Charge;
+            }
+
+            uint elapsed = time - ChargeTime;
+            if (ChargeRising)
+            {
+                return Charge + elapsed > ChargeCap ? ChargeCap : Charge + elapsed;
+            }
+
+            return Charge > elapsed ? Charge - elapsed : 0;
+        }
+
+        public void SetChargeDirection(uint time, bool rising)
+        {
+            SetCharge(time, ChargeAt(time), rising);
+        }
+
+        public void SetCharge(uint time, uint charge, bool rising)
+        {
+            Charge = Math.Min(charge, ChargeCap);
+            ChargeTime = Math.Max(time, ChargeTime);
+            ChargeRising = rising;
+        }
     }
 
     private record class DebugWeaponSimEventData
