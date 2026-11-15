@@ -69,6 +69,8 @@ public class Context
     /// </summary>
     public uint? InitTime { get; set; }
 
+    public uint? ReplenishedTime { get; set; }
+
     public bool HasEnergyConsumedTime { get; set; }
 
     public uint EnergyConsumedTime { get; set; }
@@ -123,6 +125,7 @@ public class Context
             DamageType = original.DamageType,
             ScaleMultiplier = original.ScaleMultiplier,
             InitTime = original.InitTime,
+            ReplenishedTime = original.ReplenishedTime,
             HasEnergyConsumedTime = original.HasEnergyConsumedTime,
             EnergyConsumedTime = original.EnergyConsumedTime,
             CurrentTime = original.CurrentTime,
