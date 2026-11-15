@@ -407,7 +407,7 @@ public class WeaponSim
         while (lo <= hi)
         {
             int mid = (lo + hi) / 2;
-            if (events[mid].Time < evt.Time)
+            if (events[mid].Time <= evt.Time)
             {
                 lo = mid + 1;
             }
