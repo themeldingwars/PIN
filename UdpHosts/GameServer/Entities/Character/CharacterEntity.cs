@@ -2421,25 +2421,44 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         var attributes = weaponAttributes.ToDictionary(p => p.Id, p => p.Value);
+        var (mainProfile, altProfile) = WeaponProfile.BuildModes(weaponId, weaponDetails.Main, weaponDetails.Alt, attributes);
 
         var main = new ActiveWeaponDetails()
         {
             WeaponId = weaponId,
             Weapon = weaponDetails.Main,
             Attributes = attributes,
-            WeaponProfile = WeaponProfile.Build(weaponId, weaponDetails.Main, attributes, weaponDetails.Main.MaxSpread),
+            WeaponProfile = mainProfile,
         };
 
         cache[index, 0] = main;
-        cache[index, 1] = weaponDetails.Alt != null
+        cache[index, 1] = altProfile is { } alt
             ? new ActiveWeaponDetails()
             {
                 WeaponId = weaponId,
                 Weapon = weaponDetails.Alt,
                 Attributes = attributes,
-                WeaponProfile = WeaponProfile.Build(weaponId, weaponDetails.Alt, attributes, weaponDetails.Main.MaxSpread),
+                WeaponProfile = alt,
             }
             : main;
+    }
+
+    private static void RebuildWeaponSlotProfiles(ActiveWeaponDetails[,] cache, int index)
+    {
+        var main = cache[index, 0];
+        if (main == null || main.IsEmpty)
+        {
+            return;
+        }
+
+        var altDetails = cache[index, 1];
+        var hasAlt = altDetails != null && !ReferenceEquals(altDetails, main) && !altDetails.IsEmpty;
+        var (mainProfile, altProfile) = WeaponProfile.BuildModes(main.WeaponId, main.Weapon, hasAlt ? altDetails.Weapon : null, main.Attributes);
+        main.WeaponProfile = mainProfile;
+        if (hasAlt && altProfile is { } alt)
+        {
+            altDetails.WeaponProfile = alt;
+        }
     }
 
     private static void MergeAttributeRange(Dictionary<ushort, float> result, uint itemId)
@@ -2558,7 +2577,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         var damageModifier = weaponMods.GetValueOrDefault((ushort)ItemAttributeId.CreatureWeaponDamageModifier, 1f);
         var damage = baseDamage * damageModifier;
 
-        // Inject as the WeaponDamage attribute (954) so WeaponSim.ResolveWeaponDamage uses the scaled value.
+        // Inject as the WeaponDamage attribute (954) so the profiles are rebuilt with the scaled value.
         for (byte mode = 0; mode <= 1; mode++)
         {
             var details = _weaponDetailsCache[(int)slot, mode];
@@ -2567,6 +2586,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 details.Attributes[(ushort)ItemAttributeId.WeaponDamage] = damage;
             }
         }
+
+        RebuildWeaponSlotProfiles(_weaponDetailsCache, (int)slot);
     }
 
     private void InitTinyObjectView()

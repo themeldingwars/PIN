@@ -145,7 +145,7 @@ public class WeaponSim
 
         var activeWeaponDetails = entity.GetActiveWeaponDetails();
         float damage = pending.UseWeaponDamage && activeWeaponDetails != null && activeWeaponDetails.Weapon != null
-            ? ResolveWeaponDamage(activeWeaponDetails.Weapon, attrsDict)
+            ? activeWeaponDetails.WeaponProfile.DamagePerRound
             : pending.Damage;
 
         byte roundsToFire = pending.BurstCount > 0 ? pending.BurstCount : (byte)1;
@@ -235,17 +235,6 @@ public class WeaponSim
         // Weapon slot 1 (primary) maps to ammo slot 0, weapon slot 2 (secondary) to ammo slot 1.
         RestockAmmoSlot(entity, 1, 0);
         RestockAmmoSlot(entity, 2, 1);
-    }
-
-    private static float ResolveWeaponDamage(WeaponTemplateResult weapon, IReadOnlyDictionary<ushort, float> attributes)
-    {
-        float damage = weapon.DamagePerRound;
-        if (attributes != null && attributes.TryGetValue((ushort)ItemAttributeId.WeaponDamage, out var damageAttribute))
-        {
-            damage = damageAttribute;
-        }
-
-        return damage;
     }
 
     private static bool TrySolveBallisticAim(Vector3 origin, Vector3 target, float speed, float gravity, out Vector3 aim)
@@ -562,11 +551,7 @@ public class WeaponSim
 
         // Resolve weapon attributes: stats from weapon override template defaults
         var attrsDict = details.Attributes;
-        float range = weapon.Range;
-        if (attrsDict.TryGetValue((ushort)ItemAttributeId.WeaponRange, out var rangeAttr))
-        {
-            range = rangeAttr;
-        }
+        float range = spreadProfile.Range;
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
@@ -590,13 +575,13 @@ public class WeaponSim
             maxRadius = maxRadiusAttr;
         }
 
-        float damage = ResolveWeaponDamage(weapon, attrsDict);
+        float damage = spreadProfile.DamagePerRound;
 
         // Parabolic monster ammo needs a ballistic firing solution; a flat muzzle-to-chest aim drops into the ground.
         aim = ResolveBallisticAim(entity, origin, aim, ammo, projectileSpeed);
         origin = entity.GetProjectileOrigin(time, aim, velocity);
 
-        byte numBullets = Math.Max((byte)1, weapon.RoundsPerBurst);
+        byte numBullets = Math.Max((byte)1, spreadProfile.RoundsPerBurst);
 
         // NPCs have no FireBurst/FireEnd commands; the CombatView burst pair is the client-side attack signal. Stamp a
         // single-shot burst at the authoritative shot time (the AI now presses/releases in 1ms).
@@ -776,7 +761,7 @@ public class WeaponSim
             Clip = details.WeaponProfile.BaseClipSize,
             Reserve = FullReserve(details.WeaponProfile),
             LastClipRegenTime = _shard.CurrentTime,
-            RegenMs = details.Weapon.ClipRegenMs,
+            RegenMs = details.WeaponProfile.ClipRegenMs,
         };
         player.AmmoStates[slot, stateMode] = state;
         _logger.Debug("[FireSim] Ammo initialized weapon={Weapon} slot={Slot} mode={Mode} clip={Clip} reserve={Reserve}", details.Weapon.DebugName, slot, stateMode, state.Clip, state.Reserve);
@@ -1200,6 +1185,7 @@ public class WeaponSim
     private void StartFiring(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
     {
         var fire = sim.Fire;
+        byte roundsPerBurst = GetActiveProfile(entity, weapon)?.RoundsPerBurst ?? weapon.RoundsPerBurst;
         if (sim.ChargeCap > 0)
         {
             sim.SetCharge(time, sim.ChargeCap, true);
@@ -1219,9 +1205,9 @@ public class WeaponSim
             fire.TotalRoundsInPress = 1;
             roundsInPress = 1;
         }
-        else if (weapon.RoundsPerBurst > 1)
+        else if (roundsPerBurst > 1)
         {
-            int rounds = Math.Min(weapon.RoundsPerBurst, sim.Ammo.HasAmmo ? sim.Ammo.Clip : int.MaxValue);
+            int rounds = Math.Min(roundsPerBurst, sim.Ammo.HasAmmo ? sim.Ammo.Clip : int.MaxValue);
             rounds = Math.Max(rounds, 1);
             fire.ShotsRemainingInBurst = rounds;
             fire.TotalRoundsInPress = (uint)rounds;
@@ -1240,6 +1226,12 @@ public class WeaponSim
         }
     }
 
+    private WeaponProfile? GetActiveProfile(CharacterEntity entity, WeaponTemplateResult weapon)
+    {
+        var details = entity.GetActiveWeaponDetails();
+        return details != null && ReferenceEquals(details.Weapon, weapon) ? details.WeaponProfile : null;
+    }
+
     private void StartReload(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
     {
         if (!sim.Ammo.HasAmmo || sim.Ammo.Reserve <= 0 || sim.Ammo.Clip >= sim.Ammo.ClipMax)
@@ -1248,7 +1240,7 @@ public class WeaponSim
         }
 
         sim.Fire.State = WeaponFireStateEnum.Reloading;
-        sim.Fire.ReloadCompleteTime = time + weapon.ReloadTime;
+        sim.Fire.ReloadCompleteTime = time + (GetActiveProfile(entity, weapon)?.ReloadTime ?? weapon.ReloadTime);
         sim.Fire.ShotsRemainingInBurst = 0;
         sim.Fire.TriggerHeld = false;
         sim.SetCharge(time, 0, false);
