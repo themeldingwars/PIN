@@ -2052,37 +2052,31 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         var target = (ushort)clientTimeMs;
         var newest = _movementSamples[_movementSampleNewest];
-        var previous = _movementSampleCount > 1 ? _movementSamples[(_movementSampleNewest + _maxMovementSamples - 1) % _maxMovementSamples] : default;
         var ageSinceNewest = MovementSample.MsSince(newest.ShortTime, target);
 
         if (ageSinceNewest > 0x8000)
         {
-            // Target is in the past relative to the newest sample (e.g. fire packet arrived before the next movement packet)
-            if (_movementSampleCount > 1)
+            var later = newest;
+            for (var age = 1; age < _movementSampleCount; age++)
             {
-                var ageSincePrevious = MovementSample.MsSince(previous.ShortTime, target);
-                if (ageSincePrevious <= 0x8000)
+                var earlier = _movementSamples[(_movementSampleNewest - age + _maxMovementSamples) % _maxMovementSamples];
+                var ageSinceEarlier = MovementSample.MsSince(earlier.ShortTime, target);
+                if (ageSinceEarlier <= 0x8000)
                 {
-                    // Target lies between the two newest samples: interpolate
-                    var span = MovementSample.MsSince(previous.ShortTime, newest.ShortTime);
-                    var alpha = span > 0 ? ageSincePrevious / (float)span : 1f;
-                    position = Vector3.Lerp(previous.Position, newest.Position, alpha);
-                    QuaternionEx.Slerp(previous.Orientation, newest.Orientation, alpha, out orientation);
-                    movementState = ageSincePrevious * 2 < span ? previous.MovementState : newest.MovementState;
+                    var span = MovementSample.MsSince(earlier.ShortTime, later.ShortTime);
+                    var alpha = span > 0 ? ageSinceEarlier / (float)span : 1f;
+                    position = Vector3.Lerp(earlier.Position, later.Position, alpha);
+                    QuaternionEx.Slerp(earlier.Orientation, later.Orientation, alpha, out orientation);
+                    movementState = ageSinceEarlier * 2 < span ? earlier.MovementState : later.MovementState;
                     return true;
                 }
 
-                // Target is before all buffered samples: use the oldest one
-                var oldest = _movementSamples[(_movementSampleNewest - _movementSampleCount + 1 + _maxMovementSamples) % _maxMovementSamples];
-                position = oldest.Position;
-                orientation = oldest.Orientation;
-                movementState = oldest.MovementState;
-                return true;
+                later = earlier;
             }
 
-            position = newest.Position;
-            orientation = newest.Orientation;
-            movementState = newest.MovementState;
+            position = later.Position;
+            orientation = later.Orientation;
+            movementState = later.MovementState;
             return true;
         }
 
