@@ -79,19 +79,19 @@ public readonly record struct WeaponFlags(uint Raw)
     public bool Unk13 => (Raw & (1u << 13)) != 0;
 
     /// <summary>
-    /// ???
-    /// </summary>
-    public bool Unk14 => (Raw & (1u << 14)) != 0;
-
-    /// <summary>
     /// Changes something in FireWeapon "special alt mode"
     /// </summary>
-    public bool HealBeam => (Raw & (1u << 15)) != 0;
+    public bool HealBeam => (Raw & (1u << 14)) != 0;
 
     /// <summary>
     /// Fusion Cannon and Railgun/Tesla
     /// </summary>
-    public bool SpecialStop => (Raw & (1u << 16)) != 0;
+    public bool SpecialStop => (Raw & (1u << 15)) != 0;
+
+    /// <summary>
+    /// ???
+    /// </summary>
+    public bool Unk16 => (Raw & (1u << 16)) != 0;
 
     public static implicit operator WeaponFlags(uint raw) => new(raw);
 
@@ -111,9 +111,9 @@ public readonly record struct WeaponFlags(uint Raw)
         CheckAndAdd(parts, "PlasmaCannon", PlasmaCannon);
         CheckAndAdd(parts, "MaybeChargeupHold", MaybeChargeupHold);
         CheckAndAdd(parts, "Unk13", Unk13);
-        CheckAndAdd(parts, "Unk14", Unk14);
         CheckAndAdd(parts, "HealBeam", HealBeam);
         CheckAndAdd(parts, "SpecialStop", SpecialStop);
+        CheckAndAdd(parts, "Unk16", Unk16);
 
         return $"0x{Raw:X5} [{string.Join(", ", parts)}]";
     }
