@@ -989,6 +989,18 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public float GetItemAttribute(ushort id) => CurrentLoadout.ItemAttributes.GetValueOrDefault(id);
 
+    // Get ItemAttributes + WeaponA/WeaponB attributes
+    public float GetItemStat(ushort id)
+    {
+        float value = CurrentLoadout?.ItemAttributes.GetValueOrDefault(id) ?? 0f;
+        if (WeaponIndex.Index is 1 or 2 && GetActiveWeaponDetails() is { IsEmpty: false } weapon)
+        {
+            value += weapon.Attributes.GetValueOrDefault(id);
+        }
+
+        return value;
+    }
+
     public void AddStatModifier(uint reference, ActiveStatModifier mod)
     {
         _statOverrides[mod.Stat] = mod;
