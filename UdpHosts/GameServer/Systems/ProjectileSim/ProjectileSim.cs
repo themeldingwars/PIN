@@ -37,6 +37,13 @@ public class ProjectileSim
         var lifetimeMs = ammo.ConstLifetime > 0
             ? ammo.ConstLifetime
             : ComputeDefaultLifetimeMs(range, actualSpeed);
+        if (ammo.ConstLifetime == 0 && actualSpeed * lifetimeMs / 1000f > range * 1.01f && actualSpeed > 0f)
+        {
+            projectileSpeed = range * 1000f / lifetimeMs;
+            velocity = velocity / actualSpeed * projectileSpeed;
+            actualSpeed = projectileSpeed;
+        }
+
         var endPosition = origin + (velocity * (lifetimeMs / 1000f));
 
         var projectile = new ActiveProjectile
