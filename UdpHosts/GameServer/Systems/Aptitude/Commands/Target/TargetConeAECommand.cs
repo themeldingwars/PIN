@@ -42,7 +42,7 @@ public class TargetConeAECommand : Command, ICommand
         if (float.IsInfinity(minRadius) || float.IsInfinity(maxRadius))
         {
             Logger.Debug("{Command} {CommandId} resolved to an out of range radius, returning false", nameof(TargetConeAECommand), Params.Id);
-            result.SetFail(StatusCode.Status10);
+            result.SetFail(StatusCode.Error);
             return;
         }
 
@@ -54,7 +54,7 @@ public class TargetConeAECommand : Command, ICommand
         {
             if (!TryBuildCone(context, out origin, out direction))
             {
-                result.SetFail(StatusCode.Status1);
+                result.SetFail(StatusCode.Error);
                 return;
             }
 
@@ -108,7 +108,7 @@ public class TargetConeAECommand : Command, ICommand
         {
             // The client discards its scratch result list here and leaves the context targets untouched.
             Logger.Debug("{Command} {CommandId} only found {hitCount} targets, below MinTargets {paramMinTargets}, returning false", nameof(TargetConeAECommand), Params.Id, hits.Count, Params.MinTargets);
-            result.SetFail(StatusCode.Status3_TargetingFail);
+            result.SetFail(StatusCode.TargetRequirementFailed);
             return;
         }
 

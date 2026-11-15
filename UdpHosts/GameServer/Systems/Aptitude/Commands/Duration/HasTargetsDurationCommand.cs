@@ -28,11 +28,11 @@ public class HasTargetsDurationCommand : Command, ICommand
 
         if (failsTargets == negate)
         {
-            result.SetPass(StatusCode.Status3_TargetingFail);
+            result.SetPass(StatusCode.TargetRequirementFailed);
         }
         else
         {
-            result.SetFail(StatusCode.Status3_TargetingFail);
+            result.SetFail(StatusCode.TargetRequirementFailed);
         }
 
         return;

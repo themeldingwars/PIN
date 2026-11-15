@@ -31,7 +31,7 @@ public class RequireSuperChargeCommand : Command, ICommand
             }
             else
             {
-                result.SetFail();
+                result.SetFail(StatusCode.SuperChargeRequirementFailed);
             }
 
             return;

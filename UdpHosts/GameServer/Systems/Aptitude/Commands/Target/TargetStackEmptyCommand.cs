@@ -21,7 +21,7 @@ public class TargetStackEmptyCommand : Command, ICommand
 
         if (isEmpty == shouldNotBeEmpty)
         {
-            outcome.SetFail(StatusCode.Status3_TargetingFail);
+            outcome.SetFail(StatusCode.TargetRequirementFailed);
         }
 
         result = outcome;

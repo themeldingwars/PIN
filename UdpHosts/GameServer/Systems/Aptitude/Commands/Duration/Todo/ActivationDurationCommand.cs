@@ -31,7 +31,7 @@ public class ActivationDurationCommand : Command, ICommand
         }
         else
         {
-            result.SetFail(StatusCode.Status5_DurationFail);
+            result.SetFail(StatusCode.DurationRequirementFailed);
         }
     }
 }

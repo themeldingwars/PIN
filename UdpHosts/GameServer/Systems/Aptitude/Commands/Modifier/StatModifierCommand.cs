@@ -18,7 +18,7 @@ public class StatModifierCommand : Command, ICommand
     {
         if (Params.Stat > 0x39)
         {
-            result.SetFail(StatusCode.Status1);
+            result.SetFail(StatusCode.Error);
             return;
         }
 

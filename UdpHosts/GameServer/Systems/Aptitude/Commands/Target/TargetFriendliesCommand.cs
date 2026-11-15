@@ -36,7 +36,7 @@ public class TargetFriendliesCommand : Command, ICommand
 
         if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
         {
-            result.SetFail(StatusCode.Status3_TargetingFail);
+            result.SetFail(StatusCode.TargetRequirementFailed);
             return;
         }
 

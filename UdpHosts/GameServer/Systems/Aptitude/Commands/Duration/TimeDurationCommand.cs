@@ -17,7 +17,7 @@ public class TimeDurationCommand : Command, ICommand
         // The client fails this command as well when the context isn't initiated
         if (context.InitTime is not { } initTime)
         {
-            result.SetFail(StatusCode.Status1);
+            result.SetFail(StatusCode.Error);
             return;
         }
 
@@ -43,7 +43,7 @@ public class TimeDurationCommand : Command, ICommand
         }
         else
         {
-            result.SetFail(StatusCode.Status5_DurationFail);
+            result.SetFail(StatusCode.DurationRequirementFailed);
         }
 
         return;

@@ -27,6 +27,6 @@ public class InteractionInProgressCommand : Command, ICommand
             return;
         }
 
-        result.SetFail(StatusCode.Status5_DurationFail);
+        result.SetFail(StatusCode.DurationRequirementFailed);
     }
 }
