@@ -784,11 +784,35 @@ public class WeaponSim
 
     private void ProcessEntity(CharacterEntity entity)
     {
+        ProcessFire(entity);
         ProcessWeaponSpread(entity);
         DebugWeaponSpread(entity);
-        ProcessFire(entity);
         RegenClips(entity);
         ProcessPendingAbilityProjectiles(entity);
+    }
+
+    private void ApplyMovementStates(CharacterEntity entity, WeaponPlayerSim sim, WeaponProfile profile, WeaponModeState modeState, uint upTo)
+    {
+        if (!entity.IsPlayerControlled)
+        {
+            var current = entity.MovementStateContainer.MovementStateValue;
+            if (current != modeState.CurrentMovementFlags)
+            {
+                WeaponSpreadMath.UpdateMovementState(profile, modeState, current, upTo);
+            }
+
+            return;
+        }
+
+        foreach (var (time, movementState) in entity.GetMovementStates(sim.MovementAppliedTime, upTo))
+        {
+            if (movementState != modeState.CurrentMovementFlags)
+            {
+                WeaponSpreadMath.UpdateMovementState(profile, modeState, movementState, time);
+            }
+
+            sim.MovementAppliedTime = time;
+        }
     }
 
     private void ProcessWeaponSpread(CharacterEntity entity)
@@ -802,7 +826,7 @@ public class WeaponSim
         uint currentTime = _shard.CurrentTime;
         var weaponSimState = GetOrCreateState(entity, activeWeaponDetails, currentTime);
 
-        WeaponSpreadMath.UpdateMovementState(activeWeaponDetails.WeaponProfile, weaponSimState, entity.MovementStateContainer.MovementStateValue, currentTime);
+        ApplyMovementStates(entity, _weaponSimState[entity.EntityId], activeWeaponDetails.WeaponProfile, weaponSimState, currentTime);
         WeaponSpreadMath.RecoilInterpUpdate(activeWeaponDetails.WeaponProfile, weaponSimState, currentTime, snapshot: false);
     }
 
@@ -1320,7 +1344,8 @@ public class WeaponSim
 
         Vector3 origin = entity.GetProjectileOrigin(time, aim, velocity);
 
-        WeaponSpreadMath.UpdateMovementState(details.WeaponProfile, modeState, entity.MovementStateContainer.MovementStateValue, time);
+        ApplyMovementStates(entity, sim, details.WeaponProfile, modeState, time);
+        WeaponSpreadMath.UpdateMovementState(details.WeaponProfile, modeState, modeState.CurrentMovementFlags, time);
         WeaponSpreadMath.RecoilInterpUpdate(details.WeaponProfile, modeState, time, snapshot: true);
         float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(details.WeaponProfile, modeState, time);
 
@@ -1507,6 +1532,7 @@ public class WeaponSim
         // Chargeup: weapon-wide (shared across the fire modes of this weapon), in ms
         public uint Charge;
         public uint LastChargeTime;
+        public uint MovementAppliedTime;
         public uint ChargeCap;
         public uint ChargeMin;
     }

@@ -2016,6 +2016,29 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     /// <param name="orientation">The estimated orientation at the given time</param>
     /// <param name="movementState">The estimated movement state value at the given time</param>
     /// <returns>True when the pose was derived from recorded samples, false when falling back to the current entity state</returns>
+    public List<(uint Time, ushort MovementState)> GetMovementStates(uint after, uint upTo)
+    {
+        var states = new List<(uint Time, ushort MovementState)>();
+        var upToShort = (ushort)upTo;
+        for (var age = _movementSampleCount - 1; age >= 0; age--)
+        {
+            var sample = _movementSamples[(_movementSampleNewest - age + _maxMovementSamples) % _maxMovementSamples];
+            var before = MovementSample.MsSince(sample.ShortTime, upToShort);
+            if (before > 0x8000)
+            {
+                break;
+            }
+
+            var time = upTo - before;
+            if (after == 0 || (int)(time - after) > 0)
+            {
+                states.Add((time, (ushort)sample.MovementState));
+            }
+        }
+
+        return states;
+    }
+
     public bool TryGetInterpolatedPose(uint clientTimeMs, Vector3? shooterVelocity, out Vector3 position, out Quaternion orientation, out short movementState)
     {
         position = Position;
