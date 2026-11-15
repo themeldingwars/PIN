@@ -124,6 +124,8 @@ public class AbilitySystem
         applyContext.Self = target;
         applyContext.InitTime = context.CurrentTime;
         applyContext.CurrentTime = context.CurrentTime;
+        applyContext.EnergyConsumedTime = context.CurrentTime;
+        applyContext.HasEnergyConsumedTime = true;
         applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
         if (applyContext.ScaleMultiplier == 0f)

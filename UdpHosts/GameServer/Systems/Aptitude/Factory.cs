@@ -164,8 +164,8 @@ public class Factory
             //     return new RopePullCommand(SDBInterface.GetRopePullCommandDef(commandId));
             // case CommandType.SetTargetOffset:
             //     return new SetTargetOffsetCommand(SDBInterface.GetSetTargetOffsetCommandDef(commandId));
-            // case CommandType.RequireEnergy:
-            //     return new RequireEnergyCommand(SDBInterface.GetRequireEnergyCommandDef(commandId));
+            case CommandType.RequireEnergy:
+                return new RequireEnergyCommand(SDBInterface.GetRequireEnergyCommandDef(commandId));
             case CommandType.HealDamage:
                 return new HealDamageCommand(SDBInterface.GetHealDamageCommandDef(commandId));
             // case CommandType.Bullrush:
@@ -214,8 +214,8 @@ public class Factory
             //     return new SwitchWeaponCommand(SDBInterface.GetSwitchWeaponCommandDef(commandId));
             case CommandType.StatRequirement:
                 return new StatRequirementCommand(SDBInterface.GetStatRequirementCommandDef(commandId));
-            // case CommandType.ConsumeEnergy:
-            //     return new ConsumeEnergyCommand(SDBInterface.GetConsumeEnergyCommandDef(commandId));
+            case CommandType.ConsumeEnergy:
+                return new ConsumeEnergyCommand(SDBInterface.GetConsumeEnergyCommandDef(commandId));
             // case CommandType.TargetClassType:
             //     return new TargetClassTypeCommand(SDBInterface.GetTargetClassTypeCommandDef(commandId));
             case CommandType.TargetDifference:
@@ -316,8 +316,8 @@ public class Factory
                 return new TargetTrimCommand(SDBInterface.GetTargetTrimCommandDef(commandId));
             case CommandType.SetWeaponDamage:
                 return new SetWeaponDamageCommand(SDBInterface.GetSetWeaponDamageCommandDef(commandId));
-            // case CommandType.ConsumeEnergyOverTime:
-            //     return new ConsumeEnergyOverTimeCommand(SDBInterface.GetConsumeEnergyOverTimeCommandDef(commandId));
+            case CommandType.ConsumeEnergyOverTime:
+                return new ConsumeEnergyOverTimeCommand(SDBInterface.GetConsumeEnergyOverTimeCommandDef(commandId));
             // case CommandType.RequestAbilitySelection:
             //     return new RequestAbilitySelectionCommand(SDBInterface.GetRequestAbilitySelectionCommandDef(commandId));
             // case CommandType.NPCDespawn:

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using AeroMessages.GSS.Character.Controller;
 
@@ -13,8 +14,11 @@ public class CharacterJetEnergy
     private const uint _minRechargeDelayMs = 75;
     private const float _usedEnergyEpsilon = 0.001f;
     private const ushort _maxStepMs = 0x8000;
+    private const int _maxPendingConsumes = 64;
 
     private static JetEnergyTuning _tuning;
+
+    private readonly List<(uint Time, float Amount)> _pendingConsumes = [];
 
     private bool _hasTime;
     private ushort _shortTime;
@@ -35,6 +39,18 @@ public class CharacterJetEnergy
         _lastUseMs = 0;
         _hasUsed = false;
         _movestate = movestate;
+        _pendingConsumes.Clear();
+    }
+
+    public void Consume(uint time, float amount)
+    {
+        if (_pendingConsumes.Count >= _maxPendingConsumes)
+        {
+            Energy = Math.Max(0f, Energy - _pendingConsumes[0].Amount);
+            _pendingConsumes.RemoveAt(0);
+        }
+
+        _pendingConsumes.Add((time, amount));
     }
 
     public void ClampToMax(float max)
@@ -72,6 +88,8 @@ public class CharacterJetEnergy
         _elapsedMs += stepMs;
         var dt = stepMs * 0.001f;
 
+        ApplyConsumes(shortTime, energyParams.Max);
+
         var before = Energy;
         Spend(movestate, velocity, costs, dt);
         _movestate = movestate;
@@ -94,6 +112,28 @@ public class CharacterJetEnergy
     private static MovementFlags GetMovementFlags(ushort movestate) => (MovementFlags)(movestate & 0x00FF);
 
     private static bool IsJetpack(Movestate state) => state is Movestate.Jetpack or Movestate.JetpackSprint;
+
+    private void ApplyConsumes(ushort shortTime, float max)
+    {
+        for (var i = 0; i < _pendingConsumes.Count;)
+        {
+            var (time, amount) = _pendingConsumes[i];
+            if (unchecked((short)(ushort)((ushort)time - shortTime)) > 0)
+            {
+                i++;
+                continue;
+            }
+
+            Energy = Math.Clamp(Energy - amount, 0f, Math.Max(0f, max));
+            if (amount > _usedEnergyEpsilon)
+            {
+                _lastUseMs = _elapsedMs;
+                _hasUsed = true;
+            }
+
+            _pendingConsumes.RemoveAt(i);
+        }
+    }
 
     private void Spend(ushort movestate, Vector3 velocity, JetEnergyCosts costs, float dt)
     {
