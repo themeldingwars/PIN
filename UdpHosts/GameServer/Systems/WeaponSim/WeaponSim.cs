@@ -66,14 +66,6 @@ public class WeaponSim
         }
     }
 
-    /// <summary>
-    ///     Records a client FireWeaponProjectile as an aim/velocity sample for the fire state machine.
-    ///     The sim itself decides when shots fire; this only feeds their aim/origin data.
-    /// </summary>
-    /// <param name="entity">Character that fires</param>
-    /// <param name="time">Client time of the sample</param>
-    /// <param name="localAimDir">The aim direction at the time of the sample</param>
-    /// <param name="shooterVelocity">The shooter velocity at the time of the sample</param>
     public void QueueAbilityProjectile(CharacterEntity entity, PendingAbilityProjectile pending)
     {
         if (entity.IsPlayerControlled && !_firingAttackAbility && entity.TryGetHeldFire(pending.FireTime, _shard.CurrentTime, out var aim, out var velocity))
@@ -181,9 +173,6 @@ public class WeaponSim
         _logger.Debug("Fired ability projectile ammo={AmmoType} range={Range} burst={Burst} entity={Entity} exec={ExecId}", pending.AmmoType, pending.Range, roundsToFire, entity.EntityId, pending.ExecutionId);
     }
 
-    /// <summary>
-    ///     Tops the reserve up to the capacity minus the clip, the clip itself stays untouched.
-    /// </summary>
     public void RestockAmmo(CharacterEntity entity)
     {
         // A weapon without a state was never drawn and still has the full ammo of the last reset
@@ -226,8 +215,6 @@ public class WeaponSim
         return false;
     }
 
-    private static bool NeedsAmmo(int ammo, int max) => ammo < max && (max < 10000 || ammo <= max / 2);
-
     public void ResetAmmoState(CharacterEntity entity)
     {
         _weaponSimState.Remove(entity.EntityId);
@@ -236,6 +223,8 @@ public class WeaponSim
         RestockAmmoSlot(entity, 1, 0);
         RestockAmmoSlot(entity, 2, 1);
     }
+
+    private static bool NeedsAmmo(int ammo, int max) => ammo < max && (max < 10000 || ammo <= max / 2);
 
     private static bool TrySolveBallisticAim(Vector3 origin, Vector3 target, float speed, float gravity, out Vector3 aim)
     {
@@ -528,6 +517,47 @@ public class WeaponSim
                 }
 
                 break;
+        }
+    }
+
+    // Starts 500 ms after the last shot or reload and adds every due round at once, as in the client (0x7ACE70)
+    private static void RegenClip(CharacterEntity entity, AmmoState state, uint time)
+    {
+        if (!state.HasAmmo || state.RegenMs == 0 || state.Clip >= state.ClipMax || state.Reserve <= 0)
+        {
+            return;
+        }
+
+        uint start = Math.Max(Math.Max(state.LastShotTime, state.ReloadTime) + 500, state.LastClipRegenTime);
+        if (time < start + state.RegenMs)
+        {
+            return;
+        }
+
+        uint due = (time - start) / state.RegenMs;
+        state.LastClipRegenTime = start + (due * state.RegenMs);
+        int rounds = (int)Math.Min(due, (uint)Math.Min(state.ClipMax - state.Clip, state.Reserve));
+        state.Clip += rounds;
+        state.Reserve -= rounds;
+        SyncAmmoView(entity, state);
+    }
+
+    private static void SyncAmmoView(CharacterEntity entity, WeaponPlayerSim sim) => SyncAmmoView(entity, sim.Ammo);
+
+    // A reserve change alone leaves the clip out, a sent clip would replace the client's prediction mid burst
+    private static void SyncAmmoView(CharacterEntity entity, AmmoState ammo, bool reserveOnly = false)
+    {
+        if (!ammo.HasAmmo)
+        {
+            return;
+        }
+
+        ushort? clip = reserveOnly ? null : (ushort)Math.Max(0, ammo.Clip);
+        var reserve = (ushort)Math.Max(0, ammo.Reserve);
+        WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, ammo.Mode == 1, clip, reserve);
+        if (ammo.Shared)
+        {
+            WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, true, clip, reserve);
         }
     }
 
@@ -942,28 +972,6 @@ public class WeaponSim
                 RegenClip(entity, state, _shard.CurrentTime);
             }
         }
-    }
-
-    // Starts 500 ms after the last shot or reload and adds every due round at once, as in the client (0x7ACE70)
-    private static void RegenClip(CharacterEntity entity, AmmoState state, uint time)
-    {
-        if (!state.HasAmmo || state.RegenMs == 0 || state.Clip >= state.ClipMax || state.Reserve <= 0)
-        {
-            return;
-        }
-
-        uint start = Math.Max(Math.Max(state.LastShotTime, state.ReloadTime) + 500, state.LastClipRegenTime);
-        if (time < start + state.RegenMs)
-        {
-            return;
-        }
-
-        uint due = (time - start) / state.RegenMs;
-        state.LastClipRegenTime = start + (due * state.RegenMs);
-        int rounds = (int)Math.Min(due, (uint)Math.Min(state.ClipMax - state.Clip, state.Reserve));
-        state.Clip += rounds;
-        state.Reserve -= rounds;
-        SyncAmmoView(entity, state);
     }
 
     private void HandleFireEvent(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, WeaponFireEvent evt)
@@ -1436,25 +1444,6 @@ public class WeaponSim
 
         SyncAmmoView(entity, sim);
         return true;
-    }
-
-    private static void SyncAmmoView(CharacterEntity entity, WeaponPlayerSim sim) => SyncAmmoView(entity, sim.Ammo);
-
-    // A reserve change alone leaves the clip out, a sent clip would replace the client's prediction mid burst
-    private static void SyncAmmoView(CharacterEntity entity, AmmoState ammo, bool reserveOnly = false)
-    {
-        if (!ammo.HasAmmo)
-        {
-            return;
-        }
-
-        ushort? clip = reserveOnly ? null : (ushort)Math.Max(0, ammo.Clip);
-        var reserve = (ushort)Math.Max(0, ammo.Reserve);
-        WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, ammo.Mode == 1, clip, reserve);
-        if (ammo.Shared)
-        {
-            WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, true, clip, reserve);
-        }
     }
 
     private void DebugWeaponSpread(CharacterEntity entity)

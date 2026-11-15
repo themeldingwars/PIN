@@ -14,18 +14,18 @@ namespace GameServer.Systems.ZoneBorders;
 /// </summary>
 public sealed class ZoneBorderService
 {
+    private const ulong _checkIntervalMs = 250;
+
+    // Long enough for the remove chain's teleport to start, so a player whose transfer waits for the other zone's shard
+    // doesn't get the countdown a second time
+    private const ulong _reapplyDelayMs = 4000;
+
     // The transfer effect of each zone with transfer bounds, from the RequireZoneType check in its apply chain
     private static readonly Dictionary<uint, uint> _transferEffects = new()
     {
         [448] = 7213,
         [1030] = 7212,
     };
-
-    private const ulong _checkIntervalMs = 250;
-
-    // Long enough for the remove chain's teleport to start, so a player whose transfer waits for the other zone's shard
-    // doesn't get the countdown a second time
-    private const ulong _reapplyDelayMs = 4000;
 
     private readonly IShard _shard;
     private readonly ZoneGeometry _geometry;

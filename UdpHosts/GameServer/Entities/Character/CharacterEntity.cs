@@ -2346,6 +2346,16 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return null;
     }
 
+    /// <summary>
+    ///     FireMode_0 belongs to weapon slot 1 and FireMode_1 to slot 2 (client 0xC94F20), other slots return 0.
+    /// </summary>
+    public byte GetFireMode(byte weaponSlot) => weaponSlot switch
+    {
+        1 => FireMode_0.Mode,
+        2 => FireMode_1.Mode,
+        _ => 0,
+    };
+
     private static Dictionary<MonsterVisualOptionType, List<uint>> GroupOptionsByType(IEnumerable<MonsterVisualOption> options)
         => options.GroupBy(o => (MonsterVisualOptionType)o.Type)
                     .ToDictionary(g => g.Key, g => g.Select(o => o.Value).ToList());
@@ -2479,16 +2489,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             result[range.AttributeId] = result.GetValueOrDefault(range.AttributeId) + range.Base;
         }
     }
-
-    /// <summary>
-    ///     FireMode_0 belongs to weapon slot 1 and FireMode_1 to slot 2 (client 0xC94F20), other slots return 0.
-    /// </summary>
-    public byte GetFireMode(byte weaponSlot) => weaponSlot switch
-    {
-        1 => FireMode_0.Mode,
-        2 => FireMode_1.Mode,
-        _ => 0,
-    };
 
     private bool IsAltFireMode()
     {
