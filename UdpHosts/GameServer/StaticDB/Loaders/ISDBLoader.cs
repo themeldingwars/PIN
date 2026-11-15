@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
+using Records.dbconfig;
 using Records.dbencounterdata;
 using Records.dbitems;
 using Records.dbphysicsmaterials;
@@ -55,6 +56,8 @@ public interface ISDBLoader
     // dbitems
     Dictionary<uint, AttributeCategory> LoadAttributeCategory();
     Dictionary<uint, AttributeDefinition> LoadAttributeDefinition();
+
+    Dictionary<string, ConsoleVariable> LoadConsoleVariables();
     Dictionary<uint, Dictionary<ushort, AttributeRange>> LoadAttributeRange();
     Dictionary<uint, Dictionary<ushort, ItemModuleScalars>> LoadItemModuleScalars();
     Dictionary<uint, Dictionary<ushort, ItemCharacterScalars>> LoadItemCharacterScalars();

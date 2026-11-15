@@ -80,6 +80,9 @@ public class MovementRelay
             _shard.Logger.Debug("Movestate of {Character} changes from {Previous} to {Movestate}", character, previousMovestate, character.MovementStateContainer.Movestate);
         }
 
+        character.JetEnergy.Simulate(input.ShortTime, (ushort)movementStateValue, poseData.Velocity, character.EnergyParams, character.GetJetEnergyCosts());
+        var jetpackEnergy = character.JetEnergy.Encode(character.EnergyParams.Max);
+
         // Update with physics
         _shard.Physics.UpdateEntity(character);
 
@@ -101,7 +104,7 @@ public class MovementRelay
                                 MovementState = movementStateValue
                             },
                 Velocity = character.Velocity,
-                JetpackEnergy = poseData.JetpackEnergy,
+                JetpackEnergy = jetpackEnergy,
                 GroundTimePositiveAirTimeNegative = poseData.GroundTimePositiveAirTimeNegative, // Somehow affects gravity
                 TimeSinceLastJump = poseData.TimeSinceLastJump,
                 HaveDebugData = 0

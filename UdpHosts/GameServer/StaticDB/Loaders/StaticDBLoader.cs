@@ -7,6 +7,7 @@ using FauFau.Formats;
 using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
+using Records.dbconfig;
 using Records.dbencounterdata;
 using Records.dbitems;
 using Records.dbphysicsmaterials;
@@ -216,6 +217,17 @@ public class StaticDBLoader : ISDBLoader
     {
         return LoadStaticDB<AttributeDefinition>("dbitems::AttributeDefinition")
         .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<string, ConsoleVariable> LoadConsoleVariables()
+    {
+        var result = new Dictionary<string, ConsoleVariable>(StringComparer.OrdinalIgnoreCase);
+        foreach (var row in LoadStaticDB<ConsoleVariable>("dbconfig::ConsoleVariable"))
+        {
+            result[row.Name] = row;
+        }
+
+        return result;
     }
 
     // Indexed by item, then by attribute, so an item lookup does not have to walk the whole table

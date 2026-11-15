@@ -2,10 +2,13 @@ namespace GameServer.Enums;
 
 public enum ItemAttributeId : ushort
 {
+    JetEnergyCost = 2,
+    JetClimbSpeed = 3,
     JetEnergyRecharge = 5,
     Health = 6,
     HealthRegen = 7,
     RunSpeed = 12,
+    SprintEnergyCost = 13,
     RateOfFire = 17,
     JetEnergy = 35,
     JumpHeight = 37,

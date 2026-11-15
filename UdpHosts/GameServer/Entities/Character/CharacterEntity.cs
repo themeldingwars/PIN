@@ -54,6 +54,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const float _fallbackCrouchSpeed = 2.5f; // TODO: Derive from SDB/character stats
     private const int _maxAbilityProjectilePending = 8; // safety cap for queued ability projectiles
     private const uint _abilityProjectileStaleMs = 1000; // a queued ability projectile older than this is dropped
+    private const float _baseEnergyRechargeDelayMs = 500f;
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
     private readonly AimSample[] _aimSamples = new AimSample[_maxAimSamples];
@@ -198,6 +199,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public EquipmentData CurrentEquipment { get; set; }
     public CharacterStatsData CharacterStats { get; set; }
     public EnergyParamsData EnergyParams { get; set; }
+    public CharacterJetEnergy JetEnergy { get; } = new();
     public ScopeBubbleInfoData ScopeBubble { get; set; }
     public CharacterSpawnPose SpawnPose { get; set; }
     public byte EffectsFlags { get; set; }
@@ -301,6 +303,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         { AptitudeStat.AirResistance,    1.0f },
         { AptitudeStat.WeaponChargeupMod,    1.0f },
         { AptitudeStat.WeaponDamageDealtMod, 1.0f },
+        { AptitudeStat.MaxEnergy,            1.0f },
+        { AptitudeStat.EnergyRechargeDelay,  1.0f },
+        { AptitudeStat.EnergyRechargeRate,   1.0f },
     };
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
@@ -942,7 +947,36 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 ActiveEffects.Count(effect => effect != null));
         }
 
+        RefreshEnergyParams();
+
         LogSpeedSnapshot($"applied loadout {loadout.LoadoutID}, chassis {previousChassisId} -> {loadout.ChassisID}");
+    }
+
+    public void RefreshEnergyParams()
+    {
+        EnergyParams = BuildEnergyParams();
+        JetEnergy.ClampToMax(EnergyParams.Max);
+
+        Logger.Debug(
+            "{Entity} EnergyParams max {Max} delay {Delay} recharge {Recharge}",
+            this,
+            EnergyParams.Max,
+            EnergyParams.Delay,
+            EnergyParams.Recharge);
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.EnergyParamsProp = EnergyParams;
+        }
+    }
+
+    public JetEnergyCosts GetJetEnergyCosts()
+    {
+        return new JetEnergyCosts(
+            GetLoadoutAttribute(ItemAttributeId.JetEnergyCost),
+            GetLoadoutAttribute(ItemAttributeId.JetClimbSpeed),
+            GetLoadoutAttribute(ItemAttributeId.SprintEnergyCost),
+            GetLoadoutAttribute(ItemAttributeId.JetSprintCost));
     }
 
     public float GetItemAttribute(ushort id) => CurrentLoadout.ItemAttributes.GetValueOrDefault(id);
@@ -1030,6 +1064,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                     break;
                 case AptitudeStat.WeaponDamageDealtMod:
                     Character_CombatController.WeaponDamageDealtModProp = value;
+                    break;
+                case AptitudeStat.MaxEnergy:
+                case AptitudeStat.EnergyRechargeDelay:
+                case AptitudeStat.EnergyRechargeRate:
+                    RefreshEnergyParams();
                     break;
             }
         }
@@ -1361,11 +1400,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             MovementState = 0x1000,
             MovementType = 0,
             WaterLevelAndDesc = 0,
-            JetpackEnergy = 0x639c,
+            JetpackEnergy = CharacterJetEnergy.EncodedFull,
             AirGroundTimer = 0,
             JumpTimer = 0,
             HaveDebugData = 0
         };
+        JetEnergy.Reset(0f, SpawnPose.MovementState);
         Character_ObserverView.SpawnTimeProp = Shard.CurrentTime;
         if (Character_BaseController != null)
         {
@@ -2427,6 +2467,22 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         _weaponDetailsCache = cache;
     }
 
+    private EnergyParamsData BuildEnergyParams()
+    {
+        return new EnergyParamsData
+        {
+            Max = GetLoadoutAttribute(ItemAttributeId.JetEnergy) * GetCurrentStatModifierValue(AptitudeStat.MaxEnergy),
+            Delay = (uint)MathF.Round(_baseEnergyRechargeDelayMs * GetCurrentStatModifierValue(AptitudeStat.EnergyRechargeDelay)),
+            Recharge = GetLoadoutAttribute(ItemAttributeId.JetEnergyRecharge) * GetCurrentStatModifierValue(AptitudeStat.EnergyRechargeRate),
+            Time = Shard.CurrentTime,
+        };
+    }
+
+    private float GetLoadoutAttribute(ItemAttributeId id)
+    {
+        return CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)id) ?? 0f;
+    }
+
     private void RecalculateHealthAndWeaponDamage()
     {
         if (IsNpc)
@@ -2626,7 +2682,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             AttributeCategories2 = []
         };
 
-        EnergyParams = new EnergyParamsData { Max = 1000.0f, Delay = 500, Recharge = 156.0f, Time = Shard.CurrentTime };
+        EnergyParams = BuildEnergyParams();
         ScopeBubble = new ScopeBubbleInfoData { Layer = 0, VisibilityMask = 0 };
         SpawnPose = new CharacterSpawnPose
         {
@@ -2638,7 +2694,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             MovementState = 0x1000,
             MovementType = 0,
             WaterLevelAndDesc = 0,
-            JetpackEnergy = 0x639c,
+            JetpackEnergy = CharacterJetEnergy.EncodedFull,
             AirGroundTimer = 0,
             JumpTimer = 0,
             HaveDebugData = 0
