@@ -6,4 +6,5 @@ public record class ModifyPermissionCommandDef : ICommandDef
     public bool? GliderHud { get; set; }
     public bool? Hover { get; set; }
     public bool? Jetpack { get; set; }
+    public bool? GenerateSupercharge { get; set; }
 }

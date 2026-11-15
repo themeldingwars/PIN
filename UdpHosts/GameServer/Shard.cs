@@ -105,6 +105,7 @@ public class Shard : IShard
         Admin = new AdminService(this);
         var npcDeathRules = new StandardNpcDeathRules();
         Damage = new DamageSystem(EventBus, this, npcDeathRules);
+        SuperCharge = new SuperChargeSystem(this);
         Combat = new CombatSim(EventBus, EntityMan, Damage, this);
         CharacterLifecycle = new CharacterLifecycleService(this, EventBus, new StandardCharacterLifecycleRules());
         PlayerRespawn = new PlayerRespawnService(this, EventBus, new StandardPlayerRespawnRules(), CharacterLifecycle);
@@ -138,6 +139,7 @@ public class Shard : IShard
     public ChatService Chat { get; }
     public AdminService Admin { get; }
     public DamageSystem Damage { get; }
+    public SuperChargeSystem SuperCharge { get; }
     public HostilityResolver Hostility { get; }
     public CombatSim Combat { get; }
     public CharacterCreationService CharacterCreation { get; }
@@ -264,6 +266,8 @@ public class Shard : IShard
         last = Metrics.Tick(ShardSystem.Projectiles, last);
         Damage.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.Damage, last);
+        SuperCharge.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.SuperCharge, last);
         CharacterLifecycle.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.Lifecycle, last);
         PlayerRespawn.Tick(deltaTime, currentTime, ct);

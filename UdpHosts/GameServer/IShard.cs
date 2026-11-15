@@ -54,6 +54,7 @@ public interface IShard : IPacketSender
     ChatService Chat { get; }
     AdminService Admin { get; }
     DamageSystem Damage { get; }
+    SuperChargeSystem SuperCharge { get; }
     HostilityResolver Hostility { get; }
     CharacterCreationService CharacterCreation { get; }
     CharacterLifecycleService CharacterLifecycle { get; }

@@ -470,7 +470,8 @@
 	},
 	{
 		"id": 385436,
-		"comment": "Triggered by Effect 4010  "
+		"comment": "Effect 4010 Apply - Healing Dome HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 385925,
@@ -478,11 +479,13 @@
 	},
 	{
 		"id": 386054,
-		"comment": "Triggered by Effect 4018  "
+		"comment": "Effect 4018 Apply - Shockwave HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 394898,
-		"comment": "Triggered by Effect 4084  "
+		"comment": "Effect 4084 Apply - Anti-Personel Turret HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 396357,
@@ -1286,11 +1289,13 @@
 	},
 	{
 		"id": 1224670,
-		"comment": "Triggered by Effect 3846  "
+		"comment": "Effect 3846 Apply - Chemical Sprayer HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1224695,
-		"comment": "Triggered by Effect 3836  "
+		"comment": "Effect 3836 Apply - Accord Mortar Arcfold HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1230889,
@@ -1342,7 +1347,8 @@
 	},
 	{
 		"id": 1273526,
-		"comment": "Triggered by Effect 12964  "
+		"comment": "Effect 12964 Apply - Unfinished or legacy Healing Dome HKM?",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1276369,
@@ -1394,7 +1400,8 @@
 	},
 	{
 		"id": 1317019,
-		"comment": "Triggered by Effect 13283  "
+		"comment": "Effect 13283 Apply - Dreadfield HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1324080,
@@ -1466,7 +1473,8 @@
 	},
 	{
 		"id": 1349000,
-		"comment": "Triggered by Effect 4011  "
+		"comment": "Effect 4011 Apply - Fuel Air Bomb, Heroism HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1351356,
@@ -1506,7 +1514,8 @@
 	},
 	{
 		"id": 1361989,
-		"comment": "Triggered by Effect 13146  "
+		"comment": "Effect 13146 Aply - Fungal Bloom HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1370613,
@@ -1650,7 +1659,8 @@
 	},
 	{
 		"id": 1383934,
-		"comment": "Triggered by Effect 13952  "
+		"comment": "Effect 13952 Apply - Overload HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1385140,
@@ -1718,11 +1728,13 @@
 	},
 	{
 		"id": 1397187,
-		"comment": "Triggered by Effect 3892  "
+		"comment": "Effect 3892 Apply - Electrical Storm HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1399153,
-		"comment": "Triggered by Effect 3930  "
+		"comment": "Effect 3930 Apply - Overload HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1410371,
@@ -1806,7 +1818,8 @@
 	},
 	{
 		"id": 1487072,
-		"comment": "Triggered by Effect 11698  "
+		"comment": "Effect 11698 Apply - Accord Chemical Sprayer Arcfold HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1496855,
@@ -1988,7 +2001,8 @@
 	},
 	{
 		"id": 1557551,
-		"comment": "Triggered by Effect 15131  "
+		"comment": "Effect 15131 Apply - Unfinished or legacy Shockwave HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1559931,
@@ -2081,7 +2095,8 @@
 	},
 	{
 		"id": 1582938,
-		"comment": "Triggered by Effect 4482  "
+		"comment": "Effect 4482 Apply - Fires from Heaven HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1582946,
@@ -2089,11 +2104,13 @@
 	},
 	{
 		"id": 1588198,
-		"comment": "Triggered by Effect 15231  "
+		"comment": "Effect 15231 Apply - Absoprtion Bomb HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1592873,
-		"comment": "Triggered by Effect 13879  "
+		"comment": "Effect 13879 Apply - Electrical Storm HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1602701,
@@ -2113,11 +2130,13 @@
 	},
 	{
 		"id": 1606556,
-		"comment": "Triggered by Effect 14691  "
+		"comment": "Effect 14691 Apply - Eruption Rifle HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1606742,
-		"comment": "Triggered by Effect 3962  "
+		"comment": "Effect 3962 Apply - Supercharge HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1606852,
@@ -2133,11 +2152,13 @@
 	},
 	{
 		"id": 1607052,
-		"comment": "Triggered by Effect 1601  "
+		"comment": "Effect 1601 Apply - Dreadfield HKM ",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1607540,
-		"comment": "Triggered by Effect 3932  "
+		"comment": "Effect 3932 Apply - Necrosis HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1607624,
@@ -2145,7 +2166,8 @@
 	},
 	{
 		"id": 1609210,
-		"comment": "Triggered by Effect 15357  "
+		"comment": "Effect 15357 Apply - Eruption HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1612395,
@@ -2209,11 +2231,13 @@
 	},
 	{
 		"id": 1625298,
-		"comment": "Triggered by Effect 15437  "
+		"comment": "Effect 15437 Apply - Missile Barrage HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1626217,
-		"comment": "Triggered by Effect 15447  "
+		"comment": "Effect 15447 Apply - Hyper Stimpack HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1628459,
@@ -2229,7 +2253,8 @@
 	},
 	{
 		"id": 1630698,
-		"comment": "Triggered by Effect 15454  "
+		"comment": "Effect 15454 Apply - Feral Form HKM",
+		"generate_supercharge": false
 	},
 	{
 		"id": 1630775,
@@ -2245,22 +2270,22 @@
 	},
 	{
 		"id": 1632354,
-		"comment": "Triggered by Effect 15474  "
+		"comment": "Triggered by Effect 15474 / GOLF Jetpack Permissions "
 	},
 	{
 		"id": 1633419,
-		"comment": "Triggered by Effect 14045  "
+		"comment": "Triggered by Effect 14045 / Mighty Leap  "
 	},
 	{
 		"id": 1634994,
-		"comment": "Triggered by Effect 10810  "
+		"comment": "Triggered by Effect 10810 / Turret Mode "
 	},
 	{
 		"id": 1634995,
-		"comment": "Triggered by Effect 10810  "
+		"comment": "Triggered by Effect 10810 / Turret Mode "
 	},
 	{
 		"id": 1634996,
-		"comment": "Triggered by Effect 10810  "
+		"comment": "Triggered by Effect 10810 / Turret Mode "
 	}
 ]

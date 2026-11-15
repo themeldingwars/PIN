@@ -66,6 +66,7 @@ public class HitFeedback
                 DamageFlags = damageFlags,
             },
                 sourceCharacter.EntityId);
+            _shard.SuperCharge.OnDamageDealt(sourceCharacter, damage);
         }
 
         // Target Took Hit Feedback. ViewKickScale is the camera kick multiplier the client scales by
@@ -81,6 +82,11 @@ public class HitFeedback
                     ShortTime = _shard.CurrentShortTime,
                     ViewKickScale = 0,
                 });
+
+            if (target is CharacterEntity targetCharacter && targetCharacter.IsPlayerControlled)
+            {
+                _shard.SuperCharge.OnDamageTaken(targetCharacter, damage);
+            }
         }
         else if (target is DeployableEntity)
         {

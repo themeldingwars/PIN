@@ -15266,7 +15266,9 @@
 	},
 	{
 		"id": 1635101,
-		"comment": "Triggered by Effect 15351  "
+		"comment": "Triggered by Effect 15351  || Mighty Charge ",
+		"effect_id": 15253,
+		"remove_from_self": true
 	},
 	{
 		"id": 1635134,

@@ -153,6 +153,7 @@ public class CharacterLoadout
         { (ushort)ItemAttributeId.JetSprintCost, 150 },
         { (ushort)ItemAttributeId.PowerRating, 100 },
         { (ushort)ItemAttributeId.SprintSpeed, 130 },
+        { (ushort)ItemAttributeId.ChargeSpeedHkm, 1 },
     };
 
     private static readonly Dictionary<ushort, float> _fallbackModuleScalars = [];

@@ -292,6 +292,11 @@ public static class Character_CombatController
 
         if (abilityId != 0)
         {
+            if (abilitySlot <= 2)
+            {
+                shard.SuperCharge.OnAbilityActivated(character);
+            }
+
             var activationTime = activateAbility.Time;
             if (character.IsPlayerControlled)
             {

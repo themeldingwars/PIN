@@ -541,8 +541,8 @@ public class Factory
             //     return new ReplenishEffectDurationCommand(CustomDBInterface.GetReplenishEffectDurationCommandDef(commandId));
             case CommandType.ConsumeSuperCharge:
                 return new ConsumeSuperChargeCommand(SDBInterface.GetConsumeSuperChargeCommandDef(commandId));
-            // case CommandType.RequireSuperCharge:
-            //     return new RequireSuperChargeCommand(SDBInterface.GetRequireSuperChargeCommandDef(commandId));
+            case CommandType.RequireSuperCharge:
+                return new RequireSuperChargeCommand(SDBInterface.GetRequireSuperChargeCommandDef(commandId));
             // case CommandType.ActivateAbilityTrigger:
             //     return new ActivateAbilityTriggerCommand(CustomDBInterface.GetActivateAbilityTriggerCommandDef(commandId));
             case CommandType.TargetByHealth:

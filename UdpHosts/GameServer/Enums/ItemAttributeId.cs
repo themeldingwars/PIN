@@ -16,6 +16,7 @@ public enum ItemAttributeId : ushort
     WeaponMagazineSize = 956,
     WeaponRange = 957,
     WeaponSpread = 958,
+    ChargeSpeedHkm = 959,
     JetSprintCost = 1121,
     CreatureHPModifier = 1143,
     CreatureDamageModifier = 1144,

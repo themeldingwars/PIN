@@ -949,6 +949,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         RefreshEnergyParams();
 
+        if (IsPlayerControlled)
+        {
+            Shard.SuperCharge.ResetMeter(this, "loadout applied");
+        }
+
         LogSpeedSnapshot($"applied loadout {loadout.LoadoutID}, chassis {previousChassisId} -> {loadout.ChassisID}");
     }
 
@@ -2866,7 +2871,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             CombatFlagsProp = new CombatFlagsData { Value = 0, Time = Shard.CurrentTime },
             PermissionFlagsProp = PermissionFlags,
             NemesesProp = new NemesesData { Values = [] },
-            SuperChargeProp = new SuperChargeData { Value = 100, Op = 0 }
+            SuperChargeProp = new SuperChargeData { Value = 0, Op = 0 }
         };
         Character_MissionAndMarkerController = new MissionAndMarkerController();
         Character_LocalEffectsController = new LocalEffectsController();
