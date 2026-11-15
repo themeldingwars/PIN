@@ -21,6 +21,7 @@ public class WeaponSim
 {
     // Charge kept when switching between linked fire modes, unverified.
     private const float _chargeSwitchKeepFraction = 1.0f;
+    private const uint _shotFireWaitMs = 500;
 
     private readonly Dictionary<ulong, WeaponPlayerSim> _weaponSimState;
     private readonly Shard _shard;
@@ -399,7 +400,7 @@ public class WeaponSim
 
     private static void TrimAimSamples(WeaponFireState fire, uint time)
     {
-        while (fire.AimSamples.Count > 0 && time - fire.AimSamples[0].Time > 1000)
+        while (fire.AimSamples.Count > 0 && (int)(time - fire.AimSamples[0].Time) > 1000)
         {
             fire.AimSamples.RemoveAt(0);
         }
@@ -897,6 +898,23 @@ public class WeaponSim
         while (true)
         {
             bool shotDue = fire.State == WeaponFireStateEnum.Firing && fire.NextShotTime <= time;
+            if (shotDue && !IsShotReady(entity, sim, weapon, fire.NextShotTime, time))
+            {
+                TakeAimSamples(entity, sim, activeWeaponDetails, time);
+                if (!IsShotReady(entity, sim, weapon, fire.NextShotTime, time))
+                {
+                    if (sim.Events.Count > 0 && sim.Events[0].Time < fire.NextShotTime)
+                    {
+                        var earlier = sim.Events[0];
+                        sim.Events.RemoveAt(0);
+                        HandleFireEvent(entity, sim, activeWeaponDetails, earlier);
+                        continue;
+                    }
+
+                    break;
+                }
+            }
+
             bool evtDue = sim.Events.Count > 0 && sim.Events[0].Time <= time;
             if (!shotDue && !evtDue)
             {
@@ -1096,6 +1114,60 @@ public class WeaponSim
                 }
 
                 break;
+        }
+    }
+
+    private bool TryGetShotAimSample(WeaponFireState fire, WeaponTemplateResult weapon, uint shotTime, bool preferAbilityTime, out FireAimSample sample, out string source)
+    {
+        bool hasAbilityTime = weapon.AttackAbility != 0;
+        uint abilityTime = shotTime + PendingAbilityProjectile.ClientFireDelayMs;
+        if (preferAbilityTime && hasAbilityTime && TryGetAimSample(fire, abilityTime, out sample))
+        {
+            source = "sample+50";
+            return true;
+        }
+
+        if (TryGetAimSample(fire, shotTime, out sample))
+        {
+            source = "sample";
+            return true;
+        }
+
+        if (!preferAbilityTime && hasAbilityTime && TryGetAimSample(fire, abilityTime, out sample))
+        {
+            source = "sample+50";
+            return true;
+        }
+
+        source = "pose";
+        return false;
+    }
+
+    private bool IsShotReady(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint shotTime, uint currentTime)
+    {
+        if (!entity.IsPlayerControlled)
+        {
+            return true;
+        }
+
+        return TryGetShotAimSample(sim.Fire, weapon, shotTime, true, out _, out _)
+            || (int)(currentTime - shotTime) >= (int)_shotFireWaitMs;
+    }
+
+    private void TakeAimSamples(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, uint currentTime)
+    {
+        for (var i = 0; i < sim.Events.Count;)
+        {
+            var evt = sim.Events[i];
+            if (evt.Type == WeaponFireEventType.FireAimSample && evt.Time <= currentTime)
+            {
+                sim.Events.RemoveAt(i);
+                HandleFireEvent(entity, sim, details, evt);
+            }
+            else
+            {
+                i++;
+            }
         }
     }
 
@@ -1327,19 +1399,12 @@ public class WeaponSim
 
         // Aim resolution: 1) the client sample for this exact shot time, 2) the aim interpolated
         // from the movement sample buffer at the shot time, 3) the last known pose.
-        Vector3 aim;
+        Vector3 aim = entity.AimDirection;
         Vector3? velocity = null;
-        string aimSource;
-        if (TryGetAimSample(sim.Fire, time, out var sample))
+        if (TryGetShotAimSample(sim.Fire, weapon, time, true, out var sample, out _))
         {
             aim = sample.Aim;
             velocity = sample.Velocity;
-            aimSource = "sample";
-        }
-        else
-        {
-            aim = entity.AimDirection;
-            aimSource = "pose";
         }
 
         Vector3 origin = entity.GetProjectileOrigin(time, aim, velocity);
@@ -1366,7 +1431,7 @@ public class WeaponSim
             var pending = entity.TryConsumeAbilityProjectileByExecId(executionId);
             if (pending.HasValue)
             {
-                OnFireAbilityProjectile(entity, pending.Value, time, aim, velocity);
+                OnFireAbilityProjectile(entity, pending.Value, pending.Value.FireTime, aim, velocity);
                 firedViaAbility = true;
             }
         }
@@ -1379,7 +1444,14 @@ public class WeaponSim
 
         if (!firedViaAbility)
         {
-            FireWeaponDirect(entity, sim, details, modeState, time, aim, velocity, origin, spreadPct, aimSource);
+            if (TryGetShotAimSample(sim.Fire, weapon, time, false, out var directSample, out var directSource))
+            {
+                aim = directSample.Aim;
+                velocity = directSample.Velocity;
+                origin = entity.GetProjectileOrigin(time, aim, velocity);
+            }
+
+            FireWeaponDirect(entity, sim, details, modeState, time, aim, velocity, origin, spreadPct, directSource);
         }
 
         SyncAmmoView(entity, sim);
