@@ -108,6 +108,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     /// </summary>
     public bool IsHidden { get; private set; }
 
+    public bool NotTargetable { get; set; }
+
     /// <summary>
     ///     Set by TurretControlCommand (status effect 1368). The NPC stops acting on its own and instead drives the
     ///     turret's aim and weapon through the TurretSystem.

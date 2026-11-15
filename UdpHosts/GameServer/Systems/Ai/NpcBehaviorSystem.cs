@@ -293,6 +293,11 @@ public sealed class NpcBehaviorSystem
                 continue;
             }
 
+            if (player.NotTargetable)
+            {
+                continue;
+            }
+
             var d = HorizontalDistance(npc.Position, player.Position);
             if (d <= radius && d < bestDist)
             {
