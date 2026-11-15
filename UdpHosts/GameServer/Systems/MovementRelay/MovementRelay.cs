@@ -12,6 +12,7 @@ namespace GameServer.Systems.MovementRelay;
 public class MovementRelay
 {
     private const int MaxPoseLogs = 5;
+    private const float _confirmedPoseTolerance = 0.001f;
 
     private static readonly ILogger _logger = Log.ForContext<MovementRelay>();
 
@@ -82,13 +83,16 @@ public class MovementRelay
         // Update with physics
         _shard.Physics.UpdateEntity(character);
 
+        var poseMatches = Vector3.DistanceSquared(character.Position, posRotState.Pos) <= _confirmedPoseTolerance * _confirmedPoseTolerance
+            && character.Orientation == posRotState.Rot;
+
         // Confirm the pose with the client
         var confirmedPose = new ConfirmedPoseUpdate
         {
             PoseData = new MovementPoseData
             {
                 ShortTime = input.ShortTime,
-                MovementType = MovementDataType.PosRotState,
+                MovementType = poseMatches ? MovementDataType.Velocity : MovementDataType.PosRotState,
                 WaterLevelAndDesc = poseData.WaterLevelAndDesc,
                 PosRotState = new MovementPosRotState
                             {
