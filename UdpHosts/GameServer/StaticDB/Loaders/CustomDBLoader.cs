@@ -623,13 +623,13 @@ public class CustomDBLoader
 
     public Dictionary<uint, ReplenishableDurationCommandDef> LoadReplenishableDurationCommandDef()
     {
-        return LoadJSON<ReplenishableDurationCommandDef>("./StaticDB/CustomData/Todo/aptgss_ReplenishableDurationCommandDef.json")
+        return LoadJSON<ReplenishableDurationCommandDef>("./StaticDB/CustomData/aptgss_ReplenishableDurationCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 
     public Dictionary<uint, ReplenishEffectDurationCommandDef> LoadReplenishEffectDurationCommandDef()
     {
-        return LoadJSON<ReplenishEffectDurationCommandDef>("./StaticDB/CustomData/Todo/aptgss_ReplenishEffectDurationCommandDef.json")
+        return LoadJSON<ReplenishEffectDurationCommandDef>("./StaticDB/CustomData/aptgss_ReplenishEffectDurationCommandDef.json")
             .ToDictionary(row => row.Id);
     }
 

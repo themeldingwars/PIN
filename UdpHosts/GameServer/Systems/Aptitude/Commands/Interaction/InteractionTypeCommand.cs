@@ -36,7 +36,7 @@ public class InteractionTypeCommand : Command, ICommand
         }
         else
         {
-            result.SetFail(StatusCode.Status1);
+            result.SetFail(StatusCode.Error);
         }
 
         return;

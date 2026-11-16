@@ -69,6 +69,12 @@ public class Context
     /// </summary>
     public uint? InitTime { get; set; }
 
+    public uint? ReplenishedTime { get; set; }
+
+    public bool HasEnergyConsumedTime { get; set; }
+
+    public uint EnergyConsumedTime { get; set; }
+
     /// <summary>
     /// The time the running chain executes at, e.g. the activation time sent by the client or the tick an effect gets updated in.
     /// </summary>
@@ -119,6 +125,9 @@ public class Context
             DamageType = original.DamageType,
             ScaleMultiplier = original.ScaleMultiplier,
             InitTime = original.InitTime,
+            ReplenishedTime = original.ReplenishedTime,
+            HasEnergyConsumedTime = original.HasEnergyConsumedTime,
+            EnergyConsumedTime = original.EnergyConsumedTime,
             CurrentTime = original.CurrentTime,
             InitPosition = original.InitPosition,
             InitBodyPosition = original.InitBodyPosition,

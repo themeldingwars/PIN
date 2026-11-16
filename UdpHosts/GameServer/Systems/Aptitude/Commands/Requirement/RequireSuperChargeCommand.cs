@@ -20,18 +20,18 @@ public class RequireSuperChargeCommand : Command, ICommand
 
         if (target is CharacterEntity character)
         {
-            var currentValue = character.Character_CombatController.SuperChargeProp.Value;
+            var currentValue = character.Shard.SuperCharge.GetCharge(character);
 
             var percent = AbilitySystem.RegistryOp(context.Register, Params.Percent, (Operand)Params.PercentRegop);
-            var value = percent / 100 * currentValue;
+            var hasCharge = currentValue >= percent;
 
-            if (currentValue >= value)
+            if (hasCharge != (Params.Negate != 0))
             {
                 result.SetPass();
             }
             else
             {
-                result.SetFail();
+                result.SetFail(StatusCode.SuperChargeRequirementFailed);
             }
 
             return;

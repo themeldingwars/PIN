@@ -25,7 +25,7 @@ public class PopTargetsCommand : Command, ICommand
             else
             {
                 Logger.Error("Targets stack underflow!");
-                result.SetFail(StatusCode.Status1);
+                result.SetFail(StatusCode.Error);
                 return;
             }
         }
@@ -39,7 +39,7 @@ public class PopTargetsCommand : Command, ICommand
             else
             {
                 Logger.Error("Targets stack underflow!");
-                result.SetFail(StatusCode.Status1);
+                result.SetFail(StatusCode.Error);
                 return;
             }
         }
@@ -53,7 +53,7 @@ public class PopTargetsCommand : Command, ICommand
             else
             {
                 Logger.Error("Targets stack underflow!");
-                result.SetFail(StatusCode.Status1);
+                result.SetFail(StatusCode.Error);
                 return;
             }
         }

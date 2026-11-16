@@ -376,8 +376,7 @@ public sealed class TurretSystem
                 continue;
             }
 
-            // Hidden NPCs are internal drivers (other turrets' gunners); they are never shot at.
-            if (candidate.IsHidden || !_hostility.CanDamage(turret, candidate))
+            if (candidate.IsHidden || candidate.NotTargetable || !_hostility.CanDamage(turret, candidate))
             {
                 continue;
             }

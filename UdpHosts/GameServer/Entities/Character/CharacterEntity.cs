@@ -53,12 +53,16 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const float _fallbackSprintSpeed = 7.0f; // TODO: Derive from SDB/character stats
     private const float _fallbackCrouchSpeed = 2.5f; // TODO: Derive from SDB/character stats
     private const int _maxAbilityProjectilePending = 8; // safety cap for queued ability projectiles
-    private const uint _abilityProjectileStaleMs = 1000; // a queued ability projectile older than this is dropped
+    private const uint _abilityFireWaitMs = 500;
+    private const uint _heldFireMs = 100;
+    private const int _maxHeldFires = 8;
+    private const float _baseEnergyRechargeDelayMs = 500f;
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
     private readonly AimSample[] _aimSamples = new AimSample[_maxAimSamples];
     private readonly Dictionary<AptitudeStat, ActiveStatModifier> _statOverrides = new();
     private readonly Queue<PendingAbilityProjectile> _pendingAbilityProjectiles = new();
+    private readonly List<(uint Time, Vector3 Aim, Vector3? Velocity)> _heldFires = [];
     private readonly HashSet<uint> _activatedDefaultAbilities = new();
     private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
     private int _movementSampleCount;
@@ -107,6 +111,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     ///     show something like this for NPC-piloted turrets through <c>Turret::ObserverView.GunnerId</c>.
     /// </summary>
     public bool IsHidden { get; private set; }
+
+    public bool NotTargetable { get; set; }
 
     /// <summary>
     ///     Set by TurretControlCommand (status effect 1368). The NPC stops acting on its own and instead drives the
@@ -198,6 +204,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public EquipmentData CurrentEquipment { get; set; }
     public CharacterStatsData CharacterStats { get; set; }
     public EnergyParamsData EnergyParams { get; set; }
+    public CharacterJetEnergy JetEnergy { get; } = new();
     public ScopeBubbleInfoData ScopeBubble { get; set; }
     public CharacterSpawnPose SpawnPose { get; set; }
     public byte EffectsFlags { get; set; }
@@ -213,6 +220,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public RespawnTimesData? RespawnTimes { get; private set; }
     public IEntity InteractionTarget { get; set; }
     public Guid? InteractionExecutionId { get; set; }
+    public ulong InteractionStartedAt { get; private set; }
 
     public ushort StatusEffectsChangeTime_0 { get; set; }
     public ushort StatusEffectsChangeTime_1 { get; set; }
@@ -300,6 +308,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         { AptitudeStat.AirResistance,    1.0f },
         { AptitudeStat.WeaponChargeupMod,    1.0f },
         { AptitudeStat.WeaponDamageDealtMod, 1.0f },
+        { AptitudeStat.MaxEnergy,            1.0f },
+        { AptitudeStat.EnergyRechargeDelay,  1.0f },
+        { AptitudeStat.EnergyRechargeRate,   1.0f },
     };
 
     internal MovementStateContainer MovementStateContainer { get; set; } = new();
@@ -941,10 +952,56 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 ActiveEffects.Count(effect => effect != null));
         }
 
+        RefreshEnergyParams();
+
+        if (IsPlayerControlled)
+        {
+            Shard.SuperCharge.ResetMeter(this, "loadout applied");
+        }
+
         LogSpeedSnapshot($"applied loadout {loadout.LoadoutID}, chassis {previousChassisId} -> {loadout.ChassisID}");
     }
 
+    public void RefreshEnergyParams()
+    {
+        EnergyParams = BuildEnergyParams();
+        JetEnergy.ClampToMax(EnergyParams.Max);
+
+        Logger.Debug(
+            "{Entity} EnergyParams max {Max} delay {Delay} recharge {Recharge}",
+            this,
+            EnergyParams.Max,
+            EnergyParams.Delay,
+            EnergyParams.Recharge);
+
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.EnergyParamsProp = EnergyParams;
+        }
+    }
+
+    public JetEnergyCosts GetJetEnergyCosts()
+    {
+        return new JetEnergyCosts(
+            GetLoadoutAttribute(ItemAttributeId.JetEnergyCost),
+            GetLoadoutAttribute(ItemAttributeId.JetClimbSpeed),
+            GetLoadoutAttribute(ItemAttributeId.SprintEnergyCost),
+            GetLoadoutAttribute(ItemAttributeId.JetSprintCost));
+    }
+
     public float GetItemAttribute(ushort id) => CurrentLoadout.ItemAttributes.GetValueOrDefault(id);
+
+    // Get ItemAttributes + WeaponA/WeaponB attributes
+    public float GetItemStat(ushort id)
+    {
+        float value = CurrentLoadout?.ItemAttributes.GetValueOrDefault(id) ?? 0f;
+        if (WeaponIndex.Index is 1 or 2 && GetActiveWeaponDetails() is { IsEmpty: false } weapon)
+        {
+            value += weapon.Attributes.GetValueOrDefault(id);
+        }
+
+        return value;
+    }
 
     public void AddStatModifier(uint reference, ActiveStatModifier mod)
     {
@@ -1029,6 +1086,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                     break;
                 case AptitudeStat.WeaponDamageDealtMod:
                     Character_CombatController.WeaponDamageDealtModProp = value;
+                    break;
+                case AptitudeStat.MaxEnergy:
+                case AptitudeStat.EnergyRechargeDelay:
+                case AptitudeStat.EnergyRechargeRate:
+                    RefreshEnergyParams();
                     break;
             }
         }
@@ -1167,6 +1229,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         if (Character_BaseController != null)
         {
             Character_BaseController.WalletProp = Wallet;
+        }
+    }
+
+    public void SetPingTime(uint value)
+    {
+        if (Character_BaseController != null)
+        {
+            Character_BaseController.PingTimeProp = value;
         }
     }
 
@@ -1366,11 +1436,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             MovementState = 0x1000,
             MovementType = 0,
             WaterLevelAndDesc = 0,
-            JetpackEnergy = 0x639c,
+            JetpackEnergy = CharacterJetEnergy.EncodedFull,
             AirGroundTimer = 0,
             JumpTimer = 0,
             HaveDebugData = 0
         };
+        JetEnergy.Reset(0f, SpawnPose.MovementState);
         Character_ObserverView.SpawnTimeProp = Shard.CurrentTime;
         if (Character_BaseController != null)
         {
@@ -1788,29 +1859,43 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         _pendingAbilityProjectiles.Enqueue(projectile);
     }
 
-    /// <summary>
-    ///     Consumes the oldest pending ability projectile that is still valid for the given fire time,
-    ///     returning null when none is pending.
-    /// </summary>
-    /// <param name="fireTime">Gametime</param>
-    /// <returns>PendingAbilityProjectile or null if none can be consumed</returns>
-    public PendingAbilityProjectile? TryConsumeAbilityProjectile(uint fireTime)
+    public List<PendingAbilityProjectile> TakeAbilityProjectiles(uint fireTime)
     {
-        while (_pendingAbilityProjectiles.Count > 0)
-        {
-            var front = _pendingAbilityProjectiles.Peek();
-            int age = (int)(fireTime - front.ActivationTime);
-            if (age < -(_abilityProjectileStaleMs / 2) || age > (int)_abilityProjectileStaleMs)
-            {
-                _pendingAbilityProjectiles.Dequeue();
-                continue;
-            }
+        return TakeAbilityProjectiles(pending => pending.FireTime == fireTime);
+    }
 
-            _pendingAbilityProjectiles.Dequeue();
-            return front;
+    public List<PendingAbilityProjectile> TakeOverdueAbilityProjectiles(uint currentTime)
+    {
+        return TakeAbilityProjectiles(pending => (int)(currentTime - pending.FireTime) >= (int)_abilityFireWaitMs);
+    }
+
+    public void HoldFire(uint time, Vector3 aim, Vector3? velocity, uint currentTime)
+    {
+        DropHeldFires(currentTime);
+        if (_heldFires.Count >= _maxHeldFires)
+        {
+            _heldFires.RemoveAt(0);
         }
 
-        return null;
+        _heldFires.Add((time, aim, velocity));
+    }
+
+    public bool TryGetHeldFire(uint fireTime, uint currentTime, out Vector3 aim, out Vector3? velocity)
+    {
+        DropHeldFires(currentTime);
+        foreach (var held in _heldFires)
+        {
+            if (held.Time == fireTime)
+            {
+                aim = held.Aim;
+                velocity = held.Velocity;
+                return true;
+            }
+        }
+
+        aim = Vector3.Zero;
+        velocity = null;
+        return false;
     }
 
     /// <summary>
@@ -1843,39 +1928,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return found;
     }
 
-    /// <summary>
-    ///     Consumes the next pending ability projectile without the client-fire-time staleness filter.
-    ///     Used for server-driven NPCs, which have no client FireWeaponProjectile to correlate against.
-    /// </summary>
-    /// <returns>PendingAbilityProjectile or null if none was queued</returns>
-    public PendingAbilityProjectile? TryConsumeNextAbilityProjectile()
+    public List<PendingAbilityProjectile> TakeDueAbilityProjectiles(uint currentTime)
     {
-        if (_pendingAbilityProjectiles.Count == 0)
-        {
-            return null;
-        }
-
-        return _pendingAbilityProjectiles.Dequeue();
-    }
-
-    /// <summary>
-    ///     Drops any pending ability projectiles that are too old relative to the given time.
-    /// </summary>
-    /// <param name="currentTime">Gametime</param>
-    public void ExpireAbilityProjectiles(uint currentTime)
-    {
-        while (_pendingAbilityProjectiles.Count > 0)
-        {
-            var front = _pendingAbilityProjectiles.Peek();
-            int age = (int)(currentTime - front.ActivationTime);
-            if (age < -(_abilityProjectileStaleMs / 2) || age > (int)_abilityProjectileStaleMs)
-            {
-                _pendingAbilityProjectiles.Dequeue();
-                continue;
-            }
-
-            break;
-        }
+        return TakeAbilityProjectiles(pending => (int)(currentTime - pending.FireTime) >= 0);
     }
 
     /// <summary>
@@ -1989,6 +2044,29 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     /// <param name="orientation">The estimated orientation at the given time</param>
     /// <param name="movementState">The estimated movement state value at the given time</param>
     /// <returns>True when the pose was derived from recorded samples, false when falling back to the current entity state</returns>
+    public List<(uint Time, ushort MovementState)> GetMovementStates(uint after, uint upTo)
+    {
+        var states = new List<(uint Time, ushort MovementState)>();
+        var upToShort = (ushort)upTo;
+        for (var age = _movementSampleCount - 1; age >= 0; age--)
+        {
+            var sample = _movementSamples[(_movementSampleNewest - age + _maxMovementSamples) % _maxMovementSamples];
+            var before = MovementSample.MsSince(sample.ShortTime, upToShort);
+            if (before > 0x8000)
+            {
+                break;
+            }
+
+            var time = upTo - before;
+            if (after == 0 || (int)(time - after) > 0)
+            {
+                states.Add((time, (ushort)sample.MovementState));
+            }
+        }
+
+        return states;
+    }
+
     public bool TryGetInterpolatedPose(uint clientTimeMs, Vector3? shooterVelocity, out Vector3 position, out Quaternion orientation, out short movementState)
     {
         position = Position;
@@ -2002,37 +2080,31 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         var target = (ushort)clientTimeMs;
         var newest = _movementSamples[_movementSampleNewest];
-        var previous = _movementSampleCount > 1 ? _movementSamples[(_movementSampleNewest + _maxMovementSamples - 1) % _maxMovementSamples] : default;
         var ageSinceNewest = MovementSample.MsSince(newest.ShortTime, target);
 
         if (ageSinceNewest > 0x8000)
         {
-            // Target is in the past relative to the newest sample (e.g. fire packet arrived before the next movement packet)
-            if (_movementSampleCount > 1)
+            var later = newest;
+            for (var age = 1; age < _movementSampleCount; age++)
             {
-                var ageSincePrevious = MovementSample.MsSince(previous.ShortTime, target);
-                if (ageSincePrevious <= 0x8000)
+                var earlier = _movementSamples[(_movementSampleNewest - age + _maxMovementSamples) % _maxMovementSamples];
+                var ageSinceEarlier = MovementSample.MsSince(earlier.ShortTime, target);
+                if (ageSinceEarlier <= 0x8000)
                 {
-                    // Target lies between the two newest samples: interpolate
-                    var span = MovementSample.MsSince(previous.ShortTime, newest.ShortTime);
-                    var alpha = span > 0 ? ageSincePrevious / (float)span : 1f;
-                    position = Vector3.Lerp(previous.Position, newest.Position, alpha);
-                    QuaternionEx.Slerp(previous.Orientation, newest.Orientation, alpha, out orientation);
-                    movementState = ageSincePrevious * 2 < span ? previous.MovementState : newest.MovementState;
+                    var span = MovementSample.MsSince(earlier.ShortTime, later.ShortTime);
+                    var alpha = span > 0 ? ageSinceEarlier / (float)span : 1f;
+                    position = Vector3.Lerp(earlier.Position, later.Position, alpha);
+                    QuaternionEx.Slerp(earlier.Orientation, later.Orientation, alpha, out orientation);
+                    movementState = ageSinceEarlier * 2 < span ? earlier.MovementState : later.MovementState;
                     return true;
                 }
 
-                // Target is before all buffered samples: use the oldest one
-                var oldest = _movementSamples[(_movementSampleNewest - _movementSampleCount + 1 + _maxMovementSamples) % _maxMovementSamples];
-                position = oldest.Position;
-                orientation = oldest.Orientation;
-                movementState = oldest.MovementState;
-                return true;
+                later = earlier;
             }
 
-            position = newest.Position;
-            orientation = newest.Orientation;
-            movementState = newest.MovementState;
+            position = later.Position;
+            orientation = later.Orientation;
+            movementState = later.MovementState;
             return true;
         }
 
@@ -2257,6 +2329,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void SetInteractionTarget(IEntity target)
     {
         InteractionTarget = target;
+        InteractionStartedAt = Shard.CurrentTimeLong;
 
         if (target == null)
         {
@@ -2288,6 +2361,16 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         return null;
     }
+
+    /// <summary>
+    ///     FireMode_0 belongs to weapon slot 1 and FireMode_1 to slot 2 (client 0xC94F20), other slots return 0.
+    /// </summary>
+    public byte GetFireMode(byte weaponSlot) => weaponSlot switch
+    {
+        1 => FireMode_0.Mode,
+        2 => FireMode_1.Mode,
+        _ => 0,
+    };
 
     private static Dictionary<MonsterVisualOptionType, List<uint>> GroupOptionsByType(IEnumerable<MonsterVisualOption> options)
         => options.GroupBy(o => (MonsterVisualOptionType)o.Type)
@@ -2370,25 +2453,44 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         var attributes = weaponAttributes.ToDictionary(p => p.Id, p => p.Value);
+        var (mainProfile, altProfile) = WeaponProfile.BuildModes(weaponId, weaponDetails.Main, weaponDetails.Alt, attributes);
 
         var main = new ActiveWeaponDetails()
         {
             WeaponId = weaponId,
             Weapon = weaponDetails.Main,
             Attributes = attributes,
-            WeaponProfile = WeaponProfile.Build(weaponId, weaponDetails.Main, attributes, weaponDetails.Main.MaxSpread),
+            WeaponProfile = mainProfile,
         };
 
         cache[index, 0] = main;
-        cache[index, 1] = weaponDetails.Alt != null
+        cache[index, 1] = altProfile is { } alt
             ? new ActiveWeaponDetails()
             {
                 WeaponId = weaponId,
                 Weapon = weaponDetails.Alt,
                 Attributes = attributes,
-                WeaponProfile = WeaponProfile.Build(weaponId, weaponDetails.Alt, attributes, weaponDetails.Main.MaxSpread),
+                WeaponProfile = alt,
             }
             : main;
+    }
+
+    private static void RebuildWeaponSlotProfiles(ActiveWeaponDetails[,] cache, int index)
+    {
+        var main = cache[index, 0];
+        if (main == null || main.IsEmpty)
+        {
+            return;
+        }
+
+        var altDetails = cache[index, 1];
+        var hasAlt = altDetails != null && !ReferenceEquals(altDetails, main) && !altDetails.IsEmpty;
+        var (mainProfile, altProfile) = WeaponProfile.BuildModes(main.WeaponId, main.Weapon, hasAlt ? altDetails.Weapon : null, main.Attributes);
+        main.WeaponProfile = mainProfile;
+        if (hasAlt && altProfile is { } alt)
+        {
+            altDetails.WeaponProfile = alt;
+        }
     }
 
     private static void MergeAttributeRange(Dictionary<ushort, float> result, uint itemId)
@@ -2403,16 +2505,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             result[range.AttributeId] = result.GetValueOrDefault(range.AttributeId) + range.Base;
         }
     }
-
-    /// <summary>
-    ///     FireMode_0 belongs to weapon slot 1 and FireMode_1 to slot 2 (client 0xC94F20), other slots return 0.
-    /// </summary>
-    public byte GetFireMode(byte weaponSlot) => weaponSlot switch
-    {
-        1 => FireMode_0.Mode,
-        2 => FireMode_1.Mode,
-        _ => 0,
-    };
 
     private bool IsAltFireMode()
     {
@@ -2429,6 +2521,22 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         BuildWeaponSlotDetails(cache, 2, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary), loadout.GetSecondaryWeaponAttributes());
 
         _weaponDetailsCache = cache;
+    }
+
+    private EnergyParamsData BuildEnergyParams()
+    {
+        return new EnergyParamsData
+        {
+            Max = GetLoadoutAttribute(ItemAttributeId.JetEnergy) * GetCurrentStatModifierValue(AptitudeStat.MaxEnergy),
+            Delay = (uint)MathF.Round(_baseEnergyRechargeDelayMs * GetCurrentStatModifierValue(AptitudeStat.EnergyRechargeDelay)),
+            Recharge = GetLoadoutAttribute(ItemAttributeId.JetEnergyRecharge) * GetCurrentStatModifierValue(AptitudeStat.EnergyRechargeRate),
+            Time = Shard.CurrentTime,
+        };
+    }
+
+    private float GetLoadoutAttribute(ItemAttributeId id)
+    {
+        return CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)id) ?? 0f;
     }
 
     private void RecalculateHealthAndWeaponDamage()
@@ -2491,7 +2599,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         var damageModifier = weaponMods.GetValueOrDefault((ushort)ItemAttributeId.CreatureWeaponDamageModifier, 1f);
         var damage = baseDamage * damageModifier;
 
-        // Inject as the WeaponDamage attribute (954) so WeaponSim.ResolveWeaponDamage uses the scaled value.
+        // Inject as the WeaponDamage attribute (954) so the profiles are rebuilt with the scaled value.
         for (byte mode = 0; mode <= 1; mode++)
         {
             var details = _weaponDetailsCache[(int)slot, mode];
@@ -2500,6 +2608,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 details.Attributes[(ushort)ItemAttributeId.WeaponDamage] = damage;
             }
         }
+
+        RebuildWeaponSlotProfiles(_weaponDetailsCache, (int)slot);
     }
 
     private void InitTinyObjectView()
@@ -2630,7 +2740,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             AttributeCategories2 = []
         };
 
-        EnergyParams = new EnergyParamsData { Max = 1000.0f, Delay = 500, Recharge = 156.0f, Time = Shard.CurrentTime };
+        EnergyParams = BuildEnergyParams();
         ScopeBubble = new ScopeBubbleInfoData { Layer = 0, VisibilityMask = 0 };
         SpawnPose = new CharacterSpawnPose
         {
@@ -2642,7 +2752,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             MovementState = 0x1000,
             MovementType = 0,
             WaterLevelAndDesc = 0,
-            JetpackEnergy = 0x639c,
+            JetpackEnergy = CharacterJetEnergy.EncodedFull,
             AirGroundTimer = 0,
             JumpTimer = 0,
             HaveDebugData = 0
@@ -2814,7 +2924,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             CombatFlagsProp = new CombatFlagsData { Value = 0, Time = Shard.CurrentTime },
             PermissionFlagsProp = PermissionFlags,
             NemesesProp = new NemesesData { Values = [] },
-            SuperChargeProp = new SuperChargeData { Value = 100, Op = 0 }
+            SuperChargeProp = new SuperChargeData { Value = 0, Op = 0 }
         };
         Character_MissionAndMarkerController = new MissionAndMarkerController();
         Character_LocalEffectsController = new LocalEffectsController();
@@ -3154,6 +3264,31 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private void ApplyLoadoutVisuals(IReadOnlyList<LoadoutConfig_Visual> visuals)
     {
         CurrentLoadout.ApplyVisuals(visuals);
+    }
+
+    private List<PendingAbilityProjectile> TakeAbilityProjectiles(Func<PendingAbilityProjectile, bool> match)
+    {
+        var taken = new List<PendingAbilityProjectile>();
+        var count = _pendingAbilityProjectiles.Count;
+        for (var i = 0; i < count; i++)
+        {
+            var pending = _pendingAbilityProjectiles.Dequeue();
+            if (match(pending))
+            {
+                taken.Add(pending);
+            }
+            else
+            {
+                _pendingAbilityProjectiles.Enqueue(pending);
+            }
+        }
+
+        return taken;
+    }
+
+    private void DropHeldFires(uint currentTime)
+    {
+        _heldFires.RemoveAll(held => (int)(currentTime - held.Time) > (int)_heldFireMs);
     }
 
     public record struct SelectedMonsterVisuals

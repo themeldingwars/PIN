@@ -20,6 +20,7 @@ public enum ShardSystem
     Turrets,
     Projectiles,
     Damage,
+    SuperCharge,
     Lifecycle,
     Respawn,
     Loot,

@@ -42,6 +42,7 @@ namespace GameServer;
 
 public class Shard : IShard
 {
+    private const ulong _pingTimeIntervalMs = 500;
     private readonly AutoResetEvent _wake = new(false);
     private readonly TimeSpan _gameTickRate;
     private readonly ContentStore _content;
@@ -49,6 +50,7 @@ public class Shard : IShard
     private readonly List<(ulong DueTime, Action Action)> _waitingActions = new();
 
     private long _startTime;
+    private ulong _lastPingTime;
     private TimeSpan _lastNetTick;
     private Thread _debugRendererThread;
 
@@ -103,6 +105,7 @@ public class Shard : IShard
         Admin = new AdminService(this);
         var npcDeathRules = new StandardNpcDeathRules();
         Damage = new DamageSystem(EventBus, this, npcDeathRules);
+        SuperCharge = new SuperChargeSystem(this);
         Combat = new CombatSim(EventBus, EntityMan, Damage, this);
         CharacterLifecycle = new CharacterLifecycleService(this, EventBus, new StandardCharacterLifecycleRules());
         PlayerRespawn = new PlayerRespawnService(this, EventBus, new StandardPlayerRespawnRules(), CharacterLifecycle);
@@ -136,6 +139,7 @@ public class Shard : IShard
     public ChatService Chat { get; }
     public AdminService Admin { get; }
     public DamageSystem Damage { get; }
+    public SuperChargeSystem SuperCharge { get; }
     public HostilityResolver Hostility { get; }
     public CombatSim Combat { get; }
     public CharacterCreationService CharacterCreation { get; }
@@ -262,6 +266,8 @@ public class Shard : IShard
         last = Metrics.Tick(ShardSystem.Projectiles, last);
         Damage.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.Damage, last);
+        SuperCharge.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.SuperCharge, last);
         CharacterLifecycle.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.Lifecycle, last);
         PlayerRespawn.Tick(deltaTime, currentTime, ct);
@@ -270,6 +276,7 @@ public class Shard : IShard
         last = Metrics.Tick(ShardSystem.Loot, last);
         ZoneBorders.Tick(currentTime);
         last = Metrics.Tick(ShardSystem.Borders, last);
+        UpdatePingTimes(currentTime);
         EventBus.Flush();
         Metrics.Tick(ShardSystem.Events, last);
         Metrics.Tick(ShardSystem.All, start);
@@ -397,6 +404,20 @@ public class Shard : IShard
         }
 
         return $"Chunk: {chunkName}   SubChunk: {subChunkName}";
+    }
+
+    private void UpdatePingTimes(ulong currentTime)
+    {
+        if (currentTime < _lastPingTime + _pingTimeIntervalMs)
+        {
+            return;
+        }
+
+        _lastPingTime = currentTime;
+        foreach (var client in Clients.Values)
+        {
+            client.CharacterEntity?.SetPingTime(CurrentTime);
+        }
     }
 
     private void RunThread(CancellationToken ct)

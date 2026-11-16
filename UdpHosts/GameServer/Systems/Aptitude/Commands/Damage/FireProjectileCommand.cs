@@ -34,7 +34,7 @@ public class FireProjectileCommand : Command, ICommand
         float damage = AbilitySystem.RegistryOp(context.Register, Params.Damage, (Operand)Params.DamageRegop);
         float range = AbilitySystem.RegistryOp(context.Register, Params.Range, (Operand)Params.RangeRegop);
 
-        character.EnqueueAbilityProjectile(new PendingAbilityProjectile
+        character.Shard.WeaponSim.QueueAbilityProjectile(character, new PendingAbilityProjectile
         {
             AmmoType = Params.Ammotype,
             Damage = damage,
@@ -50,7 +50,8 @@ public class FireProjectileCommand : Command, ICommand
 
             // The logical time the projectile should fire at. UpdateWaitAndFireOnceCommand temporarily rewinds
             // context.CurrentTime to the delayed fire time, so this is the attack time rather than the tick time.
-            QueueTime = context.CurrentTime
+            QueueTime = context.CurrentTime,
+            FireTime = context.CurrentTime + PendingAbilityProjectile.ClientFireDelayMs
         });
 
         Logger.Information(

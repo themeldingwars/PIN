@@ -144,15 +144,16 @@ public class CharacterLoadout
     private static readonly Dictionary<ushort, float> _fallbackAttributes = new()
     {
         // We fill these in if we somehow don't have them to ensure a playable experience (0 run speed = zzz)
-        { 5, 75 }, // Jet Energy Recharge
-        { 6, 100 }, // Health
-        { 7, 3.75f }, // Health Regen
-        { 12, 10 }, // Run Speed
-        { 35, 500 }, // Jet Energy
-        { 37, 1.75f }, // Jump Height
-        { 1121, 150 }, // Jet Spring Cost
-        { 1451, 100 }, // Power Rating
-        { 1377, 130 }, // Sprint Speed
+        { (ushort)ItemAttributeId.JetEnergyRecharge, 75 },
+        { (ushort)ItemAttributeId.Health, 100 },
+        { (ushort)ItemAttributeId.HealthRegen, 3.75f },
+        { (ushort)ItemAttributeId.RunSpeed, 10 },
+        { (ushort)ItemAttributeId.JetEnergy, 500 },
+        { (ushort)ItemAttributeId.JumpHeight, 1.75f },
+        { (ushort)ItemAttributeId.JetSprintCost, 150 },
+        { (ushort)ItemAttributeId.PowerRating, 100 },
+        { (ushort)ItemAttributeId.SprintSpeed, 130 },
+        { (ushort)ItemAttributeId.ChargeSpeedHkm, 1 },
     };
 
     private static readonly Dictionary<ushort, float> _fallbackModuleScalars = [];
@@ -657,7 +658,7 @@ public class CharacterLoadout
     {
         var attributes = new Dictionary<ushort, float>()
         {
-            { 12, 2.5f }, // Temporary base Run Speed boost because it's so slow otherwise
+            { (ushort)ItemAttributeId.RunSpeed, 2.5f }, // Temporary base boost because it's so slow otherwise
         };
         var moduleScalars = new Dictionary<ushort, float>()
         {

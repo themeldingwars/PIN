@@ -38,6 +38,11 @@ public class ModifyPermissionCommand : Command, ICommand
             {
                 context.Actives.Add(this, null);
             }
+
+            if (Params.GenerateSupercharge != null)
+            {
+                context.Actives.Add(this, null);
+            }
         }
 
         result.SetPass();
@@ -73,6 +78,11 @@ public class ModifyPermissionCommand : Command, ICommand
             {
                 character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.jetpack, (bool)Params.Jetpack);
             }
+
+            if (Params.GenerateSupercharge != null)
+            {
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.unk_21, (bool)Params.GenerateSupercharge);
+            }
         }
     }
 
@@ -99,6 +109,11 @@ public class ModifyPermissionCommand : Command, ICommand
             if (Params.Jetpack != null)
             {
                 character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.jetpack, (bool)!Params.Jetpack);
+            }
+
+            if (Params.GenerateSupercharge != null)
+            {
+                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.unk_21, (bool)!Params.GenerateSupercharge);
             }
         }
     }

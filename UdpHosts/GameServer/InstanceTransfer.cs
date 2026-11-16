@@ -47,6 +47,33 @@ public static class InstanceTransfer
         return true;
     }
 
+    /// <summary>
+    ///     Takes a player in an instance back to the open world spot they left it from, or to the spawn point of the
+    ///     server's zone when they didn't come from one, e.g. after logging in there. False in the open world, where the
+    ///     client's "Leave Zone" is disabled as well, and while a move is still going on.
+    /// </summary>
+    public static bool TryReturnToOpenWorld(INetworkPlayer player)
+    {
+        if (player is not NetworkPlayer networkPlayer || networkPlayer.CharacterEntity == null || networkPlayer.PendingTransfer != null
+            || IsOpenWorld(networkPlayer.AssignedShard.ZoneId))
+        {
+            return false;
+        }
+
+        var back = networkPlayer.ReturnPoint ?? new ReturnPoint(Shards.DefaultShard.ZoneId, DataUtils.GetZone(Shards.DefaultShard.ZoneId).POIs["spawn"]);
+        networkPlayer.ReturnPoint = null;
+
+        // The zone's shard may still have to load its collision, which takes a while, so not on this shard's thread
+        var source = networkPlayer.AssignedShard;
+        _ = Task.Run(() =>
+        {
+            var shard = Shards.GetOrCreateShard(back.ZoneId);
+            source.Post(() => TryStart(networkPlayer, shard, back.Position));
+        });
+
+        return true;
+    }
+
     /// <summary>Called for ExitZoneAck. False when no move is pending, the ack then just leaves the zone.</summary>
     internal static bool TryComplete(NetworkPlayer player)
     {
@@ -74,33 +101,6 @@ public static class InstanceTransfer
                 _logger.Error(e, "Couldn't move {CharacterId:X} to zone {ZoneId}", player.CharacterId, pending.Target.ZoneId);
                 player.Close("instance transfer failed");
             }
-        });
-
-        return true;
-    }
-
-    /// <summary>
-    ///     Takes a player in an instance back to the open world spot they left it from, or to the spawn point of the
-    ///     server's zone when they didn't come from one, e.g. after logging in there. False in the open world, where the
-    ///     client's "Leave Zone" is disabled as well, and while a move is still going on.
-    /// </summary>
-    public static bool TryReturnToOpenWorld(INetworkPlayer player)
-    {
-        if (player is not NetworkPlayer networkPlayer || networkPlayer.CharacterEntity == null || networkPlayer.PendingTransfer != null
-            || IsOpenWorld(networkPlayer.AssignedShard.ZoneId))
-        {
-            return false;
-        }
-
-        var back = networkPlayer.ReturnPoint ?? new ReturnPoint(Shards.DefaultShard.ZoneId, DataUtils.GetZone(Shards.DefaultShard.ZoneId).POIs["spawn"]);
-        networkPlayer.ReturnPoint = null;
-
-        // The zone's shard may still have to load its collision, which takes a while, so not on this shard's thread
-        var source = networkPlayer.AssignedShard;
-        _ = Task.Run(() =>
-        {
-            var shard = Shards.GetOrCreateShard(back.ZoneId);
-            source.Post(() => TryStart(networkPlayer, shard, back.Position));
         });
 
         return true;

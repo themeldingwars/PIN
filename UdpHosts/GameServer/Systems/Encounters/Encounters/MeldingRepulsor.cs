@@ -116,7 +116,7 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
 
         _terminal.Encounter.StopHandling(EncounterComponent.Event.Interaction);
 
-        Shard.Abilities.DoRemoveEffect(_terminal, _effectOffline);
+        Shard.Abilities.DoRemoveEffect(_terminal, _effectOffline, Shard.CurrentTime);
         Shard.Abilities.DoApplyEffect(_effectInitializing, _terminal, new Context(Shard, _terminal) { InitTime = Shard.CurrentTime });
 
         Shard.Abilities.HandleActivateAbility(Shard, _repulsor, _repulsor.Interaction.CompletedAbilityId);
@@ -128,7 +128,7 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
 
         Shard.EncounterMan.StartUpdatingEncounter(this);
 
-        Shard.Abilities.DoRemoveEffect(_terminal, _effectInitializing);
+        Shard.Abilities.DoRemoveEffect(_terminal, _effectInitializing, Shard.CurrentTime);
         Shard.Abilities.DoApplyEffect(_effectOnline, _terminal, new Context(Shard, _terminal) { InitTime = Shard.CurrentTime });
 
         Shard.EncounterMan.SetRemainingLifetime(this, _pushbackDurationMs);
@@ -152,7 +152,7 @@ public class MeldingRepulsor : BaseEncounter, IInteractionHandler, IDonationHand
 
         Shard.Abilities.DoApplyEffect(9487, _repulsor, new Context(Shard, _repulsor) { InitTime = Shard.CurrentTime });
 
-        Shard.Abilities.DoRemoveEffect(_terminal, _effectOnline);
+        Shard.Abilities.DoRemoveEffect(_terminal, _effectOnline, Shard.CurrentTime);
         Shard.Abilities.DoApplyEffect(_effectOffline, _terminal, new Context(Shard, _terminal) { InitTime = Shard.CurrentTime });
 
         _startTime = Shard.CurrentTimeLong;

@@ -21,11 +21,13 @@ public class WeaponSim
 {
     // Charge kept when switching between linked fire modes, unverified.
     private const float _chargeSwitchKeepFraction = 1.0f;
+    private const uint _shotFireWaitMs = 500;
 
     private readonly Dictionary<ulong, WeaponPlayerSim> _weaponSimState;
     private readonly Shard _shard;
     private readonly ILogger _logger;
     private readonly ulong _updateIntervalMs = 50;
+    private bool _firingAttackAbility;
     private ulong _lastUpdate;
 
     public WeaponSim(Shard shard)
@@ -64,14 +66,17 @@ public class WeaponSim
         }
     }
 
-    /// <summary>
-    ///     Records a client FireWeaponProjectile as an aim/velocity sample for the fire state machine.
-    ///     The sim itself decides when shots fire; this only feeds their aim/origin data.
-    /// </summary>
-    /// <param name="entity">Character that fires</param>
-    /// <param name="time">Client time of the sample</param>
-    /// <param name="localAimDir">The aim direction at the time of the sample</param>
-    /// <param name="shooterVelocity">The shooter velocity at the time of the sample</param>
+    public void QueueAbilityProjectile(CharacterEntity entity, PendingAbilityProjectile pending)
+    {
+        if (entity.IsPlayerControlled && !_firingAttackAbility && entity.TryGetHeldFire(pending.FireTime, _shard.CurrentTime, out var aim, out var velocity))
+        {
+            OnFireAbilityProjectile(entity, pending, pending.FireTime, aim, velocity);
+            return;
+        }
+
+        entity.EnqueueAbilityProjectile(pending);
+    }
+
     public void OnFireWeaponProjectile(CharacterEntity entity, uint time, Vector3 localAimDir, Vector3? shooterVelocity = null)
     {
         EnqueueFireEvent(entity, new WeaponFireEvent
@@ -124,15 +129,15 @@ public class WeaponSim
         }
 
         // Parabolic monster ammo needs a ballistic firing solution; a flat muzzle-to-chest aim drops into the ground.
-        var preliminaryOrigin = entity.GetProjectileOrigin(pending.QueueTime, localAimDir, shooterVelocity);
+        var preliminaryOrigin = entity.GetProjectileOrigin(time, localAimDir, shooterVelocity);
         localAimDir = ResolveBallisticAim(entity, preliminaryOrigin, localAimDir, ammo, projectileSpeed);
 
         // Stub: spawn from the weapon muzzle origin (body/hardpoint offset not implemented yet).
-        var origin = entity.GetProjectileOrigin(pending.QueueTime, localAimDir, shooterVelocity);
+        var origin = entity.GetProjectileOrigin(time, localAimDir, shooterVelocity);
 
         var activeWeaponDetails = entity.GetActiveWeaponDetails();
         float damage = pending.UseWeaponDamage && activeWeaponDetails != null && activeWeaponDetails.Weapon != null
-            ? ResolveWeaponDamage(activeWeaponDetails.Weapon, attrsDict)
+            ? activeWeaponDetails.WeaponProfile.DamagePerRound
             : pending.Damage;
 
         byte roundsToFire = pending.BurstCount > 0 ? pending.BurstCount : (byte)1;
@@ -168,9 +173,6 @@ public class WeaponSim
         _logger.Debug("Fired ability projectile ammo={AmmoType} range={Range} burst={Burst} entity={Entity} exec={ExecId}", pending.AmmoType, pending.Range, roundsToFire, entity.EntityId, pending.ExecutionId);
     }
 
-    /// <summary>
-    ///     Tops the reserve up to the capacity minus the clip, the clip itself stays untouched.
-    /// </summary>
     public void RestockAmmo(CharacterEntity entity)
     {
         // A weapon without a state was never drawn and still has the full ammo of the last reset
@@ -213,8 +215,6 @@ public class WeaponSim
         return false;
     }
 
-    private static bool NeedsAmmo(int ammo, int max) => ammo < max && (max < 10000 || ammo <= max / 2);
-
     public void ResetAmmoState(CharacterEntity entity)
     {
         _weaponSimState.Remove(entity.EntityId);
@@ -224,16 +224,7 @@ public class WeaponSim
         RestockAmmoSlot(entity, 2, 1);
     }
 
-    private static float ResolveWeaponDamage(WeaponTemplateResult weapon, IReadOnlyDictionary<ushort, float> attributes)
-    {
-        float damage = weapon.DamagePerRound;
-        if (attributes != null && attributes.TryGetValue((ushort)ItemAttributeId.WeaponDamage, out var damageAttribute))
-        {
-            damage = damageAttribute;
-        }
-
-        return damage;
-    }
+    private static bool NeedsAmmo(int ammo, int max) => ammo < max && (max < 10000 || ammo <= max / 2);
 
     private static bool TrySolveBallisticAim(Vector3 origin, Vector3 target, float speed, float gravity, out Vector3 aim)
     {
@@ -387,7 +378,7 @@ public class WeaponSim
 
     private static void TrimAimSamples(WeaponFireState fire, uint time)
     {
-        while (fire.AimSamples.Count > 0 && time - fire.AimSamples[0].Time > 1000)
+        while (fire.AimSamples.Count > 0 && (int)(time - fire.AimSamples[0].Time) > 1000)
         {
             fire.AimSamples.RemoveAt(0);
         }
@@ -405,7 +396,7 @@ public class WeaponSim
         while (lo <= hi)
         {
             int mid = (lo + hi) / 2;
-            if (events[mid].Time < evt.Time)
+            if (events[mid].Time <= evt.Time)
             {
                 lo = mid + 1;
             }
@@ -529,6 +520,47 @@ public class WeaponSim
         }
     }
 
+    // Starts 500 ms after the last shot or reload and adds every due round at once, as in the client (0x7ACE70)
+    private static void RegenClip(CharacterEntity entity, AmmoState state, uint time)
+    {
+        if (!state.HasAmmo || state.RegenMs == 0 || state.Clip >= state.ClipMax || state.Reserve <= 0)
+        {
+            return;
+        }
+
+        uint start = Math.Max(Math.Max(state.LastShotTime, state.ReloadTime) + 500, state.LastClipRegenTime);
+        if (time < start + state.RegenMs)
+        {
+            return;
+        }
+
+        uint due = (time - start) / state.RegenMs;
+        state.LastClipRegenTime = start + (due * state.RegenMs);
+        int rounds = (int)Math.Min(due, (uint)Math.Min(state.ClipMax - state.Clip, state.Reserve));
+        state.Clip += rounds;
+        state.Reserve -= rounds;
+        SyncAmmoView(entity, state);
+    }
+
+    private static void SyncAmmoView(CharacterEntity entity, WeaponPlayerSim sim) => SyncAmmoView(entity, sim.Ammo);
+
+    // A reserve change alone leaves the clip out, a sent clip would replace the client's prediction mid burst
+    private static void SyncAmmoView(CharacterEntity entity, AmmoState ammo, bool reserveOnly = false)
+    {
+        if (!ammo.HasAmmo)
+        {
+            return;
+        }
+
+        ushort? clip = reserveOnly ? null : (ushort)Math.Max(0, ammo.Clip);
+        var reserve = (ushort)Math.Max(0, ammo.Reserve);
+        WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, ammo.Mode == 1, clip, reserve);
+        if (ammo.Shared)
+        {
+            WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, true, clip, reserve);
+        }
+    }
+
     /// <summary>
     ///     Spawns a single weapon projectile directly from the weapon/ammo templates.
     /// </summary>
@@ -549,11 +581,7 @@ public class WeaponSim
 
         // Resolve weapon attributes: stats from weapon override template defaults
         var attrsDict = details.Attributes;
-        float range = weapon.Range;
-        if (attrsDict.TryGetValue((ushort)ItemAttributeId.WeaponRange, out var rangeAttr))
-        {
-            range = rangeAttr;
-        }
+        float range = spreadProfile.Range;
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
@@ -577,13 +605,13 @@ public class WeaponSim
             maxRadius = maxRadiusAttr;
         }
 
-        float damage = ResolveWeaponDamage(weapon, attrsDict);
+        float damage = spreadProfile.DamagePerRound;
 
         // Parabolic monster ammo needs a ballistic firing solution; a flat muzzle-to-chest aim drops into the ground.
         aim = ResolveBallisticAim(entity, origin, aim, ammo, projectileSpeed);
         origin = entity.GetProjectileOrigin(time, aim, velocity);
 
-        byte numBullets = Math.Max((byte)1, weapon.RoundsPerBurst);
+        byte numBullets = Math.Max((byte)1, spreadProfile.RoundsPerBurst);
 
         // NPCs have no FireBurst/FireEnd commands; the CombatView burst pair is the client-side attack signal. Stamp a
         // single-shot burst at the authoritative shot time (the AI now presses/releases in 1ms).
@@ -688,9 +716,10 @@ public class WeaponSim
             player.WeaponId = weaponId;
             player.Modes[0] = new WeaponModeState { WeaponId = weaponId };
             player.Modes[1] = new WeaponModeState { WeaponId = weaponId };
-            player.Charge = 0;
-            player.LastChargeTime = time;
             CaptureChargeupCaps(player, entity, activeWeaponDetails);
+            player.Charge = 0;
+            player.ChargeTime = time;
+            player.ChargeRising = false;
         }
 
         bool modeChanged = player.ActiveMode != activeMode;
@@ -722,12 +751,11 @@ public class WeaponSim
                 // Chargeup: the charge is weapon-wide. Linked modes keep it across the
                 // switch (with the switch loss); non-linked modes are a different weapon
                 // template, so their charge does not carry over.
-                if (player.Charge > 0)
-                {
-                    player.Charge = (newLinked || otherLinked)
-                        ? (uint)(player.Charge * _chargeSwitchKeepFraction)
-                        : 0;
-                }
+                uint charge = player.ChargeAt(time);
+                player.SetCharge(
+                    time,
+                    (newLinked || otherLinked) ? (uint)(charge * _chargeSwitchKeepFraction) : 0,
+                    false);
             }
 
             player.ActiveMode = activeMode;
@@ -763,7 +791,7 @@ public class WeaponSim
             Clip = details.WeaponProfile.BaseClipSize,
             Reserve = FullReserve(details.WeaponProfile),
             LastClipRegenTime = _shard.CurrentTime,
-            RegenMs = details.Weapon.ClipRegenMs,
+            RegenMs = details.WeaponProfile.ClipRegenMs,
         };
         player.AmmoStates[slot, stateMode] = state;
         _logger.Debug("[FireSim] Ammo initialized weapon={Weapon} slot={Slot} mode={Mode} clip={Clip} reserve={Reserve}", details.Weapon.DebugName, slot, stateMode, state.Clip, state.Reserve);
@@ -772,11 +800,35 @@ public class WeaponSim
 
     private void ProcessEntity(CharacterEntity entity)
     {
+        ProcessFire(entity);
         ProcessWeaponSpread(entity);
         DebugWeaponSpread(entity);
-        ProcessFire(entity);
         RegenClips(entity);
         ProcessPendingAbilityProjectiles(entity);
+    }
+
+    private void ApplyMovementStates(CharacterEntity entity, WeaponPlayerSim sim, WeaponProfile profile, WeaponModeState modeState, uint upTo)
+    {
+        if (!entity.IsPlayerControlled)
+        {
+            var current = entity.MovementStateContainer.MovementStateValue;
+            if (current != modeState.CurrentMovementFlags)
+            {
+                WeaponSpreadMath.UpdateMovementState(profile, modeState, current, upTo);
+            }
+
+            return;
+        }
+
+        foreach (var (time, movementState) in entity.GetMovementStates(sim.MovementAppliedTime, upTo))
+        {
+            if (movementState != modeState.CurrentMovementFlags)
+            {
+                WeaponSpreadMath.UpdateMovementState(profile, modeState, movementState, time);
+            }
+
+            sim.MovementAppliedTime = time;
+        }
     }
 
     private void ProcessWeaponSpread(CharacterEntity entity)
@@ -790,7 +842,7 @@ public class WeaponSim
         uint currentTime = _shard.CurrentTime;
         var weaponSimState = GetOrCreateState(entity, activeWeaponDetails, currentTime);
 
-        WeaponSpreadMath.UpdateMovementState(activeWeaponDetails.WeaponProfile, weaponSimState, entity.MovementStateContainer.MovementStateValue, currentTime);
+        ApplyMovementStates(entity, _weaponSimState[entity.EntityId], activeWeaponDetails.WeaponProfile, weaponSimState, currentTime);
         WeaponSpreadMath.RecoilInterpUpdate(activeWeaponDetails.WeaponProfile, weaponSimState, currentTime, snapshot: false);
     }
 
@@ -814,27 +866,27 @@ public class WeaponSim
         var sim = _weaponSimState[entity.EntityId];
         var fire = sim.Fire;
 
-        UpdateCharge(sim, weapon, time);
-
         // Reload completion (before the shot/event loop so a resumed press can fire this tick)
         if (fire.State == WeaponFireStateEnum.Reloading && time >= fire.ReloadCompleteTime)
         {
             CompleteReload(sim);
             fire.State = WeaponFireStateEnum.Idle;
+            sim.SetChargeDirection(fire.ReloadCompleteTime, fire.TriggerHeld);
             SyncAmmoView(entity, sim);
 
             if (fire.TriggerHeld && IsContinuousFireMode(weapon))
             {
                 uint readyTime = Math.Max(fire.NextShotTime, fire.TriggerHeldTime);
                 readyTime = Math.Max(readyTime, fire.ReloadCompleteTime);
-                if (IsM1Chargeup(weapon) && sim.Charge < sim.ChargeMin)
+                uint readyCharge = sim.ChargeAt(readyTime);
+                if (IsM1Chargeup(weapon) && readyCharge < sim.ChargeMin)
                 {
-                    fire.NextShotTime = readyTime + (sim.ChargeMin - sim.Charge);
+                    fire.NextShotTime = readyTime + (sim.ChargeMin - readyCharge);
                     _logger.Debug(
                         "[FireSim] Reload ended uncharged (server={ServerTime} clientFireBurst={FireTime} charge={Charge}/{Cap} min={Min} ready={ReadyTime})",
                         _shard.CurrentTime,
                         fire.TriggerHeldTime,
-                        sim.Charge,
+                        readyCharge,
                         sim.ChargeCap,
                         sim.ChargeMin,
                         fire.NextShotTime);
@@ -861,6 +913,23 @@ public class WeaponSim
         while (true)
         {
             bool shotDue = fire.State == WeaponFireStateEnum.Firing && fire.NextShotTime <= time;
+            if (shotDue && !IsShotReady(entity, sim, weapon, fire.NextShotTime, time))
+            {
+                TakeAimSamples(entity, sim, activeWeaponDetails, time);
+                if (!IsShotReady(entity, sim, weapon, fire.NextShotTime, time))
+                {
+                    if (sim.Events.Count > 0 && sim.Events[0].Time < fire.NextShotTime)
+                    {
+                        var earlier = sim.Events[0];
+                        sim.Events.RemoveAt(0);
+                        HandleFireEvent(entity, sim, activeWeaponDetails, earlier);
+                        continue;
+                    }
+
+                    break;
+                }
+            }
+
             bool evtDue = sim.Events.Count > 0 && sim.Events[0].Time <= time;
             if (!shotDue && !evtDue)
             {
@@ -905,58 +974,6 @@ public class WeaponSim
         }
     }
 
-    // Starts 500 ms after the last shot or reload and adds every due round at once, as in the client (0x7ACE70)
-    private static void RegenClip(CharacterEntity entity, AmmoState state, uint time)
-    {
-        if (!state.HasAmmo || state.RegenMs == 0 || state.Clip >= state.ClipMax || state.Reserve <= 0)
-        {
-            return;
-        }
-
-        uint start = Math.Max(Math.Max(state.LastShotTime, state.ReloadTime) + 500, state.LastClipRegenTime);
-        if (time < start + state.RegenMs)
-        {
-            return;
-        }
-
-        uint due = (time - start) / state.RegenMs;
-        state.LastClipRegenTime = start + (due * state.RegenMs);
-        int rounds = (int)Math.Min(due, (uint)Math.Min(state.ClipMax - state.Clip, state.Reserve));
-        state.Clip += rounds;
-        state.Reserve -= rounds;
-        SyncAmmoView(entity, state);
-    }
-
-    private void UpdateCharge(WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
-    {
-        var fire = sim.Fire;
-        uint dt = time - sim.LastChargeTime;
-        sim.LastChargeTime = time;
-        if (sim.ChargeCap == 0 || fire.State == WeaponFireStateEnum.Reloading)
-        {
-            return;
-        }
-
-        uint was = sim.Charge;
-        if (fire.State == WeaponFireStateEnum.Firing)
-        {
-            sim.Charge = sim.ChargeCap;
-        }
-        else if (fire.TriggerHeld)
-        {
-            sim.Charge = was + dt > sim.ChargeCap ? sim.ChargeCap : was + dt;
-        }
-        else
-        {
-            sim.Charge = was >= dt ? was - dt : 0;
-        }
-
-        if (sim.ChargeMin > 0 && fire.TriggerHeld && was < sim.ChargeMin && sim.Charge >= sim.ChargeMin)
-        {
-            _logger.Debug("[FireSim] Charge armed weapon={Weapon} charge={Charge}/{Cap} min={Min} server={ServerTime}", weapon.DebugName, sim.Charge, sim.ChargeCap, sim.ChargeMin, _shard.CurrentTime);
-        }
-    }
-
     private void HandleFireEvent(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, WeaponFireEvent evt)
     {
         var weapon = details.Weapon;
@@ -979,6 +996,8 @@ public class WeaponSim
                     _logger.Debug("[FireSim] FireBurst held during reload (server={ServerTime} client={ClientTime}); will resume if continuous", _shard.CurrentTime, evt.Time);
                     break; // resume at reload completion
                 }
+
+                sim.SetChargeDirection(evt.Time, true);
 
                 if (IsChargeOnlyMode(weapon, details.WeaponProfile))
                 {
@@ -1014,6 +1033,11 @@ public class WeaponSim
 
             case WeaponFireEventType.FireEnd:
             case WeaponFireEventType.FireCancel:
+                if (fire.State != WeaponFireStateEnum.Reloading)
+                {
+                    sim.SetChargeDirection(evt.Time, false);
+                }
+
                 fire.TriggerHeld = false;
                 fire.ShotsRemainingInBurst = 0;
                 if (fire.State == WeaponFireStateEnum.Firing)
@@ -1026,6 +1050,11 @@ public class WeaponSim
             case WeaponFireEventType.FireInputIgnored:
                 if (evt.Value != 0)
                 {
+                    if (fire.State != WeaponFireStateEnum.Reloading)
+                    {
+                        sim.SetChargeDirection(evt.Time, false);
+                    }
+
                     fire.TriggerHeld = false;
                     fire.ShotsRemainingInBurst = 0;
                     if (fire.State == WeaponFireStateEnum.Firing)
@@ -1042,6 +1071,7 @@ public class WeaponSim
 
             case WeaponFireEventType.SelectWeapon:
             case WeaponFireEventType.SelectFireMode:
+                sim.SetChargeDirection(evt.Time, false);
                 fire.Reset();
                 break;
 
@@ -1060,6 +1090,60 @@ public class WeaponSim
                 }
 
                 break;
+        }
+    }
+
+    private bool TryGetShotAimSample(WeaponFireState fire, WeaponTemplateResult weapon, uint shotTime, bool preferAbilityTime, out FireAimSample sample, out string source)
+    {
+        bool hasAbilityTime = weapon.AttackAbility != 0;
+        uint abilityTime = shotTime + PendingAbilityProjectile.ClientFireDelayMs;
+        if (preferAbilityTime && hasAbilityTime && TryGetAimSample(fire, abilityTime, out sample))
+        {
+            source = "sample+50";
+            return true;
+        }
+
+        if (TryGetAimSample(fire, shotTime, out sample))
+        {
+            source = "sample";
+            return true;
+        }
+
+        if (!preferAbilityTime && hasAbilityTime && TryGetAimSample(fire, abilityTime, out sample))
+        {
+            source = "sample+50";
+            return true;
+        }
+
+        source = "pose";
+        return false;
+    }
+
+    private bool IsShotReady(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint shotTime, uint currentTime)
+    {
+        if (!entity.IsPlayerControlled)
+        {
+            return true;
+        }
+
+        return TryGetShotAimSample(sim.Fire, weapon, shotTime, true, out _, out _)
+            || (int)(currentTime - shotTime) >= (int)_shotFireWaitMs;
+    }
+
+    private void TakeAimSamples(CharacterEntity entity, WeaponPlayerSim sim, CharacterEntity.ActiveWeaponDetails details, uint currentTime)
+    {
+        for (var i = 0; i < sim.Events.Count;)
+        {
+            var evt = sim.Events[i];
+            if (evt.Type == WeaponFireEventType.FireAimSample && evt.Time <= currentTime)
+            {
+                sim.Events.RemoveAt(i);
+                HandleFireEvent(entity, sim, details, evt);
+            }
+            else
+            {
+                i++;
+            }
         }
     }
 
@@ -1109,6 +1193,12 @@ public class WeaponSim
     private void StartFiring(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
     {
         var fire = sim.Fire;
+        byte roundsPerBurst = GetActiveProfile(entity, weapon)?.RoundsPerBurst ?? weapon.RoundsPerBurst;
+        if (sim.ChargeCap > 0)
+        {
+            sim.SetCharge(time, sim.ChargeCap, true);
+        }
+
         fire.State = WeaponFireStateEnum.Firing;
         fire.FireStartTime = time;
         fire.NextShotTime = time;
@@ -1123,9 +1213,9 @@ public class WeaponSim
             fire.TotalRoundsInPress = 1;
             roundsInPress = 1;
         }
-        else if (weapon.RoundsPerBurst > 1)
+        else if (roundsPerBurst > 1)
         {
-            int rounds = Math.Min(weapon.RoundsPerBurst, sim.Ammo.HasAmmo ? sim.Ammo.Clip : int.MaxValue);
+            int rounds = Math.Min(roundsPerBurst, sim.Ammo.HasAmmo ? sim.Ammo.Clip : int.MaxValue);
             rounds = Math.Max(rounds, 1);
             fire.ShotsRemainingInBurst = rounds;
             fire.TotalRoundsInPress = (uint)rounds;
@@ -1144,6 +1234,12 @@ public class WeaponSim
         }
     }
 
+    private WeaponProfile? GetActiveProfile(CharacterEntity entity, WeaponTemplateResult weapon)
+    {
+        var details = entity.GetActiveWeaponDetails();
+        return details != null && ReferenceEquals(details.Weapon, weapon) ? details.WeaponProfile : null;
+    }
+
     private void StartReload(CharacterEntity entity, WeaponPlayerSim sim, WeaponTemplateResult weapon, uint time)
     {
         if (!sim.Ammo.HasAmmo || sim.Ammo.Reserve <= 0 || sim.Ammo.Clip >= sim.Ammo.ClipMax)
@@ -1152,10 +1248,10 @@ public class WeaponSim
         }
 
         sim.Fire.State = WeaponFireStateEnum.Reloading;
-        sim.Fire.ReloadCompleteTime = time + weapon.ReloadTime;
+        sim.Fire.ReloadCompleteTime = time + (GetActiveProfile(entity, weapon)?.ReloadTime ?? weapon.ReloadTime);
         sim.Fire.ShotsRemainingInBurst = 0;
         sim.Fire.TriggerHeld = false;
-        sim.Charge = 0;
+        sim.SetCharge(time, 0, false);
 
         ActivateWeaponAbility(entity, weapon.ReloadAbility, time);
     }
@@ -1194,13 +1290,18 @@ public class WeaponSim
     {
         if (entity.IsPlayerControlled)
         {
+            foreach (var pending in entity.TakeOverdueAbilityProjectiles(_shard.CurrentTime))
+            {
+                var aim = entity.TryGetAimSample(pending.FireTime, out var sampled) ? sampled : entity.AimDirection;
+                OnFireAbilityProjectile(entity, pending, pending.FireTime, aim, null);
+            }
+
             return;
         }
 
-        while (entity.TryConsumeNextAbilityProjectile() is { } pending)
+        foreach (var pending in entity.TakeDueAbilityProjectiles(_shard.CurrentTime))
         {
-            uint time = pending.QueueTime != 0 ? pending.QueueTime : pending.ActivationTime;
-            OnFireAbilityProjectile(entity, pending, time, entity.AimDirection, null);
+            OnFireAbilityProjectile(entity, pending, pending.FireTime, entity.AimDirection, null);
         }
     }
 
@@ -1286,24 +1387,18 @@ public class WeaponSim
 
         // Aim resolution: 1) the client sample for this exact shot time, 2) the aim interpolated
         // from the movement sample buffer at the shot time, 3) the last known pose.
-        Vector3 aim;
+        Vector3 aim = entity.AimDirection;
         Vector3? velocity = null;
-        string aimSource;
-        if (TryGetAimSample(sim.Fire, time, out var sample))
+        if (TryGetShotAimSample(sim.Fire, weapon, time, true, out var sample, out _))
         {
             aim = sample.Aim;
             velocity = sample.Velocity;
-            aimSource = "sample";
-        }
-        else
-        {
-            aim = entity.AimDirection;
-            aimSource = "pose";
         }
 
         Vector3 origin = entity.GetProjectileOrigin(time, aim, velocity);
 
-        WeaponSpreadMath.UpdateMovementState(details.WeaponProfile, modeState, entity.MovementStateContainer.MovementStateValue, time);
+        ApplyMovementStates(entity, sim, details.WeaponProfile, modeState, time);
+        WeaponSpreadMath.UpdateMovementState(details.WeaponProfile, modeState, modeState.CurrentMovementFlags, time);
         WeaponSpreadMath.RecoilInterpUpdate(details.WeaponProfile, modeState, time, snapshot: true);
         float spreadPct = WeaponSpreadMath.GetCurrentSpreadPct(details.WeaponProfile, modeState, time);
 
@@ -1311,12 +1406,20 @@ public class WeaponSim
         if (weapon.AttackAbility != 0 && entity is IAptitudeTarget initiator)
         {
             Guid executionId = Guid.NewGuid();
-            _shard.Abilities.HandleActivateAbility(_shard, initiator, weapon.AttackAbility, time, new AptitudeTargets(), executionId: executionId, initPosition: origin);
+            _firingAttackAbility = true;
+            try
+            {
+                _shard.Abilities.HandleActivateAbility(_shard, initiator, weapon.AttackAbility, time, new AptitudeTargets(), executionId: executionId, initPosition: origin);
+            }
+            finally
+            {
+                _firingAttackAbility = false;
+            }
 
             var pending = entity.TryConsumeAbilityProjectileByExecId(executionId);
             if (pending.HasValue)
             {
-                OnFireAbilityProjectile(entity, pending.Value, time, aim, velocity);
+                OnFireAbilityProjectile(entity, pending.Value, pending.Value.FireTime, aim, velocity);
                 firedViaAbility = true;
             }
         }
@@ -1329,30 +1432,18 @@ public class WeaponSim
 
         if (!firedViaAbility)
         {
-            FireWeaponDirect(entity, sim, details, modeState, time, aim, velocity, origin, spreadPct, aimSource);
+            if (TryGetShotAimSample(sim.Fire, weapon, time, false, out var directSample, out var directSource))
+            {
+                aim = directSample.Aim;
+                velocity = directSample.Velocity;
+                origin = entity.GetProjectileOrigin(time, aim, velocity);
+            }
+
+            FireWeaponDirect(entity, sim, details, modeState, time, aim, velocity, origin, spreadPct, directSource);
         }
 
         SyncAmmoView(entity, sim);
         return true;
-    }
-
-    private static void SyncAmmoView(CharacterEntity entity, WeaponPlayerSim sim) => SyncAmmoView(entity, sim.Ammo);
-
-    // A reserve change alone leaves the clip out, a sent clip would replace the client's prediction mid burst
-    private static void SyncAmmoView(CharacterEntity entity, AmmoState ammo, bool reserveOnly = false)
-    {
-        if (!ammo.HasAmmo)
-        {
-            return;
-        }
-
-        ushort? clip = reserveOnly ? null : (ushort)Math.Max(0, ammo.Clip);
-        var reserve = (ushort)Math.Max(0, ammo.Reserve);
-        WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, ammo.Mode == 1, clip, reserve);
-        if (ammo.Shared)
-        {
-            WriteAmmo(entity, ammo.Slot >= 2 ? 1 : 0, true, clip, reserve);
-        }
     }
 
     private void DebugWeaponSpread(CharacterEntity entity)
@@ -1481,9 +1572,39 @@ public class WeaponSim
 
         // Chargeup: weapon-wide (shared across the fire modes of this weapon), in ms
         public uint Charge;
-        public uint LastChargeTime;
+        public uint ChargeTime;
+        public bool ChargeRising;
+        public uint MovementAppliedTime;
         public uint ChargeCap;
         public uint ChargeMin;
+
+        public uint ChargeAt(uint time)
+        {
+            if (time <= ChargeTime)
+            {
+                return Charge;
+            }
+
+            uint elapsed = time - ChargeTime;
+            if (ChargeRising)
+            {
+                return Charge + elapsed > ChargeCap ? ChargeCap : Charge + elapsed;
+            }
+
+            return Charge > elapsed ? Charge - elapsed : 0;
+        }
+
+        public void SetChargeDirection(uint time, bool rising)
+        {
+            SetCharge(time, ChargeAt(time), rising);
+        }
+
+        public void SetCharge(uint time, uint charge, bool rising)
+        {
+            Charge = Math.Min(charge, ChargeCap);
+            ChargeTime = Math.Max(time, ChargeTime);
+            ChargeRising = rising;
+        }
     }
 
     private record class DebugWeaponSimEventData

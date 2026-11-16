@@ -109,7 +109,7 @@ public class TargetPBAECommand : Command, ICommand
             if (Params.MinTargets != 0)
             {
                 Logger.Debug("{Command} {CommandId} found no targets and MinTargets is set, returning false", nameof(TargetPBAECommand), Params.Id);
-                result.SetFail(StatusCode.Status3_TargetingFail);
+                result.SetFail(StatusCode.TargetRequirementFailed);
                 return;
             }
 

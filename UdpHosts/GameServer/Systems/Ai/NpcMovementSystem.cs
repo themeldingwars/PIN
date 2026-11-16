@@ -486,6 +486,8 @@ public sealed class NpcMovementSystem
         return speed <= _crowdRestSpeed;
     }
 
+    private static float GroundProbeRange(CharacterEntity npc) => MathF.Max(_groundProbeRange, npc.BodySize.Radius * _groundProbeRangePerBodyRadius);
+
     /// <summary>
     ///     Launch watchdog: reads the real integrated body Z-velocity (not the entity's reported velocity, which is
     ///     overwritten with the desired steering each tick) and logs a detailed snapshot when a biped is rising fast
@@ -1199,8 +1201,6 @@ public sealed class NpcMovementSystem
 
         return layer;
     }
-
-    private static float GroundProbeRange(CharacterEntity npc) => MathF.Max(_groundProbeRange, npc.BodySize.Radius * _groundProbeRangePerBodyRadius);
 
     private void TickStoppedNpc(CharacterEntity npc, NpcMovementComponent comp, float dt)
     {

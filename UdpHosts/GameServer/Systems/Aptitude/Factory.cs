@@ -104,8 +104,8 @@ public class Factory
                 return new PassiveInitiationCommand(SDBInterface.GetPassiveInitiationCommandDef(commandId));
             case CommandType.StagedActivation:
                 return new StagedActivationCommand(SDBInterface.GetStagedActivationCommandDef(commandId));
-            // case CommandType.ActivationDuration:
-            //     return new ActivationDurationCommand(SDBInterface.GetActivationDurationCommandDef(commandId));
+            case CommandType.ActivationDuration:
+                return new ActivationDurationCommand(SDBInterface.GetActivationDurationCommandDef(commandId));
             case CommandType.TeleportInstance:
                 return new TeleportInstanceCommand(CustomDBInterface.GetTeleportInstanceCommandDef(commandId));
             // case CommandType.ResetTrauma:
@@ -164,10 +164,10 @@ public class Factory
             //     return new RopePullCommand(SDBInterface.GetRopePullCommandDef(commandId));
             // case CommandType.SetTargetOffset:
             //     return new SetTargetOffsetCommand(SDBInterface.GetSetTargetOffsetCommandDef(commandId));
-            // case CommandType.RequireEnergy:
-            //     return new RequireEnergyCommand(SDBInterface.GetRequireEnergyCommandDef(commandId));
-            // case CommandType.HealDamage:
-            //     return new HealDamageCommand(SDBInterface.GetHealDamageCommandDef(commandId));
+            case CommandType.RequireEnergy:
+                return new RequireEnergyCommand(SDBInterface.GetRequireEnergyCommandDef(commandId));
+            case CommandType.HealDamage:
+                return new HealDamageCommand(SDBInterface.GetHealDamageCommandDef(commandId));
             // case CommandType.Bullrush:
             //     return new BullrushCommand(SDBInterface.GetBullrushCommandDef(commandId));
             // case CommandType.EnergyToDamage:
@@ -212,10 +212,10 @@ public class Factory
             //     return new RequireWeaponTemplateCommand(SDBInterface.GetRequireWeaponTemplateCommandDef(commandId));
             // case CommandType.SwitchWeapon:
             //     return new SwitchWeaponCommand(SDBInterface.GetSwitchWeaponCommandDef(commandId));
-            // case CommandType.StatRequirement:
-            //     return new StatRequirementCommand(SDBInterface.GetStatRequirementCommandDef(commandId));
-            // case CommandType.ConsumeEnergy:
-            //     return new ConsumeEnergyCommand(SDBInterface.GetConsumeEnergyCommandDef(commandId));
+            case CommandType.StatRequirement:
+                return new StatRequirementCommand(SDBInterface.GetStatRequirementCommandDef(commandId));
+            case CommandType.ConsumeEnergy:
+                return new ConsumeEnergyCommand(SDBInterface.GetConsumeEnergyCommandDef(commandId));
             // case CommandType.TargetClassType:
             //     return new TargetClassTypeCommand(SDBInterface.GetTargetClassTypeCommandDef(commandId));
             case CommandType.TargetDifference:
@@ -282,8 +282,8 @@ public class Factory
                 return new InteractionTypeCommand(SDBInterface.GetInteractionTypeCommandDef(commandId));
             case CommandType.TargetStackEmpty:
                 return new TargetStackEmptyCommand(SDBInterface.GetTargetStackEmptyCommandDef(commandId));
-            // case CommandType.InteractionInProgress:
-            //     return new InteractionInProgressCommand(CustomDBInterface.GetInteractionInProgressCommandDef(commandId));
+            case CommandType.InteractionInProgress:
+                return new InteractionInProgressCommand(CustomDBInterface.GetInteractionInProgressCommandDef(commandId));
             // case CommandType.InteractionCompletionTime:
             //     return new InteractionCompletionTimeCommand(CustomDBInterface.GetInteractionCompletionTimeCommandDef(commandId));
             // case CommandType.Execute:
@@ -316,8 +316,8 @@ public class Factory
                 return new TargetTrimCommand(SDBInterface.GetTargetTrimCommandDef(commandId));
             case CommandType.SetWeaponDamage:
                 return new SetWeaponDamageCommand(SDBInterface.GetSetWeaponDamageCommandDef(commandId));
-            // case CommandType.ConsumeEnergyOverTime:
-            //     return new ConsumeEnergyOverTimeCommand(SDBInterface.GetConsumeEnergyOverTimeCommandDef(commandId));
+            case CommandType.ConsumeEnergyOverTime:
+                return new ConsumeEnergyOverTimeCommand(SDBInterface.GetConsumeEnergyOverTimeCommandDef(commandId));
             // case CommandType.RequestAbilitySelection:
             //     return new RequestAbilitySelectionCommand(SDBInterface.GetRequestAbilitySelectionCommandDef(commandId));
             // case CommandType.NPCDespawn:
@@ -387,8 +387,8 @@ public class Factory
             //     return new ActivateMissionCommand(CustomDBInterface.GetActivateMissionCommandDef(commandId));
             // case CommandType.UpdateWait:
             //     return new UpdateWaitCommand(SDBInterface.GetUpdateWaitCommandDef(commandId));
-            // case CommandType.LoadRegisterFromStat:
-            //     return new LoadRegisterFromStatCommand(SDBInterface.GetLoadRegisterFromStatCommandDef(commandId));
+            case CommandType.LoadRegisterFromStat:
+                return new LoadRegisterFromStatCommand(SDBInterface.GetLoadRegisterFromStatCommandDef(commandId));
             // case CommandType.PushRegister:
             //     return new PushRegisterCommand(SDBInterface.GetPushRegisterCommandDef(commandId));
             // case CommandType.PopRegister:
@@ -535,14 +535,14 @@ public class Factory
             //     return new RemoveEffectByTagCommand(CustomDBInterface.GetRemoveEffectByTagCommandDef(commandId));
             // case CommandType.RegisterEffectTagTrigger:
             //     return new RegisterEffectTagTriggerCommand(CustomDBInterface.GetRegisterEffectTagTriggerCommandDef(commandId));
-            // case CommandType.ReplenishableDuration:
-            //     return new ReplenishableDurationCommand(CustomDBInterface.GetReplenishableDurationCommandDef(commandId));
-            // case CommandType.ReplenishEffectDuration:
-            //     return new ReplenishEffectDurationCommand(CustomDBInterface.GetReplenishEffectDurationCommandDef(commandId));
+            case CommandType.ReplenishableDuration:
+                return new ReplenishableDurationCommand(CustomDBInterface.GetReplenishableDurationCommandDef(commandId));
+            case CommandType.ReplenishEffectDuration:
+                return new ReplenishEffectDurationCommand(CustomDBInterface.GetReplenishEffectDurationCommandDef(commandId));
             case CommandType.ConsumeSuperCharge:
                 return new ConsumeSuperChargeCommand(SDBInterface.GetConsumeSuperChargeCommandDef(commandId));
-            // case CommandType.RequireSuperCharge:
-            //     return new RequireSuperChargeCommand(SDBInterface.GetRequireSuperChargeCommandDef(commandId));
+            case CommandType.RequireSuperCharge:
+                return new RequireSuperChargeCommand(SDBInterface.GetRequireSuperChargeCommandDef(commandId));
             // case CommandType.ActivateAbilityTrigger:
             //     return new ActivateAbilityTriggerCommand(CustomDBInterface.GetActivateAbilityTriggerCommandDef(commandId));
             case CommandType.TargetByHealth:

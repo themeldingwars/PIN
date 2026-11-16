@@ -48,7 +48,7 @@ public class LoadRegisterFromItemStatCommand : Command, ICommand
         }
 
         float prevValue = context.Register;
-        float statValue = character.GetItemAttribute(Params.Stat);
+        float statValue = character.GetItemStat(Params.Stat);
         context.Register = AbilitySystem.RegistryOp(prevValue, statValue, (Operand)Params.Regop);
 
         if (true)

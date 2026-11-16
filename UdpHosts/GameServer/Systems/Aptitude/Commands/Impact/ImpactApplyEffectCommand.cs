@@ -126,7 +126,7 @@ public class ImpactApplyEffectCommand : Command, ICommand
         foreach (IAptitudeTarget target in rollbackContext.Targets)
         {
             Logger.Information("RemoveOnRollback of {Command} {CommandId} triggers removal of {EffectId}", nameof(ImpactApplyEffectCommand), Params.Id, Params.EffectId);
-            context.Abilities.DoRemoveEffect(target, Params.EffectId);
+            context.Abilities.DoRemoveEffect(target, Params.EffectId, context.CurrentTime);
         }
     }
 }

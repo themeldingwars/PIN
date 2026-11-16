@@ -24,7 +24,7 @@ public class Thumper : BaseEncounter, IInteractionHandler
         switch ((ThumperState)_thumper.StateInfo.State)
         {
             case ThumperState.THUMPING:
-                Shard.Abilities.HandleActivateAbility(Shard, _thumper, _thumper.CompletedAbility);
+                Shard.Abilities.HandleActivateAbility(Shard, _thumper, 34216);
 
                 _thumper.TransitionToState(ThumperState.LEAVING);
                 break;

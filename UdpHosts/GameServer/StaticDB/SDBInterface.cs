@@ -1,11 +1,13 @@
 namespace GameServer.StaticDB;
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using FauFau.Formats;
 using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
+using Records.dbconfig;
 using Records.dbencounterdata;
 using Records.dbitems;
 using Records.dbphysicsmaterials;
@@ -65,6 +67,7 @@ public class SDBInterface
     // dbitems
     private static Dictionary<uint, AttributeCategory> _attributeCategory;
     private static Dictionary<uint, AttributeDefinition> _attributeDefinition;
+    private static Dictionary<string, ConsoleVariable> _consoleVariables;
     private static Dictionary<uint, Dictionary<ushort, AttributeRange>> _attributeRange;
     private static Dictionary<uint, Dictionary<ushort, ItemModuleScalars>> _itemModuleScalars;
     private static Dictionary<uint, Dictionary<ushort, ItemCharacterScalars>> _itemCharacterScalars;
@@ -588,6 +591,9 @@ public class SDBInterface
         _deployableComponentDef = loader.LoadDeployableComponentDef();
         _spawnPointComponentDef = loader.LoadSpawnPointComponentDef();
         _hullSegmentDef = loader.LoadHullSegmentDef();
+
+        // dbconfig
+        _consoleVariables = loader.LoadConsoleVariables();
     }
 
     // dbcharacter
@@ -598,6 +604,19 @@ public class SDBInterface
 
     public static AttributeCategory GetAttributeCategory(uint id) => _attributeCategory.GetValueOrDefault(id);
     public static AttributeDefinition GetAttributeDefinition(uint id) => _attributeDefinition.GetValueOrDefault(id);
+
+    public static float GetConsoleVariableFloat(string name, float fallback)
+    {
+        if (_consoleVariables != null
+            && _consoleVariables.TryGetValue(name, out var variable)
+            && float.TryParse(variable.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+        {
+            return value;
+        }
+
+        return fallback;
+    }
+
     public static IReadOnlyDictionary<ushort, AttributeRange> GetItemAttributeRange(uint itemId) => _attributeRange.GetValueOrDefault(itemId) ?? _noAttributeRange;
 
     public static IReadOnlyDictionary<ushort, ItemModuleScalars> GetItemModuleScalars(uint itemId) => _itemModuleScalars.GetValueOrDefault(itemId) ?? _noItemModuleScalars;

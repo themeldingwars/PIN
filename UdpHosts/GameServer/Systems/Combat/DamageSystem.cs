@@ -74,6 +74,11 @@ public class DamageSystem
             return;
         }
 
+        if (source is CharacterEntity healer)
+        {
+            _shard.SuperCharge.OnHealDealt(healer, amount);
+        }
+
         _eventBus.Publish(new EntityHealedEvent(target, amount, source));
     }
 

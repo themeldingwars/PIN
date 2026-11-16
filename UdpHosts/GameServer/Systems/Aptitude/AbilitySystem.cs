@@ -124,6 +124,8 @@ public class AbilitySystem
         applyContext.Self = target;
         applyContext.InitTime = context.CurrentTime;
         applyContext.CurrentTime = context.CurrentTime;
+        applyContext.EnergyConsumedTime = context.CurrentTime;
+        applyContext.HasEnergyConsumedTime = true;
         applyContext.ExecutionHint = ExecutionHint.ApplyEffect;
 
         if (applyContext.ScaleMultiplier == 0f)
@@ -189,10 +191,10 @@ public class AbilitySystem
         }
     }
 
-    public void DoRemoveEffect(EffectState activeEffect)
+    public void DoRemoveEffect(EffectState activeEffect, uint time)
     {
         activeEffect.Context.ExecutionHint = ExecutionHint.RemoveEffect;
-        activeEffect.Context.CurrentTime = _shard.CurrentTime;
+        activeEffect.Context.CurrentTime = time;
         activeEffect.Context.Self.ClearEffect(activeEffect);
         var context = activeEffect.Context;
         var removeResult = new CommandResult { Success = true };
@@ -225,7 +227,7 @@ public class AbilitySystem
         }
     }
 
-    public void DoRemoveEffect(IAptitudeTarget entity, uint effectId)
+    public void DoRemoveEffect(IAptitudeTarget entity, uint effectId, uint time)
     {
         var activeEffects = entity.GetActiveEffects();
         foreach (var activeEffect in activeEffects)
@@ -234,7 +236,7 @@ public class AbilitySystem
             {
                 if (activeEffect.Effect.Id == effectId)
                 {
-                    DoRemoveEffect(activeEffect);
+                    DoRemoveEffect(activeEffect, time);
                     break;
                 }
             }
@@ -255,7 +257,7 @@ public class AbilitySystem
         {
             if (effectState != null)
             {
-                DoRemoveEffect(effectState);
+                DoRemoveEffect(effectState, _shard.CurrentTime);
                 removed++;
             }
         }
@@ -441,7 +443,7 @@ public class AbilitySystem
             {
                 if (effectState?.Context != null && effectState.Context.ExecutionId == executionId)
                 {
-                    DoRemoveEffect(effectState);
+                    DoRemoveEffect(effectState, _shard.CurrentTime);
                 }
             }
 
@@ -601,7 +603,7 @@ public class AbilitySystem
 
         if (remove)
         {
-            DoRemoveEffect(state);
+            DoRemoveEffect(state, context.CurrentTime);
         }
     }
 }

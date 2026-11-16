@@ -8,6 +8,8 @@ namespace GameServer.Entities.Character;
 /// </summary>
 public struct PendingAbilityProjectile
 {
+    public const uint ClientFireDelayMs = 50;
+
     public uint AmmoType;
     public float Damage;
     public float Range;
@@ -20,4 +22,5 @@ public struct PendingAbilityProjectile
     public uint ActivationTime;
     public Guid ExecutionId;
     public uint QueueTime;
+    public uint FireTime;
 }

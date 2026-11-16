@@ -12,6 +12,7 @@ namespace GameServer.Systems.MovementRelay;
 public class MovementRelay
 {
     private const int MaxPoseLogs = 5;
+    private const float _confirmedPoseTolerance = 0.001f;
 
     private static readonly ILogger _logger = Log.ForContext<MovementRelay>();
 
@@ -79,8 +80,14 @@ public class MovementRelay
             _shard.Logger.Debug("Movestate of {Character} changes from {Previous} to {Movestate}", character, previousMovestate, character.MovementStateContainer.Movestate);
         }
 
+        character.JetEnergy.Simulate(input.ShortTime, (ushort)movementStateValue, poseData.Velocity, character.EnergyParams, character.GetJetEnergyCosts());
+        var jetpackEnergy = character.JetEnergy.Encode(character.EnergyParams.Max);
+
         // Update with physics
         _shard.Physics.UpdateEntity(character);
+
+        var poseMatches = Vector3.DistanceSquared(character.Position, posRotState.Pos) <= _confirmedPoseTolerance * _confirmedPoseTolerance
+            && character.Orientation == posRotState.Rot;
 
         // Confirm the pose with the client
         var confirmedPose = new ConfirmedPoseUpdate
@@ -88,7 +95,7 @@ public class MovementRelay
             PoseData = new MovementPoseData
             {
                 ShortTime = input.ShortTime,
-                MovementType = MovementDataType.PosRotState,
+                MovementType = poseMatches ? MovementDataType.Velocity : MovementDataType.PosRotState,
                 WaterLevelAndDesc = poseData.WaterLevelAndDesc,
                 PosRotState = new MovementPosRotState
                             {
@@ -97,7 +104,7 @@ public class MovementRelay
                                 MovementState = movementStateValue
                             },
                 Velocity = character.Velocity,
-                JetpackEnergy = poseData.JetpackEnergy,
+                JetpackEnergy = jetpackEnergy,
                 GroundTimePositiveAirTimeNegative = poseData.GroundTimePositiveAirTimeNegative, // Somehow affects gravity
                 TimeSinceLastJump = poseData.TimeSinceLastJump,
                 HaveDebugData = 0

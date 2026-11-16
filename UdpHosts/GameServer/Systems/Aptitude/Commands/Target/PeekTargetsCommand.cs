@@ -20,7 +20,7 @@ public class PeekTargetsCommand : Command, ICommand
         {
             if (context.TargetStack.Count == 0)
             {
-                result.SetFail(StatusCode.Status1);
+                result.SetFail(StatusCode.Error);
                 return;
             }
 
@@ -31,7 +31,7 @@ public class PeekTargetsCommand : Command, ICommand
         {
             if (context.TargetStack.Count == 0)
             {
-                result.SetFail(StatusCode.Status1);
+                result.SetFail(StatusCode.Error);
                 return;
             }
 

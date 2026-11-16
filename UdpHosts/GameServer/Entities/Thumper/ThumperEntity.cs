@@ -30,10 +30,9 @@ public sealed class ThumperEntity : BaseAptitudeEntity, IAptitudeTarget
         CalldownTimeMs = commandDef.CalldownTimeMs;
         MaxHealth = (uint)commandDef.Health;
         Interaction = new InteractionComponent()
-          {
-              Type = InteractionType.GenericHold,
-              CompletedAbilityId = CompletedAbility,
-          };
+        {
+            Type = InteractionType.GenericHold,
+        };
         InitFields();
         InitViews();
     }

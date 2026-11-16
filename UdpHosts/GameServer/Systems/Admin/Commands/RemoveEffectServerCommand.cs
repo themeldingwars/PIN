@@ -34,6 +34,6 @@ public class RemoveEffectServerCommand : ServerCommand
             target = commandTarget;
         }
 
-        shard.Abilities.DoRemoveEffect(target, effectId);
+        shard.Abilities.DoRemoveEffect(target, effectId, context.Shard.CurrentTime);
     }
 }

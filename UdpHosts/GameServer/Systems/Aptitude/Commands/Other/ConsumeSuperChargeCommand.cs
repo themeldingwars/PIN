@@ -1,5 +1,4 @@
-﻿using AeroMessages.GSS.Character.Controller;
-using GameServer.Entities.Character;
+﻿using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.StaticDB.Records.aptfs;
 
@@ -21,16 +20,16 @@ public class ConsumeSuperChargeCommand : Command, ICommand
 
         if (target is CharacterEntity character)
         {
-            var currentValue = character.Character_CombatController.SuperChargeProp.Value;
-
             var percent = AbilitySystem.RegistryOp(context.Register, Params.Percent, (Operand)Params.PercentRegop);
-            var value = percent / 100 * currentValue;
 
-            character.Character_CombatController.SuperChargeProp = new SuperChargeData()
-               {
-                   Value = currentValue - value,
-                   Op = (byte)Operand.ASSIGN,
-               };
+            if (Params.IsGainEvent != 0)
+            {
+                character.Shard.SuperCharge.AddAbilityGain(character, -percent);
+                result.SetPass();
+                return;
+            }
+
+            character.Shard.SuperCharge.ConsumePercentOfCurrent(character, percent);
 
             result.SetPass();
             return;

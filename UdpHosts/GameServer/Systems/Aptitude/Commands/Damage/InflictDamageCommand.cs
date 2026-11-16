@@ -30,7 +30,7 @@ public class InflictDamageCommand : Command, ICommand
         {
             // The client refuses with status 1 when the context has not been initiated.
             Logger.Debug("{Command} {CommandId} fails because the context isn't initiated, returning false", nameof(InflictDamageCommand), Params.Id);
-            result.SetFail(StatusCode.Status1);
+            result.SetFail(StatusCode.Error);
             return;
         }
 
