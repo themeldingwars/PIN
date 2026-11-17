@@ -1,8 +1,10 @@
 using System.Numerics;
+using DotRecast.Core;
 using DotRecast.Core.Numerics;
 using DotRecast.Detour;
 using DotRecast.Recast;
 using DotRecast.Recast.Geom;
+using Serilog;
 
 namespace Shared.Collision.Navigation;
 
@@ -42,6 +44,8 @@ public sealed record NavMeshBuildResult
 /// </summary>
 public sealed class NavMeshTileBuilder
 {
+    private static readonly ILogger _logger = Log.ForContext<NavMeshTileBuilder>();
+
     private readonly NavMeshBuildParams _params;
     private readonly RcBuilder _builder;
     private readonly RcAreaModification _walkableArea;
@@ -54,15 +58,88 @@ public sealed class NavMeshTileBuilder
     }
 
     /// <summary>
-    ///     Builds all navmesh tiles from the given world-space triangles (Z-up).
+    ///     Converts world-space (Z-up) triangles into Recast's vertex layout (Y-up), three vertices per
+    ///     triangle. Several blocks of them make up the input of <see cref="CreateGeometry" />.
+    /// </summary>
+    /// <param name="triangles">The world-space source triangles (Z-up).</param>
+    /// <returns>The triangle corners in Recast space, nine floats per triangle.</returns>
+    public static float[] ToRecastVertices(IReadOnlyList<NavTriangle> triangles)
+    {
+        var verts = new float[triangles.Count * 9];
+        for (int i = 0; i < triangles.Count; i++)
+        {
+            var tri = triangles[i];
+            int v = i * 9;
+
+            // World Z-up → Recast Y-up: (x, y, z) → (x, z, y)
+            // NOTE: this swap is a reflection (determinant -1), so it flips triangle winding. Recast
+            // derives the normal from winding alone and requires normal.Y > cos(walkableSlope), which
+            // means a surface an agent can walk on must arrive here with its world-space normal
+            // pointing DOWN (-Z). Getting this backwards produces a heightfield full of spans and
+            // zero polygons with no error, so Build counts how Recast classifies them.
+            verts[v] = tri.A.X;
+            verts[v + 1] = tri.A.Z;
+            verts[v + 2] = tri.A.Y;
+            verts[v + 3] = tri.B.X;
+            verts[v + 4] = tri.B.Z;
+            verts[v + 5] = tri.B.Y;
+            verts[v + 6] = tri.C.X;
+            verts[v + 7] = tri.C.Z;
+            verts[v + 8] = tri.C.Y;
+        }
+
+        return verts;
+    }
+
+    /// <summary>
+    ///     Joins blocks of <see cref="ToRecastVertices" /> into Recast's input geometry, in the given
+    ///     order. Building its spatial index is expensive, so one geometry is shared by every agent size.
+    /// </summary>
+    /// <param name="vertexBlocks">The vertex blocks, released one by one while they are copied.</param>
+    /// <param name="maxDegreeOfParallelism">How many threads build the spatial index.</param>
+    /// <returns>The input geometry, or null when there are no triangles.</returns>
+    public static NavMeshInputGeometry? CreateGeometry(float[]?[] vertexBlocks, int maxDegreeOfParallelism)
+    {
+        long vertexCount = 0;
+        foreach (var block in vertexBlocks)
+        {
+            vertexCount += block?.Length ?? 0;
+        }
+
+        if (vertexCount == 0)
+        {
+            return null;
+        }
+
+        var verts = new float[vertexCount];
+        int offset = 0;
+        for (int i = 0; i < vertexBlocks.Length; i++)
+        {
+            var block = vertexBlocks[i];
+            if (block == null)
+            {
+                continue;
+            }
+
+            block.CopyTo(verts, offset);
+            offset += block.Length;
+            vertexBlocks[i] = null;
+        }
+
+        return new NavMeshInputGeometry(verts, maxDegreeOfParallelism);
+    }
+
+    /// <summary>
+    ///     Builds all navmesh tiles from the given input geometry.
     ///     Uses Recast's native tiled pipeline for correct border connectivity.
     /// </summary>
-    /// <param name="triangles">The world-space source triangles (Z-up) to bake into the navmesh.</param>
+    /// <param name="geom">The input geometry from <see cref="CreateGeometry" />.</param>
+    /// <param name="maxDegreeOfParallelism">How many tiles to build at once.</param>
     /// <returns>The built navmesh tiles together with the tile-grid origin and dimensions.</returns>
-    public NavMeshBuildResult Build(IReadOnlyList<NavTriangle> triangles)
+    public NavMeshBuildResult Build(NavMeshInputGeometry geom, int maxDegreeOfParallelism)
     {
-        var (verts, faces, walkable, upFacingRejected, steep) = BuildVertexFaceArrays(triangles, _params.WalkableSlopeAngle);
-        if (faces.Length == 0)
+        var (walkable, upFacingRejected, steep) = CountWalkability(geom.Vertices, geom.TriangleCount, _params.WalkableSlopeAngle);
+        if (geom.TriangleCount == 0)
         {
             return new NavMeshBuildResult
             {
@@ -74,67 +151,50 @@ public sealed class NavMeshTileBuilder
             };
         }
 
-        var geom = new RcSampleInputGeomProvider(verts, faces);
         var cfg = CreateRcConfig();
-        var results = _builder.BuildTiles(geom, cfg, false, true, Environment.ProcessorCount);
+        var bmin = geom.GetMeshBoundsMin();
+        var bmax = geom.GetMeshBoundsMax();
+        RcRecast.CalcTileCount(bmin, bmax, cfg.Cs, cfg.TileSizeX, cfg.TileSizeZ, out int gw, out int gh);
+
+        // Tiles are independent, so they are built in parallel, Detour's tile data included, and kept in grid order
+        // so the tiles land in the navmesh in the same order on every bake.
+        var tileData = new DtMeshData?[gw * gh];
+        var tileDetailTris = new int[gw * gh];
+        var progress = new RcAtomicInteger(0);
+        Parallel.For(0, gw * gh, new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism }, index =>
+        {
+            int tx = index % gw;
+            int tz = index / gw;
+            try
+            {
+                var result = _builder.BuildTile(geom, cfg, bmin, bmax, tx, tz, progress, gw * gh, false);
+                tileData[index] = CreateTileData(result, out tileDetailTris[index]);
+            }
+            catch (Exception e)
+            {
+                // Recast's own tile loop skips a tile that fails as well
+                _logger.Error(e, "Failed to build navmesh tile ({Tx},{Tz})", tx, tz);
+            }
+        });
 
         var tiles = new List<(int, int, DtMeshData)>();
         int maxPolys = 0;
         int detailTris = 0;
-
-        foreach (var result in results)
+        for (int index = 0; index < tileData.Length; index++)
         {
-            var pmesh = result.Mesh;
-            if (pmesh.npolys == 0)
-            {
-                continue;
-            }
-
-            for (int i = 0; i < pmesh.npolys; i++)
-            {
-                pmesh.flags[i] = 1;
-            }
-
-            var createParams = new DtNavMeshCreateParams
-            {
-                verts = pmesh.verts,
-                vertCount = pmesh.nverts,
-                polys = pmesh.polys,
-                polyFlags = pmesh.flags,
-                polyAreas = pmesh.areas,
-                polyCount = pmesh.npolys,
-                nvp = pmesh.nvp,
-                bmin = pmesh.bmin,
-                bmax = pmesh.bmax,
-                cs = pmesh.cs,
-                ch = pmesh.ch,
-                walkableHeight = _params.AgentHeight,
-                walkableRadius = _params.AgentRadius,
-                walkableClimb = _params.AgentMaxClimb,
-                tileX = result.TileX,
-                tileZ = result.TileZ,
-                tileLayer = 0,
-                userId = 0,
-                buildBvTree = true,
-            };
-
-            ApplyDetailMesh(result.MeshDetail, createParams);
-
-            var data = DtNavMeshBuilder.CreateNavMeshData(createParams);
+            var data = tileData[index];
             if (data != null)
             {
-                tiles.Add((result.TileX, result.TileZ, data));
+                tiles.Add((data.header.x, data.header.y, data));
                 maxPolys = Math.Max(maxPolys, data.header.polyCount);
-                detailTris += createParams.detailTriCount;
+                detailTris += tileDetailTris[index];
             }
         }
-
-        RcRecast.CalcTileCount(geom.GetMeshBoundsMin(), geom.GetMeshBoundsMax(), cfg.Cs, cfg.TileSizeX, cfg.TileSizeZ, out int gw, out int gh);
 
         return new NavMeshBuildResult
         {
             Tiles = tiles,
-            GridOrigin = geom.GetMeshBoundsMin(),
+            GridOrigin = bmin,
             GridWidth = gw,
             GridHeight = gh,
             MaxPolys = maxPolys,
@@ -146,19 +206,12 @@ public sealed class NavMeshTileBuilder
     }
 
     /// <summary>
-    ///     Converts world-space (Z-up) triangles into Recast's vertex/face arrays (Y-up), and counts
-    ///     how Recast's own walkability test classifies each triangle.
+    ///     Counts how Recast's own walkability test classifies each triangle.
     ///     Recast derives the triangle normal from winding alone - <c>normalize(cross(v1-v0, v2-v0))</c> -
     ///     and requires <c>normal.Y &gt; cos(walkableSlope)</c>, so the input winding convention matters.
     /// </summary>
-    private static (float[] Verts, int[] Faces, int Walkable, int UpFacingRejected, int Steep) BuildVertexFaceArrays(
-        IReadOnlyList<NavTriangle> triangles,
-        float walkableSlopeAngle)
+    private static (int Walkable, int UpFacingRejected, int Steep) CountWalkability(float[] verts, int triCount, float walkableSlopeAngle)
     {
-        int triCount = triangles.Count;
-        var verts = new float[triCount * 9];
-        var faces = new int[triCount * 3];
-
         // Same threshold RcRecast.MarkWalkableTriangles uses.
         var slopeThreshold = MathF.Cos(walkableSlopeAngle * MathF.PI / 180f);
         int walkable = 0;
@@ -167,32 +220,7 @@ public sealed class NavMeshTileBuilder
 
         for (int i = 0; i < triCount; i++)
         {
-            var tri = triangles[i];
-            int v = i * 9;
-            int f = i * 3;
-
-            // World Z-up → Recast Y-up: (x, y, z) → (x, z, y)
-            // NOTE: this swap is a reflection (determinant -1), so it flips triangle winding. Recast
-            // derives the normal from winding alone and requires normal.Y > cos(walkableSlope), which
-            // means a surface an agent can walk on must arrive here with its world-space normal
-            // pointing DOWN (-Z). Getting this backwards produces a heightfield full of spans and
-            // zero polygons with no error, so the counts below are checked and logged by the baker.
-            verts[v] = tri.A.X;
-            verts[v + 1] = tri.A.Z;
-            verts[v + 2] = tri.A.Y;
-            verts[v + 3] = tri.B.X;
-            verts[v + 4] = tri.B.Z;
-            verts[v + 5] = tri.B.Y;
-            verts[v + 6] = tri.C.X;
-            verts[v + 7] = tri.C.Z;
-            verts[v + 8] = tri.C.Y;
-
-            // Face order is what sets the normal, so it must be emitted after the vertices.
-            faces[f] = i * 3;
-            faces[f + 1] = (i * 3) + 1;
-            faces[f + 2] = (i * 3) + 2;
-
-            var normalY = RecastNormalY(verts, v);
+            var normalY = RecastNormalY(verts, i * 9);
             if (normalY > slopeThreshold)
             {
                 walkable++;
@@ -207,7 +235,7 @@ public sealed class NavMeshTileBuilder
             }
         }
 
-        return (verts, faces, walkable, upFacingRejected, steep);
+        return (walkable, upFacingRejected, steep);
     }
 
     /// <summary>
@@ -266,6 +294,54 @@ public sealed class NavMeshTileBuilder
         createParams.detailTris = new int[triCount * 4];
         Array.Copy(detail.tris, 0, createParams.detailTris, 0, triCount * 4);
         createParams.detailTriCount = triCount;
+    }
+
+    private DtMeshData? CreateTileData(RcBuilderResult result, out int detailTriCount)
+    {
+        detailTriCount = 0;
+        var pmesh = result.Mesh;
+        if (pmesh.npolys == 0)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < pmesh.npolys; i++)
+        {
+            pmesh.flags[i] = 1;
+        }
+
+        var createParams = new DtNavMeshCreateParams
+        {
+            verts = pmesh.verts,
+            vertCount = pmesh.nverts,
+            polys = pmesh.polys,
+            polyFlags = pmesh.flags,
+            polyAreas = pmesh.areas,
+            polyCount = pmesh.npolys,
+            nvp = pmesh.nvp,
+            bmin = pmesh.bmin,
+            bmax = pmesh.bmax,
+            cs = pmesh.cs,
+            ch = pmesh.ch,
+            walkableHeight = _params.AgentHeight,
+            walkableRadius = _params.AgentRadius,
+            walkableClimb = _params.AgentMaxClimb,
+            tileX = result.TileX,
+            tileZ = result.TileZ,
+            tileLayer = 0,
+            userId = 0,
+            buildBvTree = true,
+        };
+
+        ApplyDetailMesh(result.MeshDetail, createParams);
+
+        var data = DtNavMeshBuilder.CreateNavMeshData(createParams);
+        if (data != null)
+        {
+            detailTriCount = createParams.detailTriCount;
+        }
+
+        return data;
     }
 
     private RcConfig CreateRcConfig()
