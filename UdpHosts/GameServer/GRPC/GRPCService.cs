@@ -73,6 +73,26 @@ public static class GRPCService
         });
     }
 
+    /// <returns>Unless Kept, RIN delivers the payment back itself</returns>
+    public static async Task<SettleWalletChargeResp> SettleWalletChargeAsync(WalletChargeRequested charge, bool paid, string paymentId)
+    {
+        return await _client.SettleWalletChargeAsync(new SettleWalletChargeReq
+        {
+            Kind = charge.Kind, Id = charge.Id, CharacterGuid = charge.CharacterGuid, Paid = paid, PaymentId = paymentId
+        });
+    }
+
+    /// <returns>The currency to add to the wallet; RIN won't hand it out again</returns>
+    public static async Task<CurrencyDeliveriesResponse> ClaimCurrencyDeliveriesAsync(ulong characterGuid)
+    {
+        return await _client.ClaimCurrencyDeliveriesAsync(new CharacterID { ID = (long)characterGuid });
+    }
+
+    public static async Task<RedBeanBalanceResponse> GetRedBeanBalanceAsync(long characterId)
+    {
+        return await _client.GetRedBeanBalanceAsync(new CharacterID { ID = characterId });
+    }
+
     public static async Task<CharacterInventoryResponse> GetCharacterInventoryAsync(long characterId)
     {
         return await _client.GetCharacterInventoryAsync(new CharacterID { ID = characterId });
@@ -222,6 +242,15 @@ public static class GRPCService
                 break;
             case Event.SubtypeOneofCase.FriendNotification:
                 FriendsList.HandleNotification(evt.FriendNotification, clients);
+                break;
+            case Event.SubtypeOneofCase.WalletChargeRequested:
+                WalletEventHandler.HandleEvent(evt.WalletChargeRequested, clients);
+                break;
+            case Event.SubtypeOneofCase.CurrencyDeliveriesAvailable:
+                WalletEventHandler.HandleEvent(evt.CurrencyDeliveriesAvailable, clients);
+                break;
+            case Event.SubtypeOneofCase.RedBeansUpdated:
+                WalletEventHandler.HandleEvent(evt.RedBeansUpdated, clients);
                 break;
             case Event.SubtypeOneofCase.None:
             default:

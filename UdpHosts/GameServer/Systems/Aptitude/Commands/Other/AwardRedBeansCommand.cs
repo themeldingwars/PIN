@@ -1,6 +1,5 @@
-using System;
-using AeroMessages.GSS.Character;
 using GameServer.Entities.Character;
+using GameServer.GRPC;
 using GameServer.StaticDB.Records.customdata;
 
 namespace GameServer.Systems.Aptitude.Commands.Other;
@@ -17,17 +16,18 @@ public class AwardRedBeansCommand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
-        // todo aptitude: make it permanent
         var target = context.Self;
 
         if (target is CharacterEntity { IsPlayerControlled: true } character)
         {
-            character.Character_BaseController.WalletProp =
-                new WalletData()
-                {
-                    Beans = character.Character_BaseController.WalletProp.Beans + Params.Amount,
-                    Epoch = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-                };
+            // Shown straight away; RIN reports the real account balance back once it has added them
+            character.SetRedBeans((long)character.Wallet.Beans + Params.Amount);
+
+            var characterGuid = character.EntityId + (byte)GuidService.AdditionalTypes.Character;
+            _ = GRPCService.SendCommandAsync(new GrpcGameServerAPIClient.Command
+            {
+                AwardRedBeans = new GrpcGameServerAPIClient.AwardRedBeans { CharacterGuid = characterGuid, Amount = Params.Amount }
+            });
         }
         else
         {

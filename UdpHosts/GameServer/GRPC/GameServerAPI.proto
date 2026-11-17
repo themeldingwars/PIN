@@ -53,6 +53,10 @@ message ArmyTagUpdated {
    uint64 ArmyGuid = 1;
    string ArmyTag = 2;
 }
+message AwardRedBeans {
+   uint64 CharacterGuid = 1;
+   uint32 Amount = 2;
+}
 message BasicCharacterInfo {
    string Name = 1;
    uint32 Race = 2;
@@ -221,7 +225,18 @@ message Command {
       SaveBattleframeBandwidth SaveBattleframeBandwidth = 23;
       SaveLoadoutVisuals SaveLoadoutVisuals = 24;
       SetFriendPresence SetFriendPresence = 25;
+      AwardRedBeans AwardRedBeans = 26;
    }
+}
+message CurrencyDeliveriesAvailable {
+   uint64 CharacterGuid = 1;
+}
+message CurrencyDeliveriesResponse {
+   repeated CurrencyDelivery Deliveries = 1;
+}
+message CurrencyDelivery {
+   uint32 SdbId = 1;
+   uint32 Quantity = 2;
 }
 message DeleteCharacterUnlock {
    uint64 CharacterGuid = 1;
@@ -267,6 +282,9 @@ message Event {
       InventoryUpdated InventoryUpdated = 14;
       UnlocksUpdated UnlocksUpdated = 15;
       FriendNotification FriendNotification = 16;
+      WalletChargeRequested WalletChargeRequested = 17;
+      CurrencyDeliveriesAvailable CurrencyDeliveriesAvailable = 18;
+      RedBeansUpdated RedBeansUpdated = 19;
    }
 }
 message FriendNotification {
@@ -358,6 +376,14 @@ message PlayerBattleframeVisuals {
    repeated int32 decalgradients = 4 [packed = false];
    repeated int32 warpaint_patterns = 5 [packed = false];
    repeated int32 visual_overrides = 6 [packed = false];
+}
+message RedBeanBalanceResponse {
+   bool Found = 1;
+   int64 Balance = 2;
+}
+message RedBeansUpdated {
+   int64 AccountId = 1;
+   int64 Balance = 2;
 }
 message SaveBattleframeAvailableUpgrades {
    uint64 CharacterGuid = 1;
@@ -478,6 +504,17 @@ message SetFriendPresence {
    bool Resync = 5;
    bool MayReturn = 6;
 }
+message SettleWalletChargeReq {
+   uint32 Kind = 1;
+   int64 Id = 2;
+   uint64 CharacterGuid = 3;
+   bool Paid = 4;
+   string PaymentId = 5;
+}
+message SettleWalletChargeResp {
+   bool Kept = 1;
+   int32 Status = 2;
+}
 message TransferCharacterReq {
    uint64 CharacterId = 1;
    uint32 ZoneId = 2;
@@ -501,6 +538,13 @@ message UpdateCharacterFriendResp {
    string Reason = 1;
    CharacterFriendEntry Friend = 2;
    FriendPresence FriendPresence = 3;
+}
+message WalletChargeRequested {
+   uint32 Kind = 1;
+   int64 Id = 2;
+   uint64 CharacterGuid = 3;
+   uint32 SdbId = 4;
+   uint32 Quantity = 5;
 }
 message WebColor {
    uint32 color = 1;
@@ -527,12 +571,15 @@ message WebIdValueColorId {
 }
 service GameServerAPI {
    rpc AuthorizeLogin (LoginAuthorizationRequest) returns (LoginAuthorizationResponse);
+   rpc ClaimCurrencyDeliveries (CharacterID) returns (CurrencyDeliveriesResponse);
    rpc GetBattleframeProgression (CharacterID) returns (BattleframeProgressionResponse);
    rpc GetCharacterAndBattleframeVisuals (CharacterID) returns (CharacterAndBattleframeVisuals);
    rpc GetCharacterFriends (CharacterID) returns (CharacterFriendsResponse);
    rpc GetCharacterInventory (CharacterID) returns (CharacterInventoryResponse);
    rpc GetCharacterUnlocks (CharacterID) returns (CharacterUnlocksResponse);
+   rpc GetRedBeanBalance (CharacterID) returns (RedBeanBalanceResponse);
    rpc Ping (PingReq) returns (PingResp);
+   rpc SettleWalletCharge (SettleWalletChargeReq) returns (SettleWalletChargeResp);
    rpc Stream (stream Command) returns (stream Event);
    rpc TransferCharacter (TransferCharacterReq) returns (TransferCharacterResp);
    rpc UpdateCharacterFriend (UpdateCharacterFriendReq) returns (UpdateCharacterFriendResp);
