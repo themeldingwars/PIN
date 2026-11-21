@@ -405,7 +405,16 @@ public class TagfileLoader
             var scale = new Vector3(transform[2][0], transform[2][1], transform[2][2]);
             var pos = new Vector3(transform[0][0], transform[0][1], transform[0][2]);
 
-            var mesh = LoadMeshContent(meshContent, BufferPool, scale, ThreadDispatcher);
+            if (!TryLoadMeshContent(meshContent, BufferPool, scale, ThreadDispatcher, out var mesh, out var skipped))
+            {
+                _logger.Warning("Dropping a mesh of {Count} triangles where every triangle is degenerate", triangles.Length);
+                continue;
+            }
+
+            if (skipped > 0)
+            {
+                _logger.Debug("Skipped {Skipped} of {Count} degenerate triangles in a mesh", skipped, triangles.Length);
+            }
 
             var pose = new RigidPose(pos, rot);
             result.Add(new StaticDescription(pose, Simulation.Shapes.Add(mesh)));
@@ -457,7 +466,16 @@ public class TagfileLoader
             var scale = new Vector3(transform[2][0], transform[2][1], transform[2][2]);
             var pos = new Vector3(transform[0][0], transform[0][1], transform[0][2]);
 
-            var mesh = LoadMeshContent(meshContent, BufferPool, scale, ThreadDispatcher);
+            if (!TryLoadMeshContent(meshContent, BufferPool, scale, ThreadDispatcher, out var mesh, out var skipped))
+            {
+                _logger.Warning("Dropping a mesh of {Count} triangles where every triangle is degenerate", triangles.Length);
+                continue;
+            }
+
+            if (skipped > 0)
+            {
+                _logger.Debug("Skipped {Skipped} of {Count} degenerate triangles in a mesh", skipped, triangles.Length);
+            }
 
             var pose = new RigidPose(pos, rot);
             result.Add(new StaticDescription(pose, Simulation.Shapes.Add(mesh)));

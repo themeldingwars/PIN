@@ -6,6 +6,7 @@ using BepuPhysics.Collidables;
 using BepuUtilities;
 using GameServer.Entities.Character;
 using GameServer.Physics.PoseLoader;
+using Shared.Collision.Tagfile;
 using static GameServer.Physics.PoseLoader.PoseData;
 
 namespace GameServer.Physics;
@@ -134,6 +135,12 @@ public partial class PhysicsEngine
                         pose.Position = shapeDef.Origin * scale;
                         break;
                     case TriangleShapeDef triangle:
+                        if (BepuData.IsDegenerate(triangle.Vertex0, triangle.Vertex1, triangle.Vertex2))
+                        {
+                            _logger.Warning("Skipping degenerate triangle shape {Name}", name);
+                            continue;
+                        }
+
                         shapeId = Simulation.Shapes.Add(new Triangle(triangle.Vertex0, triangle.Vertex1, triangle.Vertex2));
                         break;
                     case BoxShapeDef box:
