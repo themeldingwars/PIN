@@ -581,8 +581,8 @@ public class Factory
                 return new CarryableObjectSpawnCommand(CustomDBInterface.GetCarryableObjectSpawnCommandDef(commandId));
             // case CommandType.UnlockVisualOverrides:
             //     return new UnlockVisualOverridesCommand(CustomDBInterface.GetUnlockVisualOverridesCommandDef(commandId));
-            // case CommandType.RequireItemAttribute:
-            //     return new RequireItemAttributeCommand(SDBInterface.GetRequireItemAttributeCommandDef(commandId));
+            case CommandType.RequireItemAttribute:
+                return new RequireItemAttributeCommand(SDBInterface.GetRequireItemAttributeCommandDef(commandId));
             // case CommandType.AddLootTable:
             //     return new AddLootTableCommand(CustomDBInterface.GetAddLootTableCommandDef(commandId));
             case CommandType.UpdateWaitAndFireOnce:
