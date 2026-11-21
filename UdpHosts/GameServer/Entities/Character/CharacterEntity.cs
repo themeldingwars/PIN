@@ -1019,6 +1019,17 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return value;
     }
 
+    public float GetPowerScaledItemStat(ushort id)
+    {
+        var value = GetItemStat(id);
+        return SDBInterface.GetAttributeDefinition(id)?.AttributeCategory == ItemLevelScaling.PowerCategory ? value * GetPowerDamageMultiplier() : value;
+    }
+
+    public float GetPowerDamageMultiplier()
+    {
+        return IsNpc || CurrentLoadout == null ? 1f : CurrentLoadout.PowerDamageMultiplier;
+    }
+
     public void AddStatModifier(uint reference, ActiveStatModifier mod)
     {
         _statOverrides[mod.Stat] = mod;
@@ -2410,7 +2421,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return Vector3.Normalize(direction) * speed;
     }
 
-    private static void BuildWeaponSlotDetails(ActiveWeaponDetails[,] cache, int index, uint weaponId, StatsData[] weaponAttributes)
+    private static void BuildWeaponSlotDetails(ActiveWeaponDetails[,] cache, int index, uint weaponId, StatsData[] weaponAttributes, float powerMultiplier)
     {
         if (weaponId == 0)
         {
@@ -2428,7 +2439,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         var attributes = weaponAttributes.ToDictionary(p => p.Id, p => p.Value);
-        var (mainProfile, altProfile) = WeaponProfile.BuildModes(weaponId, weaponDetails.Main, weaponDetails.Alt, attributes);
+        var (mainProfile, altProfile) = WeaponProfile.BuildModes(weaponId, weaponDetails.Main, weaponDetails.Alt, ScalePowerAttributes(attributes, powerMultiplier));
 
         var main = new ActiveWeaponDetails()
         {
@@ -2450,7 +2461,19 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             : main;
     }
 
-    private static void RebuildWeaponSlotProfiles(ActiveWeaponDetails[,] cache, int index)
+    private static Dictionary<ushort, float> ScalePowerAttributes(Dictionary<ushort, float> attributes, float powerMultiplier)
+    {
+        if (powerMultiplier == 1f)
+        {
+            return attributes;
+        }
+
+        return attributes.ToDictionary(
+            pair => pair.Key,
+            pair => SDBInterface.GetAttributeDefinition(pair.Key)?.AttributeCategory == ItemLevelScaling.PowerCategory ? pair.Value * powerMultiplier : pair.Value);
+    }
+
+    private static void RebuildWeaponSlotProfiles(ActiveWeaponDetails[,] cache, int index, float powerMultiplier)
     {
         var main = cache[index, 0];
         if (main == null || main.IsEmpty)
@@ -2460,7 +2483,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         var altDetails = cache[index, 1];
         var hasAlt = altDetails != null && !ReferenceEquals(altDetails, main) && !altDetails.IsEmpty;
-        var (mainProfile, altProfile) = WeaponProfile.BuildModes(main.WeaponId, main.Weapon, hasAlt ? altDetails.Weapon : null, main.Attributes);
+        var (mainProfile, altProfile) = WeaponProfile.BuildModes(main.WeaponId, main.Weapon, hasAlt ? altDetails.Weapon : null, ScalePowerAttributes(main.Attributes, powerMultiplier));
         main.WeaponProfile = mainProfile;
         if (hasAlt && altProfile is { } alt)
         {
@@ -2492,8 +2515,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         cache[0, 0] = ActiveWeaponDetails.Empty;
         cache[0, 1] = ActiveWeaponDetails.Empty;
 
-        BuildWeaponSlotDetails(cache, 1, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary), loadout.GetPrimaryWeaponAttributes());
-        BuildWeaponSlotDetails(cache, 2, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary), loadout.GetSecondaryWeaponAttributes());
+        BuildWeaponSlotDetails(cache, 1, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary), loadout.GetPrimaryWeaponAttributes(), GetPowerDamageMultiplier());
+        BuildWeaponSlotDetails(cache, 2, loadout.SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary), loadout.GetSecondaryWeaponAttributes(), GetPowerDamageMultiplier());
 
         _weaponDetailsCache = cache;
     }
@@ -2597,7 +2620,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             }
         }
 
-        RebuildWeaponSlotProfiles(_weaponDetailsCache, (int)slot);
+        RebuildWeaponSlotProfiles(_weaponDetailsCache, (int)slot, GetPowerDamageMultiplier());
     }
 
     private void InitTinyObjectView()

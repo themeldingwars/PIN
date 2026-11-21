@@ -192,6 +192,10 @@ public class CharacterLoadout
 
     public EliteBonuses Elite { get; private set; } = EliteBonuses.None;
 
+    public float PowerDamageMultiplier => 1f
+        + LevelCategoryScalars.GetValueOrDefault((ushort)ItemLevelScaling.PowerCategory)
+        + ItemCharacterScalars.GetValueOrDefault((ushort)ItemLevelScaling.PowerCategory);
+
     /// <summary>
     /// Parses a friendly slot name (e.g. "primary_weapon") into a <see cref="LoadoutSlotType"/>.
     /// </summary>
