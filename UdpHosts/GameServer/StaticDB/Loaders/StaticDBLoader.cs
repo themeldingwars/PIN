@@ -267,6 +267,12 @@ public class StaticDBLoader : ISDBLoader
         .ToDictionary(row => row.Id);
     }
 
+    public Dictionary<uint, ItemModule> LoadItemModule()
+    {
+        return LoadStaticDB<ItemModule>("dbitems::ItemModule")
+        .ToDictionary(row => row.Id);
+    }
+
     public Dictionary<uint, List<BattleframeVisuals>> LoadBattleframeVisuals()
     {
         return LoadStaticDB<BattleframeVisuals>("dbitems::BattleframeVisuals")

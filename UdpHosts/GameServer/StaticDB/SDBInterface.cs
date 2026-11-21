@@ -74,6 +74,7 @@ public class SDBInterface
     private static Dictionary<uint, RootItem> _rootItem;
     private static Dictionary<uint, AbilityModule> _abilityModule;
     private static Dictionary<uint, Battleframe> _battleframe;
+    private static Dictionary<uint, ItemModule> _itemModule;
     private static Dictionary<uint, CarryableObject> _carryableObject;
     private static Dictionary<uint, Weapons> _weapons;
     private static Dictionary<uint, WeaponTemplates> _weaponTemplates;
@@ -363,6 +364,7 @@ public class SDBInterface
         _rootItem = loader.LoadRootItem();
         _abilityModule = loader.LoadAbilityModule();
         _battleframe = loader.LoadBattleframe();
+        _itemModule = loader.LoadItemModule();
         _carryableObject = loader.LoadCarryableObject();
         _weapons = loader.LoadWeapons();
         _weaponTemplates = loader.LoadWeaponTemplates();
@@ -669,6 +671,7 @@ public class SDBInterface
     public static RootItem GetRootItem(uint id) => _rootItem.GetValueOrDefault(id);
     public static AbilityModule GetAbilityModule(uint id) => _abilityModule.GetValueOrDefault(id);
     public static Battleframe GetBattleframe(uint id) => _battleframe.GetValueOrDefault(id);
+    public static ItemModule GetItemModule(uint id) => _itemModule.GetValueOrDefault(id);
     public static CarryableObject GetCarryableObject(uint id) => _carryableObject.GetValueOrDefault(id);
     public static Weapons GetWeapon(uint id) => _weapons.GetValueOrDefault(id);
     public static WeaponTemplates GetWeaponTemplate(uint id) => _weaponTemplates.GetValueOrDefault(id);
@@ -684,6 +687,7 @@ public class SDBInterface
     public static List<LootTableDistRequirements> GetLootTableDistRequirements(uint distId) => _lootTableDistRequirements.GetValueOrDefault(distId) ?? [];
     public static ResourceNodeBeacon GetResourceNodeBeacon(uint id) => _resourceNodeBeacon.GetValueOrDefault(id);
     public static LevelCategoryScalars GetLevelCategoryScalar(uint attributeCategory, uint level) => _levelCategoryScalars.GetValueOrDefault(new KeyValuePair<uint, uint>(attributeCategory, level));
+    public static IEnumerable<LevelCategoryScalars> GetLevelCategoryScalars(uint level) => _levelCategoryScalars.Values.Where(row => row.Level == level);
     public static LevelItemAttributes GetLevelItemAttribute(uint attributeId, uint level) => _levelItemAttributes.GetValueOrDefault(new KeyValuePair<uint, uint>(attributeId, level));
     public static FrameProgressionLevel GetFrameProgressionLevel(uint level) => _frameProgressionLevel.GetValueOrDefault(level);
     public static Blueprints GetBlueprint(uint id) => _blueprints.GetValueOrDefault(id);

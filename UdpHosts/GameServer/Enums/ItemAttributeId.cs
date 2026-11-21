@@ -17,6 +17,7 @@ public enum ItemAttributeId : ushort
     MaxAmmo = 26,
     Damage = 30,
     JetEnergy = 35,
+    JetEnergyRechargeDelay = 36,
     JumpHeight = 37,
     WeaponDamage = 954,
     WeaponMagazineSize = 956,

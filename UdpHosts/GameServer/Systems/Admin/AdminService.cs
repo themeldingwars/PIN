@@ -122,7 +122,7 @@ public class AdminService
 
         foreach (var (slot, itemId) in overrides)
         {
-            loadout.SlottedItems[slot] = itemId;
+            loadout.SetSlot(slot, itemId);
         }
 
         _logger.Information("Player {Player} applied {Count} equipment overrides to loadout {LoadoutId}: {Overrides}", player, overrides.Count, loadout.LoadoutID, string.Join(", ", overrides.Select(o => $"{o.Key}={o.Value}")));

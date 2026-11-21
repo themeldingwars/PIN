@@ -52,6 +52,9 @@ public enum AbilitySlotType
 
 public class CharacterLoadout
 {
+    public const byte LevelRewardSlotFirst = 140;
+    public const byte LevelRewardSlotLast = 156;
+
     // The Usage field of a pattern or decal carries which chassis region it paints, counted from zero:
     // 0 armor, 1 bodysuit, 2 weapon. 255 says there is no region, which is what the retail wire carries for an
     // empty pattern slot and for every decal, a decal being placed by its own transform rather than by region.
@@ -107,10 +110,11 @@ public class CharacterLoadout
     };
 
     public Dictionary<LoadoutSlotType, uint> SlottedItems = [];
+    public Dictionary<LoadoutSlotType, uint[]> SlotModules = [];
+    public uint[] Perks = [];
 
-    // Module and Character Scalars is an assumption that has not been completely confirmed. I'm not sure what the exact rule for separation between the two categories is.
     public Dictionary<ushort, float> ItemAttributes = [];
-    public Dictionary<ushort, float> ItemModuleScalars = [];
+    public Dictionary<ushort, float> LevelCategoryScalars = [];
     public Dictionary<ushort, float> ItemCharacterScalars = [];
 
     private static readonly Dictionary<string, LoadoutSlotType> _slotNames = new(StringComparer.OrdinalIgnoreCase)
@@ -156,10 +160,6 @@ public class CharacterLoadout
         { (ushort)ItemAttributeId.ChargeSpeedHkm, 1 },
     };
 
-    private static readonly Dictionary<ushort, float> _fallbackModuleScalars = [];
-
-    private static readonly Dictionary<ushort, float> _fallbackCharacterScalars = [];
-
     /// <summary>
     /// Initializes a new instance of the <see cref="CharacterLoadout"/> class.
     /// </summary>
@@ -188,6 +188,8 @@ public class CharacterLoadout
 
     public float GearHealthAttribute { get; set; }
 
+    public byte EffectiveLevel { get; private set; } = byte.MaxValue;
+
     /// <summary>
     /// Parses a friendly slot name (e.g. "primary_weapon") into a <see cref="LoadoutSlotType"/>.
     /// </summary>
@@ -198,6 +200,8 @@ public class CharacterLoadout
     {
         return _slotNames.TryGetValue(name, out slot);
     }
+
+    public static bool IsLevelRewardSlot(LoadoutSlotType slot) => (byte)slot is >= LevelRewardSlotFirst and <= LevelRewardSlotLast;
 
     /// <summary>
     /// Gets the item type accepted by a loadout slot, or null if the slot does not accept items.
@@ -233,6 +237,21 @@ public class CharacterLoadout
 
         return null;
     }
+
+    public void SetSlot(LoadoutSlotType slot, uint sdbId, uint[] modules = null)
+    {
+        SlottedItems[slot] = sdbId;
+        if (sdbId != 0 && modules is { Length: > 0 })
+        {
+            SlotModules[slot] = modules;
+        }
+        else
+        {
+            SlotModules.Remove(slot);
+        }
+    }
+
+    public uint[] GetSlotModules(LoadoutSlotType slot) => SlotModules.GetValueOrDefault(slot) ?? [];
 
     public VisualsBlock GetChassisVisuals()
     {
@@ -406,11 +425,13 @@ public class CharacterLoadout
     {
         return [.. SlottedItems
         .Where(slotted => LoadoutChassisSlots.Contains(slotted.Key))
-        .Select((slotted) =>
+        .Select(slotted => slotted.Value)
+        .Concat(Perks.Where(perk => perk != 0))
+        .Select((sdbId) =>
         {
             return new SlottedModule
             {
-                SdbId = slotted.Value,
+                SdbId = sdbId,
                 SlotIndex = 0xff,
                 Flags = 0,
                 Unk2 = 0,
@@ -421,6 +442,7 @@ public class CharacterLoadout
     public StatsData[] GetItemAttributes()
     {
         return [.. ItemAttributes
+        .Where((pair) => pair.Value != 0)
         .Select((pair) =>
         {
             return new StatsData()
@@ -433,14 +455,11 @@ public class CharacterLoadout
 
     public StatsData[] GetPrimaryWeaponAttributes()
     {
-        var result = new Dictionary<ushort, float>();
         var itemId = SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary);
-        if (itemId != 0)
-        {
-            MergeItemAttributeRange(result, itemId);
-        }
+        var result = itemId != 0 ? GetScaledItemAttributes(itemId, GetSlotModules(LoadoutSlotType.Primary), EffectiveLevel) : [];
 
         return [.. result
+        .Where((pair) => pair.Value != 0)
         .Select((pair) =>
         {
             return new StatsData()
@@ -453,14 +472,11 @@ public class CharacterLoadout
 
     public StatsData[] GetSecondaryWeaponAttributes()
     {
-        var result = new Dictionary<ushort, float>();
         var itemId = SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary);
-        if (itemId != 0)
-        {
-            MergeItemAttributeRange(result, itemId);
-        }
+        var result = itemId != 0 ? GetScaledItemAttributes(itemId, GetSlotModules(LoadoutSlotType.Secondary), EffectiveLevel) : [];
 
         return [.. result
+        .Where((pair) => pair.Value != 0)
         .Select((pair) =>
         {
             return new StatsData()
@@ -471,9 +487,9 @@ public class CharacterLoadout
         })];
     }
 
-    public StatsData[] GetItemModuleScalars()
+    public StatsData[] GetLevelCategoryScalars()
     {
-        return [.. ItemModuleScalars
+        return [.. LevelCategoryScalars
         .Select((pair) =>
         {
             return new StatsData()
@@ -487,6 +503,7 @@ public class CharacterLoadout
     public StatsData[] GetItemCharacterScalars()
     {
         return [.. ItemCharacterScalars
+        .Where((pair) => pair.Value != 0)
         .Select((pair) =>
         {
             return new StatsData()
@@ -495,6 +512,61 @@ public class CharacterLoadout
                 Value = pair.Value
             };
         })];
+    }
+
+    public void CalculateItemAttributes(byte effectiveLevel)
+    {
+        EffectiveLevel = effectiveLevel;
+        var attributes = new Dictionary<ushort, float>()
+        {
+        };
+        var characterScalars = new Dictionary<ushort, float>();
+
+        ApplyItemStats(ChassisID, [], effectiveLevel, attributes, characterScalars);
+        var rechargeDelay = SDBInterface.GetBattleframe(ChassisID)?.EnergyRechargeDelayMs ?? 0;
+        if (rechargeDelay != 0)
+        {
+            attributes[(ushort)ItemAttributeId.JetEnergyRechargeDelay] = attributes.GetValueOrDefault((ushort)ItemAttributeId.JetEnergyRechargeDelay) + rechargeDelay;
+        }
+
+        foreach (var pair in SlottedItems)
+        {
+            if (pair.Value != 0 && (LoadoutAbilitySlots.Contains(pair.Key) || LoadoutChassisSlots.Contains(pair.Key) || IsLevelRewardSlot(pair.Key)))
+            {
+                ApplyItemStats(pair.Value, GetSlotModules(pair.Key), effectiveLevel, attributes, characterScalars);
+            }
+            else if (pair.Value != 0 && LoadoutWeaponSlots.Contains(pair.Key))
+            {
+                ApplyCharacterScalars(pair.Value, GetSlotModules(pair.Key), effectiveLevel, characterScalars);
+            }
+        }
+
+        foreach (var perk in Perks)
+        {
+            if (perk != 0)
+            {
+                ApplyItemStats(perk, [], effectiveLevel, attributes, characterScalars);
+            }
+        }
+
+        foreach (var pair in _fallbackAttributes)
+        {
+            if (!attributes.ContainsKey(pair.Key))
+            {
+                attributes.Add(pair.Key, pair.Value);
+            }
+        }
+
+        foreach (var categoryId in characterScalars.Keys.ToList())
+        {
+            var effectiveness = SDBInterface.GetAttributeCategory(categoryId)?.ModuleEffectiveness ?? 1f;
+            characterScalars[categoryId] *= effectiveness / 100f;
+        }
+
+        ItemAttributes = attributes;
+        LevelCategoryScalars = SDBInterface.GetLevelCategoryScalars(effectiveLevel).ToDictionary(row => (ushort)row.AttributeCategory, row => row.Scalar / 100f);
+        ItemCharacterScalars = characterScalars;
+        GearHealthAttribute = attributes.GetValueOrDefault((ushort)ItemAttributeId.Health);
     }
 
     private static byte ReadPatternRegion(uint data1) => data1 is >= 1 and <= 3 ? (byte)(data1 - 1) : NoRegionUsage;
@@ -534,7 +606,66 @@ public class CharacterLoadout
         return vectors;
     }
 
-    private static void MergeItemAttributeRange(Dictionary<ushort, float> result, uint itemId)
+    private static Dictionary<ushort, float> GetScaledItemAttributes(uint itemId, uint[] modules, byte effectiveLevel, bool includeWeaponAbility = true)
+    {
+        var attributes = new Dictionary<ushort, float>();
+        MergeItemAttributeRange(attributes, itemId, includeWeaponAbility);
+
+        var item = SDBInterface.GetRootItem(itemId);
+        var levelSteps = Math.Max(0, (item?.Level ?? 0) - 1);
+        var ranges = SDBInterface.GetItemAttributeRange(itemId);
+
+        var modulePercents = new Dictionary<uint, float>();
+        var optionalAttributes = new Dictionary<ushort, float>();
+        foreach (var moduleId in modules)
+        {
+            foreach (var (category, scalar) in SDBInterface.GetItemModuleScalars(moduleId))
+            {
+                modulePercents[category] = modulePercents.GetValueOrDefault(category) + scalar.Value + (scalar.PerLevel * levelSteps);
+            }
+
+            var optionalGearModule = includeWeaponAbility ? SDBInterface.GetItemModule(moduleId)?.OptionalGearModuleId ?? 0 : 0;
+            if (optionalGearModule != 0)
+            {
+                foreach (var range in SDBInterface.GetItemAttributeRange(optionalGearModule).Values)
+                {
+                    optionalAttributes[range.AttributeId] = optionalAttributes.GetValueOrDefault(range.AttributeId) + range.Base;
+                }
+            }
+
+            foreach (var range in SDBInterface.GetItemAttributeRange(moduleId).Values)
+            {
+                var value = range.Base + (range.PerLevel * levelSteps);
+                if (ranges.TryGetValue(range.AttributeId, out var hostRange))
+                {
+                    value *= hostRange.ModuleEffect;
+                }
+
+                attributes[range.AttributeId] = attributes.GetValueOrDefault(range.AttributeId) + value;
+            }
+        }
+
+        foreach (var attributeId in attributes.Keys.ToList())
+        {
+            var category = SDBInterface.GetAttributeDefinition(attributeId)?.AttributeCategory ?? 0;
+            var value = attributes[attributeId];
+            if (modulePercents.TryGetValue(category, out var percent))
+            {
+                value = ItemLevelScaling.ApplyModulePercent(value, attributeId, category, percent, ranges.GetValueOrDefault(attributeId));
+            }
+
+            attributes[attributeId] = value * ItemLevelScaling.GetLevelSyncFactor(item, effectiveLevel, category);
+        }
+
+        foreach (var (attributeId, value) in optionalAttributes)
+        {
+            attributes[attributeId] = attributes.GetValueOrDefault(attributeId) + value;
+        }
+
+        return attributes;
+    }
+
+    private static void MergeItemAttributeRange(Dictionary<ushort, float> result, uint itemId, bool includeWeaponAbility = true)
     {
         var itemAttributes = SDBInterface.GetItemAttributeRange(itemId);
         foreach (var range in itemAttributes.Values)
@@ -549,7 +680,7 @@ public class CharacterLoadout
             }
         }
 
-        var weaponSlots = SDBInterface.GetWeaponSlots(itemId);
+        var weaponSlots = includeWeaponAbility ? SDBInterface.GetWeaponSlots(itemId) : null;
         if (weaponSlots != null && weaponSlots.Count > 0)
         {
             if (weaponSlots.Count > 1)
@@ -594,115 +725,40 @@ public class CharacterLoadout
         // Assume PvE
         foreach (var (slot, type) in refData.SlottedItemsPvE)
         {
-            SlottedItems.Add(slot, type);
+            SetSlot(slot, type, refData.SlotModulesPvE.GetValueOrDefault(slot));
         }
 
-        CalculateItemAttributes();
+        Perks = refData.PerksPvE ?? [];
+
+        CalculateItemAttributes(byte.MaxValue);
     }
 
-    private void ApplyItemStats(uint itemTypeId, Dictionary<ushort, float> totalAttributes, Dictionary<ushort, float> totalModuleScalars, Dictionary<ushort, float> totalCharacterScalars)
+    private void ApplyItemStats(uint itemTypeId, uint[] modules, byte effectiveLevel, Dictionary<ushort, float> totalAttributes, Dictionary<ushort, float> totalCharacterScalars)
     {
-        var itemAttributes = SDBInterface.GetItemAttributeRange(itemTypeId);
-        foreach (var range in itemAttributes.Values)
+        foreach (var (attributeId, value) in GetScaledItemAttributes(itemTypeId, modules, effectiveLevel, includeWeaponAbility: false))
         {
-            if (totalAttributes.ContainsKey(range.AttributeId))
-            {
-                totalAttributes[range.AttributeId] += range.Base;
-            }
-            else
-            {
-                totalAttributes.Add(range.AttributeId, range.Base);
-            }
+            totalAttributes[attributeId] = totalAttributes.GetValueOrDefault(attributeId) + value;
         }
 
-        var itemModuleScalars = SDBInterface.GetItemModuleScalars(itemTypeId);
-        foreach (var (attributeCategoryId, scalars) in itemModuleScalars)
-        {
-            var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
-            if (!totalCharacterScalars.ContainsKey(attributeCategoryId))
-            {
-                totalCharacterScalars.Add(attributeCategoryId, 0.0f);
-            }
-
-            if (attributeCategory.IsScalar == 1)
-            {
-                totalCharacterScalars[attributeCategoryId] += totalCharacterScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
-            }
-            else
-            {
-                totalCharacterScalars[attributeCategoryId] += scalars.Value - 1;
-            }
-        }
-
-        var itemCharacterScalars = SDBInterface.GetItemCharacterScalars(itemTypeId);
-        foreach (var (attributeCategoryId, scalars) in itemCharacterScalars)
-        {
-            var attributeCategory = SDBInterface.GetAttributeCategory(attributeCategoryId);
-            if (!totalModuleScalars.ContainsKey(attributeCategoryId))
-            {
-                totalModuleScalars.Add(attributeCategoryId, 0.0f);
-            }
-
-            if (attributeCategory.IsScalar == 1)
-            {
-                totalModuleScalars[attributeCategoryId] += totalModuleScalars[attributeCategoryId] / 100 * attributeCategory.ModuleEffectiveness;
-            }
-            else
-            {
-                totalModuleScalars[attributeCategoryId] += scalars.Value - 1;
-            }
-        }
+        ApplyCharacterScalars(itemTypeId, modules, effectiveLevel, totalCharacterScalars);
     }
 
-    private void CalculateItemAttributes()
+    private static void ApplyCharacterScalars(uint itemTypeId, uint[] modules, byte effectiveLevel, Dictionary<ushort, float> totalCharacterScalars)
     {
-        var attributes = new Dictionary<ushort, float>()
+        var item = SDBInterface.GetRootItem(itemTypeId);
+        var levelSteps = Math.Max(0, (item?.Level ?? 0) - 1);
+        foreach (var (categoryId, scalar) in SDBInterface.GetItemCharacterScalars(itemTypeId))
         {
-            { (ushort)ItemAttributeId.RunSpeed, 2.5f }, // Temporary base boost because it's so slow otherwise
-        };
-        var moduleScalars = new Dictionary<ushort, float>()
-        {
-        };
-        var characterScalars = new Dictionary<ushort, float>()
-        {
-        };
-
-        ApplyItemStats(ChassisID, attributes, moduleScalars, characterScalars);
-        foreach (var pair in SlottedItems)
-        {
-            if (LoadoutAbilitySlots.Contains(pair.Key) || LoadoutChassisSlots.Contains(pair.Key))
-            {
-                ApplyItemStats(pair.Value, attributes, moduleScalars, characterScalars);
-            }
+            var value = (scalar.Value + (scalar.PerLevel * levelSteps)) * ItemLevelScaling.GetCharacterScalarSyncFactor(item, effectiveLevel, categoryId);
+            totalCharacterScalars[categoryId] = totalCharacterScalars.GetValueOrDefault(categoryId) + value;
         }
 
-        foreach (var pair in _fallbackAttributes)
+        foreach (var moduleId in modules)
         {
-            if (!attributes.ContainsKey(pair.Key))
+            foreach (var (categoryId, scalar) in SDBInterface.GetItemCharacterScalars(moduleId))
             {
-                attributes.Add(pair.Key, pair.Value);
+                totalCharacterScalars[categoryId] = totalCharacterScalars.GetValueOrDefault(categoryId) + scalar.Value + (scalar.PerLevel * levelSteps);
             }
         }
-
-        foreach (var pair in _fallbackModuleScalars)
-        {
-            if (!moduleScalars.ContainsKey(pair.Key))
-            {
-                moduleScalars.Add(pair.Key, pair.Value);
-            }
-        }
-
-        foreach (var pair in _fallbackCharacterScalars)
-        {
-            if (!characterScalars.ContainsKey(pair.Key))
-            {
-                characterScalars.Add(pair.Key, pair.Value);
-            }
-        }
-
-        ItemAttributes = attributes;
-        ItemModuleScalars = moduleScalars;
-        ItemCharacterScalars = characterScalars;
-        GearHealthAttribute = attributes.GetValueOrDefault((ushort)ItemAttributeId.Health);
     }
 }

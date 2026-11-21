@@ -56,7 +56,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const uint _abilityFireWaitMs = 500;
     private const uint _heldFireMs = 100;
     private const int _maxHeldFires = 8;
-    private const float _baseEnergyRechargeDelayMs = 500f;
+    private const float _defaultEnergyRechargeDelayMs = 500f;
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
     private readonly AimSample[] _aimSamples = new AimSample[_maxAimSamples];
@@ -672,17 +672,24 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public void ApplyProgressionLevels(uint level, uint eliteLevel)
     {
         var newLevel = (byte)Math.Min(level, byte.MaxValue);
+        var newEffectiveLevel = IsNpc ? newLevel : Math.Min(newLevel, GetZoneLevelCap());
 
-        if (Level == newLevel && EffectiveLevel == newLevel && EliteLevel == eliteLevel)
+        if (Level == newLevel && EffectiveLevel == newEffectiveLevel && EliteLevel == eliteLevel)
         {
             return;
         }
 
+        var effectiveLevelChanged = EffectiveLevel != newEffectiveLevel;
         Level = newLevel;
-        EffectiveLevel = newLevel;
+        EffectiveLevel = newEffectiveLevel;
         EliteLevel = eliteLevel;
 
         UpdateLevelProps();
+
+        if (effectiveLevelChanged && !IsNpc && CurrentLoadout != null)
+        {
+            ApplyLoadout(CurrentLoadout);
+        }
     }
 
     public void ApplyProgressionXp(ulong currentXp)
@@ -700,6 +707,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         uint previousChassisId = CurrentLoadout?.ChassisID ?? 0u;
 
         Shard.Admin.ApplyEquipmentOverrides(Player, loadout);
+        if (!IsNpc)
+        {
+            loadout.CalculateItemAttributes(EffectiveLevel);
+        }
+
         CurrentLoadout = loadout;
         RebuildWeaponDetailsCache(loadout);
         RecalculateHealthAndWeaponDamage();
@@ -804,7 +816,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             Unk2 = 0,
             WeaponB = loadout.GetSecondaryWeaponAttributes(),
             Unk3 = 0,
-            AttributeCategories1 = loadout.GetItemModuleScalars(), // TODO: Compare with capture
+            AttributeCategories1 = loadout.GetLevelCategoryScalars(),
             AttributeCategories2 = loadout.GetItemCharacterScalars()
         });
 
@@ -2485,7 +2497,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return new EnergyParamsData
         {
             Max = GetLoadoutAttribute(ItemAttributeId.JetEnergy) * GetCurrentStatModifierValue(AptitudeStat.MaxEnergy),
-            Delay = (uint)MathF.Round(_baseEnergyRechargeDelayMs * GetCurrentStatModifierValue(AptitudeStat.EnergyRechargeDelay)),
+            Delay = (uint)MathF.Round(GetEnergyRechargeDelayMs() * GetCurrentStatModifierValue(AptitudeStat.EnergyRechargeDelay)),
             Recharge = GetLoadoutAttribute(ItemAttributeId.JetEnergyRecharge) * GetCurrentStatModifierValue(AptitudeStat.EnergyRechargeRate),
             Time = Shard.CurrentTime,
         };
@@ -2494,6 +2506,19 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private float GetLoadoutAttribute(ItemAttributeId id)
     {
         return CurrentLoadout?.ItemAttributes.GetValueOrDefault((ushort)id) ?? 0f;
+    }
+
+    private float GetEnergyRechargeDelayMs()
+    {
+        var delay = GetLoadoutAttribute(ItemAttributeId.JetEnergyRechargeDelay);
+        return delay > 0f ? delay : _defaultEnergyRechargeDelayMs;
+    }
+
+    private byte GetZoneLevelCap()
+    {
+        var levelBandId = SDBInterface.GetZoneRecord(Shard.ZoneId)?.LevelBand ?? 0;
+        var levelBand = levelBandId != 0 ? SDBInterface.GetLevelBand(levelBandId) : null;
+        return levelBand is { Max: > 0 } ? levelBand.Max : byte.MaxValue;
     }
 
     private void RecalculateHealthAndWeaponDamage()
@@ -2510,7 +2535,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     private void RecalculatePlayerHealth()
     {
-        var levelBonus = SDBInterface.GetLevelItemAttribute((uint)ItemAttributeId.Health, Level)?.Value ?? 0f;
+        var levelBonus = SDBInterface.GetLevelItemAttribute((uint)ItemAttributeId.Health, EffectiveLevel)?.Value ?? 0f;
         var total = CurrentLoadout.GearHealthAttribute + levelBonus;
         CurrentLoadout.ItemAttributes[(ushort)ItemAttributeId.Health] = total;
         SetMaxHealth((int)Math.Round(total), true);

@@ -63,6 +63,8 @@ public interface ISDBLoader
     Dictionary<uint, Dictionary<ushort, ItemCharacterScalars>> LoadItemCharacterScalars();
     Dictionary<uint, RootItem> LoadRootItem();
     Dictionary<uint, Battleframe> LoadBattleframe();
+
+    Dictionary<uint, ItemModule> LoadItemModule();
     Dictionary<uint, CarryableObject> LoadCarryableObject();
     Dictionary<uint, Weapons> LoadWeapons();
     Dictionary<uint, WeaponTemplates> LoadWeaponTemplates();

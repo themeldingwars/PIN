@@ -283,6 +283,7 @@ public class CharacterInventory
         {
             var item = _items[itemRef.ItemGUID];
             refData.SlottedItemsPvE.Add((LoadoutSlotType)itemRef.SlotIndex, item.SdbId);
+            refData.SlotModulesPvE[(LoadoutSlotType)itemRef.SlotIndex] = GetItemModuleIds(itemRef.ItemGUID);
         }
 
         foreach (var itemRef in pvpConfig.Items)
@@ -293,8 +294,16 @@ public class CharacterInventory
 
         // A character is equipped from the PvE config, so we use those visuals.
         refData.Visuals = [.. pveConfig.Visuals];
+        refData.PerksPvE = [.. pveConfig.Perks ?? []];
 
         return refData;
+    }
+
+    public uint[] GetItemModuleIds(ulong guid)
+    {
+        return _itemModules.TryGetValue(guid, out var modules)
+            ? [.. modules.Where(module => module.ModuleSdbId != 0).Select(module => module.ModuleSdbId)]
+            : [];
     }
 
     public ulong CreateItem(uint sdbId)
@@ -567,11 +576,11 @@ public class CharacterInventory
         {
             foreach (var from in movedFrom)
             {
-                _character.CurrentLoadout.SlottedItems[from] = 0;
+                _character.CurrentLoadout.SetSlot(from, 0);
             }
 
             var equippedSdbId = guid != 0 ? _items[guid].SdbId : 0;
-            _character.CurrentLoadout.SlottedItems[slot] = equippedSdbId;
+            _character.CurrentLoadout.SetSlot(slot, equippedSdbId, guid != 0 ? GetItemModuleIds(guid) : null);
 
             switch (slot)
             {
@@ -627,7 +636,7 @@ public class CharacterInventory
 
         if (loadoutId == _character.SelectedLoadout && configId == PveConfigId && _character.CurrentLoadout != null)
         {
-            _character.CurrentLoadout.SlottedItems[slot] = sdbId;
+            _character.CurrentLoadout.SetSlot(slot, sdbId);
         }
 
         var visuals = loadout.LoadoutConfigs[configIndex].Visuals.Where(e => e.VisualType != visual).ToList();

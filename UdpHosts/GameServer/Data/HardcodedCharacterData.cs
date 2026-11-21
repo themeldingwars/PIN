@@ -990,5 +990,7 @@ public class LoadoutReferenceData
     public uint ChassisId;
     public Dictionary<LoadoutSlotType, uint> SlottedItemsPvE = [];
     public Dictionary<LoadoutSlotType, uint> SlottedItemsPvP = [];
+    public Dictionary<LoadoutSlotType, uint[]> SlotModulesPvE = [];
+    public uint[] PerksPvE = [];
     public List<LoadoutConfig_Visual> Visuals = [];
 }
