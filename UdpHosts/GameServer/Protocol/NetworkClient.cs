@@ -159,8 +159,30 @@ public class NetworkClient : INetworkClient
     {
         if (AssignedShard != null)
         {
-            AssignedShard.Chat.SendToPlayer(message, ChatChannel.Debug, this);
+            foreach (var chunk in SplitChatMessage(message ?? string.Empty))
+            {
+                AssignedShard.Chat.SendToPlayer(chunk, ChatChannel.Debug, this);
+            }
         }
+    }
+
+    private static List<string> SplitChatMessage(string message)
+    {
+        const int maxLineLength = 200;
+        List<string> chunks = [];
+        foreach (var line in message.Split('\n'))
+        {
+            var remaining = line.TrimEnd('\r');
+            do
+            {
+                var length = Math.Min(remaining.Length, maxLineLength);
+                chunks.Add(remaining[..length]);
+                remaining = remaining[length..];
+            }
+            while (remaining.Length > 0);
+        }
+
+        return chunks;
     }
 
     public void SendDebugLog(string message)
