@@ -167,7 +167,7 @@ public class WeaponSim
         {
             PRNG.PRNG.Spread(time, 0, round, aimForward, aimRight, aimUp, pending.Spread, Vector3.Zero, 0, out Vector3 direction);
             uint trace = PRNG.PRNG.Trace(time, round);
-            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, pending.Range, projectileSpeed, impactRadius, maxRadius, damage, isAbilityProjectile: true, sourceExecutionId: pending.ExecutionId);
+            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, pending.Range, projectileSpeed, impactRadius, maxRadius, damage, isAbilityProjectile: true, sourceExecutionId: pending.ExecutionId, fireTime: time);
         }
 
         _logger.Debug("Fired ability projectile ammo={AmmoType} range={Range} burst={Burst} entity={Entity} exec={ExecId}", pending.AmmoType, pending.Range, roundsToFire, entity.EntityId, pending.ExecutionId);
@@ -629,7 +629,7 @@ public class WeaponSim
             PRNG.PRNG.Spread(time, weapon.SlotIndex, numBulletsFired, aimForward, aimRight, aimUp, spreadPct, modeState.LastSpreadDirection, modeState.LastSpreadTime, out Vector3 direction);
             uint trace = PRNG.PRNG.Trace(time, numBulletsFired);
             _logger.Debug("FireWeaponDirect time={Time} trace={Trace} aimSource={AimSource}", time, trace, aimSource);
-            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, range, projectileSpeed, impactRadius, maxRadius, damage);
+            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, range, projectileSpeed, impactRadius, maxRadius, damage, fireTime: time);
             modeState.LastSpreadDirection = direction;
             modeState.LastSpreadTime = time;
 

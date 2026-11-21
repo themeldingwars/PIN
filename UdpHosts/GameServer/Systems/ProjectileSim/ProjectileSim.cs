@@ -18,6 +18,7 @@ namespace GameServer.Systems.ProjectileSim;
 public class ProjectileSim
 {
     private const float ThinRadius = 0.1f;
+    private const uint _maxCatchUpMs = 1000;
 
     private readonly Shard _shard;
     private readonly Serilog.ILogger _logger;
@@ -32,8 +33,9 @@ public class ProjectileSim
         _activeProjectiles = new ConcurrentDictionary<(ulong EntityId, uint TraceId), ActiveProjectile>();
     }
 
-    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, float damage, bool isAbilityProjectile = false, Guid? sourceExecutionId = null)
+    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, float damage, bool isAbilityProjectile = false, Guid? sourceExecutionId = null, uint? fireTime = null)
     {
+        uint startTime = GetStartTime(fireTime);
         var ammoFlags = new AmmoFlags(ammo.Flags);
         bool isDrunk = DrunkMissile.IsActive(ammo);
 
@@ -65,7 +67,7 @@ public class ProjectileSim
             EndPosition = endPosition,
             CurrentPosition = origin,
             PreviousPosition = origin,
-            StartTime = _shard.CurrentTime,
+            StartTime = startTime,
             LifetimeMs = lifetimeMs,
             Range = range,
             BouncesRemaining = ammo.MaxBounces,
@@ -84,12 +86,12 @@ public class ProjectileSim
             DamageResponse = ammo.DamageResponse,
             IsDrunk = isDrunk,
             IsAbilityProjectile = isAbilityProjectile,
-            NextPeriodAbilityTime = ammo.PeriodAbilityMs > 0 ? _shard.CurrentTime + ammo.PeriodAbilityMs : 0,
+            NextPeriodAbilityTime = ammo.PeriodAbilityMs > 0 ? startTime + ammo.PeriodAbilityMs : 0,
             SourceExecutionId = sourceExecutionId
         };
 
         _activeProjectiles.TryAdd((entity.EntityId, trace), projectile);
-        _logger.Debug("Spawned {Type} projectile trace={Trace}, speed={Speed}, range={Range}, lifetime={Lifetime}ms, impactRadius={ImpactRadius}, maxRadius={MaxRadius}, damage={Damage}", ammoFlags.Simulation, trace, projectileSpeed, range, lifetimeMs, impactRadius, maxRadius, damage);
+        _logger.Debug("Spawned {Type} projectile trace={Trace}, speed={Speed}, range={Range}, lifetime={Lifetime}ms, impactRadius={ImpactRadius}, maxRadius={MaxRadius}, damage={Damage}, catchUp={CatchUp}ms", ammoFlags.Simulation, trace, projectileSpeed, range, lifetimeMs, impactRadius, maxRadius, damage, _shard.CurrentTime - startTime);
         SendDebugSpawn(entity, trace, origin, direction, projectileSpeed);
     }
 
@@ -291,6 +293,23 @@ public class ProjectileSim
         }
 
         return proj.Direction.LengthSquared() > 1e-8f ? Vector3.Normalize(proj.Direction) : -Vector3.UnitZ;
+    }
+
+    private uint GetStartTime(uint? fireTime)
+    {
+        uint now = _shard.CurrentTime;
+        if (fireTime is not { } time)
+        {
+            return now;
+        }
+
+        int behind = (int)(now - time);
+        if (behind <= 0)
+        {
+            return now;
+        }
+
+        return behind > _maxCatchUpMs ? now - _maxCatchUpMs : time;
     }
 
     private Vector3 UpdateHoming(ref ActiveProjectile proj, uint elapsedMs, Vector3 basePosition)
