@@ -314,6 +314,11 @@ public static class LoginService
     /// <returns>The zone to spawn the character in.</returns>
     private static Zone PickZone(ulong characterId, CharacterData data)
     {
+        if (_shards.DefaultShard.Settings.IgnoreLastZone)
+        {
+            return DataUtils.GetZone(_shards.DefaultShard.ZoneId);
+        }
+
         var zoneId = data.Character != null ? data.Character.CharacterInfo.LastZoneId : (uint)(characterId & 0x000000000000ffff);
 
         if (DataUtils.TryGetZone(zoneId, out var zone))

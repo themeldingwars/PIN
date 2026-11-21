@@ -109,6 +109,8 @@ public class GameServerSettings
     /// </summary>
     public uint ZoneId { get; set; } = 448;
 
+    public bool IgnoreLastZone { get; set; }
+
     /// <summary>
     ///    Comma separated zone ids whose shards are created at startup, e.g. "1030,162". Other zones get a shard on first use.
     /// </summary>
