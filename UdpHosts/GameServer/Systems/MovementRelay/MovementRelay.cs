@@ -109,13 +109,14 @@ public class MovementRelay
         client.NetChannels[ChannelType.UnreliableGss].SendMessage(confirmedPose, character.EntityId);
 
         // Forward update to remote clients
+        var relayShortTime = _shard.CurrentShortTime;
         var currentPose = new CurrentPoseUpdate
         {
             Data = new AeroMessages.GSS.CurrentPoseUpdateData
             {
                 Flags = 0x00,
-                ShortTime = character.MovementShortTime,
-                UnkAlwaysPresent = 0x79,
+                ShortTime = relayShortTime,
+                UnkAlwaysPresent = GetInputLateness(relayShortTime, input.ShortTime),
                 MovementState = (ushort)character.MovementState,
                 Position = character.Position,
                 Rotation = character.Orientation,
@@ -214,7 +215,7 @@ public class MovementRelay
             {
                 Flags = 0x00,
                 ShortTime = character.MovementShortTime,
-                UnkAlwaysPresent = 0x79,
+                UnkAlwaysPresent = 0,
                 MovementState = (ushort)character.MovementState,
                 Position = character.Position,
                 Rotation = character.Orientation,
@@ -222,6 +223,12 @@ public class MovementRelay
             }
         };
         _shard.EntityMan.SendToScoped(character, currentPose);
+    }
+
+    private static byte GetInputLateness(ushort relayShortTime, ushort inputShortTime)
+    {
+        var lateness = MovementSample.MsSince(inputShortTime, relayShortTime);
+        return lateness >= 0x8000 ? (byte)0 : (byte)Math.Min(lateness, byte.MaxValue);
     }
 
     /// <summary>
