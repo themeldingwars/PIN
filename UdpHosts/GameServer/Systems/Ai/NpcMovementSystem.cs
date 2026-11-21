@@ -191,7 +191,7 @@ public sealed class NpcMovementSystem
             }
             else if (comp.HasPatrol)
             {
-                comp.Walk = true;
+                comp.Walk = !comp.PatrolRun;
                 TickPatrol(npc, comp, dt);
             }
             else if (comp.HasWander)
@@ -279,11 +279,12 @@ public sealed class NpcMovementSystem
     /// </summary>
     /// <param name="npc">The NPC to put into patrol mode.</param>
     /// <param name="route">The waypoints to walk cyclically.</param>
-    public void Patrol(CharacterEntity npc, IReadOnlyList<Vector3> route)
+    /// <param name="run">True to run the route instead of walking it.</param>
+    public void Patrol(CharacterEntity npc, IReadOnlyList<Vector3> route, bool run = false)
     {
         if (npc.NpcMovement is { } comp && route is { Count: > 0 })
         {
-            comp.SetPatrol(SnapRouteToNavmesh(NavigationOf(npc, comp).Mesh, route));
+            comp.SetPatrol(SnapRouteToNavmesh(NavigationOf(npc, comp).Mesh, route), run);
         }
     }
 

@@ -82,6 +82,8 @@ public sealed class NpcMovementComponent
     public int PatrolIndex { get; private set; }
     public bool HasPatrol => PatrolRoute is { Count: > 0 };
 
+    public bool PatrolRun { get; private set; }
+
     // Wander mode: the NPC roams within a circle (WanderCenter / WanderRadius), picking a new navmesh-accessible
     // point after each idle pause. WanderPauseTimer counts down only while the NPC is stopped, giving a random
     // dwell between legs. WanderRadius <= 0 means wander is off.
@@ -211,10 +213,12 @@ public sealed class NpcMovementComponent
     ///     so a higher-priority mode that interrupts patrol (follow / manual move) resumes it afterwards.
     /// </summary>
     /// <param name="route">The waypoints to walk cyclically.</param>
-    public void SetPatrol(IReadOnlyList<Vector3> route)
+    /// <param name="run">True to run the route instead of walking it.</param>
+    public void SetPatrol(IReadOnlyList<Vector3> route, bool run = false)
     {
         PatrolRoute = route;
         PatrolIndex = 0;
+        PatrolRun = run;
         Mode = NpcMovementMode.Patrol;
     }
 
@@ -223,6 +227,7 @@ public sealed class NpcMovementComponent
     {
         PatrolRoute = null;
         PatrolIndex = 0;
+        PatrolRun = false;
     }
 
     /// <summary>

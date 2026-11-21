@@ -44,9 +44,9 @@ public class AIEngine
         _movement.ClearTarget(npc);
     }
 
-    public void Patrol(CharacterEntity npc, IReadOnlyList<Vector3> route)
+    public void Patrol(CharacterEntity npc, IReadOnlyList<Vector3> route, bool run = false)
     {
-        _movement.Patrol(npc, route);
+        _movement.Patrol(npc, route, run);
     }
 
     public void ClearPatrol(CharacterEntity npc)
