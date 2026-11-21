@@ -575,8 +575,8 @@ public class Factory
                 return new AwardRedBeansCommand(CustomDBInterface.GetAwardRedBeansCommandDef(commandId));
             // case CommandType.SetDefaultDamageBonus:
             //     return new SetDefaultDamageBonusCommand(CustomDBInterface.GetSetDefaultDamageBonusCommandDef(commandId));
-            // case CommandType.RequireEquippedItem:
-            //     return new RequireEquippedItemCommand(SDBInterface.GetRequireEquippedItemCommandDef(commandId));
+            case CommandType.RequireEquippedItem:
+                return new RequireEquippedItemCommand(SDBInterface.GetRequireEquippedItemCommandDef(commandId));
             case CommandType.CarryableObjectSpawn:
                 return new CarryableObjectSpawnCommand(CustomDBInterface.GetCarryableObjectSpawnCommandDef(commandId));
             // case CommandType.UnlockVisualOverrides:
