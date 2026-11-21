@@ -60,8 +60,8 @@ public class RequireCStateCommand : Command, ICommand
         }
         else
         {
-            Logger.Warning("{Command} {CommandId} fails because source is not a Character. Source is {sourceType}. If this is happening, we should investigate why.", nameof(RequireCStateCommand), Params.Id, source.GetType().Name);
-            cmdResult = false;
+            Logger.Warning("{Command} {CommandId} passes because source is not a Character. Source is {sourceType}. If this is happening, we should investigate why.", nameof(RequireCStateCommand), Params.Id, source?.GetType().Name);
+            cmdResult = true;
         }
 
         if (cmdResult)
