@@ -5,6 +5,7 @@ using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
 using Records.dbconfig;
+using Records.dbelitelevels;
 using Records.dbencounterdata;
 using Records.dbitems;
 using Records.dbphysicsmaterials;
@@ -65,6 +66,8 @@ public interface ISDBLoader
     Dictionary<uint, Battleframe> LoadBattleframe();
 
     Dictionary<uint, ItemModule> LoadItemModule();
+    Dictionary<uint, EliteLevelsUpgradeTable> LoadEliteLevelsUpgradeTable();
+    Dictionary<uint, float[]> LoadEliteLevelsTableEntries();
     Dictionary<uint, CarryableObject> LoadCarryableObject();
     Dictionary<uint, Weapons> LoadWeapons();
     Dictionary<uint, WeaponTemplates> LoadWeaponTemplates();

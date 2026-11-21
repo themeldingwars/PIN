@@ -8,6 +8,7 @@ using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
 using Records.dbconfig;
+using Records.dbelitelevels;
 using Records.dbencounterdata;
 using Records.dbitems;
 using Records.dbphysicsmaterials;
@@ -75,6 +76,8 @@ public class SDBInterface
     private static Dictionary<uint, AbilityModule> _abilityModule;
     private static Dictionary<uint, Battleframe> _battleframe;
     private static Dictionary<uint, ItemModule> _itemModule;
+    private static Dictionary<uint, EliteLevelsUpgradeTable> _eliteLevelsUpgradeTable;
+    private static Dictionary<uint, float[]> _eliteLevelsTableEntries;
     private static Dictionary<uint, CarryableObject> _carryableObject;
     private static Dictionary<uint, Weapons> _weapons;
     private static Dictionary<uint, WeaponTemplates> _weaponTemplates;
@@ -365,6 +368,8 @@ public class SDBInterface
         _abilityModule = loader.LoadAbilityModule();
         _battleframe = loader.LoadBattleframe();
         _itemModule = loader.LoadItemModule();
+        _eliteLevelsUpgradeTable = loader.LoadEliteLevelsUpgradeTable();
+        _eliteLevelsTableEntries = loader.LoadEliteLevelsTableEntries();
         _carryableObject = loader.LoadCarryableObject();
         _weapons = loader.LoadWeapons();
         _weaponTemplates = loader.LoadWeaponTemplates();
@@ -672,6 +677,9 @@ public class SDBInterface
     public static AbilityModule GetAbilityModule(uint id) => _abilityModule.GetValueOrDefault(id);
     public static Battleframe GetBattleframe(uint id) => _battleframe.GetValueOrDefault(id);
     public static ItemModule GetItemModule(uint id) => _itemModule.GetValueOrDefault(id);
+    public static EliteLevelsUpgradeTable GetEliteLevelsUpgrade(uint id) => _eliteLevelsUpgradeTable.GetValueOrDefault(id);
+    public static IEnumerable<EliteLevelsUpgradeTable> GetEliteLevelsUpgrades() => _eliteLevelsUpgradeTable.Values;
+    public static float[] GetEliteLevelsTableEntries(uint tableId) => _eliteLevelsTableEntries.GetValueOrDefault(tableId) ?? [];
     public static CarryableObject GetCarryableObject(uint id) => _carryableObject.GetValueOrDefault(id);
     public static Weapons GetWeapon(uint id) => _weapons.GetValueOrDefault(id);
     public static WeaponTemplates GetWeaponTemplate(uint id) => _weaponTemplates.GetValueOrDefault(id);

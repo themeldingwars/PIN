@@ -16,6 +16,7 @@ public class AdminService
     private readonly Dictionary<string, Type> _commandDictionary;
     private readonly Dictionary<INetworkPlayer, IEntity> _targetDictionary;
     private readonly Dictionary<INetworkPlayer, Dictionary<LoadoutSlotType, uint>> _equipmentOverrides;
+    private readonly Dictionary<INetworkPlayer, Dictionary<ushort, float>> _eliteBonuses;
     private readonly Shard _shard;
 
     public AdminService(Shard shard)
@@ -24,6 +25,7 @@ public class AdminService
         _commandDictionary = [];
         _targetDictionary = [];
         _equipmentOverrides = [];
+        _eliteBonuses = [];
 
         LoadCommands();
     }
@@ -128,10 +130,38 @@ public class AdminService
         _logger.Information("Player {Player} applied {Count} equipment overrides to loadout {LoadoutId}: {Overrides}", player, overrides.Count, loadout.LoadoutID, string.Join(", ", overrides.Select(o => $"{o.Key}={o.Value}")));
     }
 
+    public void AddEliteBonus(INetworkPlayer player, ushort id, float value)
+    {
+        if (!_eliteBonuses.TryGetValue(player, out var bonuses))
+        {
+            bonuses = [];
+            _eliteBonuses[player] = bonuses;
+        }
+
+        bonuses[id] = bonuses.GetValueOrDefault(id) + value;
+        if (bonuses[id] == 0)
+        {
+            bonuses.Remove(id);
+        }
+
+        _logger.Information("Player {Player} added elite bonus {Id} {Value}", player, id, value);
+    }
+
+    public void ClearEliteBonuses(INetworkPlayer player)
+    {
+        _eliteBonuses.Remove(player);
+    }
+
+    public IReadOnlyDictionary<ushort, float> GetEliteBonuses(INetworkPlayer player)
+    {
+        return player != null ? _eliteBonuses.GetValueOrDefault(player) : null;
+    }
+
     public void ClearPlayer(INetworkPlayer player)
     {
         _targetDictionary.Remove(player);
         _equipmentOverrides.Remove(player);
+        _eliteBonuses.Remove(player);
     }
 
     private (string commandName, string[] parameters) ParseCommand(string input)

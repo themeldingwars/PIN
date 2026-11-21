@@ -692,6 +692,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
+    public EliteBonuses GetEliteBonuses(uint chassisId)
+    {
+        var upgrades = Player?.Battleframes?.Get(chassisId)?.PreviousUpgrades;
+        return EliteBonuses.From(upgrades, Shard.Admin.GetEliteBonuses(Player));
+    }
+
     public void ApplyProgressionXp(ulong currentXp)
     {
         var xp = (uint)currentXp;
@@ -709,7 +715,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         Shard.Admin.ApplyEquipmentOverrides(Player, loadout);
         if (!IsNpc)
         {
-            loadout.CalculateItemAttributes(EffectiveLevel);
+            loadout.CalculateItemAttributes(EffectiveLevel, GetEliteBonuses(loadout.ChassisID));
         }
 
         CurrentLoadout = loadout;

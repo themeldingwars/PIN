@@ -190,6 +190,8 @@ public class CharacterLoadout
 
     public byte EffectiveLevel { get; private set; } = byte.MaxValue;
 
+    public EliteBonuses Elite { get; private set; } = EliteBonuses.None;
+
     /// <summary>
     /// Parses a friendly slot name (e.g. "primary_weapon") into a <see cref="LoadoutSlotType"/>.
     /// </summary>
@@ -456,7 +458,7 @@ public class CharacterLoadout
     public StatsData[] GetPrimaryWeaponAttributes()
     {
         var itemId = SlottedItems.GetValueOrDefault(LoadoutSlotType.Primary);
-        var result = itemId != 0 ? GetScaledItemAttributes(itemId, GetSlotModules(LoadoutSlotType.Primary), EffectiveLevel) : [];
+        var result = itemId != 0 ? GetScaledItemAttributes(itemId, GetSlotModules(LoadoutSlotType.Primary), EffectiveLevel, Elite) : [];
 
         return [.. result
         .Where((pair) => pair.Value != 0)
@@ -473,7 +475,7 @@ public class CharacterLoadout
     public StatsData[] GetSecondaryWeaponAttributes()
     {
         var itemId = SlottedItems.GetValueOrDefault(LoadoutSlotType.Secondary);
-        var result = itemId != 0 ? GetScaledItemAttributes(itemId, GetSlotModules(LoadoutSlotType.Secondary), EffectiveLevel) : [];
+        var result = itemId != 0 ? GetScaledItemAttributes(itemId, GetSlotModules(LoadoutSlotType.Secondary), EffectiveLevel, Elite) : [];
 
         return [.. result
         .Where((pair) => pair.Value != 0)
@@ -514,9 +516,10 @@ public class CharacterLoadout
         })];
     }
 
-    public void CalculateItemAttributes(byte effectiveLevel)
+    public void CalculateItemAttributes(byte effectiveLevel, EliteBonuses elite = null)
     {
         EffectiveLevel = effectiveLevel;
+        Elite = elite ?? EliteBonuses.None;
         var attributes = new Dictionary<ushort, float>()
         {
         };
@@ -555,6 +558,16 @@ public class CharacterLoadout
             {
                 attributes.Add(pair.Key, pair.Value);
             }
+        }
+
+        foreach (var (attributeId, value) in Elite.Attributes)
+        {
+            attributes[attributeId] = attributes.GetValueOrDefault(attributeId) + value;
+        }
+
+        foreach (var (categoryId, percent) in Elite.CategoryPercents)
+        {
+            characterScalars[categoryId] = characterScalars.GetValueOrDefault(categoryId) + percent;
         }
 
         foreach (var categoryId in characterScalars.Keys.ToList())
@@ -606,7 +619,7 @@ public class CharacterLoadout
         return vectors;
     }
 
-    private static Dictionary<ushort, float> GetScaledItemAttributes(uint itemId, uint[] modules, byte effectiveLevel, bool includeWeaponAbility = true)
+    private static Dictionary<ushort, float> GetScaledItemAttributes(uint itemId, uint[] modules, byte effectiveLevel, EliteBonuses elite, bool includeWeaponAbility = true)
     {
         var attributes = new Dictionary<ushort, float>();
         MergeItemAttributeRange(attributes, itemId, includeWeaponAbility);
@@ -652,6 +665,11 @@ public class CharacterLoadout
             if (modulePercents.TryGetValue(category, out var percent))
             {
                 value = ItemLevelScaling.ApplyModulePercent(value, attributeId, category, percent, ranges.GetValueOrDefault(attributeId));
+            }
+
+            if (elite.CategoryPercents.TryGetValue((ushort)category, out var elitePercent))
+            {
+                value = ItemLevelScaling.ApplyModulePercent(value, attributeId, category, elitePercent, null);
             }
 
             attributes[attributeId] = value * ItemLevelScaling.GetLevelSyncFactor(item, effectiveLevel, category);
@@ -735,7 +753,7 @@ public class CharacterLoadout
 
     private void ApplyItemStats(uint itemTypeId, uint[] modules, byte effectiveLevel, Dictionary<ushort, float> totalAttributes, Dictionary<ushort, float> totalCharacterScalars)
     {
-        foreach (var (attributeId, value) in GetScaledItemAttributes(itemTypeId, modules, effectiveLevel, includeWeaponAbility: false))
+        foreach (var (attributeId, value) in GetScaledItemAttributes(itemTypeId, modules, effectiveLevel, Elite, includeWeaponAbility: false))
         {
             totalAttributes[attributeId] = totalAttributes.GetValueOrDefault(attributeId) + value;
         }

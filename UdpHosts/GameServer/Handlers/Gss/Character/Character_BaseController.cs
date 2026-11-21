@@ -656,7 +656,7 @@ public static class Character_BaseController
                     EliteXP = (uint)(progression?.CurrentEliteXp ?? 0),
                     ElitePoints = progression?.ElitePoints ?? 0,
                     AvailableUpgrades = [],
-                    PreviousUpgrades = [],
+                    PreviousUpgrades = [.. (progression?.PreviousUpgrades ?? []).Select(upgrade => new ElitePreviousUpgradeInfo { UpgradeId = upgrade.UpgradeId, Count = upgrade.Count })],
                 },
             },
             character.EntityId);

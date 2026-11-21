@@ -8,6 +8,7 @@ using Records.apt;
 using Records.aptfs;
 using Records.dbcharacter;
 using Records.dbconfig;
+using Records.dbelitelevels;
 using Records.dbencounterdata;
 using Records.dbitems;
 using Records.dbphysicsmaterials;
@@ -271,6 +272,19 @@ public class StaticDBLoader : ISDBLoader
     {
         return LoadStaticDB<ItemModule>("dbitems::ItemModule")
         .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, EliteLevelsUpgradeTable> LoadEliteLevelsUpgradeTable()
+    {
+        return LoadStaticDB<EliteLevelsUpgradeTable>("dbelitelevels::EliteLevelsUpgradeTable")
+        .ToDictionary(row => row.Id);
+    }
+
+    public Dictionary<uint, float[]> LoadEliteLevelsTableEntries()
+    {
+        return LoadStaticDB<EliteLevelsTableEntries>("dbelitelevels::EliteLevelsTableEntries")
+        .GroupBy(row => row.TableId)
+        .ToDictionary(group => group.Key, group => group.OrderBy(row => row.UpgradeLevel).Select(row => row.Bonus).ToArray());
     }
 
     public Dictionary<uint, List<BattleframeVisuals>> LoadBattleframeVisuals()
