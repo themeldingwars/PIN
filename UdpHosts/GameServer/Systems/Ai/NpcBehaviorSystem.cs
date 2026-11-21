@@ -513,7 +513,7 @@ public sealed class NpcBehaviorSystem
                 break;
 
             case BehaviorStyle.Idle:
-                if (comp.IsMoving && !comp.HasPatrol && !comp.HasWander)
+                if (comp.IsMoving && !comp.Commanded && !comp.HasPatrol && !comp.HasWander)
                 {
                     comp.Stop();
                 }

@@ -60,6 +60,8 @@ public sealed class NpcMovementComponent
     public bool HasRequestedGoal { get; private set; }
 
     public bool IsMoving { get; private set; }
+
+    public bool Commanded { get; private set; }
     public NpcMovementMode Mode { get; private set; }
     public float RepathTimer { get; private set; }
     public bool Grounded { get; private set; } = true;
@@ -170,8 +172,9 @@ public sealed class NpcMovementComponent
         LaunchLogCooldown = cooldown;
     }
 
-    public void SetDestination(Vector3 destination)
+    public void SetDestination(Vector3 destination, bool commanded = false)
     {
+        Commanded = commanded;
         Destination = destination;
         Strategy.SetDestination(destination);
         Mode = NpcMovementMode.NavMesh;
@@ -346,6 +349,7 @@ public sealed class NpcMovementComponent
     {
         Strategy.Reset();
         IsMoving = false;
+        Commanded = false;
         Mode = NpcMovementMode.Idle;
         BrakeTimer = 1.0f;
         RepathAttempts = 0;

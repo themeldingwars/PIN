@@ -234,7 +234,7 @@ public sealed class NpcMovementSystem
     {
         if (npc.NpcMovement is { } comp)
         {
-            comp.SetDestination(destination);
+            comp.SetDestination(destination, true);
         }
     }
 
