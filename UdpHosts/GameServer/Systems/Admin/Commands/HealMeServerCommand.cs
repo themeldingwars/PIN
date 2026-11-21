@@ -2,7 +2,7 @@ using GameServer.Entities.Character;
 
 namespace GameServer.Systems.Admin.Commands;
 
-[ServerCommand("Heal your character", "healme <amount>", "healme")]
+[ServerCommand("Heal your character", "healme [amount]", "healme")]
 public class HealMeServerCommand : ServerCommand
 {
     public override void Execute(string[] parameters, ServerCommandContext context)
@@ -13,16 +13,9 @@ public class HealMeServerCommand : ServerCommand
             return;
         }
 
-        if (parameters.Length != 1)
+        if (parameters.Length > 1)
         {
-            SourceFeedback("Usage: healme <amount>", context);
-            return;
-        }
-
-        int amount = (int)ParseUIntParameter(parameters[0]);
-        if (amount <= 0)
-        {
-            SourceFeedback("Heal amount must be positive", context);
+            SourceFeedback("Usage: healme [amount]", context);
             return;
         }
 
@@ -31,6 +24,13 @@ public class HealMeServerCommand : ServerCommand
         if (!character.IsAlive)
         {
             SourceFeedback("You are dead", context);
+            return;
+        }
+
+        int amount = parameters.Length == 1 ? (int)ParseUIntParameter(parameters[0]) : character.MaxHealth.Value - character.CurrentHealth;
+        if (amount <= 0)
+        {
+            SourceFeedback(parameters.Length == 1 ? "Heal amount must be positive" : $"Already at full health: {character.CurrentHealth}/{character.MaxHealth.Value}", context);
             return;
         }
 

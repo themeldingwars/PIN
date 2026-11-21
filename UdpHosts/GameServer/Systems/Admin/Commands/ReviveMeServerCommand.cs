@@ -11,7 +11,13 @@ public class ReviveMeCommand : ServerCommand
             return;
         }
 
-        context.Shard.CharacterLifecycle.TryRevive(context.SourcePlayer.CharacterEntity);
-        SourceFeedback("Be whole!", context);
+        var character = context.SourcePlayer.CharacterEntity;
+        if (!context.Shard.CharacterLifecycle.TryRevive(character, fullHealth: true))
+        {
+            SourceFeedback("You are not downed", context);
+            return;
+        }
+
+        SourceFeedback($"Be whole! Health: {character.CurrentHealth}/{character.MaxHealth.Value}", context);
     }
 }

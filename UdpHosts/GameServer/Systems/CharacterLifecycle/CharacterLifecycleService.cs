@@ -78,18 +78,18 @@ public class CharacterLifecycleService
         TransitionToDead(character);
     }
 
-    public void TryRevive(CharacterEntity target, IEntity reviver = null)
+    public bool TryRevive(CharacterEntity target, IEntity reviver = null, bool fullHealth = false)
     {
         if (!_trackers.TryGetValue(target.EntityId, out var tracker))
         {
             Logger.Warning("Cannot revive {Name}: no lifecycle tracker", target);
-            return;
+            return false;
         }
 
         if (tracker.State != CharacterLifecycleState.Bleedout)
         {
             Logger.Warning("Cannot revive {Name}: not in bleedout state, current state is {State}", target, tracker.State);
-            return;
+            return false;
         }
 
         tracker.State = CharacterLifecycleState.Living;
@@ -97,7 +97,7 @@ public class CharacterLifecycleService
         tracker.DeadStartTime = 0;
 
         target.SetCharacterState(CharacterStateData.CharacterStatus.Living, target.Shard.CurrentTime);
-        target.SetCurrentHealth(int.Min(target.CurrentHealth + (target.MaxHealth.Value / 4), target.MaxHealth.Value));
+        target.SetCurrentHealth(fullHealth ? target.MaxHealth.Value : int.Min(target.CurrentHealth + (target.MaxHealth.Value / 4), target.MaxHealth.Value));
 
         if (reviver != null)
         {
@@ -109,6 +109,7 @@ public class CharacterLifecycleService
         }
 
         _eventBus.Publish(new CharacterRevivedEvent(target, reviver));
+        return true;
     }
 
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
