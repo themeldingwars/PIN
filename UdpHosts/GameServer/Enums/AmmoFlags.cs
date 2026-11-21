@@ -47,9 +47,9 @@ public readonly record struct AmmoFlags(uint Raw)
 
     public bool Unk2                  => (Raw & (1u << 2)) != 0;
     public bool Unk3                  => (Raw & (1u << 3)) != 0;
-    public bool UnkHit4               => (Raw & (1u << 4)) != 0;
+    public bool Airburst              => (Raw & (1u << 4)) != 0;
     public bool Unk5                  => (Raw & (1u << 5)) != 0;
-    public bool UnkBounce6            => (Raw & (1u << 6)) != 0;
+    public bool Thin                  => (Raw & (1u << 6)) != 0;
     public bool RayCastFlag1          => (Raw & (1u << 7)) != 0;
     public bool Unk8                  => (Raw & (1u << 8)) != 0;
     public bool Unk9                  => (Raw & (1u << 9)) != 0;
@@ -79,9 +79,9 @@ public readonly record struct AmmoFlags(uint Raw)
 
         CheckAndAdd(parts, "Unk2", Unk2);
         CheckAndAdd(parts, "Unk3", Unk3);
-        CheckAndAdd(parts, "UnkHit4", UnkHit4);
+        CheckAndAdd(parts, "Airburst", Airburst);
         CheckAndAdd(parts, "Unk5", Unk5);
-        CheckAndAdd(parts, "UnkBounce6", UnkBounce6);
+        CheckAndAdd(parts, "Thin", Thin);
         CheckAndAdd(parts, "RayCastFlag1", RayCastFlag1);
         CheckAndAdd(parts, "Unk8", Unk8);
         CheckAndAdd(parts, "Unk9", Unk9);

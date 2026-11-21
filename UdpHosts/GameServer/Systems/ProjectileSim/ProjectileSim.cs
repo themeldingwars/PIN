@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
 using AeroMessages.GSS.Character.Event;
+using BepuPhysics;
+using BepuPhysics.Collidables;
 using GameServer.Entities.Character;
 using GameServer.Enums;
 using GameServer.Physics;
@@ -14,6 +17,8 @@ namespace GameServer.Systems.ProjectileSim;
 
 public class ProjectileSim
 {
+    private const float ThinRadius = 0.1f;
+
     private readonly Shard _shard;
     private readonly Serilog.ILogger _logger;
     private readonly DebugProjectileHitCallbacks? _debugCallbacks;
@@ -150,9 +155,18 @@ public class ProjectileSim
                 var periodSource = GetSourceEntity(projectile);
                 if (periodSource != null)
                 {
-                    _shard.Abilities.HandleActivateAbility(_shard, periodSource, projectile.Ammo.PeriodAbilityId, (uint)currentTime, new AptitudeTargets(), projectile.SourceExecutionId, projectile.CurrentPosition);
+                    ActivateProjectileAbility(periodSource, projectile, ProjectileHitReason.Period, projectile.Ammo.PeriodAbilityId, (uint)currentTime, new AptitudeTargets(), projectile.CurrentPosition);
                     projectile.NextPeriodAbilityTime += projectile.Ammo.PeriodAbilityMs;
                 }
+            }
+
+            if (projectile.DetonateReason != ProjectileHitReason.None && currentTime >= projectile.DetonateTime)
+            {
+                Detonate(projectile, projectile.DetonateReason, (uint)currentTime);
+                _activeProjectiles.TryRemove(key, out _);
+                _logger.Debug("Projectile trace={Trace} detonated ({Reason}) at {Elapsed}ms", projectile.TraceId, projectile.DetonateReason, elapsedMs);
+                SendDebugTimeout(projectile, projectile.CurrentPosition);
+                continue;
             }
 
             var hit = _shard.Physics.SegmentRayCast(projectile.PreviousPosition, projectile.CurrentPosition, projectile.EntityId);
@@ -187,27 +201,23 @@ public class ProjectileSim
 
                         if (projectile.Ammo.AbilityId != 0)
                         {
-                            var targets = new AptitudeTargets();
-                            if (hit.HitEntityId != 0 && _shard.Entities.TryGetValue(hit.HitEntityId, out var hitEntity) && hitEntity is IAptitudeTarget hitTarget)
-                            {
-                                targets.Push(hitTarget);
-                            }
-
-                            _shard.Abilities.HandleActivateAbility(_shard, source, projectile.Ammo.AbilityId, (uint)currentTime, targets, projectile.SourceExecutionId, hit.HitPosition);
+                            ActivateProjectileAbility(source, projectile, ProjectileHitReason.Impact, projectile.Ammo.AbilityId, (uint)currentTime, TargetsFor(hit.HitEntityId), hit.HitPosition);
                         }
                     }
                 }
             }
 
-            if (elapsedMs >= projectile.LifetimeMs)
+            float radius = CurrentRadius(projectile, elapsedMs);
+            if (radius >= ThinRadius && !new AmmoFlags(projectile.Ammo.Flags).Thin && projectile.DetonateReason == ProjectileHitReason.None)
             {
-                if (projectile.Ammo.AirburstAbilityId != 0)
+                ProcessOverlaps(ref projectile, radius, (uint)currentTime, elapsedMs);
+            }
+
+            if (elapsedMs >= projectile.LifetimeMs && projectile.DetonateReason == ProjectileHitReason.None)
+            {
+                if (projectile.IsAlive && new AmmoFlags(projectile.Ammo.Flags).Airburst)
                 {
-                    var airburstSource = GetSourceEntity(projectile);
-                    if (airburstSource != null)
-                    {
-                        _shard.Abilities.HandleActivateAbility(_shard, airburstSource, projectile.Ammo.AirburstAbilityId, (uint)currentTime, new AptitudeTargets(), projectile.SourceExecutionId, projectile.CurrentPosition);
-                    }
+                    Detonate(projectile, ProjectileHitReason.Airburst, (uint)currentTime);
                 }
 
                 _activeProjectiles.TryRemove(key, out _);
@@ -247,6 +257,40 @@ public class ProjectileSim
         var gravityAccel = new Vector3(0f, 0f, -proj.Ammo.Gravity);
         proj.Velocity = proj.InitialVelocity + (gravityAccel * t);
         return proj.StartPosition + (proj.InitialVelocity * t) + (gravityAccel * (0.5f * t * t));
+    }
+
+    private static float CurrentRadius(ActiveProjectile proj, uint elapsedMs)
+    {
+        float radius = proj.Ammo.InitialRadius + (proj.Ammo.RadiusDt * (elapsedMs / 1000f));
+        if (proj.MaxRadius > 0.001f && proj.MaxRadius <= radius)
+        {
+            radius = proj.MaxRadius;
+        }
+
+        return radius;
+    }
+
+    private static uint AbilityFor(Ammo ammo, ProjectileHitReason reason)
+    {
+        return reason switch
+        {
+            ProjectileHitReason.Impact => ammo.AbilityId,
+            ProjectileHitReason.Touch => ammo.TouchAbilityId,
+            ProjectileHitReason.Airburst => ammo.AirburstAbilityId,
+            ProjectileHitReason.Period => ammo.PeriodAbilityId,
+            _ => 0,
+        };
+    }
+
+    private static Vector3 SegmentDirection(ActiveProjectile proj)
+    {
+        Vector3 segment = proj.CurrentPosition - proj.PreviousPosition;
+        if (segment.LengthSquared() > 1e-8f)
+        {
+            return Vector3.Normalize(segment);
+        }
+
+        return proj.Direction.LengthSquared() > 1e-8f ? Vector3.Normalize(proj.Direction) : -Vector3.UnitZ;
     }
 
     private Vector3 UpdateHoming(ref ActiveProjectile proj, uint elapsedMs, Vector3 basePosition)
@@ -299,6 +343,140 @@ public class ProjectileSim
         proj.BouncesRemaining--;
 
         return true;
+    }
+
+    private AptitudeTargets TargetsFor(ulong entityId)
+    {
+        var targets = new AptitudeTargets();
+        if (entityId != 0 && _shard.Entities.TryGetValue(entityId, out var entity) && entity is IAptitudeTarget target)
+        {
+            targets.Push(target);
+        }
+
+        return targets;
+    }
+
+    private void ProcessOverlaps(ref ActiveProjectile proj, float radius, uint time, uint elapsedMs)
+    {
+        var overlaps = _shard.Physics.QueryEntityIdsInSphere(proj.CurrentPosition, radius, proj.EntityId);
+        if (overlaps.Count == 0)
+        {
+            return;
+        }
+
+        if (proj.Ammo.FlakDurationMax >= 0)
+        {
+            if (proj.IsAlive && elapsedMs >= proj.Ammo.FlakDurationArming)
+            {
+                int min = proj.Ammo.FlakDurationMin;
+                int max = proj.Ammo.FlakDurationMax;
+                int delay = min < max ? min + Random.Shared.Next(max - min) : min;
+                proj.DetonateTime = time + (uint)Math.Max(0, delay);
+                proj.DetonateReason = ProjectileHitReason.Airburst;
+                _logger.Debug("Projectile trace={Trace} flak armed by {Count} overlaps, detonating in {Delay}ms", proj.TraceId, overlaps.Count, delay);
+            }
+
+            return;
+        }
+
+        var source = GetSourceEntity(proj);
+        if (source == null)
+        {
+            return;
+        }
+
+        proj.LastTouchTimes ??= new Dictionary<ulong, uint>();
+        uint bucket = proj.Ammo.PeriodDamageMs != 0 ? time - ((time - proj.StartTime) % proj.Ammo.PeriodDamageMs) : time;
+        bool stop = false;
+        foreach (ulong entityId in overlaps)
+        {
+            if (proj.LastTouchTimes.TryGetValue(entityId, out uint last) && (int)(last - bucket) >= 0)
+            {
+                continue;
+            }
+
+            if (!_shard.Entities.TryGetValue(entityId, out var entity) || entity is not IAptitudeTarget)
+            {
+                continue;
+            }
+
+            proj.HitCount++;
+            if (proj.Ammo.MaxHits != 0 && proj.HitCount >= proj.Ammo.MaxHits)
+            {
+                stop = true;
+            }
+
+            proj.LastTouchTimes[entityId] = bucket;
+            ApplyHit(source, proj, ProjectileHitReason.Touch, time, entityId, proj.CurrentPosition);
+        }
+
+        if (stop)
+        {
+            proj.IsAlive = false;
+            proj.HitsRemaining = 0;
+            _logger.Debug("Projectile trace={Trace} spent after {Hits} touches", proj.TraceId, proj.HitCount);
+        }
+    }
+
+    private void Detonate(ActiveProjectile proj, ProjectileHitReason reason, uint time)
+    {
+        var source = GetSourceEntity(proj);
+        if (source != null)
+        {
+            ApplyHit(source, proj, reason, time, 0, proj.CurrentPosition);
+        }
+    }
+
+    private void ApplyHit(CharacterEntity source, ActiveProjectile proj, ProjectileHitReason reason, uint time, ulong entityId, Vector3 position)
+    {
+        uint abilityId = AbilityFor(proj.Ammo, reason);
+        if (abilityId != 0)
+        {
+            ActivateProjectileAbility(source, proj, reason, abilityId, time, TargetsFor(entityId), position);
+            return;
+        }
+
+        var hit = new SegmentRaycastHit
+        {
+            Hit = true,
+            HitPosition = position,
+            Normal = -SegmentDirection(proj),
+            HitEntityId = entityId,
+            Collidable = new CollidableReference(new StaticHandle(0)),
+        };
+
+        float splashRadius = reason == ProjectileHitReason.Touch ? 0f : proj.ImpactRadius;
+        _logger.Debug("Projectile trace={Trace} {Reason} has no ability, applying {Damage} damage to entity={Entity} splash={Splash}", proj.TraceId, reason, proj.Damage, entityId, splashRadius);
+        _shard.Physics.HandleProjectileImpact(source, proj.TraceId, hit, splashRadius, proj.Damage, proj.DamageType, proj.IsAbilityProjectile);
+    }
+
+    private void ActivateProjectileAbility(CharacterEntity source, ActiveProjectile proj, ProjectileHitReason reason, uint abilityId, uint time, AptitudeTargets targets, Vector3 position)
+    {
+        _logger.Debug("Projectile trace={Trace} {Reason} activating ability {AbilityId} for {Source} at {Position} with {TargetCount} targets", proj.TraceId, reason, abilityId, source, position, targets.Count);
+
+        int damagePoints = (int)MathF.Round(proj.Damage, MidpointRounding.AwayFromZero);
+        byte damageType = proj.DamageType;
+        float scaleMultiplier = proj.ImpactRadius;
+        Vector3 direction = SegmentDirection(proj);
+
+        _shard.Abilities.HandleActivateAbility(
+            _shard,
+            source,
+            abilityId,
+            time,
+            targets,
+            proj.SourceExecutionId,
+            position,
+            initiate: context =>
+            {
+                context.InitTime = time;
+                context.DamagePoints = damagePoints;
+                context.DamageType = damageType;
+                context.ScaleMultiplier = scaleMultiplier;
+                context.InitBodyPosition = position;
+                context.InitAimOrigin = position;
+                context.InitAimDirection = direction;
+            });
     }
 
     private CharacterEntity GetSourceEntity(ActiveProjectile proj)

@@ -376,7 +376,7 @@ public class AbilitySystem
         }
     }
 
-    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, Vector3? initPosition = null, IAptitudeTarget self = null)
+    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, Vector3? initPosition = null, IAptitudeTarget self = null, Action<Context> initiate = null)
     {
         var execId = executionId ?? Guid.NewGuid();
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
@@ -413,6 +413,8 @@ public class AbilitySystem
         {
             context.SnapshotInitPose();
         }
+
+        initiate?.Invoke(context);
 
         var chain = Factory.LoadChain(chainId);
         var abilityResult = new CommandResult { Success = true };
