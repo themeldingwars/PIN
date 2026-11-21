@@ -32,6 +32,8 @@ public static class BehaviorResolver
 
         resolved.Cadence.TriggerPullTime = ReadFloat(p, "triggerPullTime");
         resolved.Cadence.FireRestDuration = ReadFloat(p, "fireRestDuration");
+        resolved.Cadence.ShotInterval = ReadFloat(p, "shotInterval");
+        resolved.Cadence.SinglePress = ReadBool(p, "singlePress") ?? false;
 
         resolved.Spacing.CombatDist = ReadFloat(p, "combatDist");
         resolved.Spacing.MinDist = ReadFloat(p, "minDist");

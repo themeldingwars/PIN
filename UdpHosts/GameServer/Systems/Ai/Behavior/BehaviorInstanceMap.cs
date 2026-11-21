@@ -23,12 +23,14 @@ public static class BehaviorInstanceMap
     private const string _meleeCreature = "Arch_FullbodyMelee_Base(combatDist=3)";
     private const string _meleeHumanoid = "Arch_AdditiveMelee_Base(combatDist=1)";
     private const string _idle = "Stand";
+    private const string _chosenShockTrooper = "Arch_MedRangedHumanoid_Base(triggerPullTime=1000,fireRestDuration=2850,shotInterval=125,combatDist=20)";
+    private const string _chosenFiend = "Arch_MedRangedHumanoid_Base(triggerPullTime=1000,fireRestDuration=2050,shotInterval=600,combatDist=20)";
 
     private static readonly Dictionary<uint, string> Definitions = new()
     {
         // Human / Chosen assault-rifle grunts (ranged).
-        [274] = _rangedHumanoid,
-        [262] = _rangedHumanoid,
+        [274] = _chosenFiend,
+        [262] = _chosenShockTrooper,
         [299] = _rangedHumanoid,
         [190] = _rangedHumanoid,
         [148] = _rangedHumanoid,

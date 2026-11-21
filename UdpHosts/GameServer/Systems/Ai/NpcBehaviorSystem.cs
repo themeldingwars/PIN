@@ -56,6 +56,7 @@ public sealed class NpcBehaviorSystem
     // Per-NPC ranged fire state: countdown to the next single-shot trigger press. NPC attacks are modelled as 1ms
     // press/release bursts, matching the original monster attack shadowfields (WeaponBurstEnded = Fired + 1ms).
     private readonly Dictionary<ulong, float> _fireRest = [];
+    private readonly Dictionary<ulong, BurstFireState> _burstFire = [];
     private readonly Dictionary<ulong, float[]> _abilityTimers = [];
 
     // Drives the am1/am2 "chance" roll (probability the NPC actually uses a ready ability this cycle).
@@ -254,6 +255,13 @@ public sealed class NpcBehaviorSystem
         return Math.Max(Math.Max(behaviorBurst, behaviorRest), weaponShot);
     }
 
+    private static float ShotSpacingSeconds(ResolvedBehavior combat, CharacterEntity.ActiveWeaponDetails? details)
+    {
+        var weaponMs = details?.WeaponProfile.MsPerBurst ?? 0u;
+        var spacingMs = MathF.Max(combat.Cadence.ShotInterval ?? 0f, weaponMs);
+        return spacingMs > 0f ? spacingMs * _msToSeconds : _defaultShotIntervalSeconds;
+    }
+
     private void LogBehavior(ulong entityId, NpcBehaviorConfig config)
     {
         var b = config.BaseResolved;
@@ -310,9 +318,8 @@ public sealed class NpcBehaviorSystem
     }
 
     // Ranged fire control: drives the WeaponSim fire state machine while the target is in weapon range AND visible.
-    // NPC attacks are single-shot trigger presses: FireBurst at T, FireEnd at T+1. The next press is gated by the
-    // behavior's attack interval (triggerPullTime / fireRestDuration) and the weapon's own MsPerBurst. Losing range or
-    // LOS only resets the countdown; the queued 1ms release is already harmless.
+    // NPC attacks are 1ms trigger presses: FireBurst at T, FireEnd at T+1. By default they repeat every shot spacing
+    // for triggerPullTime and then rest for fireRestDuration; singlePress behaviors press once per attack interval.
     private void RunCombatFire(CharacterEntity npc, ResolvedBehavior combat, CharacterEntity target, float combatDist, float dt, bool los)
     {
         var dist = HorizontalDistance(npc.Position, target.Position);
@@ -321,6 +328,13 @@ public sealed class NpcBehaviorSystem
         // The LOS raycast is done once per tick by the caller and passed in (also consumed by the movement system).
         var inRange = range >= _rangedWeaponMinRange && dist <= range && los;
         var details = npc.GetActiveWeaponDetails();
+        if (!combat.Cadence.SinglePress)
+        {
+            RunBurstFire(npc, combat, details, inRange, dt);
+            RunAbilityTimers(npc, combat, target, combatDist, dist, dt, los);
+            return;
+        }
+
         var interval = AttackIntervalSeconds(combat, details);
 
         var restLeft = _fireRest.TryGetValue(npc.EntityId, out var s) ? s : interval;
@@ -345,10 +359,58 @@ public sealed class NpcBehaviorSystem
         RunAbilityTimers(npc, combat, target, combatDist, dist, dt, los);
     }
 
+    private void RunBurstFire(CharacterEntity npc, ResolvedBehavior combat, CharacterEntity.ActiveWeaponDetails? details, bool inRange, float dt)
+    {
+        var rest = RestSeconds(combat);
+        if (!_burstFire.TryGetValue(npc.EntityId, out var state))
+        {
+            state = new BurstFireState { RestLeft = rest };
+            _burstFire[npc.EntityId] = state;
+        }
+
+        if (!inRange)
+        {
+            state.Firing = false;
+            state.RestLeft = rest;
+            return;
+        }
+
+        if (!state.Firing)
+        {
+            state.RestLeft -= dt;
+            if (state.RestLeft > 0f)
+            {
+                return;
+            }
+
+            state.Firing = true;
+            state.Elapsed = 0f;
+            state.NextShot = 0f;
+        }
+
+        if (state.Elapsed >= state.NextShot)
+        {
+            var time = _shard.CurrentTime;
+            EnqueueFire(npc, WeaponFireEventType.FireBurst, time);
+            EnqueueFire(npc, WeaponFireEventType.FireEnd, time + 1);
+
+            state.NextShot += ShotSpacingSeconds(combat, details);
+            if (state.NextShot > BurstMs(combat) * _msToSeconds)
+            {
+                state.Firing = false;
+                state.RestLeft = rest;
+                return;
+            }
+        }
+
+        state.Elapsed += dt;
+    }
+
     // Clears the NPC's fire countdown when it leaves combat. The 1ms presses already enqueue their own FireEnd, so no
     // held trigger needs to be released here.
     private void StopFiring(CharacterEntity npc)
     {
+        _burstFire.Remove(npc.EntityId);
         _fireRest.Remove(npc.EntityId);
     }
 
@@ -458,5 +520,13 @@ public sealed class NpcBehaviorSystem
 
                 break;
         }
+    }
+
+    private sealed class BurstFireState
+    {
+        public bool Firing;
+        public float Elapsed;
+        public float NextShot;
+        public float RestLeft;
     }
 }

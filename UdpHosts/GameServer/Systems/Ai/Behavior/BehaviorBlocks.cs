@@ -8,6 +8,8 @@ public sealed class CombatCadence
 {
     public float? TriggerPullTime { get; set; }
     public float? FireRestDuration { get; set; }
+    public float? ShotInterval { get; set; }
+    public bool SinglePress { get; set; }
 }
 
 /// <summary>Target spacing: the standoff distance the NPC tries to hold from its target.</summary>
