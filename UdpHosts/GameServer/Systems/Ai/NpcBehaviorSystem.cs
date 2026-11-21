@@ -8,6 +8,7 @@ using GameServer.Physics;
 using GameServer.Systems.Ai.Behavior;
 using GameServer.Systems.Aptitude;
 using GameServer.Systems.Combat;
+using GameServer.Systems.SystemEvents;
 using GameServer.Systems.WeaponSim;
 using Serilog;
 
@@ -29,6 +30,10 @@ public sealed class NpcBehaviorSystem
 {
     // Aggro radius when a behavior declares no perceptionDist/aggroDistance (world units, horizontal).
     private const float _defaultAggroRadius = 30f;
+
+    private const ulong _provokedDurationMs = 15000;
+
+    private const float _provokedLeashDistance = 250f;
 
     // Burst/rest fallbacks when the behavior declares no triggerPullTime (burst length) / fireRestDuration (rest).
     private const uint _defaultBurstMs = 1000;
@@ -71,6 +76,7 @@ public sealed class NpcBehaviorSystem
         _shard = shard;
         _logger = Log.Logger.ForContext<NpcBehaviorSystem>();
         _hostility = shard.Hostility;
+        shard.EventBus.Subscribe<EntityDamagedEvent>(OnEntityDamaged);
     }
 
     public void Tick(double deltaTimeMs, ulong currentTime, CancellationToken ct)
@@ -111,7 +117,7 @@ public sealed class NpcBehaviorSystem
             }
 
             var config = comp.Behavior;
-            var aggro = IsCombatCapable(config) ? FindAggroTarget(npc, ResolveAggroRadius(config)) : null;
+            var aggro = IsCombatCapable(config) ? FindAggroTarget(npc, comp, ResolveAggroRadius(config) * comp.AggroRangeMultiplier) : null;
 
             if (aggro != null)
             {
@@ -284,8 +290,16 @@ public sealed class NpcBehaviorSystem
             config.DefensiveResolved?.Name ?? "-");
     }
 
+    private void OnEntityDamaged(EntityDamagedEvent evt)
+    {
+        if (evt.Target is CharacterEntity { IsNpc: true, NpcMovement: { } comp } && evt.Source is CharacterEntity { IsNpc: false } attacker)
+        {
+            comp.Provoke(attacker.EntityId, _shard.CurrentTimeLong + _provokedDurationMs);
+        }
+    }
+
     // Nearest live player the NPC is allowed to attack, within the aggro radius.
-    private CharacterEntity? FindAggroTarget(CharacterEntity npc, float radius)
+    private CharacterEntity? FindAggroTarget(CharacterEntity npc, NpcMovementComponent comp, float radius)
     {
         CharacterEntity? best = null;
         var bestDist = float.MaxValue;
@@ -312,6 +326,15 @@ public sealed class NpcBehaviorSystem
                 bestDist = d;
                 best = player;
             }
+        }
+
+        if (best == null && comp.ProvokedBy != 0 && _shard.CurrentTimeLong < comp.ProvokedUntil
+            && _shard.Entities.TryGetValue(comp.ProvokedBy, out var provoker)
+            && provoker is CharacterEntity { IsNpc: false, IsAlive: true, NotTargetable: false } attacker
+            && _hostility.CanDamage(npc, attacker)
+            && HorizontalDistance(npc.Position, attacker.Position) <= _provokedLeashDistance)
+        {
+            best = attacker;
         }
 
         return best;

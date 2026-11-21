@@ -100,6 +100,12 @@ public sealed class NpcMovementComponent
     public float CombatMinDist { get; private set; }
     public bool HasCombat => CombatTargetId != 0;
 
+    public float AggroRangeMultiplier { get; set; } = 1f;
+
+    public ulong ProvokedBy { get; private set; }
+
+    public ulong ProvokedUntil { get; private set; }
+
     // Combat maneuvering. CombatHasLos is set by the behavior system each tick (whether the target is visible) and drives
     // strafe-vs-reposition. CombatFacing is the horizontal body-yaw direction the NPC faces while fighting; the movement
     // system re-points it at the target's live position every tick, so the body keeps turning to track the target even
@@ -278,6 +284,12 @@ public sealed class NpcMovementComponent
         CombatFacing = Vector3.Zero;
         CombatStrafeSide = 1;
         CombatManeuverTimer = 0f;
+    }
+
+    public void Provoke(ulong attackerId, ulong until)
+    {
+        ProvokedBy = attackerId;
+        ProvokedUntil = until;
     }
 
     /// <summary>Records whether the combat target is currently visible (set by the behavior system each tick).</summary>
