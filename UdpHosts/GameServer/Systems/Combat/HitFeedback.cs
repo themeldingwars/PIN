@@ -3,10 +3,8 @@ using AeroMessages.GSS;
 using AeroMessages.GSS.Character.Event;
 using GameServer.Entities;
 using GameServer.Entities.Character;
-using GameServer.Entities.Deployable;
 using GameServer.Protocol;
 using Serilog;
-using DeployableTookHit = AeroMessages.GSS.Deployable.Events.TookHit;
 
 namespace GameServer.Systems.Combat;
 
@@ -71,34 +69,22 @@ public class HitFeedback
 
         // Target Took Hit Feedback. ViewKickScale is the camera kick multiplier the client scales by
         // (value x 10 / 255); nothing drives it per hit yet, so it stays at none.
-        if (target is CharacterEntity)
+        if (target is CharacterEntity targetCharacter)
         {
-            _entityMan.SendToScoped(target,
-                new TookHit
-                {
-                    HaveDamage = 1,
-                    DamageData = damageData,
-                    DamageFlags = damageFlags,
-                    ShortTime = _shard.CurrentShortTime,
-                    ViewKickScale = 0,
-                });
-
-            if (target is CharacterEntity targetCharacter && targetCharacter.IsPlayerControlled)
+            if (targetCharacter.IsPlayerControlled)
             {
+                targetCharacter.Player.NetChannels[ChannelType.ReliableGss].SendMessage(
+                    new TookHit
+                    {
+                        HaveDamage = 1,
+                        DamageData = damageData,
+                        DamageFlags = damageFlags,
+                        ShortTime = _shard.CurrentShortTime,
+                        ViewKickScale = 0,
+                    },
+                    targetCharacter.EntityId);
                 _shard.SuperCharge.OnDamageTaken(targetCharacter, damage);
             }
-        }
-        else if (target is DeployableEntity)
-        {
-            // The deployable TookHit carries the same fields, and the client never reads its ViewKickScale.
-            _entityMan.SendToScoped(target,
-                new DeployableTookHit
-                {
-                    HaveDamage = 1,
-                    DamageData = damageData,
-                    DamageFlags = damageFlags,
-                    ShortTime = _shard.CurrentShortTime,
-                });
         }
     }
 }
