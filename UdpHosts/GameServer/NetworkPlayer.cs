@@ -136,19 +136,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         NetChannels[ChannelType.ReliableGss].SendChanges(baseController, CharacterEntity.EntityId);
 
         // A respawn starts a new life: no status effect, held ability or half-spent magazine from the old one
-        // carries over, and the frame's default abilities run again. This also keeps the jetpack effects below
-        // from stacking on every respawn.
+        // carries over, and the frame's default abilities run again.
         CharacterEntity.ResetCombatState("respawn");
-
-        // Hack to add in jetpack fx until we hook up item effects
-        CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(986), new Systems.Aptitude.Context(AssignedShard, CharacterEntity)
-        {
-            InitTime = AssignedShard.CurrentTime,
-        });
-        CharacterEntity.AddEffect(AssignedShard.Abilities.Factory.LoadEffect(472), new Systems.Aptitude.Context(AssignedShard, CharacterEntity)
-        {
-            InitTime = AssignedShard.CurrentTime,
-        });
 
         CharacterEntity.LogSpeedSnapshot("after respawn");
 
