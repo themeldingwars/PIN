@@ -553,8 +553,8 @@ public class Factory
                 return new LogicOrChainCommand(SDBInterface.GetLogicOrChainCommandDef(commandId));
             case CommandType.LogicAndChain:
                 return new LogicAndChainCommand(SDBInterface.GetLogicAndChainCommandDef(commandId));
-            // case CommandType.RegisterMovementEffect:
-            //     return new RegisterMovementEffectCommand(SDBInterface.GetRegisterMovementEffectCommandDef(commandId));
+            case CommandType.RegisterMovementEffect:
+                return new RegisterMovementEffectCommand(SDBInterface.GetRegisterMovementEffectCommandDef(commandId));
             case CommandType.AuthorizeTerminal:
                 return new AuthorizeTerminalCommand(CustomDBInterface.GetAuthorizeTerminalCommandDef(commandId));
             // case CommandType.TemporaryEquipmentStatMapping:

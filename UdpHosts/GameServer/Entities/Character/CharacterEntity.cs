@@ -61,6 +61,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
     private readonly AimSample[] _aimSamples = new AimSample[_maxAimSamples];
     private readonly Dictionary<AptitudeStat, ActiveStatModifier> _statOverrides = new();
+    private readonly List<MovementEffect> _movementEffects = [];
     private readonly Queue<PendingAbilityProjectile> _pendingAbilityProjectiles = new();
     private readonly List<(uint Time, Vector3 Aim, Vector3? Velocity)> _heldFires = [];
     private readonly HashSet<uint> _activatedDefaultAbilities = new();
@@ -1019,6 +1020,28 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return value;
     }
 
+    public void RegisterMovementEffect(uint statusEffectId, byte moveStateIndex, ushort flags, bool reapply)
+    {
+        var key = (ushort)((moveStateIndex << 12) | flags);
+        if (_movementEffects.Exists(effect => effect.StatusEffectId == statusEffectId && effect.Key == key && effect.Reapply == reapply))
+        {
+            return;
+        }
+
+        _movementEffects.Add(new MovementEffect(statusEffectId, key, (ushort)(0xF000 | flags), reapply));
+        UpdateMovementEffects();
+    }
+
+    public void UnregisterMovementEffect(uint statusEffectId, byte moveStateIndex, ushort flags, bool reapply)
+    {
+        var key = (ushort)((moveStateIndex << 12) | flags);
+        var index = _movementEffects.FindIndex(effect => effect.StatusEffectId == statusEffectId && effect.Key == key && effect.Reapply == reapply);
+        if (index >= 0)
+        {
+            _movementEffects.RemoveAt(index);
+        }
+    }
+
     public float GetPowerScaledItemStat(ushort id)
     {
         var value = GetItemStat(id);
@@ -1389,8 +1412,13 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     {
         Position = poseData.PosRotState.Pos;
         Orientation = poseData.PosRotState.Rot;
+        var previousMovementState = MovementState;
         MovementState = poseData.PosRotState.MovementState;
         Velocity = poseData.Velocity;
+        if (MovementState != previousMovementState)
+        {
+            UpdateMovementEffects();
+        }
 
         if ((poseData.MovementType & MovementDataType.Aim) != 0)
         {
@@ -2550,6 +2578,33 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         return levelBand is { Max: > 0 } ? levelBand.Max : byte.MaxValue;
     }
 
+    private void UpdateMovementEffects()
+    {
+        foreach (var effect in _movementEffects)
+        {
+            var matches = ((ushort)MovementState & effect.Mask) == effect.Key;
+            var hasEffect = GetActiveEffects().Exists(state => state?.Effect?.Id == effect.StatusEffectId);
+            if (matches && (!effect.Active || (effect.Reapply && !hasEffect)))
+            {
+                if (!hasEffect)
+                {
+                    Shard.Abilities.DoApplyEffect(effect.StatusEffectId, this, new Context(Shard, this) { InitTime = Shard.CurrentTime });
+                }
+
+                effect.Active = true;
+            }
+            else if (!matches && effect.Active)
+            {
+                if (hasEffect)
+                {
+                    Shard.Abilities.DoRemoveEffect(this, effect.StatusEffectId, Shard.CurrentTime);
+                }
+
+                effect.Active = false;
+            }
+        }
+    }
+
     private void RecalculateHealthAndWeaponDamage()
     {
         if (IsNpc)
@@ -3346,5 +3401,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         public bool IsEmpty => Weapon == null;
         public string DisplayName => Weapon?.DebugName ?? "(not a weapon)";
         public float Spread => WeaponProfile.OtherSpreadPct;
+    }
+
+    private sealed class MovementEffect(uint statusEffectId, ushort key, ushort mask, bool reapply)
+    {
+        public uint StatusEffectId { get; } = statusEffectId;
+        public ushort Key { get; } = key;
+        public ushort Mask { get; } = mask;
+        public bool Reapply { get; } = reapply;
+        public bool Active { get; set; }
     }
 }
