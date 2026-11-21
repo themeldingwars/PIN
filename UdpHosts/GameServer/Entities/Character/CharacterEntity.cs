@@ -1015,7 +1015,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
-    public void RefreshStatModifier(AptitudeStat stat)
+    public override void RefreshStatModifier(AptitudeStat stat)
     {
         if (Character_CombatController != null)
         {
@@ -1094,7 +1094,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
-    public float GetCurrentStatModifierValue(AptitudeStat stat)
+    public override float GetCurrentStatModifierValue(AptitudeStat stat)
     {
         float value;
         if (!BaseStatModifiers.TryGetValue(stat, out value))
@@ -1104,13 +1104,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
 
         // From status effect contexts
-        foreach (var effect in GetActiveEffects())
-        {
-            if (effect is { Context: { } ctx } && ctx.StatChangelist.TryGetValue(stat, out var mod))
-            {
-                value = FoldStatModifier(value, mod);
-            }
-        }
+        value = FoldEffectStatModifiers(stat, value);
 
         // From custom overrides
         if (_statOverrides.TryGetValue(stat, out var overrideMod))
@@ -2359,27 +2353,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private static Dictionary<MonsterVisualOptionType, List<uint>> GroupOptionsByType(IEnumerable<MonsterVisualOption> options)
         => options.GroupBy(o => (MonsterVisualOptionType)o.Type)
                     .ToDictionary(g => g.Key, g => g.Select(o => o.Value).ToList());
-
-    private static float FoldStatModifier(float value, ActiveStatModifier mod)
-    {
-        if (mod.HasCap)
-        {
-            if (mod.Cap > value)
-            {
-                value = (value * mod.Multi) + mod.Add;
-                if (value >= mod.Cap)
-                {
-                    value = mod.Cap;
-                }
-            }
-        }
-        else
-        {
-            value = (value * mod.Multi) + mod.Add;
-        }
-
-        return value;
-    }
 
     private static Vector3 CalculateProjectileOrigin(Vector3 position, Quaternion orientation, bool crouching, Vector3 aimDirection)
     {

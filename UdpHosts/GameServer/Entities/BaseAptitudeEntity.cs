@@ -3,6 +3,7 @@ using System.Linq;
 using AeroMessages.GSS;
 using AeroMessages.GSS.Character.Event;
 using GameServer.Entities.Character;
+using GameServer.Enums;
 using GameServer.Protocol;
 using GameServer.Systems.Aptitude;
 using GameServer.Systems.Aptitude.NamedVars;
@@ -140,6 +141,15 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
         LogEffectSlot(state.Effect, state, "cleared");
     }
 
+    public virtual float GetCurrentStatModifierValue(AptitudeStat stat)
+    {
+        return FoldEffectStatModifiers(stat, 1.0f);
+    }
+
+    public virtual void RefreshStatModifier(AptitudeStat stat)
+    {
+    }
+
     public abstract void SetStatusEffect(byte index, ushort time, StatusEffectData data);
     public abstract void ClearStatusEffect(byte index, ushort time, uint debugEffectId);
 
@@ -149,6 +159,40 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
     /// <param name="effect">The effect whose slot changed.</param>
     /// <param name="state">The state of the slot after the change.</param>
     /// <param name="what">What happened to the slot.</param>
+    protected static float FoldStatModifier(float value, ActiveStatModifier mod)
+    {
+        if (mod.HasCap)
+        {
+            if (mod.Cap > value)
+            {
+                value = (value * mod.Multi) + mod.Add;
+                if (value >= mod.Cap)
+                {
+                    value = mod.Cap;
+                }
+            }
+        }
+        else
+        {
+            value = (value * mod.Multi) + mod.Add;
+        }
+
+        return value;
+    }
+
+    protected float FoldEffectStatModifiers(AptitudeStat stat, float value)
+    {
+        foreach (var effect in GetActiveEffects())
+        {
+            if (effect is { Context: { } ctx } && ctx.StatChangelist.TryGetValue(stat, out var mod))
+            {
+                value = FoldStatModifier(value, mod);
+            }
+        }
+
+        return value;
+    }
+
     private void LogEffectSlot(Effect effect, EffectState state, string what)
     {
         var holdsStats = state.Context?.StatChangelist.Count > 0;

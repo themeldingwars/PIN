@@ -4,6 +4,7 @@ namespace GameServer.Systems.Aptitude;
 
 public class ActiveStatModifier
 {
+    public uint SourceId { get; set; }
     public AptitudeStat Stat { get; set; }
     public float Multi { get; set; } = 1.0f;
     public float Add { get; set; }

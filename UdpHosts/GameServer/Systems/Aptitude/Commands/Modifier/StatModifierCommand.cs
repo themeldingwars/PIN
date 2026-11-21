@@ -1,4 +1,4 @@
-using GameServer.Entities.Character;
+using GameServer.Entities;
 using GameServer.Enums;
 using GameServer.StaticDB.Records.aptfs;
 
@@ -27,46 +27,35 @@ public class StatModifierCommand : Command, ICommand
             Logger.Warning("{Command} {CommandId} has unhandled param Permanent", nameof(StatModifierCommand), Params.Id);
         }
 
-        if (context.Self is CharacterEntity)
-        {
-            context.Actives.Add(this, new StatModifierCommandActiveContext() { Register = context.Register });
-        }
-        else
-        {
-            Logger.Warning("{Command} {CommandId} does nothing because self is not a Character. Self is {sourceType}. If this is happening, we should investigate why.", nameof(StatModifierCommand), Params.Id, context.Self.GetType().Name);
-        }
-
-        result.SetPass();
-        return;
-    }
-
-    public void OnApply(Context context, ICommandActiveContext activeCommandContext)
-    {
-        var modifierContext = (StatModifierCommandActiveContext)activeCommandContext;
         var stat = (AptitudeStat)Params.Stat;
-        float value = AbilitySystem.RegistryOp(modifierContext.Register, Params.Value, (Operand)Params.ValueRegop);
-
+        float value = AbilitySystem.RegistryOp(context.Register, Params.Value, (Operand)Params.ValueRegop);
         var mod = BuildModifier(Params.Op, stat, value);
         if (mod == null)
         {
             Logger.Warning("{Command} {CommandId} has unsupported Op {Op}", nameof(StatModifierCommand), Params.Id, Params.Op);
+            result.SetFail(StatusCode.Error);
             return;
         }
 
+        mod.SourceId = Params.Id;
         context.StatChangelist[stat] = mod;
+        (context.Self as BaseAptitudeEntity)?.RefreshStatModifier(stat);
 
-        if (context.Self is CharacterEntity character)
-        {
-            character.RefreshStatModifier(stat);
-        }
+        result.SetPass();
     }
 
-    public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
+    public override void Reset(Context context)
     {
-        var stat = (AptitudeStat)Params.Stat;
-        if (context.StatChangelist.Remove(stat) && context.Self is CharacterEntity character)
+        if (Params.Stat > 0x39)
         {
-            character.RefreshStatModifier(stat);
+            return;
+        }
+
+        var stat = (AptitudeStat)Params.Stat;
+        if (context.StatChangelist.TryGetValue(stat, out var mod) && mod.SourceId == Params.Id)
+        {
+            context.StatChangelist.Remove(stat);
+            (context.Self as BaseAptitudeEntity)?.RefreshStatModifier(stat);
         }
     }
 
@@ -83,9 +72,4 @@ public class StatModifierCommand : Command, ICommand
             _ => null,
         };
     }
-}
-
-public class StatModifierCommandActiveContext : ICommandActiveContext
-{
-    public float Register { get; set; }
 }
