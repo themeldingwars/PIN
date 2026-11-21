@@ -633,9 +633,19 @@ public partial class PhysicsEngine
         return handler.Hit ? origin.Z - handler.T : null;
     }
 
-    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, float impactRadius, float damage, byte damageType, bool isAbilityProjectile = false)
+    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, float impactRadius, float damage, byte damageType, bool isAbilityProjectile = false, bool dealDamage = true)
     {
         DebugProjectileHitCallbacks?.SendDebugProjectileImpact(source, trace, hit.HitPosition, hit.Normal);
+
+        if (!dealDamage)
+        {
+            if (hit.HitEntityId != 0)
+            {
+                TryEmitDirectHit(source, trace, hit.Collidable, hit.ChildIndex, hit.HitPosition, hit.HitEntityId, 0, damageType, isAbilityProjectile, dealDamage: false);
+            }
+
+            return;
+        }
 
         int damageAmount = Math.Max(0, (int)MathF.Round(damage));
         if (damageAmount <= 0)
@@ -1059,7 +1069,7 @@ public partial class PhysicsEngine
         Simulation.Bodies.Remove(bodyHandle);
     }
 
-    private bool TryEmitDirectHit(CharacterEntity source, uint trace, CollidableReference collidable, int childIndex, Vector3 hitPosition, ulong hitEntityId, int damageAmount, byte damageType, bool isAbilityProjectile)
+    private bool TryEmitDirectHit(CharacterEntity source, uint trace, CollidableReference collidable, int childIndex, Vector3 hitPosition, ulong hitEntityId, int damageAmount, byte damageType, bool isAbilityProjectile, bool dealDamage = true)
     {
         AssertSimulationThread();
 
@@ -1090,6 +1100,11 @@ public partial class PhysicsEngine
         var damageMod = poseShapeData.DamageMod;
 
         _logger.Debug("ProjectileSim Impact on {ShapeName} (headshot={Headshot}, crit={Crit}, damageMod={DamageMod})", poseShapeData.Name, headshot, crit, damageMod);
+        if (!dealDamage)
+        {
+            return true;
+        }
+
         _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, damageAmount, source.EntityId, headshot, crit, damageType, damageMod, isAbilityProjectile));
         return true;
     }

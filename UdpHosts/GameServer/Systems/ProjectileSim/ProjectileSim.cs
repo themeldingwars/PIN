@@ -199,7 +199,7 @@ public class ProjectileSim
                             SendProjectileHitReported(shooter, projectile.TraceId, (uint)currentTime);
                         }
 
-                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.ImpactRadius, projectile.Damage, projectile.DamageType, projectile.IsAbilityProjectile);
+                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.ImpactRadius, projectile.Damage, projectile.DamageType, projectile.IsAbilityProjectile, dealDamage: projectile.Ammo.AbilityId == 0);
 
                         if (projectile.Ammo.AbilityId != 0)
                         {
