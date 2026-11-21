@@ -126,17 +126,7 @@ public class SDBUtils
 
         var gradients = new List<uint>();
         var palettes = new List<VisualsPaletteBlock>();
-        var colors = new uint[7]
-        {
-            // Temp? Not sure but there should probably be a base color
-            4278190080,
-            4278190080,
-            4278190080,
-            4278190080,
-            4278190080,
-            4278190080,
-            4278190080
-        };
+        var colors = new uint[7];
 
         foreach (var data in input)
         {
@@ -183,15 +173,16 @@ public class SDBUtils
             // Bodysuit
             if ((data.TypeFlags & BodysuitPaletteBit) != 0)
             {
-                colors[3] = paletteColors[3];
-                colors[4] = paletteColors[4];
+                bool slotOnly = (data.TypeFlags & FullbodyPaletteBit) == 0;
+                colors[3] = slotOnly ? paletteColors[0] : paletteColors[3];
+                colors[4] = slotOnly ? paletteColors[1] : paletteColors[4];
             }
 
             // Glow
             if ((data.TypeFlags & GlowPaletteBit) != 0)
             {
-                colors[5] = paletteColors[5];
-                colors[6] = paletteColors[6];
+                colors[5] = paletteColors[0];
+                colors[6] = paletteColors[1];
             }
 
             // Gradient
