@@ -24,7 +24,7 @@ public class RequireLevelCommand : Command, ICommand
         {
             if (Params.FrameLevel == 1)
             {
-                cmdResult = character.Character_BaseController.LevelProp >= Params.Level;
+                cmdResult = character.Level >= Params.Level;
             }
             else if (Params.SessionLevel == 1)
             {

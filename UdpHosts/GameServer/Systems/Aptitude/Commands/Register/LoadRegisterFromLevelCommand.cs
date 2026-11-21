@@ -26,7 +26,7 @@ public class LoadRegisterFromLevelCommand : Command, ICommand
 
             context.Register = AbilitySystem.RegistryOp(
                 context.Register,
-                initiator.Character_BaseController.LevelProp,
+                initiator.Level,
                 (Operand)Params.Regop);
 
             result.SetPass();
@@ -41,7 +41,7 @@ public class LoadRegisterFromLevelCommand : Command, ICommand
 
         context.Register = AbilitySystem.RegistryOp(
             context.Register,
-            character.Character_BaseController.LevelProp,
+            character.Level,
             (Operand)Params.Regop);
 
         result.SetPass();
