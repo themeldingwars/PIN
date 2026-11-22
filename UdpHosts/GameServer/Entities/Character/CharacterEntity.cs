@@ -77,6 +77,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         : base(shard, eid, owner)
     {
         AeroEntityId = new EntityId() { Backing = EntityId, ControllerId = Controller.Character };
+        CurrentPermissions = new(BasePermissions);
 
         InitFields();
         InitViews();
@@ -134,7 +135,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public bool IsAttached { get => AttachedToEntity != null; }
     public bool IsAlive { get => CharacterState.State.Equals(CharacterStateData.CharacterStatus.Living); }
 
-    public Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> CurrentPermissions { get; set; } = new Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool>()
+    public Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> BasePermissions { get; } = new Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool>()
     {
         { PermissionFlagsData.CharacterPermissionFlags.movement, true },
         { PermissionFlagsData.CharacterPermissionFlags.sprint, true },
@@ -148,7 +149,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         { PermissionFlagsData.CharacterPermissionFlags.cheat_jump_midair, false },
         { PermissionFlagsData.CharacterPermissionFlags.glider, false },
         { PermissionFlagsData.CharacterPermissionFlags.unk_11, false },
-        { PermissionFlagsData.CharacterPermissionFlags.jetpack, true },
+        { PermissionFlagsData.CharacterPermissionFlags.jetpack, false },
         { PermissionFlagsData.CharacterPermissionFlags.map, true },
         { PermissionFlagsData.CharacterPermissionFlags.unk_14, true },
         { PermissionFlagsData.CharacterPermissionFlags.spectate_input, true },
@@ -169,6 +170,10 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         { PermissionFlagsData.CharacterPermissionFlags.battleframe_abilities, true },
         { PermissionFlagsData.CharacterPermissionFlags.unk_31, true },
     };
+
+    public Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> CurrentPermissions { get; }
+
+    private readonly Dictionary<PermissionFlagsData.CharacterPermissionFlags, Dictionary<(Context Source, uint CommandId), bool>> _permissionLayers = [];
 
     public ulong CurrentPermissionsValue => GetCurrentPermissionsValue();
     public float GetMass => NpcSpeedCalculator.BodyMass(StaticInfo.CharacterTypeId, CurrentLoadout?.ChassisID ?? 0u);
@@ -1513,6 +1518,48 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
     public void SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags flag, bool value)
     {
+        BasePermissions[flag] = value;
+        UpdatePermission(flag);
+    }
+
+    public void AddPermissionLayer(PermissionFlagsData.CharacterPermissionFlags flag, Context source, uint commandId, bool value)
+    {
+        if (!_permissionLayers.TryGetValue(flag, out var layers))
+        {
+            layers = [];
+            _permissionLayers[flag] = layers;
+        }
+
+        layers[(source, commandId)] = value;
+        UpdatePermission(flag);
+    }
+
+    public void RemovePermissionLayer(PermissionFlagsData.CharacterPermissionFlags flag, Context source, uint commandId)
+    {
+        if (_permissionLayers.TryGetValue(flag, out var layers) && layers.Remove((source, commandId)))
+        {
+            UpdatePermission(flag);
+        }
+    }
+
+    private bool ResolvePermission(PermissionFlagsData.CharacterPermissionFlags flag)
+    {
+        if (_permissionLayers.TryGetValue(flag, out var layers) && layers.Count > 0)
+        {
+            return !layers.ContainsValue(false);
+        }
+
+        return BasePermissions.TryGetValue(flag, out var value) && value;
+    }
+
+    private void UpdatePermission(PermissionFlagsData.CharacterPermissionFlags flag)
+    {
+        var value = ResolvePermission(flag);
+        if (CurrentPermissions.TryGetValue(flag, out var current) && current == value)
+        {
+            return;
+        }
+
         CurrentPermissions[flag] = value;
         PermissionFlags = new PermissionFlagsData
         {

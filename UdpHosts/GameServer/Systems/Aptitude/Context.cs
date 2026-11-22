@@ -90,7 +90,9 @@ public class Context
     public Guid ExecutionId { get; set; }
     public CommandResult PreviousResult { get; set; }
 
-    public Dictionary<ICommand, ICommandActiveContext> Actives { get; set; } = [];
+    public Dictionary<uint, object> CommandState { get; } = [];
+
+    public byte? PreviousWeaponIndex { get; set; }
 
     public ResetFlags ResetFlags { get; set; }
     public uint? ProcessBase { get; set; }

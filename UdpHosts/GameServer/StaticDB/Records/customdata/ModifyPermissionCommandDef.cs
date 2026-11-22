@@ -2,6 +2,8 @@ namespace GameServer.StaticDB.Records.customdata;
 public record class ModifyPermissionCommandDef : ICommandDef
 {
     public uint Id { get; set; }
+    public bool? Weapon { get; set; }
+    public bool? Abilities { get; set; }
     public bool? Glider { get; set; }
     public bool? GliderHud { get; set; }
     public bool? Hover { get; set; }

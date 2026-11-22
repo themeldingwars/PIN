@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AeroMessages.GSS.Character.Controller;
 using GameServer.Entities.Character;
 using GameServer.StaticDB.Records.customdata;
@@ -17,31 +18,12 @@ public class ModifyPermissionCommand : Command, ICommand
     public override void Execute(Context context, ref CommandResult result)
     {
         var target = context.Self; // NOTE: Based on glider, it seems like it should use self, maybe that is reasonable for all 'active' style commands?
-        if (target is CharacterEntity)
+        if (target is CharacterEntity character)
         {
-            if (Params.Glider != null)
+            context.CommandState[Id] = null;
+            foreach (var (flag, value) in Flags())
             {
-                context.Actives.Add(this, null);
-            }
-
-            if (Params.GliderHud != null)
-            {
-                context.Actives.Add(this, null);
-            }
-
-            /*if (Params.Hover != null)
-            {
-                context.Actives.Add(this, null);
-            }*/
-
-            if (Params.Jetpack != null)
-            {
-                context.Actives.Add(this, null);
-            }
-
-            if (Params.GenerateSupercharge != null)
-            {
-                context.Actives.Add(this, null);
+                character.AddPermissionLayer(flag, context, Id, value);
             }
         }
 
@@ -51,70 +33,50 @@ public class ModifyPermissionCommand : Command, ICommand
 
     public override void Reset(Context context)
     {
-        return;
-    }
-
-    public void OnApply(Context context, ICommandActiveContext activeCommandContext)
-    {
-        var target = context.Self;
-        if (target is CharacterEntity character)
+        if (context.CommandState.Remove(Id) && context.Self is CharacterEntity character)
         {
-            if (Params.Glider != null)
+            foreach (var (flag, _) in Flags())
             {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.glider, (bool)Params.Glider);
-            }
-
-            if (Params.GliderHud != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.glider_hud, (bool)Params.GliderHud);
-            }
-
-            /*if (Params.Hover != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.unk, (bool)Params.Hover);
-            }*/
-
-            if (Params.Jetpack != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.jetpack, (bool)Params.Jetpack);
-            }
-
-            if (Params.GenerateSupercharge != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.unk_21, (bool)Params.GenerateSupercharge);
+                character.RemovePermissionLayer(flag, context, Id);
             }
         }
     }
 
-    public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
+    private IEnumerable<(PermissionFlagsData.CharacterPermissionFlags Flag, bool Value)> Flags()
     {
-        var target = context.Self;
-        if (target is CharacterEntity character)
+        if (Params.Weapon is { } weapon)
         {
-            if (Params.Glider != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.glider, (bool)!Params.Glider);
-            }
+            yield return (PermissionFlagsData.CharacterPermissionFlags.weapon, weapon);
+        }
 
-            if (Params.GliderHud != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.glider_hud, (bool)!Params.GliderHud);
-            }
+        if (Params.Abilities is { } abilities)
+        {
+            yield return (PermissionFlagsData.CharacterPermissionFlags.abilities, abilities);
+        }
 
-            /*if (Params.Hover != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.unk, (bool)!Params.Hover);
-            }*/
+        if (Params.Glider is { } glider)
+        {
+            yield return (PermissionFlagsData.CharacterPermissionFlags.glider, glider);
+        }
 
-            if (Params.Jetpack != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.jetpack, (bool)!Params.Jetpack);
-            }
+        if (Params.GliderHud is { } gliderHud)
+        {
+            yield return (PermissionFlagsData.CharacterPermissionFlags.glider_hud, gliderHud);
+        }
 
-            if (Params.GenerateSupercharge != null)
-            {
-                character.SetPermissionFlag(PermissionFlagsData.CharacterPermissionFlags.unk_21, (bool)!Params.GenerateSupercharge);
-            }
+        /*if (Params.Hover is { } hover)
+        {
+            yield return (PermissionFlagsData.CharacterPermissionFlags.unk, hover);
+        }*/
+
+        if (Params.Jetpack is { } jetpack)
+        {
+            yield return (PermissionFlagsData.CharacterPermissionFlags.jetpack, jetpack);
+        }
+
+        if (Params.GenerateSupercharge is { } generateSupercharge)
+        {
+            yield return (PermissionFlagsData.CharacterPermissionFlags.unk_21, generateSupercharge);
         }
     }
 }

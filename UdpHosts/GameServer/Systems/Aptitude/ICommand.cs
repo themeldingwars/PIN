@@ -8,7 +8,7 @@ public interface ICommand
 
     public void Execute(Context context, ref CommandResult result);
 
-    public virtual void Func1(Context context, ref CommandResult result)
+    public virtual void Test(Context context, ref CommandResult result)
     {
         result.SetPass(StatusCode.None);
     }
@@ -18,7 +18,7 @@ public interface ICommand
         return;
     }
 
-    public virtual void Func3(Context context)
+    public virtual void Cooldown(Context context)
     {
         return;
     }
@@ -26,15 +26,5 @@ public interface ICommand
     public virtual void Slot(Context context)
     {
         return;
-    }
-
-    // TODO: to be replaced with more gamelike behavior
-    public virtual void OnApply(Context context, ICommandActiveContext activeCommandContext)
-    {
-    }
-
-    // TODO: to be replaced with more gamelike behavior
-    public virtual void OnRemove(Context context, ICommandActiveContext activeCommandContext)
-    {
     }
 }

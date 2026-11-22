@@ -164,13 +164,6 @@ public class AbilitySystem
             applyContext.PreviousResult = applyResult;
         }
 
-        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", applyContext.ExecutionId);
-        foreach (var pair in applyContext.Actives)
-        {
-            ICommand activeCommand = pair.Key;
-            activeCommand.OnApply(applyContext, pair.Value);
-        }
-
         if (wasAlreadyActive)
         {
             _logger.Debug(
@@ -218,13 +211,6 @@ public class AbilitySystem
         }
 
         (context.Self as BaseAptitudeEntity)?.RemovedEffects.Add(activeEffect);
-
-        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", activeEffect.Context.ExecutionId);
-        foreach (var pair in activeEffect.Context.Actives)
-        {
-            ICommand activeCommand = pair.Key;
-            activeCommand.OnRemove(activeEffect.Context, pair.Value);
-        }
     }
 
     public void DoRemoveEffect(IAptitudeTarget entity, uint effectId, uint time)

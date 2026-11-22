@@ -21,17 +21,21 @@ public class OrientationLockCommand : Command, ICommand
 
         if (target is CharacterEntity)
         {
-            context.Actives.Add(this, null);
+            context.CommandState[Id] = null;
         }
 
         result.SetPass();
         return;
     }
 
-    public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
+    public override void Reset(Context context)
     {
-        var target = context.Self;
-        if (target is CharacterEntity { IsPlayerControlled: true } character)
+        if (!context.CommandState.Remove(Id))
+        {
+            return;
+        }
+
+        if (context.Self is CharacterEntity { IsPlayerControlled: true } character && Params.Duration == 0)
         {
             Logger.Information("{Command} Sending ForcedMovementCancelled {CommandId}", nameof(OrientationLockCommand), Params.Id);
             var player = character.Player;

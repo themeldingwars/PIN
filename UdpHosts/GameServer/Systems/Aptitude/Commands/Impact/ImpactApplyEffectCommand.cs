@@ -92,10 +92,7 @@ public class ImpactApplyEffectCommand : Command, ICommand
         {
             if (Params.RemoveOnRollback == 1)
             {
-                context.Actives.Add(this, new RemoveOnRollbackCommandActiveContext()
-                {
-                    Targets = new(context.Self)
-                });
+                context.CommandState[Id] = new AptitudeTargets(context.Self);
             }
 
             context.Abilities.DoApplyEffect(Params.EffectId, context.Self, effectContext);
@@ -104,10 +101,7 @@ public class ImpactApplyEffectCommand : Command, ICommand
         {
             if (Params.RemoveOnRollback == 1)
             {
-                context.Actives.Add(this, new RemoveOnRollbackCommandActiveContext()
-                {
-                    Targets = context.Targets
-                });
+                context.CommandState[Id] = new AptitudeTargets(context.Targets);
             }
 
             foreach (IAptitudeTarget target in context.Targets)
@@ -120,18 +114,17 @@ public class ImpactApplyEffectCommand : Command, ICommand
         return;
     }
 
-    public void OnRemove(Context context, ICommandActiveContext activeCommandContext)
+    public override void Reset(Context context)
     {
-        var rollbackContext = (RemoveOnRollbackCommandActiveContext)activeCommandContext;
-        foreach (IAptitudeTarget target in rollbackContext.Targets)
+        if (!context.CommandState.Remove(Id, out var state) || state is not AptitudeTargets targets)
+        {
+            return;
+        }
+
+        foreach (IAptitudeTarget target in targets)
         {
             Logger.Information("RemoveOnRollback of {Command} {CommandId} triggers removal of {EffectId}", nameof(ImpactApplyEffectCommand), Params.Id, Params.EffectId);
             context.Abilities.DoRemoveEffect(target, Params.EffectId, context.CurrentTime);
         }
     }
-}
-
-public class RemoveOnRollbackCommandActiveContext : ICommandActiveContext
-{
-    public AptitudeTargets Targets { get; set; }
 }
