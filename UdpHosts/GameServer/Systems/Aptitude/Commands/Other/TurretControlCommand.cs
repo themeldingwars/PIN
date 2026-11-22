@@ -40,15 +40,22 @@ public class TurretControlCommand : Command, ICommand
             return;
         }
 
-        if (turret.IsNpcControlled && turret.NpcGunner != gunner)
+        if ((turret.IsNpcControlled && turret.NpcGunner != gunner) || (turret.IsPlayerControlled && turret.ControllingPlayer != gunner.Player))
         {
-            Logger.Warning("{Command} {CommandId} tried to give {Turret} to {Gunner}, but it is already driven by {Existing}", nameof(TurretControlCommand), Params.Id, turret, gunner, turret.NpcGunner);
+            Logger.Warning("{Command} {CommandId} tried to give {Turret} to {Gunner}, but it is already driven by {Existing}", nameof(TurretControlCommand), Params.Id, turret, gunner, (object)turret.NpcGunner ?? turret.ControllingPlayer);
             result.SetFail();
             return;
         }
 
         gunner.TurretControlledBy = turret;
-        turret.SetNpcGunner(gunner);
+        if (gunner is { IsPlayerControlled: true, Player: { } player })
+        {
+            turret.SetControllingPlayer(player);
+        }
+        else
+        {
+            turret.SetNpcGunner(gunner);
+        }
 
         Logger.Debug("{Command} {CommandId} bound {Gunner} to {Turret}", nameof(TurretControlCommand), Params.Id, gunner, turret);
         result.SetPass();
@@ -59,6 +66,15 @@ public class TurretControlCommand : Command, ICommand
         if (turret != null && turret.NpcGunner == gunner)
         {
             turret.SetNpcGunner(null);
+        }
+
+        if (turret != null && gunner.Player != null && turret.ControllingPlayer == gunner.Player)
+        {
+            turret.SetControllingPlayer(null);
+            if (gunner.AttachedToEntity == turret)
+            {
+                gunner.ClearAttachedTo();
+            }
         }
 
         gunner.TurretControlledBy = null;

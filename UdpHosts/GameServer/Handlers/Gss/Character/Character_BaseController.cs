@@ -411,6 +411,11 @@ public static class Character_BaseController
             {
                 turret.SetControllingPlayer(null);
             }
+
+            if (character.TurretControlledBy == turret)
+            {
+                character.TurretControlledBy = null;
+            }
         }
 
         character.ClearAttachedTo();
