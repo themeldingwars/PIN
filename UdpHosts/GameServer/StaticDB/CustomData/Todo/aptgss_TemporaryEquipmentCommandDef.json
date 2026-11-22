@@ -1402,7 +1402,9 @@
   },
   {
     "id": 1553833,
-    "comment": ""
+    "comment": "Effect 12907, picking up Generator Repair Parts (carryable 198) in Defense of Dredge. Replay: primary becomes 139559 Generator Repair Parts Carrying Weapon, secondary empty",
+    "primary_item_id": 139559,
+    "secondary_item_id": 0
   },
   {
     "id": 1553837,

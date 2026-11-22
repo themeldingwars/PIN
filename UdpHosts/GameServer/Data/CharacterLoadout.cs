@@ -259,6 +259,19 @@ public class CharacterLoadout
 
     public uint[] GetSlotModules(LoadoutSlotType slot) => SlotModules.GetValueOrDefault(slot) ?? [];
 
+    public CharacterLoadout WithWeapons(uint primary, uint secondary)
+    {
+        var copy = (CharacterLoadout)MemberwiseClone();
+        copy.SlottedItems = new(SlottedItems);
+        copy.SlotModules = new(SlotModules);
+        copy.ItemAttributes = new(ItemAttributes);
+        copy.LevelCategoryScalars = new(LevelCategoryScalars);
+        copy.ItemCharacterScalars = new(ItemCharacterScalars);
+        copy.SetSlot(LoadoutSlotType.Primary, primary);
+        copy.SetSlot(LoadoutSlotType.Secondary, secondary);
+        return copy;
+    }
+
     public VisualsBlock GetChassisVisuals()
     {
         return new VisualsBlock

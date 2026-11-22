@@ -419,8 +419,8 @@ public class Factory
                 return new TeleportCommand(CustomDBInterface.GetTeleportCommandDef(commandId));
             // case CommandType.TargetFromStatusEffect:
             //     return new TargetFromStatusEffectCommand(SDBInterface.GetTargetFromStatusEffectCommandDef(commandId));
-            // case CommandType.TemporaryEquipment:
-            //     return new TemporaryEquipmentCommand(CustomDBInterface.GetTemporaryEquipmentCommandDef(commandId));
+            case CommandType.TemporaryEquipment:
+                return new TemporaryEquipmentCommand(CustomDBInterface.GetTemporaryEquipmentCommandDef(commandId));
             // case CommandType.RequireDamageResponse:
             //     return new RequireDamageResponseCommand(SDBInterface.GetRequireDamageResponseCommandDef(commandId));
             case CommandType.TargetByDamageResponse:
