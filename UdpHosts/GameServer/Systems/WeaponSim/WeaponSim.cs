@@ -585,6 +585,11 @@ public class WeaponSim
 
         // Ammo
         var ammo = SDBInterface.GetAmmo(weapon.AmmoId); // TODO: Handle ammo overrides
+        if (ammo == null)
+        {
+            _logger.Debug("[FireSim] {Weapon} has no ammo {AmmoId}, the shot of {Entity} is skipped", weapon.DebugName, weapon.AmmoId, entity);
+            return;
+        }
 
         // Ammo stat properties: stat ID from ammo points to weapon attribute to use
         float projectileSpeed = ammo.ProjectileSpeed;
