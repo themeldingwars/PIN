@@ -571,6 +571,23 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             string.Join(", ", skipped));
     }
 
+    public bool IsInCombat()
+    {
+        if (IsNpc)
+        {
+            return NpcMovement is { HasCombat: true };
+        }
+
+        if (Character_CombatController == null || !CurrentPermissions.GetValueOrDefault(PermissionFlagsData.CharacterPermissionFlags.unk_31))
+        {
+            return false;
+        }
+
+        var timeout = (uint)SDBInterface.GetConsoleVariableFloat("combat.timeout", 10000f);
+        var since = unchecked((int)(Shard.CurrentTime - Character_CombatController.CombatTimer_0Prop));
+        return (since < 0 || (uint)since < timeout) || Character_CombatController.CombatTimer_1Prop > 0;
+    }
+
     public void MarkInCombat()
     {
         if (Character_CombatController != null)

@@ -645,8 +645,8 @@ public class Factory
             //     return new DropAllCarryableCommand(CustomDBInterface.GetDropAllCarryableCommandDef(commandId));
             // case CommandType.RemoteAbilityCall:
             //     return new RemoteAbilityCallCommand(CustomDBInterface.GetRemoteAbilityCallCommandDef(commandId));
-            // case CommandType.RequireInCombat:
-            //     return new RequireInCombatCommand(SDBInterface.GetRequireInCombatCommandDef(commandId));
+            case CommandType.RequireInCombat:
+                return new RequireInCombatCommand(SDBInterface.GetRequireInCombatCommandDef(commandId));
             // case CommandType.RequireHasItem:
             //     return new RequireHasItemCommand(SDBInterface.GetRequireHasItemCommandDef(commandId));
             // case CommandType.MountVehicle:
