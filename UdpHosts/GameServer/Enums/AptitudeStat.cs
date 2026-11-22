@@ -50,7 +50,7 @@ public enum AptitudeStat : ushort
     Unknown_35 = 35,
     Unknown_36 = 36,
     Unknown_37 = 37,
-    Unknown_38 = 38,
+    HealthRegen = 38,
     Unknown_39 = 39,
     Unknown_40 = 40, // appears in effect 12728 together with ApplySinCard
     Unknown_41 = 41,

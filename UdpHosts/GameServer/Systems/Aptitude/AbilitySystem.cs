@@ -109,6 +109,7 @@ public class AbilitySystem
         if (entity is CharacterEntity character)
         {
             character.RerunDefaultAbilities(now);
+            character.TickHealthRegen(now);
         }
 
         if (entity is BaseAptitudeEntity aptitudeEntity)

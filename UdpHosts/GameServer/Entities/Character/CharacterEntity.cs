@@ -66,6 +66,9 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private readonly List<(uint Time, Vector3 Aim, Vector3? Velocity)> _heldFires = [];
     private readonly Dictionary<uint, Context> _activatedDefaultAbilities = new();
     private readonly HashSet<uint> _monsterDefaultAbilities = new();
+    private const uint HealthRegenIntervalMs = 1000;
+    private uint? _nextHealthRegenAt;
+    private float _healthRegenRemainder;
     private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
     private int _movementSampleCount;
     private int _movementSampleNewest;
@@ -297,6 +300,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public Dictionary<AptitudeStat, float> BaseStatModifiers { get; set; } = new()
     {
         { AptitudeStat.Speed,         1.0f },
+        { AptitudeStat.HealthRegen,   1.0f },
         { AptitudeStat.FireRateModifier,     1.0f },
         { AptitudeStat.ForwardSpeed,      1.0f },
         { AptitudeStat.JumpHeight,       1.0f },
@@ -565,6 +569,49 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             coreAbilityGroupId,
             skipped.Count,
             string.Join(", ", skipped));
+    }
+
+    public void TickHealthRegen(uint now)
+    {
+        if (!IsPlayerControlled || !IsAlive || CurrentLoadout == null)
+        {
+            _nextHealthRegenAt = null;
+            _healthRegenRemainder = 0;
+            return;
+        }
+
+        if (_nextHealthRegenAt is not { } due)
+        {
+            _nextHealthRegenAt = unchecked(now + HealthRegenIntervalMs);
+            return;
+        }
+
+        if (unchecked((int)(now - due)) < 0)
+        {
+            return;
+        }
+
+        _nextHealthRegenAt = unchecked((int)(now - due)) >= HealthRegenIntervalMs ? unchecked(now + HealthRegenIntervalMs) : unchecked(due + HealthRegenIntervalMs);
+
+        if (CurrentHealth >= MaxHealth.Value)
+        {
+            _healthRegenRemainder = 0;
+            return;
+        }
+
+        var perSecond = CurrentLoadout.ItemAttributes.GetValueOrDefault((ushort)ItemAttributeId.HealthRegen) * GetCurrentStatModifierValue(AptitudeStat.HealthRegen);
+        if (perSecond <= 0)
+        {
+            return;
+        }
+
+        var amount = perSecond + _healthRegenRemainder;
+        var whole = (int)amount;
+        _healthRegenRemainder = amount - whole;
+        if (whole > 0)
+        {
+            SetCurrentHealth(CurrentHealth + whole);
+        }
     }
 
     public void RerunDefaultAbilities(uint now)
