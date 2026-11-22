@@ -20,11 +20,16 @@ namespace GameServer;
 
 public class NetworkPlayer : NetworkClient, INetworkPlayer
 {
+    private const uint SpawnAfterLoadFallbackMs = 90000;
+
     private static readonly PersonalFactionStance DefaultPlayerFactionStance = new(new PersonalFactionStanceData
     {
         Friendly = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = [0x09, 0x0e, 0x5d, 0xff, 0x5f, 0x08, 0x00, 0x00] },
         Hostile = new PersonalFactionStanceBitfield { NumFactions = 50, Bitfield = [0xf2, 0x00, 0x20, 0x00, 0x00, 0xf2, 0x00, 0x00] },
     });
+
+    private uint? _awaitingSpawnSince;
+    private bool _streamingComplete;
 
     public NetworkPlayer(IPEndPoint endPoint, uint socketId, ILogger logger)
         : base(endPoint, socketId, logger)
@@ -44,9 +49,6 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public uint LastRequestedUpdate { get; set; }
     public uint RequestedClientTime { get; set; }
     public bool FirstUpdateRequested { get; set; }
-    private const uint SpawnAfterLoadFallbackMs = 90000;
-    private uint? _awaitingSpawnSince;
-    private bool _streamingComplete;
     public ulong SteamUserId { get; set; }
     public bool OwnCharacterViewsRequested { get; set; }
     public CharacterInventory Inventory { get; set; }
@@ -173,24 +175,6 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     {
         _awaitingSpawnSince = AssignedShard.CurrentTime;
         TrySpawnAfterLoad("the client finished streaming");
-    }
-
-    private void TrySpawnAfterLoad(string reason)
-    {
-        if (_awaitingSpawnSince is not { } since)
-        {
-            return;
-        }
-
-        var waited = unchecked(AssignedShard.CurrentTime - since);
-        if (!_streamingComplete && waited < SpawnAfterLoadFallbackMs)
-        {
-            return;
-        }
-
-        _awaitingSpawnSince = null;
-        Logger.Information("Spawning {Character} after {Waited} ms because {Reason}", CharacterEntity, waited, _streamingComplete ? reason : "the client never reported streaming complete");
-        Respawn();
     }
 
     public void RequestRevive(INetworkPlayer reviver)
@@ -329,6 +313,24 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         NetChannels[ChannelType.Matrix].SendMessage(msg);
 
         Status = IPlayer.PlayerStatus.Loading;
+    }
+
+    private void TrySpawnAfterLoad(string reason)
+    {
+        if (_awaitingSpawnSince is not { } since)
+        {
+            return;
+        }
+
+        var waited = unchecked(AssignedShard.CurrentTime - since);
+        if (!_streamingComplete && waited < SpawnAfterLoadFallbackMs)
+        {
+            return;
+        }
+
+        _awaitingSpawnSince = null;
+        Logger.Information("Spawning {Character} after {Waited} ms because {Reason}", CharacterEntity, waited, _streamingComplete ? reason : "the client never reported streaming complete");
+        Respawn();
     }
 
     private uint ClosestOutpostId(Zone zone)

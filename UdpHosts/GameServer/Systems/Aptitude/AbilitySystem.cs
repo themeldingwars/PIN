@@ -77,6 +77,18 @@ public class AbilitySystem
         }
     }
 
+    public static bool IsActive(EffectState state)
+    {
+        var self = state?.Context?.Self;
+        if (self == null)
+        {
+            return false;
+        }
+
+        var active = self.GetActiveEffects();
+        return state.Index < active.Count && ReferenceEquals(active[state.Index], state);
+    }
+
     public void Tick(double deltaTime, ulong currentTime, CancellationToken ct)
     {
         if (currentTime > _lastUpdate + _updateIntervalMs)
@@ -223,18 +235,6 @@ public class AbilitySystem
                 DoRemoveEffect(activeEffect, time);
             }
         }
-    }
-
-    public static bool IsActive(EffectState state)
-    {
-        var self = state?.Context?.Self;
-        if (self == null)
-        {
-            return false;
-        }
-
-        var active = self.GetActiveEffects();
-        return state.Index < active.Count && ReferenceEquals(active[state.Index], state);
     }
 
     public void ResetAbility(Context context, uint chainId)

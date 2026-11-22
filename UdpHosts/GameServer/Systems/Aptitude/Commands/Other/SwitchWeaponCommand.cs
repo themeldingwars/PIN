@@ -16,6 +16,8 @@ public class SwitchWeaponCommand : Command, ICommand
         Params = par;
     }
 
+    private byte TargetIndex => (byte)(Params.TargetWeaponSlot - 1);
+
     public override void Execute(Context context, ref CommandResult result)
     {
         if (context.Self is not CharacterEntity character)
@@ -39,8 +41,6 @@ public class SwitchWeaponCommand : Command, ICommand
             Switch(context, character, previous);
         }
     }
-
-    private byte TargetIndex => (byte)(Params.TargetWeaponSlot - 1);
 
     private void Switch(Context context, CharacterEntity character, byte index)
     {

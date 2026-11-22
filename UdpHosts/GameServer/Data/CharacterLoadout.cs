@@ -748,6 +748,25 @@ public class CharacterLoadout
         }
     }
 
+    private static void ApplyCharacterScalars(uint itemTypeId, uint[] modules, byte effectiveLevel, Dictionary<ushort, float> totalCharacterScalars)
+    {
+        var item = SDBInterface.GetRootItem(itemTypeId);
+        var levelSteps = Math.Max(0, (item?.Level ?? 0) - 1);
+        foreach (var (categoryId, scalar) in SDBInterface.GetItemCharacterScalars(itemTypeId))
+        {
+            var value = (scalar.Value + (scalar.PerLevel * levelSteps)) * ItemLevelScaling.GetCharacterScalarSyncFactor(item, effectiveLevel, categoryId);
+            totalCharacterScalars[categoryId] = totalCharacterScalars.GetValueOrDefault(categoryId) + value;
+        }
+
+        foreach (var moduleId in modules)
+        {
+            foreach (var (categoryId, scalar) in SDBInterface.GetItemCharacterScalars(moduleId))
+            {
+                totalCharacterScalars[categoryId] = totalCharacterScalars.GetValueOrDefault(categoryId) + scalar.Value + (scalar.PerLevel * levelSteps);
+            }
+        }
+    }
+
     private void InitFromLoadoutReferenceData(LoadoutReferenceData refData)
     {
         VehicleID = 77087;
@@ -776,24 +795,5 @@ public class CharacterLoadout
         }
 
         ApplyCharacterScalars(itemTypeId, modules, effectiveLevel, totalCharacterScalars);
-    }
-
-    private static void ApplyCharacterScalars(uint itemTypeId, uint[] modules, byte effectiveLevel, Dictionary<ushort, float> totalCharacterScalars)
-    {
-        var item = SDBInterface.GetRootItem(itemTypeId);
-        var levelSteps = Math.Max(0, (item?.Level ?? 0) - 1);
-        foreach (var (categoryId, scalar) in SDBInterface.GetItemCharacterScalars(itemTypeId))
-        {
-            var value = (scalar.Value + (scalar.PerLevel * levelSteps)) * ItemLevelScaling.GetCharacterScalarSyncFactor(item, effectiveLevel, categoryId);
-            totalCharacterScalars[categoryId] = totalCharacterScalars.GetValueOrDefault(categoryId) + value;
-        }
-
-        foreach (var moduleId in modules)
-        {
-            foreach (var (categoryId, scalar) in SDBInterface.GetItemCharacterScalars(moduleId))
-            {
-                totalCharacterScalars[categoryId] = totalCharacterScalars.GetValueOrDefault(categoryId) + scalar.Value + (scalar.PerLevel * levelSteps);
-            }
-        }
     }
 }

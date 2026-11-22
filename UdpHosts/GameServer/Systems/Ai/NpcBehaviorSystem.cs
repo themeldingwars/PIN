@@ -168,26 +168,6 @@ public sealed class NpcBehaviorSystem
         UpdateAggroCounts();
     }
 
-    private void UpdateAggroCounts()
-    {
-        var counts = new Dictionary<ulong, int>();
-        foreach (var entity in _shard.Entities.Values)
-        {
-            if (entity is CharacterEntity { IsNpc: true, IsAlive: true, NpcMovement: { HasCombat: true } comp })
-            {
-                counts[comp.CombatTargetId] = counts.GetValueOrDefault(comp.CombatTargetId) + 1;
-            }
-        }
-
-        foreach (var entity in _shard.Entities.Values)
-        {
-            if (entity is CharacterEntity { IsPlayerControlled: true } player)
-            {
-                player.SetAggroCount(counts.GetValueOrDefault(player.EntityId));
-            }
-        }
-    }
-
     private static string Fmt(float? value) => value?.ToString("0.##") ?? "-";
 
     private static string DescribeAbilities(ResolvedBehavior behavior)
@@ -230,8 +210,6 @@ public sealed class NpcBehaviorSystem
         };
     }
 
-    // A NPC can fight if it has an offensive behavior, or its calm behavior is a combat/wander archetype. Civilians
-    // (idle / interaction styles) never aggro.
     private static bool IsCombatCapable(NpcBehaviorConfig config)
     {
         if (config.OffensiveResolved != null)
@@ -246,7 +224,6 @@ public sealed class NpcBehaviorSystem
         };
     }
 
-    // The NPC's effective weapon reach (0 when it has no usable weapon). Used to gate ranged firing.
     private static float WeaponRange(CharacterEntity npc)
     {
         var details = npc.GetActiveWeaponDetails();
@@ -269,9 +246,6 @@ public sealed class NpcBehaviorSystem
         return combat.Cadence.FireRestDuration is float frd ? frd * _msToSeconds : _defaultRestSeconds;
     }
 
-    // Single-shot NPC attacks use the behavior cadence as the gap between trigger presses. For monster ranged behaviors
-    // this is normally triggerPullTime; the weapon's MsPerBurst is kept as a lower bound so the server never asks the
-    // WeaponSim to press faster than the weapon can cycle.
     private static float AttackIntervalSeconds(ResolvedBehavior combat, CharacterEntity.ActiveWeaponDetails? details)
     {
         float behaviorBurst = BurstMs(combat) * _msToSeconds;
@@ -290,6 +264,32 @@ public sealed class NpcBehaviorSystem
         return spacingMs > 0f ? spacingMs * _msToSeconds : _defaultShotIntervalSeconds;
     }
 
+    private void UpdateAggroCounts()
+    {
+        var counts = new Dictionary<ulong, int>();
+        foreach (var entity in _shard.Entities.Values)
+        {
+            if (entity is CharacterEntity { IsNpc: true, IsAlive: true, NpcMovement: { HasCombat: true } comp })
+            {
+                counts[comp.CombatTargetId] = counts.GetValueOrDefault(comp.CombatTargetId) + 1;
+            }
+        }
+
+        foreach (var entity in _shard.Entities.Values)
+        {
+            if (entity is CharacterEntity { IsPlayerControlled: true } player)
+            {
+                player.SetAggroCount(counts.GetValueOrDefault(player.EntityId));
+            }
+        }
+    }
+
+    // A NPC can fight if it has an offensive behavior, or its calm behavior is a combat/wander archetype. Civilians
+    // (idle / interaction styles) never aggro.
+    // The NPC's effective weapon reach (0 when it has no usable weapon). Used to gate ranged firing.
+    // Single-shot NPC attacks use the behavior cadence as the gap between trigger presses. For monster ranged behaviors
+    // this is normally triggerPullTime; the weapon's MsPerBurst is kept as a lower bound so the server never asks the
+    // WeaponSim to press faster than the weapon can cycle.
     private void LogBehavior(ulong entityId, NpcBehaviorConfig config)
     {
         var b = config.BaseResolved;

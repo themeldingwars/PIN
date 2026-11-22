@@ -166,25 +166,6 @@ public class NetworkClient : INetworkClient
         }
     }
 
-    private static List<string> SplitChatMessage(string message)
-    {
-        const int maxLineLength = 200;
-        List<string> chunks = [];
-        foreach (var line in message.Split('\n'))
-        {
-            var remaining = line.TrimEnd('\r');
-            do
-            {
-                var length = Math.Min(remaining.Length, maxLineLength);
-                chunks.Add(remaining[..length]);
-                remaining = remaining[length..];
-            }
-            while (remaining.Length > 0);
-        }
-
-        return chunks;
-    }
-
     public void SendDebugLog(string message)
     {
         if (AssignedShard != null)
@@ -273,6 +254,25 @@ public class NetworkClient : INetworkClient
 
         BinaryPrimitives.WriteUInt16BigEndian(messageData[2..], forSequenceNumber);
         NetChannels[ChannelType.Control].SendControlMessage((byte)controlMessage, messageData);
+    }
+
+    private static List<string> SplitChatMessage(string message)
+    {
+        const int maxLineLength = 200;
+        List<string> chunks = [];
+        foreach (var line in message.Split('\n'))
+        {
+            var remaining = line.TrimEnd('\r');
+            do
+            {
+                var length = Math.Min(remaining.Length, maxLineLength);
+                chunks.Add(remaining[..length]);
+                remaining = remaining[length..];
+            }
+            while (remaining.Length > 0);
+        }
+
+        return chunks;
     }
 
     private void Control_PacketAvailable(GamePacket packet)

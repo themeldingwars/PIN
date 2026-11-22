@@ -48,6 +48,11 @@ public class TargetByHostilityCommand : Command, ICommand
         return;
     }
 
+    private static bool IsNamed(Context context, IAptitudeTarget target)
+    {
+        return target == context.Self || target == context.Initiator || target == context.Self.Owner;
+    }
+
     private bool Keep(Context context, IEntity compareFrom, IAptitudeTarget target)
     {
         if (target is not IEntity entity)
@@ -82,11 +87,6 @@ public class TargetByHostilityCommand : Command, ICommand
                 Logger.Warning("{Command} {CommandId} has unhandled filter type {FilterType}, keeping every target", nameof(TargetByHostilityCommand), Params.Id, Params.FilterType);
                 return true;
         }
-    }
-
-    private static bool IsNamed(Context context, IAptitudeTarget target)
-    {
-        return target == context.Self || target == context.Initiator || target == context.Self.Owner;
     }
 
     private bool IsIncluded(Context context, IAptitudeTarget target)

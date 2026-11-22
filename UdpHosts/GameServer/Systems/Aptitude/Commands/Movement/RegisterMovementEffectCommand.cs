@@ -9,13 +9,13 @@ public class RegisterMovementEffectCommand : Command, ICommand
 
     private RegisterMovementEffectCommandDef Params;
 
-    private ushort Flags => Params.Sprinting != 0 ? _sprintFlag : (ushort)0;
-
     public RegisterMovementEffectCommand(RegisterMovementEffectCommandDef par)
 : base(par)
     {
         Params = par;
     }
+
+    private ushort Flags => Params.Sprinting != 0 ? _sprintFlag : (ushort)0;
 
     public override void Execute(Context context, ref CommandResult result)
     {

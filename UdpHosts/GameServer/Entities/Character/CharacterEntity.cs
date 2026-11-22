@@ -46,6 +46,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     public const byte MaxTinyCount = 32;
     public const byte DefaultLevel = 1;
     public const uint DefaultEliteLevel = 0;
+    public const uint TeleportPositionLockMs = 1000;
+    public const uint RespawnPositionLockMs = 1000;
     private const int _maxMovementSamples = 32; // ~1.6s at 20 samples/s
     private const int _maxAimSamples = 8; // aim samples only arrive while firing, so a short history is enough
     private const int _maxExtrapolationMs = 100; // How far to predict beyond the newest sample
@@ -57,6 +59,8 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private const uint _heldFireMs = 100;
     private const int _maxHeldFires = 8;
     private const float _defaultEnergyRechargeDelayMs = 500f;
+    private const uint HealthRegenIntervalMs = 1000;
+    private const float MaxReportedPositionJump = 25f;
     private readonly MapMarkerState[] _mapMarkers = new MapMarkerState[MaxMapMarkerCount];
     private readonly MovementSample[] _movementSamples = new MovementSample[_maxMovementSamples];
     private readonly AimSample[] _aimSamples = new AimSample[_maxAimSamples];
@@ -66,14 +70,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private readonly List<(uint Time, Vector3 Aim, Vector3? Velocity)> _heldFires = [];
     private readonly Dictionary<uint, Context> _activatedDefaultAbilities = new();
     private readonly HashSet<uint> _monsterDefaultAbilities = new();
-    private const uint HealthRegenIntervalMs = 1000;
-    private const float MaxReportedPositionJump = 25f;
-    public const uint TeleportPositionLockMs = 1000;
-    public const uint RespawnPositionLockMs = 1000;
+    private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
+    private readonly Dictionary<PermissionFlagsData.CharacterPermissionFlags, Dictionary<(Context Source, uint CommandId), bool>> _permissionLayers = [];
     private uint? _positionLockedUntil;
     private uint? _nextHealthRegenAt;
     private float _healthRegenRemainder;
-    private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
     private int _movementSampleCount;
     private int _movementSampleNewest;
     private int _aimSampleCount;
@@ -180,8 +181,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     };
 
     public Dictionary<PermissionFlagsData.CharacterPermissionFlags, bool> CurrentPermissions { get; }
-
-    private readonly Dictionary<PermissionFlagsData.CharacterPermissionFlags, Dictionary<(Context Source, uint CommandId), bool>> _permissionLayers = [];
 
     public ulong CurrentPermissionsValue => GetCurrentPermissionsValue();
     public float GetMass => NpcSpeedCalculator.BodyMass(StaticInfo.CharacterTypeId, CurrentLoadout?.ChassisID ?? 0u);
@@ -1697,37 +1696,6 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         }
     }
 
-    private bool ResolvePermission(PermissionFlagsData.CharacterPermissionFlags flag)
-    {
-        if (_permissionLayers.TryGetValue(flag, out var layers) && layers.Count > 0)
-        {
-            return !layers.ContainsValue(false);
-        }
-
-        return BasePermissions.TryGetValue(flag, out var value) && value;
-    }
-
-    private void UpdatePermission(PermissionFlagsData.CharacterPermissionFlags flag)
-    {
-        var value = ResolvePermission(flag);
-        if (CurrentPermissions.TryGetValue(flag, out var current) && current == value)
-        {
-            return;
-        }
-
-        CurrentPermissions[flag] = value;
-        PermissionFlags = new PermissionFlagsData
-        {
-            Time = Shard.CurrentTime,
-            Value = (PermissionFlagsData.CharacterPermissionFlags)GetCurrentPermissionsValue(),
-        };
-
-        if (Character_CombatController != null)
-        {
-            Character_CombatController.PermissionFlagsProp = PermissionFlags;
-        }
-    }
-
     public void SetGliderProfileId(uint profileId)
     {
         if (Character_CombatController != null)
@@ -2731,6 +2699,37 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
         foreach (var range in SDBInterface.GetItemAttributeRange(itemId).Values)
         {
             result[range.AttributeId] = result.GetValueOrDefault(range.AttributeId) + range.Base;
+        }
+    }
+
+    private bool ResolvePermission(PermissionFlagsData.CharacterPermissionFlags flag)
+    {
+        if (_permissionLayers.TryGetValue(flag, out var layers) && layers.Count > 0)
+        {
+            return !layers.ContainsValue(false);
+        }
+
+        return BasePermissions.TryGetValue(flag, out var value) && value;
+    }
+
+    private void UpdatePermission(PermissionFlagsData.CharacterPermissionFlags flag)
+    {
+        var value = ResolvePermission(flag);
+        if (CurrentPermissions.TryGetValue(flag, out var current) && current == value)
+        {
+            return;
+        }
+
+        CurrentPermissions[flag] = value;
+        PermissionFlags = new PermissionFlagsData
+        {
+            Time = Shard.CurrentTime,
+            Value = (PermissionFlagsData.CharacterPermissionFlags)GetCurrentPermissionsValue(),
+        };
+
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.PermissionFlagsProp = PermissionFlags;
         }
     }
 
