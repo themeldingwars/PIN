@@ -231,6 +231,20 @@ public class AbilitySystem
         return state.Index < active.Count && ReferenceEquals(active[state.Index], state);
     }
 
+    public void ResetAbility(Context context, uint chainId)
+    {
+        if (!context.ResetFlags.HasFlag(ResetFlags.Apply) || chainId == 0)
+        {
+            return;
+        }
+
+        context.Targets = new AptitudeTargets();
+        context.FormerTargets = new AptitudeTargets();
+        context.TargetStack = new();
+        Factory.LoadChain(chainId).Reset(context);
+        context.ResetFlags &= ~ResetFlags.Apply;
+    }
+
     public void RemoveAllActiveEffects(IAptitudeTarget target)
     {
         if (target is CharacterEntity { InteractionTarget: not null, InteractionExecutionId: not null } character)
@@ -364,7 +378,7 @@ public class AbilitySystem
         }
     }
 
-    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, Vector3? initPosition = null, IAptitudeTarget self = null, Action<Context> initiate = null)
+    public Context HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId, uint activationTime, AptitudeTargets targets, Guid? executionId = null, Vector3? initPosition = null, IAptitudeTarget self = null, Action<Context> initiate = null)
     {
         var execId = executionId ?? Guid.NewGuid();
         using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", execId);
@@ -372,13 +386,13 @@ public class AbilitySystem
         if (abilityData == null)
         {
             _logger.Warning("HandleActivateAbility: Ability {AbilityId} has no AbilityData, skipping", abilityId);
-            return;
+            return null;
         }
 
         var chainId = abilityData.Chain;
         if (chainId == 0)
         {
-            return;
+            return null;
         }
 
         _logger.Information("HandleActivateAbility: Ability {AbilityId} starting Chain {ChainId}", abilityId, chainId);
@@ -407,11 +421,18 @@ public class AbilitySystem
         var chain = Factory.LoadChain(chainId);
         var abilityResult = new CommandResult { Success = true };
         chain.Execute(context, ref abilityResult);
+        if (!abilityResult.Yield)
+        {
+            context.ResetFlags |= ResetFlags.Apply;
+        }
+
+        context.PreviousResult = abilityResult;
+        return context;
     }
 
-    public void HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId)
+    public Context HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId)
     {
-        HandleActivateAbility(shard, initiator, abilityId, _shard.CurrentTime, new AptitudeTargets());
+        return HandleActivateAbility(shard, initiator, abilityId, _shard.CurrentTime, new AptitudeTargets());
     }
 
     public void HandleTargetAbility()

@@ -64,7 +64,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private readonly List<MovementEffect> _movementEffects = [];
     private readonly Queue<PendingAbilityProjectile> _pendingAbilityProjectiles = new();
     private readonly List<(uint Time, Vector3 Aim, Vector3? Velocity)> _heldFires = [];
-    private readonly HashSet<uint> _activatedDefaultAbilities = new();
+    private readonly Dictionary<uint, Context> _activatedDefaultAbilities = new();
     private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
     private int _movementSampleCount;
     private int _movementSampleNewest;
@@ -525,7 +525,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 continue;
             }
 
-            if (!_activatedDefaultAbilities.Add(abilityId))
+            if (!_activatedDefaultAbilities.TryAdd(abilityId, null))
             {
                 skipped.Add(abilityId);
                 continue;
@@ -540,7 +540,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
             Logger.Debug("{Entity} activating {Source} default ability {AbilityId}", this, source, abilityId);
 
-            Shard.Abilities.HandleActivateAbility(Shard, this, abilityId, Shard.CurrentTime, new AptitudeTargets(this));
+            _activatedDefaultAbilities[abilityId] = Shard.Abilities.HandleActivateAbility(Shard, this, abilityId, Shard.CurrentTime, new AptitudeTargets(this));
         }
 
         Logger.Debug(
@@ -553,15 +553,28 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             string.Join(", ", skipped));
     }
 
+    public void ResetDefaultAbilities()
+    {
+        foreach (var context in _activatedDefaultAbilities.Values)
+        {
+            if (context != null)
+            {
+                Shard.Abilities.ResetAbility(context, context.ChainId);
+            }
+        }
+
+        _activatedDefaultAbilities.Clear();
+    }
+
     public void ResetCombatState(string reason)
     {
         var carriedEffects = ActiveEffects.Count(effect => effect != null);
 
+        ResetDefaultAbilities();
         Shard.Abilities.RemoveAllActiveEffects(this);
         _abilityInputs.Clear();
         Shard.WeaponSim.ResetAmmoState(this);
 
-        _activatedDefaultAbilities.Clear();
         ActivateDefaultAbilities(includeMonster: false, includeBattleframe: true);
 
         Logger.Debug(
