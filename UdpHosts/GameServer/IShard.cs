@@ -7,6 +7,7 @@ using GameServer.Navigation;
 using GameServer.Physics;
 using GameServer.Systems.Admin;
 using GameServer.Systems.Aptitude;
+using GameServer.Systems.Carryables;
 using GameServer.Systems.CharacterCreation;
 using GameServer.Systems.CharacterLifecycle;
 using GameServer.Systems.Chat;
@@ -55,6 +56,7 @@ public interface IShard : IPacketSender
     AdminService Admin { get; }
     DamageSystem Damage { get; }
     SuperChargeSystem SuperCharge { get; }
+    CarryableService Carryables { get; }
     HostilityResolver Hostility { get; }
     CharacterCreationService CharacterCreation { get; }
     CharacterLifecycleService CharacterLifecycle { get; }

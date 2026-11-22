@@ -8,6 +8,7 @@ using AeroMessages.GSS.Character.Command;
 using AeroMessages.GSS.Character.Event;
 using GameServer.Data;
 using GameServer.Entities;
+using GameServer.Entities.Carryable;
 using GameServer.Entities.Turret;
 using GameServer.Entities.Vehicle;
 using GameServer.Extensions;
@@ -250,6 +251,23 @@ public static class Character_BaseController
     {
         var query = packet.Unpack<PerformEmote>();
         player.CharacterEntity.SetEmote(new EmoteData { Id = query.EmoteId, Time = query.Time });
+    }
+
+    [MessageID(GssCharacterCommand.PickupCarryableObjectByProximity)]
+    public static void PickupCarryableObjectByProximity(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        var request = packet.Unpack<PickupCarryableObjectByProximity>();
+        if (shard.Entities.TryGetValue(request.Carryable.Id << 8, out var entity) && entity is CarryableEntity carryable)
+        {
+            shard.Carryables.TryPickup(player.CharacterEntity, carryable);
+        }
+    }
+
+    [MessageID(GssCharacterCommand.DropCarryableObject)]
+    public static void DropCarryableObject(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
+    {
+        packet.Unpack<DropCarryableObject>();
+        shard.Carryables.Drop(player.CharacterEntity);
     }
 
     [MessageID(GssCharacterCommand.ClientQueryInteractionStatus)]

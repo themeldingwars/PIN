@@ -21,6 +21,7 @@ public enum ShardSystem
     Projectiles,
     Damage,
     SuperCharge,
+    Carryables,
     Lifecycle,
     Respawn,
     Loot,

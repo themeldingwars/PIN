@@ -339,7 +339,30 @@ public class EntityManager
     {
         var carryableEntity = new CarryableEntity(_shard, _shard.GetNextGuid(), type);
         carryableEntity.SetPosition(position);
+        var info = SDBInterface.GetCarryableObject(type);
+        if (info != null)
+        {
+            carryableEntity.AllowFriendlyPickup = info.AllowFriendlyPickup;
+            carryableEntity.AllowHostilePickup = info.AllowHostilePickup;
+            carryableEntity.CarryableObject_ObserverView.AllowFriendlyPickupProp = info.AllowFriendlyPickup;
+            carryableEntity.CarryableObject_ObserverView.AllowHostilePickupProp = info.AllowHostilePickup;
+            if (info.PickupByInteraction != 0)
+            {
+                carryableEntity.Interaction = new InteractionComponent
+                {
+                    Type = InteractionType.Grab,
+                    Radius = info.PickupRadius,
+                    DurationMs = info.InteractionTimeMs,
+                };
+            }
+        }
+
         Add(carryableEntity.EntityId, carryableEntity);
+        if (info?.CreatedStatusEffect is > 0 and var createdEffect)
+        {
+            _shard.Abilities.DoApplyEffect(createdEffect, carryableEntity, new Context(_shard, carryableEntity) { InitTime = _shard.CurrentTime, CurrentTime = _shard.CurrentTime });
+        }
+
         return carryableEntity;
     }
 

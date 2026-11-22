@@ -14,6 +14,7 @@ using GameServer.Physics;
 using GameServer.Protocol;
 using GameServer.Systems.Admin;
 using GameServer.Systems.Aptitude;
+using GameServer.Systems.Carryables;
 using GameServer.Systems.CharacterCreation;
 using GameServer.Systems.CharacterLifecycle;
 using GameServer.Systems.Chat;
@@ -106,6 +107,7 @@ public class Shard : IShard
         var npcDeathRules = new StandardNpcDeathRules();
         Damage = new DamageSystem(EventBus, this, npcDeathRules);
         SuperCharge = new SuperChargeSystem(this);
+        Carryables = new CarryableService(this, EventBus);
         Combat = new CombatSim(EventBus, EntityMan, Damage, this);
         CharacterLifecycle = new CharacterLifecycleService(this, EventBus, new StandardCharacterLifecycleRules());
         PlayerRespawn = new PlayerRespawnService(this, EventBus, new StandardPlayerRespawnRules(), CharacterLifecycle);
@@ -140,6 +142,7 @@ public class Shard : IShard
     public AdminService Admin { get; }
     public DamageSystem Damage { get; }
     public SuperChargeSystem SuperCharge { get; }
+    public CarryableService Carryables { get; }
     public HostilityResolver Hostility { get; }
     public CombatSim Combat { get; }
     public CharacterCreationService CharacterCreation { get; }
@@ -268,6 +271,8 @@ public class Shard : IShard
         last = Metrics.Tick(ShardSystem.Damage, last);
         SuperCharge.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.SuperCharge, last);
+        Carryables.Tick(deltaTime, currentTime, ct);
+        last = Metrics.Tick(ShardSystem.Carryables, last);
         CharacterLifecycle.Tick(deltaTime, currentTime, ct);
         last = Metrics.Tick(ShardSystem.Lifecycle, last);
         PlayerRespawn.Tick(deltaTime, currentTime, ct);

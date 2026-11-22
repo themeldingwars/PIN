@@ -151,7 +151,7 @@ public sealed class CarryableEntity : BaseAptitudeEntity, IAptitudeTarget
 
     public override bool IsInteractable()
     {
-        return Interaction != null && Interaction.Type != 0;
+        return Interaction != null && Interaction.Type != 0 && Carrier == null;
     }
 
     public override bool CanBeInteractedBy(IEntity other)

@@ -1,5 +1,6 @@
 using AeroMessages.GSS.Character.Event;
 using GameServer.Entities;
+using GameServer.Entities.Carryable;
 using GameServer.Entities.Character;
 using GameServer.Entities.Vehicle;
 using GameServer.Protocol;
@@ -46,6 +47,11 @@ public class EndInteractionCommand : ICommand
         {
             var message = new InteractionCompleted { Percent = 100 };
             character.Player.NetChannels[ChannelType.ReliableGss].SendMessage(message, character.EntityId);
+        }
+
+        if (interactionEntity is CarryableEntity carryable)
+        {
+            context.Shard.Carryables.TryPickup(character, carryable);
         }
 
         if (interactionEntity.Encounter is { Instance: IInteractionHandler encounter })
