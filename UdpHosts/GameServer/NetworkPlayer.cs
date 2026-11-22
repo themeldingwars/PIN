@@ -99,6 +99,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         }
 
         CharacterEntity.PositionAtSpawnPoint(spawnPoint);
+        CharacterEntity.LockPosition(Entities.Character.CharacterEntity.RespawnPositionLockMs);
         CharacterEntity.SetSpawnTime(AssignedShard.CurrentTime);
         var forcedMove = new ForcedMovement
         {

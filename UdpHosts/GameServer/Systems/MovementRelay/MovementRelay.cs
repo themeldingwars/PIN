@@ -31,6 +31,13 @@ public class MovementRelay
         // Update our data based on the clients input
         var poseData = input.PoseData;
         var posRotState = poseData.PosRotState;
+        var reportedPosition = posRotState.Pos;
+        if ((poseData.MovementType & MovementDataType.PosRotState) != 0 && character.RejectsReportedPosition(reportedPosition))
+        {
+            posRotState.Pos = character.Position;
+            poseData.PosRotState = posRotState;
+            poseData.Velocity = Vector3.Zero;
+        }
 
         if (_poseLogCount < MaxPoseLogs)
         {
@@ -81,7 +88,7 @@ public class MovementRelay
         // Update with physics
         _shard.Physics.UpdateEntity(character);
 
-        var poseMatches = Vector3.DistanceSquared(character.Position, posRotState.Pos) <= _confirmedPoseTolerance * _confirmedPoseTolerance
+        var poseMatches = Vector3.DistanceSquared(character.Position, reportedPosition) <= _confirmedPoseTolerance * _confirmedPoseTolerance
             && character.Orientation == posRotState.Rot;
 
         // Confirm the pose with the client

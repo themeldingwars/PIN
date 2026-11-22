@@ -67,6 +67,10 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private readonly Dictionary<uint, Context> _activatedDefaultAbilities = new();
     private readonly HashSet<uint> _monsterDefaultAbilities = new();
     private const uint HealthRegenIntervalMs = 1000;
+    private const float MaxReportedPositionJump = 25f;
+    public const uint TeleportPositionLockMs = 1000;
+    public const uint RespawnPositionLockMs = 1000;
+    private uint? _positionLockedUntil;
     private uint? _nextHealthRegenAt;
     private float _healthRegenRemainder;
     private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
@@ -569,6 +573,21 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             coreAbilityGroupId,
             skipped.Count,
             string.Join(", ", skipped));
+    }
+
+    public void LockPosition(uint durationMs)
+    {
+        _positionLockedUntil = unchecked(Shard.CurrentTime + durationMs);
+    }
+
+    public bool RejectsReportedPosition(Vector3 reported)
+    {
+        if (_positionLockedUntil is { } until && unchecked((int)(Shard.CurrentTime - until)) < 0)
+        {
+            return true;
+        }
+
+        return Vector3.DistanceSquared(reported, Position) > MaxReportedPositionJump * MaxReportedPositionJump;
     }
 
     public bool IsInCombat()

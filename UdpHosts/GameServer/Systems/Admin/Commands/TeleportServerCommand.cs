@@ -31,6 +31,7 @@ public class TeleportServerCommand : ServerCommand
             Vector3 destination = new Vector3(x, y, z);
 
             character.SetPosition(destination);
+            character.LockPosition(Entities.Character.CharacterEntity.TeleportPositionLockMs);
             var forcedMove = new ForcedMovement
             {
                 Data = new ForcedMovementData
