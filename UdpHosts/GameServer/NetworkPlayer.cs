@@ -127,9 +127,9 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         baseController.GibVisualsIdProp = new GibVisuals { Id = 0, Time = AssignedShard.CurrentTime + 1 };
         baseController.RespawnTimesProp = new RespawnTimesData(); // Shake it up
         baseController.RespawnTimesProp = null; // It's dirt
-        baseController.CurrentHealthProp = CharacterEntity.MaxHealth.Value;
         baseController.MaxHealthProp = new MaxVital { Value = CharacterEntity.MaxHealth.Value, Time = AssignedShard.CurrentTime };
-        baseController.CurrentShieldsProp = 0;
+        CharacterEntity.SetCurrentHealth(CharacterEntity.MaxHealth.Value);
+        CharacterEntity.SetCurrentShields(0);
         baseController.ZoneUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
         baseController.RegionUnlocksProp = 0xFFFFFFFFFFFFFFFFUL;
         CharacterEntity.SetPersonalFactionStance(DefaultPlayerFactionStance);
