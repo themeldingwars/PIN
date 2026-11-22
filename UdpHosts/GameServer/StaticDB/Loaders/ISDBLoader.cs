@@ -17,6 +17,7 @@ public interface ISDBLoader
 {
     // dbcharacter
     Dictionary<uint, List<AbilityGroupModule>> LoadAbilityGroupModule();
+    Dictionary<uint, List<AbilityGroupPassive>> LoadAbilityGroupPassive();
     Dictionary<uint, CharCreateLoadout> LoadCharCreateLoadout();
     Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> LoadCharCreateLoadoutSlots();
     Dictionary<uint, Deployable> LoadDeployable();

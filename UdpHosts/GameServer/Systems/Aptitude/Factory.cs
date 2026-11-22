@@ -148,8 +148,8 @@ public class Factory
             //     return new LifespanDurationCommand(CustomDBInterface.GetLifespanDurationCommandDef(commandId));
             case CommandType.ForcePush:
                 return new ForcePushCommand(SDBInterface.GetForcePushCommandDef(commandId));
-            // case CommandType.UpdateYield:
-            //     return new UpdateYieldCommand(SDBInterface.GetUpdateYieldCommandDef(commandId));
+            case CommandType.UpdateYield:
+                return new UpdateYieldCommand(SDBInterface.GetUpdateYieldCommandDef(commandId));
             case CommandType.AirborneDuration:
                 return new AirborneDurationCommand(SDBInterface.GetAirborneDurationCommandDef(commandId));
             // case CommandType.CombatFlags:

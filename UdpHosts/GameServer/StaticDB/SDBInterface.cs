@@ -26,6 +26,7 @@ public class SDBInterface
 
     // dbcharacter
     private static Dictionary<uint, List<AbilityGroupModule>> _abilityGroupModule;
+    private static Dictionary<uint, List<AbilityGroupPassive>> _abilityGroupPassive;
     private static Dictionary<uint, CharCreateLoadout> _charCreateLoadout;
     private static Dictionary<uint, Dictionary<byte, CharCreateLoadoutSlots>> _charCreateLoadoutSlots;
     private static Dictionary<uint, Deployable> _deployable;
@@ -313,6 +314,7 @@ public class SDBInterface
 
         // dbcharacter
         _abilityGroupModule = loader.LoadAbilityGroupModule();
+        _abilityGroupPassive = loader.LoadAbilityGroupPassive();
         _charCreateLoadout = loader.LoadCharCreateLoadout();
         _charCreateLoadoutSlots = loader.LoadCharCreateLoadoutSlots();
         _deployable = loader.LoadDeployable();
@@ -731,6 +733,9 @@ public class SDBInterface
     }
 
     public static List<AbilityGroupModule> GetAbilityGroupModules(uint groupId) => _abilityGroupModule.GetValueOrDefault(groupId);
+
+    public static List<uint> GetPassiveAbilityGroupAbilities(uint abilityGroupId) =>
+        _abilityGroupPassive.GetValueOrDefault(abilityGroupId)?.Select(entry => entry.Abilityid).Where(abilityId => abilityId != 0).ToList() ?? [];
 
     public static List<uint> GetDefaultCoreAbilityGroupAbilities(uint coreAbilityGroupId) =>
         GetAbilityGroupModules(coreAbilityGroupId)?.Select(entry => entry.Abilityid).Where(abilityId => abilityId != 0).ToList() ?? [];

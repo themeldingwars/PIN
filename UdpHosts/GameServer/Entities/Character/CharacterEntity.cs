@@ -516,6 +516,14 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 .Select(abilityId => ($"core ability group {coreAbilityGroupId}", abilityId)));
         }
 
+        uint passiveAbilityGroupId = includeBattleframe ? SDBInterface.GetBattleframe(chassisId)?.AbilityGroupId ?? 0u : 0u;
+
+        if (passiveAbilityGroupId != 0)
+        {
+            sources.AddRange(SDBInterface.GetPassiveAbilityGroupAbilities(passiveAbilityGroupId)
+                .Select(abilityId => ($"passive ability group {passiveAbilityGroupId}", abilityId)));
+        }
+
         var skipped = new List<uint>();
         var activated = 0;
 
@@ -557,6 +565,17 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             coreAbilityGroupId,
             skipped.Count,
             string.Join(", ", skipped));
+    }
+
+    public void RerunDefaultAbilities(uint now)
+    {
+        foreach (var context in _activatedDefaultAbilities.Values.ToList())
+        {
+            if (context != null)
+            {
+                Shard.Abilities.RerunAbility(context, now);
+            }
+        }
     }
 
     public void ResetDefaultAbilities(bool includeMonster = true)

@@ -106,6 +106,11 @@ public class AbilitySystem
             }
         }
 
+        if (entity is CharacterEntity character)
+        {
+            character.RerunDefaultAbilities(now);
+        }
+
         if (entity is BaseAptitudeEntity aptitudeEntity)
         {
             aptitudeEntity.FlushUiNamedVariables();
@@ -418,16 +423,32 @@ public class AbilitySystem
 
         initiate?.Invoke(context);
 
-        var chain = Factory.LoadChain(chainId);
+        RunAbility(context);
+        return context;
+    }
+
+    public void RunAbility(Context context)
+    {
         var abilityResult = new CommandResult { Success = true };
-        chain.Execute(context, ref abilityResult);
+        Factory.LoadChain(context.ChainId).Execute(context, ref abilityResult);
         if (!abilityResult.Yield)
         {
             context.ResetFlags |= ResetFlags.Apply;
         }
 
         context.PreviousResult = abilityResult;
-        return context;
+    }
+
+    public void RerunAbility(Context context, uint now)
+    {
+        if (!context.PreviousResult.Yield || unchecked((int)(now - context.NextProcessTime)) < 0)
+        {
+            return;
+        }
+
+        using var logContext = Serilog.Context.LogContext.PushProperty("ExecutionId", context.ExecutionId);
+        context.CurrentTime = now;
+        RunAbility(context);
     }
 
     public Context HandleActivateAbility(IShard shard, IAptitudeTarget initiator, uint abilityId)

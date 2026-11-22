@@ -48,6 +48,13 @@ public class StaticDBLoader : ISDBLoader
         _sdb = instance;
     }
 
+    public Dictionary<uint, List<AbilityGroupPassive>> LoadAbilityGroupPassive()
+    {
+        return LoadStaticDB<AbilityGroupPassive>("dbcharacter::AbilityGroupPassive")
+        .GroupBy(row => row.Groupid)
+        .ToDictionary(group => group.Key, group => group.ToList());
+    }
+
     public Dictionary<uint, List<AbilityGroupModule>> LoadAbilityGroupModule()
     {
         return LoadStaticDB<AbilityGroupModule>("dbcharacter::AbilityGroupModule")
