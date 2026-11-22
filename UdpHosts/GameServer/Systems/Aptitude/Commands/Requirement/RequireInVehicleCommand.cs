@@ -25,6 +25,14 @@ public class RequireInVehicleCommand : Command, ICommand
             cmdResult = (Params.Driver == 1 && vehicle.ControllingPlayer == character.Player)
                      || (Params.Passenger == 1 && vehicle.ControllingPlayer != character.Player);
         }
+        else if (target is CharacterEntity { TurretControlledBy: not null })
+        {
+            cmdResult = Params.Driver == 1;
+        }
+        else if (target is CharacterEntity { AttachedToEntity: not null })
+        {
+            cmdResult = Params.Passenger == 1;
+        }
         else if (target is not CharacterEntity)
         {
             Logger.Warning("{Command} {CommandId} fails because target is not a Character. If this is happening, we should investigate why.", nameof(RequireInVehicleCommand), Params.Id);
