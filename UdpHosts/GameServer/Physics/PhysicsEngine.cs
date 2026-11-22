@@ -283,7 +283,7 @@ public partial class PhysicsEngine
         motor.Enabled = true;
 
         body.Velocity.Angular = Vector3.Zero;
-        body.Pose.Orientation = Quaternion.Inverse(orientation);
+        body.Pose.Orientation = ToBodyOrientation(orientation);
         body.Awake = true;
     }
 
@@ -1035,7 +1035,7 @@ public partial class PhysicsEngine
         AssetCompoundKey key = GetCharacterPoseAsset(entity);
         var shape = GetAssetShape(key);
 
-        var orientation = Quaternion.Inverse(entity.Orientation);
+        var orientation = ToBodyOrientation(entity.Orientation);
         if (currentPose.Position != entity.Position || currentPose.Orientation != orientation || currentShape != shape)
         {
             body.Awake = true;
@@ -1203,7 +1203,7 @@ public partial class PhysicsEngine
             }
 
             body.Velocity.Angular = Vector3.Zero;
-            body.Pose.Orientation = Quaternion.Inverse(pair.Value.Orientation);
+            body.Pose.Orientation = ToBodyOrientation(pair.Value.Orientation);
             body.Awake = true;
         }
     }
