@@ -571,6 +571,36 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             string.Join(", ", skipped));
     }
 
+    public void MarkInCombat()
+    {
+        if (Character_CombatController != null)
+        {
+            Character_CombatController.CombatTimer_0Prop = Shard.CurrentTime;
+        }
+    }
+
+    public void SetAggroCount(int count)
+    {
+        if (Character_CombatController == null)
+        {
+            return;
+        }
+
+        var value = (byte)Math.Clamp(count, 0, byte.MaxValue);
+        var previous = Character_CombatController.CombatTimer_1Prop;
+        if (value == previous)
+        {
+            return;
+        }
+
+        if (value > previous)
+        {
+            MarkInCombat();
+        }
+
+        Character_CombatController.CombatTimer_1Prop = value;
+    }
+
     public void TickHealthRegen(uint now)
     {
         if (!IsPlayerControlled || !IsAlive || CurrentLoadout == null)

@@ -164,6 +164,28 @@ public sealed class NpcBehaviorSystem
                 ApplyIdleBehavior(npc, comp, config.BaseResolved);
             }
         }
+
+        UpdateAggroCounts();
+    }
+
+    private void UpdateAggroCounts()
+    {
+        var counts = new Dictionary<ulong, int>();
+        foreach (var entity in _shard.Entities.Values)
+        {
+            if (entity is CharacterEntity { IsNpc: true, IsAlive: true, NpcMovement: { HasCombat: true } comp })
+            {
+                counts[comp.CombatTargetId] = counts.GetValueOrDefault(comp.CombatTargetId) + 1;
+            }
+        }
+
+        foreach (var entity in _shard.Entities.Values)
+        {
+            if (entity is CharacterEntity { IsPlayerControlled: true } player)
+            {
+                player.SetAggroCount(counts.GetValueOrDefault(player.EntityId));
+            }
+        }
     }
 
     private static string Fmt(float? value) => value?.ToString("0.##") ?? "-";

@@ -65,6 +65,7 @@ public class HitFeedback
             },
                 sourceCharacter.EntityId);
             _shard.SuperCharge.OnDamageDealt(sourceCharacter, damage);
+            sourceCharacter.MarkInCombat();
         }
 
         // Target Took Hit Feedback. ViewKickScale is the camera kick multiplier the client scales by
@@ -84,6 +85,7 @@ public class HitFeedback
                     },
                     targetCharacter.EntityId);
                 _shard.SuperCharge.OnDamageTaken(targetCharacter, damage);
+                targetCharacter.MarkInCombat();
             }
         }
     }
