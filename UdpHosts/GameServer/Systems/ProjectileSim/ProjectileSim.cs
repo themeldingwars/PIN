@@ -203,7 +203,7 @@ public class ProjectileSim
 
                         if (projectile.Ammo.AbilityId != 0)
                         {
-                            ActivateProjectileAbility(source, projectile, ProjectileHitReason.Impact, projectile.Ammo.AbilityId, (uint)currentTime, TargetsFor(hit.HitEntityId), hit.HitPosition);
+                            ActivateProjectileAbility(source, projectile, ProjectileHitReason.Impact, projectile.Ammo.AbilityId, (uint)currentTime, TargetsFor(hit.HitEntityId), hit.HitPosition, _shard.Physics.IsCriticalHit(hit));
                         }
                     }
                 }
@@ -469,9 +469,9 @@ public class ProjectileSim
         _shard.Physics.HandleProjectileImpact(source, proj.TraceId, hit, splashRadius, proj.Damage, proj.DamageType, proj.IsAbilityProjectile);
     }
 
-    private void ActivateProjectileAbility(CharacterEntity source, ActiveProjectile proj, ProjectileHitReason reason, uint abilityId, uint time, AptitudeTargets targets, Vector3 position)
+    private void ActivateProjectileAbility(CharacterEntity source, ActiveProjectile proj, ProjectileHitReason reason, uint abilityId, uint time, AptitudeTargets targets, Vector3 position, bool critical = false)
     {
-        _logger.Debug("Projectile trace={Trace} {Reason} activating ability {AbilityId} for {Source} at {Position} with {TargetCount} targets", proj.TraceId, reason, abilityId, source, position, targets.Count);
+        _logger.Debug("Projectile trace={Trace} {Reason} activating ability {AbilityId} for {Source} at {Position} with {TargetCount} targets, critical={Critical}", proj.TraceId, reason, abilityId, source, position, targets.Count, critical);
 
         int damagePoints = (int)MathF.Round(proj.Damage, MidpointRounding.AwayFromZero);
         byte damageType = proj.DamageType;
@@ -492,6 +492,7 @@ public class ProjectileSim
                 context.DamagePoints = damagePoints;
                 context.DamageType = damageType;
                 context.ScaleMultiplier = scaleMultiplier;
+                context.Critical = critical;
                 context.InitBodyPosition = position;
                 context.InitAimOrigin = position;
                 context.InitAimDirection = direction;

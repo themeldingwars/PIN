@@ -63,6 +63,8 @@ public class Context
     /// </summary>
     public float ScaleMultiplier { get; set; }
 
+    public bool Critical { get; set; }
+
     /// <summary>
     /// The time the context got initiated at, which durations are measured from.
     /// Not set until an initiation command ran or the context got applied as an effect.
@@ -126,6 +128,7 @@ public class Context
             DamagePoints = original.DamagePoints,
             DamageType = original.DamageType,
             ScaleMultiplier = original.ScaleMultiplier,
+            Critical = original.Critical,
             InitTime = original.InitTime,
             ReplenishedTime = original.ReplenishedTime,
             HasEnergyConsumedTime = original.HasEnergyConsumedTime,

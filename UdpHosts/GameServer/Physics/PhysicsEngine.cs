@@ -768,6 +768,23 @@ public partial class PhysicsEngine
         return results;
     }
 
+    public bool IsCriticalHit(SegmentRaycastHit hit)
+    {
+        AssertSimulationThread();
+
+        if (hit.HitEntityId == 0 || (hit.Collidable.Mobility != CollidableMobility.Kinematic && hit.Collidable.Mobility != CollidableMobility.Dynamic))
+        {
+            return false;
+        }
+
+        if (!TryGetActivePoseShapeData(hit.Collidable, hit.ChildIndex, out var poseShapeData))
+        {
+            return false;
+        }
+
+        return poseShapeData.ShapeFlags.Headshot || SDBInterface.GetPhysicsMaterial((uint)poseShapeData.Material)?.IsCritHit == 1;
+    }
+
     public bool TryGetActivePoseShapeData(CollidableReference collidable, int childIndex, out ActivePoseShapeData shapeData)
     {
         AssertSimulationThread();

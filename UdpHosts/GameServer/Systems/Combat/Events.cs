@@ -30,4 +30,5 @@ public readonly record struct InflictDamageEvent(
     byte DamageType,
     DamageOrigin Origin = DamageOrigin.Ability,
     uint AbilityId = 0,
-    uint CommandId = 0);
+    uint CommandId = 0,
+    bool Crit = false);

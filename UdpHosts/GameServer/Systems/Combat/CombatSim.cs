@@ -54,12 +54,12 @@ public class CombatSim
         var damageResponse = target.DamageResponse;
         var multiplier = SDBInterface.GetDamageResponseDamageType(damageResponse, evt.DamageType) ?? 1f;
         int damageAmount = (int)(evt.DamageAmount * multiplier);
-        if (!_damage.ApplyDamage(target, damageAmount, source, new DamageInfo(damageAmount, evt.DamageType, false, evt.Origin)))
+        if (!_damage.ApplyDamage(target, damageAmount, source, new DamageInfo(damageAmount, evt.DamageType, evt.Crit, evt.Origin)))
         {
             return;
         }
 
-        _feedback.SendHitFeedback(target, source, damageAmount, evt.DamageType, false, false);
+        _feedback.SendHitFeedback(target, source, damageAmount, evt.DamageType, false, evt.Crit);
 
         _logger.Debug("Applied {evtOrigin} damage {damageAmount} to {evtTargetId} from {evtSourceId}, ability {evtAbilityId} command {evtCommandId}", evt.Origin, damageAmount, evt.TargetId, evt.SourceId, evt.AbilityId, evt.CommandId);
     }

@@ -85,7 +85,7 @@ public class InflictDamageCommand : Command, ICommand
                 continue;
             }
 
-            context.Shard.EventBus.Publish(new InflictDamageEvent(entity.EntityId, context.Initiator.EntityId, damage, damageType, DamageOrigin.Ability, context.AbilityId, Params.Id));
+            context.Shard.EventBus.Publish(new InflictDamageEvent(entity.EntityId, context.Initiator.EntityId, damage, damageType, DamageOrigin.Ability, context.AbilityId, Params.Id, context.Critical));
         }
 
         result.SetPass();
