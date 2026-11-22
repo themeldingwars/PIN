@@ -707,13 +707,28 @@ public class SDBInterface
     public static LoadoutSlot GetLoadoutSlot(uint slotId) => _loadoutSlot.GetValueOrDefault(slotId);
 
     public static List<uint> GetDefaultMonsterAbilities(uint monsterId) =>
-        GetMonsterSlots(monsterId)?.Select(slot => slot.DefaultAbility).Where(abilityId => abilityId != 0).ToList() ?? [];
+        GetMonsterSlots(monsterId)?.Select(slot => ResolveSlotAbility(slot.DefaultAbility)).Where(abilityId => abilityId != 0).ToList() ?? [];
 
     public static List<uint> GetDefaultBattleframeAbilities(uint battleframeId) =>
-        GetBattleframeSlots(battleframeId)?.Select(slot => slot.DefaultAbility).Where(abilityId => abilityId != 0).ToList() ?? [];
+        GetBattleframeSlots(battleframeId)?.Select(slot => ResolveSlotAbility(slot.DefaultAbility)).Where(abilityId => abilityId != 0).ToList() ?? [];
 
     public static List<uint> GetDefaultBackpackAbilities(uint backpackId) =>
-        GetBackpackSlots(backpackId)?.Select(slot => slot.DefaultAbility).Where(abilityId => abilityId != 0).ToList() ?? [];
+        GetBackpackSlots(backpackId)?.Select(slot => ResolveSlotAbility(slot.DefaultAbility)).Where(abilityId => abilityId != 0).ToList() ?? [];
+
+    public static uint ResolveSlotAbility(uint defaultAbility)
+    {
+        if (defaultAbility == 0)
+        {
+            return 0;
+        }
+
+        if (GetAbilityModule(defaultAbility) is { } module)
+        {
+            return module.AbilityChainId;
+        }
+
+        return GetAbilityData(defaultAbility) != null ? defaultAbility : 0;
+    }
 
     public static List<AbilityGroupModule> GetAbilityGroupModules(uint groupId) => _abilityGroupModule.GetValueOrDefault(groupId);
 
