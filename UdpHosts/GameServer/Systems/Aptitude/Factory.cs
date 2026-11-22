@@ -210,8 +210,8 @@ public class Factory
             //     return new ShootingDurationCommand(SDBInterface.GetShootingDurationCommandDef(commandId));
             // case CommandType.RequireWeaponTemplate:
             //     return new RequireWeaponTemplateCommand(SDBInterface.GetRequireWeaponTemplateCommandDef(commandId));
-            // case CommandType.SwitchWeapon:
-            //     return new SwitchWeaponCommand(SDBInterface.GetSwitchWeaponCommandDef(commandId));
+            case CommandType.SwitchWeapon:
+                return new SwitchWeaponCommand(SDBInterface.GetSwitchWeaponCommandDef(commandId));
             case CommandType.StatRequirement:
                 return new StatRequirementCommand(SDBInterface.GetStatRequirementCommandDef(commandId));
             case CommandType.ConsumeEnergy:
