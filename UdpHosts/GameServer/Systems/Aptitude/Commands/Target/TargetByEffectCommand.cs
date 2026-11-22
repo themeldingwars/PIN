@@ -14,63 +14,67 @@ public class TargetByEffectCommand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
-        // todo Params.FilterList, equal to 1 in 1086 instances, 0 in 6 instances
         var previousTargets = context.Targets;
-        var newTargets = new AptitudeTargets();
 
-        Logger.Debug("prev: {Count}", previousTargets.Count);
+        if (Params.FilterList == 0)
+        {
+            foreach (IAptitudeTarget target in previousTargets)
+            {
+                if (HasEffect(target, context))
+                {
+                    result.SetPass();
+                    return;
+                }
+            }
+
+            SetResult(ref result, false);
+            return;
+        }
+
+        var newTargets = new AptitudeTargets();
         foreach (IAptitudeTarget target in previousTargets)
         {
-            foreach (EffectState active in target.GetActiveEffects())
+            if (HasEffect(target, context) != (Params.Negate == 1))
             {
-                if (active == null)
-                {
-                    continue;
-                }
-
-                var condition = Params.EffectId == active.Effect.Id && active.Stacks >= Params.StackCount;
-                if (Params.Negate == 1)
-                {
-                    condition = !condition;
-                }
-
-                if (condition)
-                {
-                    if (Params.SameInitiator == 1)
-                    {
-                        var condition2 = Params.Negate == 1
-                                             ? context.Initiator == active.Context.Initiator
-                                             : context.Initiator != active.Context.Initiator;
-                        if (condition2)
-                        {
-                            newTargets.Push(target);
-                        }
-                    }
-                    else
-                    {
-                        newTargets.Push(target);
-                    }
-
-                    break;
-                }
+                newTargets.Push(target);
             }
         }
 
         context.FormerTargets = previousTargets;
         context.Targets = newTargets;
 
-        if (Params.FailNoTargets == 1 && context.Targets.Count == 0)
-        {
-            result.SetFail();
-            return;
-        }
-
-        result.SetPass();
-        return;
+        SetResult(ref result, newTargets.Count > 0);
     }
 
     public override void Reset(Context context)
     {
         return;
+    }
+
+    private void SetResult(ref CommandResult result, bool anyTarget)
+    {
+        if (!anyTarget && Params.FailNoTargets == 1)
+        {
+            result.SetFail(StatusCode.TargetRequirementFailed);
+            return;
+        }
+
+        result.SetPass();
+    }
+
+    private bool HasEffect(IAptitudeTarget target, Context context)
+    {
+        foreach (EffectState active in target.GetActiveEffects())
+        {
+            if (active != null
+                && active.Effect.Id == Params.EffectId
+                && active.Stacks >= Params.StackCount
+                && (Params.SameInitiator != 1 || context.Initiator == active.Context.Initiator))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
