@@ -65,6 +65,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
     private readonly Queue<PendingAbilityProjectile> _pendingAbilityProjectiles = new();
     private readonly List<(uint Time, Vector3 Aim, Vector3? Velocity)> _heldFires = [];
     private readonly Dictionary<uint, Context> _activatedDefaultAbilities = new();
+    private readonly HashSet<uint> _monsterDefaultAbilities = new();
     private readonly Dictionary<uint, AbilityInput> _abilityInputs = [];
     private int _movementSampleCount;
     private int _movementSampleNewest;
@@ -525,6 +526,11 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
                 continue;
             }
 
+            if (source.StartsWith("monster"))
+            {
+                _monsterDefaultAbilities.Add(abilityId);
+            }
+
             if (!_activatedDefaultAbilities.TryAdd(abilityId, null))
             {
                 skipped.Add(abilityId);
@@ -553,24 +559,30 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             string.Join(", ", skipped));
     }
 
-    public void ResetDefaultAbilities()
+    public void ResetDefaultAbilities(bool includeMonster = true)
     {
-        foreach (var context in _activatedDefaultAbilities.Values)
+        foreach (var (abilityId, context) in _activatedDefaultAbilities.ToList())
         {
+            if (!includeMonster && _monsterDefaultAbilities.Contains(abilityId))
+            {
+                continue;
+            }
+
             if (context != null)
             {
                 Shard.Abilities.ResetAbility(context, context.ChainId);
             }
-        }
 
-        _activatedDefaultAbilities.Clear();
+            _activatedDefaultAbilities.Remove(abilityId);
+            _monsterDefaultAbilities.Remove(abilityId);
+        }
     }
 
     public void ResetCombatState(string reason)
     {
         var carriedEffects = ActiveEffects.Count(effect => effect != null);
 
-        ResetDefaultAbilities();
+        ResetDefaultAbilities(includeMonster: false);
         Shard.Abilities.RemoveAllActiveEffects(this);
         _abilityInputs.Clear();
         Shard.WeaponSim.ResetAmmoState(this);
@@ -972,15 +984,12 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             DamageResponse = battleframeRecord.DamageResponse;
         }
 
-        if (IsNpc && previousChassisId != 0 && previousChassisId != loadout.ChassisID)
+        if (previousChassisId != 0 && previousChassisId != loadout.ChassisID)
         {
+            ResetDefaultAbilities(includeMonster: false);
             ActivateDefaultAbilities(includeMonster: false, includeBattleframe: true);
-        }
-
-        if (!IsNpc && previousChassisId != 0 && previousChassisId != loadout.ChassisID)
-        {
             Logger.Debug(
-                "{Entity} changed chassis {PreviousChassisId} -> {ChassisId}: {EffectCount} active effects carried over and no stat modifier refreshed",
+                "{Entity} changed chassis {PreviousChassisId} -> {ChassisId}: default abilities reset and activated again, {EffectCount} active effects carried over",
                 this,
                 previousChassisId,
                 loadout.ChassisID,
