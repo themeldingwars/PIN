@@ -184,8 +184,8 @@ public class Factory
             //     return new RequireInRangeCommand(SDBInterface.GetRequireInRangeCommandDef(commandId));
             case CommandType.TinyObjectCreate:
                 return new TinyObjectCreateCommand(CustomDBInterface.GetTinyObjectCreateCommandDef(commandId));
-            // case CommandType.TinyObjectDestroy:
-            //     return new TinyObjectDestroyCommand(CustomDBInterface.GetTinyObjectDestroyCommandDef(commandId));
+            case CommandType.TinyObjectDestroy:
+                return new TinyObjectDestroyCommand(CustomDBInterface.GetTinyObjectDestroyCommandDef(commandId));
             // case CommandType.TinyObjectUpdate:
             //     return new TinyObjectUpdateCommand(CustomDBInterface.GetTinyObjectUpdateCommandDef(commandId));
             // case CommandType.TargetTinyObject:

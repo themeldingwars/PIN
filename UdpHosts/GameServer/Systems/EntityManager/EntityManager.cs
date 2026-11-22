@@ -346,6 +346,17 @@ public class EntityManager
     public TinyObjectEntity SpawnTinyObject(uint type, Vector3 position, CharacterEntity container)
     {
         var containerIndex = container.GetFreeTinyIndex();
+        if (containerIndex == BaseAptitudeEntity.InvalidIndex)
+        {
+            containerIndex = 0;
+            var evicted = _shard.Entities.Values.OfType<TinyObjectEntity>().FirstOrDefault(tiny => tiny.Container == container && tiny.ContainerIndex == containerIndex);
+            _logger.Warning("{Container} has no free tiny object slot for {Type}, replacing {Evicted} in slot {Index}", container, type, evicted, containerIndex);
+            if (evicted != null)
+            {
+                Remove(evicted.EntityId);
+            }
+        }
+
         var tinyObjectInfo = SDBInterface.GetTinyObject(type);
         var hostility = container.HostilityInfo;
         var tinyObjectEntity = new TinyObjectEntity(_shard, _shard.GetNextGuid(), tinyObjectInfo, position, hostility, container, containerIndex);
@@ -676,6 +687,11 @@ public class EntityManager
             if (entity is DeployableEntity deployable)
             {
                 DetachNpcGunner(deployable);
+            }
+
+            if (entity is TinyObjectEntity { Container: CharacterEntity { Character_TinyObjectView: { } tinyView } } tinyObject)
+            {
+                tinyView.GetType().GetProperty($"TinyObjects_{tinyObject.ContainerIndex}Prop")?.SetValue(tinyView, null);
             }
 
             if (entity is CharacterEntity characterEntity)
