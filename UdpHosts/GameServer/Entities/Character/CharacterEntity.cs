@@ -1005,14 +1005,15 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
 
         if (previousChassisId != 0 && previousChassisId != loadout.ChassisID)
         {
-            ResetDefaultAbilities(includeMonster: false);
-            ActivateDefaultAbilities(includeMonster: false, includeBattleframe: true);
-            Logger.Debug(
-                "{Entity} changed chassis {PreviousChassisId} -> {ChassisId}: default abilities reset and activated again, {EffectCount} active effects carried over",
-                this,
-                previousChassisId,
-                loadout.ChassisID,
-                ActiveEffects.Count(effect => effect != null));
+            if (IsPlayerControlled)
+            {
+                ResetCombatState($"chassis {previousChassisId} -> {loadout.ChassisID}");
+            }
+            else
+            {
+                ResetDefaultAbilities(includeMonster: false);
+                ActivateDefaultAbilities(includeMonster: false, includeBattleframe: true);
+            }
         }
 
         RefreshEnergyParams();
