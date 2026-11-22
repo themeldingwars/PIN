@@ -81,6 +81,8 @@ public interface IPlayer
     void EnterZoneAck();
     void ExitZoneAck();
     void Ready();
+    void StreamingComplete();
+    void AwaitSpawn();
     void Respawn();
     void Jump();
     void Tick(double deltaTime, ulong currentTime, CancellationToken ct);

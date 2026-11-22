@@ -129,6 +129,10 @@ public static class Character_BaseController
     public static void PlayerReady(NetworkClient client, IShard shard, IPlayer player, ulong entityId, GamePacket packet)
     {
         player.Ready();
+        if (packet.Unpack<PlayerReady>() is { StreamingComplete: not 0 })
+        {
+            player.StreamingComplete();
+        }
 
         FriendsList.ReportOnline((INetworkPlayer)client);
     }

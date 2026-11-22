@@ -44,6 +44,9 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public uint LastRequestedUpdate { get; set; }
     public uint RequestedClientTime { get; set; }
     public bool FirstUpdateRequested { get; set; }
+    private const uint SpawnAfterLoadFallbackMs = 90000;
+    private uint? _awaitingSpawnSince;
+    private bool _streamingComplete;
     public ulong SteamUserId { get; set; }
     public bool OwnCharacterViewsRequested { get; set; }
     public CharacterInventory Inventory { get; set; }
@@ -67,6 +70,8 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
     public void EnterZoneAck()
     {
         OwnCharacterViewsRequested = false;
+        _streamingComplete = false;
+        _awaitingSpawnSince = null;
         AssignedShard.EntityMan.Add(CharacterEntity.EntityId, CharacterEntity);
         AssignedShard.EntityMan.OnPlayerJoin(this);
     }
@@ -157,6 +162,36 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
         Status = IPlayer.PlayerStatus.Playing;
     }
 
+    public void StreamingComplete()
+    {
+        _streamingComplete = true;
+        TrySpawnAfterLoad("the client finished streaming");
+    }
+
+    public void AwaitSpawn()
+    {
+        _awaitingSpawnSince = AssignedShard.CurrentTime;
+        TrySpawnAfterLoad("the client finished streaming");
+    }
+
+    private void TrySpawnAfterLoad(string reason)
+    {
+        if (_awaitingSpawnSince is not { } since)
+        {
+            return;
+        }
+
+        var waited = unchecked(AssignedShard.CurrentTime - since);
+        if (!_streamingComplete && waited < SpawnAfterLoadFallbackMs)
+        {
+            return;
+        }
+
+        _awaitingSpawnSince = null;
+        Logger.Information("Spawning {Character} after {Waited} ms because {Reason}", CharacterEntity, waited, _streamingComplete ? reason : "the client never reported streaming complete");
+        Respawn();
+    }
+
     public void RequestRevive(INetworkPlayer reviver)
     {
         if (reviver == null || CharacterEntity == null)
@@ -184,6 +219,7 @@ public class NetworkPlayer : NetworkClient, INetworkPlayer
                 break;
             case IPlayer.PlayerStatus.Playing:
                 {
+                    TrySpawnAfterLoad("the client finished streaming");
                     break;
                 }
         }

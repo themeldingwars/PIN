@@ -32,7 +32,7 @@ public static class GenericShard
         if (!player.FirstUpdateRequested)
         {
             player.FirstUpdateRequested = true;
-            player.Respawn();
+            player.AwaitSpawn();
         }
     }
 
