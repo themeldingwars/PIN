@@ -1,4 +1,5 @@
 ﻿using System;
+using AeroMessages.GSS.Character;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -95,7 +96,7 @@ public class TargetConeAECommand : Command, ICommand
 
             foreach (var hitEntityId in context.Shard.Physics.QueryEntityIdsInCone(nearPoint, direction, queryRange, minRadius, maxRadius, context.Self.EntityId))
             {
-                if (context.Shard.Entities.TryGetValue(hitEntityId, out var entity) && entity is BaseAptitudeEntity candidate && !hits.Contains(candidate))
+                if (context.Shard.Entities.TryGetValue(hitEntityId, out var entity) && entity is BaseAptitudeEntity candidate and not CharacterEntity { CharacterState.State: CharacterStateData.CharacterStatus.Dead } && !hits.Contains(candidate))
                 {
                     hits.Add(candidate);
                 }

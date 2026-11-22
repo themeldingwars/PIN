@@ -1,4 +1,5 @@
 ﻿using System;
+using AeroMessages.GSS.Character;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -28,8 +29,6 @@ public class TargetPBAECommand : Command, ICommand
 
     public override void Execute(Context context, ref CommandResult result)
     {
-        context.FormerTargets = new AptitudeTargets(context.Targets);
-
         // Unused:
         // Params.IgnoreWalls
         // Params.ScaleOffset
@@ -89,7 +88,7 @@ public class TargetPBAECommand : Command, ICommand
 
             foreach (var hitEntityId in context.Shard.Physics.QueryEntityIdsInSphere(origin, radius, ignoreEntityId))
             {
-                if (context.Shard.Entities.TryGetValue(hitEntityId, out var entity) && entity is BaseAptitudeEntity candidate && !hits.Contains(candidate))
+                if (context.Shard.Entities.TryGetValue(hitEntityId, out var entity) && entity is BaseAptitudeEntity candidate and not CharacterEntity { CharacterState.State: CharacterStateData.CharacterStatus.Dead } && !hits.Contains(candidate))
                 {
                     hits.Add(candidate);
                 }
