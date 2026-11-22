@@ -64,17 +64,12 @@ public class TargetByEffectCommand : Command, ICommand
 
     private bool HasEffect(IAptitudeTarget target, Context context)
     {
-        foreach (EffectState active in target.GetActiveEffects())
+        var first = target.FirstEffect(Params.EffectId);
+        if (first == null || target.CountEffect(Params.EffectId) < Params.StackCount)
         {
-            if (active != null
-                && active.Effect.Id == Params.EffectId
-                && active.Stacks >= Params.StackCount
-                && (Params.SameInitiator != 1 || context.Initiator == active.Context.Initiator))
-            {
-                return true;
-            }
+            return false;
         }
 
-        return false;
+        return Params.SameInitiator != 1 || context.Initiator == first.Context.Initiator;
     }
 }

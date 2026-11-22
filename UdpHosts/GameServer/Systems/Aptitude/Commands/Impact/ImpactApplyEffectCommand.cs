@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using GameServer.StaticDB.Records.apt;
 
 namespace GameServer.Systems.Aptitude.Commands.Impact;
@@ -88,25 +90,28 @@ public class ImpactApplyEffectCommand : Command, ICommand
             Logger.Debug("{Command} {CommandId} (effect {EffectId}) specifies it should be RemovedOnRollback", nameof(ImpactApplyEffectCommand), Params.Id, Params.EffectId);
         }
 
+        var applied = new List<EffectState>();
         if (Params.ApplyToSelf == 1)
         {
-            if (Params.RemoveOnRollback == 1)
-            {
-                context.CommandState[Id] = new AptitudeTargets(context.Self);
-            }
-
-            context.Abilities.DoApplyEffect(Params.EffectId, context.Self, effectContext);
+            applied.Add(context.Abilities.DoApplyEffect(Params.EffectId, context.Self, effectContext));
         }
         else
         {
-            if (Params.RemoveOnRollback == 1)
-            {
-                context.CommandState[Id] = new AptitudeTargets(context.Targets);
-            }
-
             foreach (IAptitudeTarget target in context.Targets)
             {
-                context.Abilities.DoApplyEffect(Params.EffectId, target, effectContext);
+                applied.Add(context.Abilities.DoApplyEffect(Params.EffectId, target, effectContext));
+            }
+        }
+
+        if (Params.RemoveOnRollback == 1)
+        {
+            if (context.CommandState.TryGetValue(Id, out var existing) && existing is List<EffectState> earlier)
+            {
+                earlier.AddRange(applied.Where(state => state != null));
+            }
+            else
+            {
+                context.CommandState[Id] = applied.Where(state => state != null).ToList();
             }
         }
 
@@ -116,15 +121,18 @@ public class ImpactApplyEffectCommand : Command, ICommand
 
     public override void Reset(Context context)
     {
-        if (!context.CommandState.Remove(Id, out var state) || state is not AptitudeTargets targets)
+        if (!context.CommandState.Remove(Id, out var state) || state is not List<EffectState> applied)
         {
             return;
         }
 
-        foreach (IAptitudeTarget target in targets)
+        foreach (var effect in applied)
         {
-            Logger.Information("RemoveOnRollback of {Command} {CommandId} triggers removal of {EffectId}", nameof(ImpactApplyEffectCommand), Params.Id, Params.EffectId);
-            context.Abilities.DoRemoveEffect(target, Params.EffectId, context.CurrentTime);
+            if (AbilitySystem.IsActive(effect))
+            {
+                Logger.Information("RemoveOnRollback of {Command} {CommandId} triggers removal of {EffectId}", nameof(ImpactApplyEffectCommand), Params.Id, Params.EffectId);
+                context.Abilities.DoRemoveEffect(effect, context.CurrentTime);
+            }
         }
     }
 }

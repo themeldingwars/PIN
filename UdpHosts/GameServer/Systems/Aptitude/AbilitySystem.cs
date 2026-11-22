@@ -113,11 +113,11 @@ public class AbilitySystem
         }
     }
 
-    public void DoApplyEffect(uint effectId, IAptitudeTarget target, Context context)
+    public EffectState DoApplyEffect(uint effectId, IAptitudeTarget target, Context context)
     {
         if (effectId == 0)
         {
-            return;
+            return null;
         }
 
         var applyContext = Context.CopyContext(context);
@@ -147,14 +147,12 @@ public class AbilitySystem
         if (effectState.MaxStacksExceeded)
         {
             _logger.Debug(
-                "Effect {EffectId} on {Target} is already at its {MaxStacks} stacks, so nothing of this application runs and the modifier already on the target is left alone",
+                "Effect {EffectId} on {Target} is already at its {MaxStacks} stacks, so this application is dropped",
                 effectId,
                 target,
                 effect.MaxStackCount);
-            return;
+            return null;
         }
-
-        var wasAlreadyActive = !ReferenceEquals(effectState.Context, applyContext);
 
         var applyResult = new CommandResult { Success = true };
         if (effect.ApplyChain != null)
@@ -164,17 +162,7 @@ public class AbilitySystem
             applyContext.PreviousResult = applyResult;
         }
 
-        if (wasAlreadyActive)
-        {
-            _logger.Debug(
-                "Effect {EffectId} on {Target} was already active and is now {Stacks} stacks; the {StatCount} stat modifiers of this application are not tracked: {Stats}",
-                effectId,
-                target,
-                effectState.Stacks,
-                applyContext.StatChangelist.Count,
-                string.Join(", ", applyContext.StatChangelist.Keys));
-        }
-        else if (applyContext.StatChangelist.Count > 0 && effect.DurationChain == null)
+        if (applyContext.StatChangelist.Count > 0 && effect.DurationChain == null)
         {
             _logger.Debug(
                 "Effect {EffectId} on {Target} holds stat modifiers {Stats} and has no duration chain, so nothing expires it",
@@ -182,10 +170,17 @@ public class AbilitySystem
                 target,
                 string.Join(", ", applyContext.StatChangelist.Keys));
         }
+
+        return effectState;
     }
 
     public void DoRemoveEffect(EffectState activeEffect, uint time)
     {
+        if (!IsActive(activeEffect))
+        {
+            return;
+        }
+
         activeEffect.Context.ExecutionHint = ExecutionHint.RemoveEffect;
         activeEffect.Context.CurrentTime = time;
         activeEffect.Context.Self.ClearEffect(activeEffect);
@@ -215,18 +210,25 @@ public class AbilitySystem
 
     public void DoRemoveEffect(IAptitudeTarget entity, uint effectId, uint time)
     {
-        var activeEffects = entity.GetActiveEffects();
-        foreach (var activeEffect in activeEffects)
+        foreach (var activeEffect in entity.GetActiveEffects())
         {
-            if (activeEffect?.Effect.Id != null)
+            if (activeEffect?.Effect.Id == effectId)
             {
-                if (activeEffect.Effect.Id == effectId)
-                {
-                    DoRemoveEffect(activeEffect, time);
-                    break;
-                }
+                DoRemoveEffect(activeEffect, time);
             }
         }
+    }
+
+    public static bool IsActive(EffectState state)
+    {
+        var self = state?.Context?.Self;
+        if (self == null)
+        {
+            return false;
+        }
+
+        var active = self.GetActiveEffects();
+        return state.Index < active.Count && ReferenceEquals(active[state.Index], state);
     }
 
     public void RemoveAllActiveEffects(IAptitudeTarget target)

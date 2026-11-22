@@ -59,6 +59,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
     public EffectState AddEffect(Effect effect, Context context)
     {
         byte firstFreeIndex = InvalidIndex;
+        var usedStackIndexes = new HashSet<byte>();
         for (byte i = 0; i < MaxEffectCount; i++)
         {
             if (ActiveEffects[i] == null)
@@ -68,24 +69,22 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
                     firstFreeIndex = i;
                 }
             }
-
-            if (ActiveEffects[i]?.Effect.Id == effect.Id)
+            else if (ActiveEffects[i].Effect.Id == effect.Id)
             {
-                if (ActiveEffects[i].Stacks < effect.MaxStackCount)
-                {
-                    ActiveEffects[i].Stacks += 1;
-                    LogEffectSlot(effect, ActiveEffects[i], "stacked");
-                }
-                else
-                {
-                    // The caller is told to drop the application, so whatever the effect would have applied
-                    // this time is lost while the modifier already in the slot keeps counting.
-                    LogEffectSlot(effect, ActiveEffects[i], "already at max stacks, application dropped");
-                    return new EffectState() { MaxStacksExceeded = true };
-                }
-
-                return ActiveEffects[i];
+                usedStackIndexes.Add(ActiveEffects[i].StackIndex);
             }
+        }
+
+        if (usedStackIndexes.Count >= System.Math.Max(1, (int)effect.MaxStackCount))
+        {
+            Logger.Verbose("{Entity} effect {EffectId} already has {Stacks}/{MaxStacks} stacks, application dropped", this, effect.Id, usedStackIndexes.Count, effect.MaxStackCount);
+            return new EffectState() { MaxStacksExceeded = true };
+        }
+
+        byte stackIndex = 0;
+        while (usedStackIndexes.Contains(stackIndex))
+        {
+            stackIndex++;
         }
 
         if (firstFreeIndex == InvalidIndex)
@@ -108,7 +107,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
             // The client matches the effects it predicted by their init time
             Time = context.InitTime.Value,
-            Stacks = 1,
+            StackIndex = stackIndex,
             Index = firstFreeIndex
         };
 
@@ -118,6 +117,7 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
         var data = new StatusEffectData
         {
             Id = state.Effect.Id,
+            Stack = state.StackIndex,
             Initiator = state.Context.Initiator.AeroEntityId,
             Time = state.Time,
             MoreDataFlag = 0
@@ -209,12 +209,12 @@ public abstract class BaseAptitudeEntity : BaseEntity, IAptitudeTarget
 
         Logger.Write(
             level,
-            "{Entity} effect {What}: {EffectId} in slot {Index} ({Stacks}/{MaxStacks} stacks, {DurationChain} duration chain) holding {Stats}; {EffectCount} active effects",
+            "{Entity} effect {What}: {EffectId} in slot {Index} (stack {Stack} of {MaxStacks}, {DurationChain} duration chain) holding {Stats}; {EffectCount} active effects",
             this,
             what,
             effect.Id,
             state.Index,
-            state.Stacks,
+            state.StackIndex,
             effect.MaxStackCount,
             effect.DurationChain == null ? "no" : "a",
             holdsStats ? string.Join(", ", state.Context.StatChangelist.Keys) : "no stats",

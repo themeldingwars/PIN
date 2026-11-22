@@ -60,19 +60,12 @@ public class RequireHasEffectCommand : Command, ICommand
 
     private bool HasEffect(IAptitudeTarget target, Context context)
     {
-        foreach (EffectState active in target.GetActiveEffects())
+        var first = target.FirstEffect(Params.EffectId);
+        if (first == null || target.CountEffect(Params.EffectId) < Params.StackCount)
         {
-            if (active == null)
-            {
-                continue;
-            }
-
-            if (active.Effect.Id == Params.EffectId && active.Stacks >= Params.StackCount)
-            {
-                return Params.SameInitiator != 1 || context.Initiator == active.Context.Initiator;
-            }
+            return false;
         }
 
-        return false;
+        return Params.SameInitiator != 1 || context.Initiator == first.Context.Initiator;
     }
 }

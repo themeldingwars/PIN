@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace GameServer.Systems.Aptitude;
 
 public class EffectState
@@ -6,6 +8,19 @@ public class EffectState
     public Context Context;
     public byte Index;
     public uint Time;
-    public byte Stacks = 1;
+    public byte StackIndex;
     public bool MaxStacksExceeded;
+}
+
+public static class EffectStateExtensions
+{
+    public static int CountEffect(this IAptitudeTarget target, uint effectId)
+    {
+        return target.GetActiveEffects().Count(active => active?.Effect.Id == effectId);
+    }
+
+    public static EffectState FirstEffect(this IAptitudeTarget target, uint effectId)
+    {
+        return target.GetActiveEffects().FirstOrDefault(active => active?.Effect.Id == effectId);
+    }
 }

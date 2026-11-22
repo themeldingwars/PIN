@@ -31,7 +31,7 @@ public class RequireHasEffectTagCommand : Command, ICommand
                         continue;
                     }
 
-                    if (effectTagEffectIds.Contains(active.Effect.Id) && active.Stacks >= Params.StackCount)
+                    if (effectTagEffectIds.Contains(active.Effect.Id) && target.CountEffect(active.Effect.Id) >= Params.StackCount)
                     {
                         matchCounter++;
                         break;
@@ -54,7 +54,7 @@ public class RequireHasEffectTagCommand : Command, ICommand
                     continue;
                 }
 
-                if (effectTagEffectIds.Contains(active.Effect.Id) && active.Stacks >= Params.StackCount)
+                if (effectTagEffectIds.Contains(active.Effect.Id) && target.CountEffect(active.Effect.Id) >= Params.StackCount)
                 {
                     cmdResult = true;
                     break;

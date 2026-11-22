@@ -29,7 +29,7 @@ public class TargetByEffectTagCommand : Command, ICommand
                     continue;
                 }
 
-                if (effectTagEffectIds.Contains(active.Effect.Id) && active.Stacks >= Params.StackCount)
+                if (effectTagEffectIds.Contains(active.Effect.Id) && target.CountEffect(active.Effect.Id) >= Params.StackCount)
                 {
                     newTargets.Push(target);
                     break;

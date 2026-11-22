@@ -1184,7 +1184,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             }
 
             contributors.Add(
-                $"effect {effect.Effect.Id} in slot {effect.Index} ({effect.Stacks}/{effect.Effect.MaxStackCount} stacks) multi {mod.Multi:0.###} add {mod.Add:0.###}");
+                $"effect {effect.Effect.Id} in slot {effect.Index} (stack {effect.StackIndex} of {effect.Effect.MaxStackCount}) multi {mod.Multi:0.###} add {mod.Add:0.###}");
         }
 
         if (_statOverrides.TryGetValue(stat, out var overrideMod))
@@ -1212,7 +1212,7 @@ public sealed partial class CharacterEntity : BaseAptitudeEntity, IAptitudeTarge
             }
 
             effects.Add(
-                $"{effect.Effect.Id} in {effect.Index} x{effect.Stacks}{(effect.Effect.DurationChain == null ? " (no duration)" : string.Empty)}");
+                $"{effect.Effect.Id} in {effect.Index} stack {effect.StackIndex}{(effect.Effect.DurationChain == null ? " (no duration)" : string.Empty)}");
         }
 
         var controller = Character_CombatController;
