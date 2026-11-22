@@ -12,7 +12,8 @@ public readonly record struct ProjectileHitEvent(
     byte DamageType,
     float DamageMod = -1f,
     bool IsAbilityProjectile = false,
-    bool IsSplash = false);
+    bool IsSplash = false,
+    float HeadshotMult = 1f);
 
 public readonly record struct ImpactHitEvent(
     IEntity Target,

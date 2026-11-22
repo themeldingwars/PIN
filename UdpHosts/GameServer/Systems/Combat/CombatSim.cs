@@ -1,3 +1,4 @@
+using System;
 using GameServer.Entities;
 using GameServer.Entities.Character;
 using GameServer.StaticDB;
@@ -96,6 +97,11 @@ public class CombatSim
         // A projectile spawned by an ability chain is ability damage even though it arrives as an impact.
         DamageOrigin origin = evt.IsAbilityProjectile ? DamageOrigin.Ability : DamageOrigin.Weapon;
         var dmg = evt.DamageAmount;
+        if ((evt.HeadShot || evt.Crit) && evt.HeadshotMult > 0)
+        {
+            dmg = (int)MathF.Round(dmg * evt.HeadshotMult);
+        }
+
         if (!_damage.ApplyDamage(target, dmg, source, new DamageInfo(dmg, evt.DamageType, evt.HeadShot || evt.Crit, origin)))
         {
             return;

@@ -43,6 +43,7 @@ public struct ActiveProjectile
     public float ImpactRadius;
     public float MaxRadius;
     public float Damage;
+    public float HeadshotMult;
     public byte DamageType;
     public byte DamageResponse;
 

@@ -33,7 +33,7 @@ public class ProjectileSim
         _activeProjectiles = new ConcurrentDictionary<(ulong EntityId, uint TraceId), ActiveProjectile>();
     }
 
-    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, float damage, bool isAbilityProjectile = false, Guid? sourceExecutionId = null, uint? fireTime = null)
+    public void FireProjectile(CharacterEntity entity, uint trace, Vector3 origin, Vector3 direction, Ammo ammo, float range, float projectileSpeed, float impactRadius, float maxRadius, float damage, bool isAbilityProjectile = false, Guid? sourceExecutionId = null, uint? fireTime = null, float headshotMult = 1f)
     {
         uint startTime = GetStartTime(fireTime);
         var ammoFlags = new AmmoFlags(ammo.Flags);
@@ -82,6 +82,7 @@ public class ProjectileSim
             ImpactRadius = impactRadius,
             MaxRadius = maxRadius,
             Damage = damage,
+            HeadshotMult = headshotMult,
             DamageType = ammo.Damagetype,
             DamageResponse = ammo.DamageResponse,
             IsDrunk = isDrunk,
@@ -199,7 +200,7 @@ public class ProjectileSim
                             SendProjectileHitReported(shooter, projectile.TraceId, (uint)currentTime);
                         }
 
-                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.ImpactRadius, projectile.Damage, projectile.DamageType, projectile.IsAbilityProjectile, dealDamage: projectile.Ammo.AbilityId == 0);
+                        _shard.Physics.HandleProjectileImpact(source, projectile.TraceId, hit, projectile.ImpactRadius, projectile.Damage, projectile.DamageType, projectile.IsAbilityProjectile, dealDamage: projectile.Ammo.AbilityId == 0, headshotMult: projectile.HeadshotMult);
 
                         if (projectile.Ammo.AbilityId != 0)
                         {
@@ -466,14 +467,14 @@ public class ProjectileSim
 
         float splashRadius = reason == ProjectileHitReason.Touch ? 0f : proj.ImpactRadius;
         _logger.Debug("Projectile trace={Trace} {Reason} has no ability, applying {Damage} damage to entity={Entity} splash={Splash}", proj.TraceId, reason, proj.Damage, entityId, splashRadius);
-        _shard.Physics.HandleProjectileImpact(source, proj.TraceId, hit, splashRadius, proj.Damage, proj.DamageType, proj.IsAbilityProjectile);
+        _shard.Physics.HandleProjectileImpact(source, proj.TraceId, hit, splashRadius, proj.Damage, proj.DamageType, proj.IsAbilityProjectile, headshotMult: proj.HeadshotMult);
     }
 
     private void ActivateProjectileAbility(CharacterEntity source, ActiveProjectile proj, ProjectileHitReason reason, uint abilityId, uint time, AptitudeTargets targets, Vector3 position, bool critical = false)
     {
         _logger.Debug("Projectile trace={Trace} {Reason} activating ability {AbilityId} for {Source} at {Position} with {TargetCount} targets, critical={Critical}", proj.TraceId, reason, abilityId, source, position, targets.Count, critical);
 
-        int damagePoints = (int)MathF.Round(proj.Damage, MidpointRounding.AwayFromZero);
+        int damagePoints = (int)MathF.Round(critical && proj.HeadshotMult > 0 ? proj.Damage * proj.HeadshotMult : proj.Damage, MidpointRounding.AwayFromZero);
         byte damageType = proj.DamageType;
         float scaleMultiplier = proj.ImpactRadius;
         Vector3 direction = SegmentDirection(proj);

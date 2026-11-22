@@ -634,7 +634,7 @@ public class WeaponSim
             PRNG.PRNG.Spread(time, weapon.SlotIndex, numBulletsFired, aimForward, aimRight, aimUp, spreadPct, modeState.LastSpreadDirection, modeState.LastSpreadTime, out Vector3 direction);
             uint trace = PRNG.PRNG.Trace(time, numBulletsFired);
             _logger.Debug("FireWeaponDirect time={Time} trace={Trace} aimSource={AimSource}", time, trace, aimSource);
-            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, range, projectileSpeed, impactRadius, maxRadius, damage, fireTime: time);
+            _shard.ProjectileSim.FireProjectile(entity, trace, origin, direction, ammo, range, projectileSpeed, impactRadius, maxRadius, damage, fireTime: time, headshotMult: details.WeaponProfile.HeadshotMult);
             modeState.LastSpreadDirection = direction;
             modeState.LastSpreadTime = time;
 

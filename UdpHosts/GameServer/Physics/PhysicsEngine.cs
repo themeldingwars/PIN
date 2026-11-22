@@ -633,7 +633,7 @@ public partial class PhysicsEngine
         return handler.Hit ? origin.Z - handler.T : null;
     }
 
-    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, float impactRadius, float damage, byte damageType, bool isAbilityProjectile = false, bool dealDamage = true)
+    public void HandleProjectileImpact(CharacterEntity source, uint trace, SegmentRaycastHit hit, float impactRadius, float damage, byte damageType, bool isAbilityProjectile = false, bool dealDamage = true, float headshotMult = 1f)
     {
         DebugProjectileHitCallbacks?.SendDebugProjectileImpact(source, trace, hit.HitPosition, hit.Normal);
 
@@ -655,7 +655,7 @@ public partial class PhysicsEngine
 
         if (hit.HitEntityId != 0)
         {
-            bool emittedDirectHit = TryEmitDirectHit(source, trace, hit.Collidable, hit.ChildIndex, hit.HitPosition, hit.HitEntityId, damageAmount, damageType, isAbilityProjectile);
+            bool emittedDirectHit = TryEmitDirectHit(source, trace, hit.Collidable, hit.ChildIndex, hit.HitPosition, hit.HitEntityId, damageAmount, damageType, isAbilityProjectile, headshotMult: headshotMult);
             if (!emittedDirectHit)
             {
                 EmitGenericProjectileHit(hit.HitEntityId, damageAmount, damageType, source.EntityId, isAbilityProjectile, isSplash: false);
@@ -1086,7 +1086,7 @@ public partial class PhysicsEngine
         Simulation.Bodies.Remove(bodyHandle);
     }
 
-    private bool TryEmitDirectHit(CharacterEntity source, uint trace, CollidableReference collidable, int childIndex, Vector3 hitPosition, ulong hitEntityId, int damageAmount, byte damageType, bool isAbilityProjectile, bool dealDamage = true)
+    private bool TryEmitDirectHit(CharacterEntity source, uint trace, CollidableReference collidable, int childIndex, Vector3 hitPosition, ulong hitEntityId, int damageAmount, byte damageType, bool isAbilityProjectile, bool dealDamage = true, float headshotMult = 1f)
     {
         AssertSimulationThread();
 
@@ -1122,7 +1122,7 @@ public partial class PhysicsEngine
             return true;
         }
 
-        _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, damageAmount, source.EntityId, headshot, crit, damageType, damageMod, isAbilityProjectile));
+        _eventBus.Enqueue(new ProjectileHitEvent(poseShapeData.Name, hitEntityId, damageAmount, source.EntityId, headshot, crit, damageType, damageMod, isAbilityProjectile, HeadshotMult: headshotMult));
         return true;
     }
 
