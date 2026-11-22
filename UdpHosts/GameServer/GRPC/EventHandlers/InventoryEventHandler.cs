@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GrpcGameServerAPIClient;
 using Serilog;
+using CharacterLoadout = GameServer.Data.CharacterLoadout;
 
 namespace GameServer.GRPC.EventHandlers;
 
@@ -31,5 +32,36 @@ public static class InventoryEventHandler
             "Inventory of {CharacterGuid:X16} changed in RIN, {Action}",
             e.CharacterGuid,
             hosted ? "we caused it and stay authoritative" : "character is not hosted here");
+    }
+
+    public static void HandleEvent(LoadoutPerksUpdated e, IDictionary<uint, INetworkPlayer> clients)
+    {
+        var player = clients.Values.FirstOrDefault(p => p.CharacterId + 0xFE == e.CharacterGuid);
+        if (player?.Inventory == null || player.CharacterEntity == null)
+        {
+            return;
+        }
+
+        if (!player.Inventory.SetLoadoutPerks(e.LoadoutId, [.. e.PerkSdbIds]))
+        {
+            return;
+        }
+
+        var character = player.CharacterEntity;
+        if (character.SelectedLoadout == e.LoadoutId && character.CurrentLoadout != null)
+        {
+            var refData = player.Inventory.GetLoadoutReferenceData(e.LoadoutId);
+            if (refData != null)
+            {
+                character.ApplyLoadout(new CharacterLoadout(refData));
+            }
+        }
+
+        _logger.Information(
+            "{Player} locked in {Count} perks on loadout {LoadoutId}: {Perks}",
+            player,
+            e.PerkSdbIds.Count,
+            e.LoadoutId,
+            e.PerkSdbIds);
     }
 }

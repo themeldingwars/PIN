@@ -726,6 +726,32 @@ public class CharacterInventory
         return true;
     }
 
+    public bool SetLoadoutPerks(int loadoutId, uint[] perks)
+    {
+        if (!_loadouts.TryGetValue(loadoutId, out var loadout))
+        {
+            _logger.Warning(
+                "Perk change for loadout {LoadoutId}, which {CharacterId:X16} does not have",
+                loadoutId,
+                _character.EntityId);
+            return false;
+        }
+
+        var configs = loadout.LoadoutConfigs;
+        if (configs.All(config => (config.Perks ?? []).SequenceEqual(perks)))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < configs.Length; i++)
+        {
+            configs[i].Perks = [.. perks];
+        }
+
+        SendLoadoutChanges();
+        return true;
+    }
+
     public void PersistCurrentBattleframe(uint chassisId)
     {
         if (!_persistChanges)

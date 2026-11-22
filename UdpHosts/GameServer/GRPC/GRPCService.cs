@@ -223,6 +223,9 @@ public static class GRPCService
             case Event.SubtypeOneofCase.FriendNotification:
                 FriendsList.HandleNotification(evt.FriendNotification, clients);
                 break;
+            case Event.SubtypeOneofCase.LoadoutPerksUpdated:
+                InventoryEventHandler.HandleEvent(evt.LoadoutPerksUpdated, clients);
+                break;
             case Event.SubtypeOneofCase.None:
             default:
                 break;
