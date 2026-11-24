@@ -219,16 +219,7 @@ public class NetworkClient : INetworkClient
 
     public void SendAck(ChannelType forChannel, ushort forSequenceNumber, DateTime? received = null)
     {
-        ControlPacketType controlMessage;
-        if (forChannel == ChannelType.Matrix)
-        {
-            controlMessage = ControlPacketType.MatrixAck;
-        }
-        else if (forChannel == ChannelType.ReliableGss)
-        {
-            controlMessage = ControlPacketType.ReliableGSSAck;
-        }
-        else
+        if (forChannel != ChannelType.Matrix && forChannel != ChannelType.ReliableGss)
         {
             return;
         }
@@ -245,15 +236,15 @@ public class NetworkClient : INetworkClient
             }
         }
 
-        // MatrixAck/GSSAck is NextSeqNum followed by AckForNum, both in network byte order, with no additional acks
-        Span<byte> messageData = stackalloc byte[4];
-        unchecked
+        var nextSeqNum = unchecked((ushort)(forSequenceNumber + 1));
+        if (forChannel == ChannelType.Matrix)
         {
-            BinaryPrimitives.WriteUInt16BigEndian(messageData[..2], (ushort)(forSequenceNumber + 1));
+            NetChannels[ChannelType.Control].SendMessage(new MatrixAck { NextSeqNum = nextSeqNum, AckForNum = forSequenceNumber });
         }
-
-        BinaryPrimitives.WriteUInt16BigEndian(messageData[2..], forSequenceNumber);
-        NetChannels[ChannelType.Control].SendControlMessage((byte)controlMessage, messageData);
+        else
+        {
+            NetChannels[ChannelType.Control].SendMessage(new GSSAck { NextSeqNum = nextSeqNum, AckForNum = forSequenceNumber });
+        }
     }
 
     private static List<string> SplitChatMessage(string message)
