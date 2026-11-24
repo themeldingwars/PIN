@@ -291,12 +291,20 @@ public class NetworkClient : INetworkClient
                 Close("the client closed the connection");
                 break;
             case ControlPacketType.MatrixAck:
-                LogAck(packet, ChannelType.Matrix);
-                HandleAck(packet, ChannelType.Matrix);
+                if (packet.BytesRemaining >= 4)
+                {
+                    var matrixAck = packet.Unpack<MatrixAck>();
+                    HandleAck(ChannelType.Matrix, matrixAck.AckForNum, matrixAck.AdditionalAcks);
+                }
+
                 break;
             case ControlPacketType.ReliableGSSAck:
-                LogAck(packet, ChannelType.ReliableGss);
-                HandleAck(packet, ChannelType.ReliableGss);
+                if (packet.BytesRemaining >= 4)
+                {
+                    var gssAck = packet.Unpack<GSSAck>();
+                    HandleAck(ChannelType.ReliableGss, gssAck.AckForNum, gssAck.AdditionalAcks);
+                }
+
                 break;
             case ControlPacketType.TimeSyncRequest:
                 var timeSyncRequestPackage = packet.Unpack<TimeSyncRequest>();
@@ -316,39 +324,17 @@ public class NetworkClient : INetworkClient
         }
     }
 
-    private void HandleAck(GamePacket packet, ChannelType forChannel)
+    private void HandleAck(ChannelType forChannel, ushort ackForNum, ReadOnlySpan<byte> additionalAcks)
     {
-        var data = packet.PacketData.Span[packet.CurrentPosition..];
-        if (data.Length < 4)
-        {
-            return;
-        }
+        Logger.Verbose("--> {Channel} Ack for {AckForNum} on {ForChannel}.", ChannelType.Control, ackForNum, forChannel);
 
-        var cumulative = BinaryPrimitives.ReadUInt16BigEndian(data[2..]);
-        Span<ushort> selective = stackalloc ushort[(data.Length - 4) / 2];
+        Span<ushort> selective = stackalloc ushort[additionalAcks.Length / 2];
         for (var i = 0; i < selective.Length; i++)
         {
-            selective[i] = BinaryPrimitives.ReadUInt16BigEndian(data[(4 + (i * 2))..]);
+            selective[i] = BinaryPrimitives.ReadUInt16BigEndian(additionalAcks[(i * 2)..]);
         }
 
-        NetChannels[forChannel].HandleAck(cumulative, selective);
-    }
-
-    /// <summary>
-    ///     Read the acknowledged sequence number of an incoming ack without unpacking the whole Aero message
-    /// </summary>
-    /// <param name="packet">The received control packet carrying the ack</param>
-    /// <param name="forChannel">The channel the ack acknowledges</param>
-    private void LogAck(GamePacket packet, ChannelType forChannel)
-    {
-        if (!Logger.IsEnabled(LogEventLevel.Verbose) || packet.BytesRemaining < 4)
-        {
-            return;
-        }
-
-        // AckForNum is the second field of the message and travels in network byte order
-        var ackForNum = BinaryPrimitives.ReadUInt16BigEndian(packet.PacketData.Span[packet.CurrentPosition..][2..]);
-        Logger.Verbose("--> {Channel} Ack for {AckForNum} on {ForChannel}.", ChannelType.Control, ackForNum, forChannel);
+        NetChannels[forChannel].HandleAck(ackForNum, selective);
     }
 
     /// <summary>
